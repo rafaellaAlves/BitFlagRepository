@@ -1,0 +1,80 @@
+﻿@model WEB.Models.HomeViewModel
+
+@{
+    
+    ViewData["Title"] = "Home";
+}
+
+<style type="text/css">
+    .top-box {
+        border: #f39a2d 3px solid;
+        /*orange; #f39a2d;*/
+        background-color: white;
+        border-radius: 30px;
+        padding-top: 15px;
+        padding-left: 30px;
+        padding-right: 32px;
+    }
+
+    .top-box-orange {
+        border: brown 3px solid;
+        background-color: #f39a2d;
+        border-radius: 30px;
+        padding-top: 30px;
+        padding-left: 18px;
+        padding-right: 18px;
+        color: white;
+    }
+
+    .top-box-qtd {
+        font-size: 30px !important;
+        margin-bottom: -5px;
+        font-weight: bold;
+    }
+
+    .top-box-desc {
+        font-size: 15px !important;
+    }
+
+    .top-box-button {
+        font-size: 12px !important;
+        padding: 8px !important;
+        min-width: 80px;
+        padding-top: 2px !important;
+        padding-bottom: 2px !important;
+    }
+
+
+
+    .offset-05 {
+        margin-left: 6.333333%;
+    }
+
+    .offset-025 {
+        margin-left: 3.333333%;
+    }
+
+    #home-logo {
+        height: 250px;
+        margin-top: 20px;
+        margin: auto;
+    }
+    @@media (max-width: 760px) {
+        #home-logo {
+            height: 90px;
+        }
+    }
+</style>
+
+<div class="text-center">
+    <h1 class="display-4">Seja bem-vindo!</h1>
+    <img src="@Url.Content(WEB.Configuration.InsuranceConfiguration.LogoFullPath)" id="home-logo">
+</div>
+
+@if (ViewData["AcceptRealEstateMessage"] != null)
+{
+    <script type="text/javascript">
+    alert('@Html.Raw(ViewData["AcceptRealEstateMessage"])');
+    </script>
+}
+

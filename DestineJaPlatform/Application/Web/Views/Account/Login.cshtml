@@ -1,0 +1,62 @@
+﻿@model DTO.Account.LoginViewModel
+@{
+    ViewData["Title"] = "Login";
+    Layout = "~/Views/Shared/_LayoutClientLogin.cshtml";
+}
+
+<a href="http://www.destineja.com.br/" target="_blank" class="btn btn-destineja-orange client-login-more-info-button">Saiba Mais</a>
+
+<div id="container-client-login">
+    <div class="arrow"></div>
+    <form method="post" action="@Url.Action("Login", "Account")">
+        @if (ViewData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger" role="alert">@ViewData["ErrorMessage"]</div>
+        }
+        @if (Context.Request.Query.ContainsKey("success"))
+        {
+            <div class="alert alert-success" role="alert">
+                Seu cadastro foi realizado com sucesso!
+                <br />
+                Enviamos um e-mail, verifique sua caixa de entrada.
+            </div>
+        }
+        @if (Context.Request.Query.ContainsKey("passwordchanged"))
+        {
+            <div class="alert alert-success" role="alert">Senha alterada com sucesso!</div>
+        }
+
+        @if (Context.Request.Query.ContainsKey("creationTokenValidation"))
+        {
+            if (Context.Request.Query["creationTokenValidation"].ToString().ToUpper() == "TRUE")
+            {
+                <div class="alert alert-success" role="alert">O seu e-mail foi confirmado com sucesso!</div>
+            }
+            else
+            {
+                <div class="alert alert-error" role="alert">O link de ativação de e-mail acessado é inválido.</div>
+            }
+        }
+        <div class="form-group">
+            <div class="input-group">
+                <div class="input-group-prepend input-group-icon">
+                    <i class="fa fa-user"></i>
+                </div>
+                <input class="form-control input-group-input" name="Email" id="Email" value="@Model.Email" placeholder="E-mail">
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="input-group">
+                <div class="input-group-prepend input-group-icon">
+                    <i class="fa fa-lock"></i>
+                </div>
+                <input class="form-control input-group-input" name="Password" id="Password" type="password" value="@Model.Password" placeholder="Senha">
+            </div>
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-destineja-orange btn-block client-login-button">Entrar</button>
+        </div>
+        <div class="mg-t-30 tx-center"><a href="@Url.Action("PasswordRecovery", "Account")">Esqueceu a senha?</a></div>
+        <div class="mg-t-5 tx-center">Primeiro contato com a Destine Já? <a href="@Url.Action("New", "Account")" class="tx-info">Cadastre-se</a></div>
+    </form>
+</div>

@@ -1,0 +1,247 @@
+﻿
+@{
+    ViewData["Title"] = "Seguro Aparelho Veterinario AmaisVet";
+    
+    string _notFound = null;
+    if (ViewData["notFound"] != null)
+    {
+        _notFound = ViewData["notFound"].ToString();
+    }
+    bool notFound = false;
+    if (!string.IsNullOrWhiteSpace(_notFound))
+    {
+        bool.TryParse(_notFound, out notFound);
+    }
+}
+
+
+<script type="text/javascript">
+
+    function SalvarIndex() {
+
+        if (!IsNullOrWhiteSpace($('#Referencia').val())) {
+            var referencia = $('#Referencia').val();
+
+            window.location.href = '@Url.Action("Retornar", "SeguroAparelho")?reference=' + referencia;
+        }
+        else {
+            $('#IndexForm').submit();
+            @*var d = $('#IndexForm').serializeArray();
+            $.post('@Url.Action("Salvar", "SeguroAparelho")', d, function (data) {
+                $('#SeguradoProfissionalId').val(data.seguradoEquipamentoId);
+                window.location.href = '@Url.Action("Cotacao", "SeguroAparelho")?seguradoEquipamentoId=' + data.seguradoEquipamentoId;
+            });*@
+        }
+    }
+
+    function ValidacaoDoIndex() {
+        $('.text-danger').remove();
+        var IndexErro = false;
+
+        if (IsNullOrWhiteSpace($('#Referencia').val())) {
+
+            if (IsNullOrWhiteSpace($('#Nome').val())) {
+                $('#Nome').after('<div class="text-danger">Insira o nome!</div>');
+                IndexErro = true;
+            }
+
+            if (IsNullOrWhiteSpace($('#Plano').val())) {
+                $('#Plano').after('<div class="text-danger">Escolha o tipo de utilização!</div>');
+                IndexErro = true;
+            }
+
+            if (IsNullOrWhiteSpace($('#PrecoEquipamento').val())) {
+                $('#PrecoEquipamento').after('<div class="text-danger">Insira o preço do equipamento!</div>');
+                IndexErro = true;
+            }
+            else {
+                var valorEquipamentos = parseFloat($('#PrecoEquipamento').val().replace(/\./g, '').replace(/\,/g, '.'));
+                if (valorEquipamentos < 2000.00 || valorEquipamentos > 1000000.00) {
+                    $('#PrecoEquipamento').after('<div class="text-danger">O preço do equipamento deve ser de no mínimo R$ 2.000,00 e no máximo 1.000.000,00!</div>');
+                    IndexErro = true;
+                }
+            }
+            if (IsNullOrWhiteSpace($('#QtdEquipamento').val())) {
+                $('#QtdEquipamento').after('<div class="text-danger">Insira a Qtd. de equipamentos!</div>');
+                IndexErro = true;
+            }
+            else if ($('#QtdEquipamento').val() < 1 || $('#QtdEquipamento').val() > 10) {
+                $('#QtdEquipamento').after('<div class="text-danger">A Qtd. de equipamentos deve ser de no minimo 1 e no máximo 10 !</div>');
+                IndexErro = true;
+            }
+
+            if (IsNullOrWhiteSpace($('#Email').val())) {
+                $('#Email').after('<div class="text-danger">Insira o e-mail!</div>');
+                IndexErro = true;
+            }
+
+            if (IsNullOrWhiteSpace($('#Celular').val())) {
+                $('#Celular').after('<div class="text-danger">Insira o celular!</div>');
+                IndexErro = true;
+            }
+
+            if (IsNullOrWhiteSpace($('#CRMV').val())) {
+                $('#CRMV').after('<div class="text-danger">Insira o CRMV!</div>');
+                IndexErro = true;
+            }
+            if (IsNullOrWhiteSpace($('#EstadoCRMV').val())) {
+                $('#EstadoCRMV').after('<div class="text-danger">Insira o estado do CRMV!</div>');
+                IndexErro = true;
+            }
+        }
+        return (!IndexErro);
+    }
+</script>
+<div class="row">
+    <div class="col-sm-12 mx-auto">
+        <div class="row">
+            <div class="rectangle" id="retangle1" style="height: 10px; width:17%; margin-left:16%; background:lightgrey;"></div>
+            <div class="rectangle" id="retangle2" style="height: 10px; width:17%; background:lightgrey;"></div>
+            <div class="rectangle" id="retangle3" style="height: 10px; width:17%; background-color:lightgrey;"></div>
+            <div class="rectangle" id="retangle4" style="height: 10px; width:17%; background-color:lightgrey;"></div>
+        </div>
+        <div class="row">
+            <div class="col-md-1 col-1"></div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle shadow" id="circle1" style="background-color: lightgrey; ">
+                    <div style="padding-top:25px;">
+                        <div class="mx-auto smallcircle" id="smallCircle1" style="background: white; display:none;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="circle2" style="background-color: lightgrey;"></div>
+                <div class="mx-auto smallcircle" id="smallCircle2" style="background: white; display:none;"></div>
+            </div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="circle3" style="background-color: lightgrey;"></div>
+                <div class="mx-auto smallcircle" id="smallCircle3" style="background: white; display:none;"></div>
+            </div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="circle4" style=" background-color: lightgrey;"></div>
+                <div class="mx-auto smallcircle" id="smallCircle4" style="background: white; display:none;"></div>
+            </div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="circle5" style=" background-color: lightgrey;"></div>
+                <div class="mx-auto smallcircle" id="smallCircle5" style=" background: white; display:none;"></div>
+            </div>
+        </div>
+        <div class="row" style="margin-top:1em;">
+            <div class="col-md-1"></div>
+            <div class="col-sm-2 text-center"><strong style="color:#40615f">Simulação</strong></div>
+            <div class="col-sm-2 text-center"><label>Custo do Seguro</label></div>
+            <div class="col-sm-2 text-center"><label>Proposta</label></div>
+            <div class="col-sm-2 text-center"> <label>Contratar</label></div>
+            <div class="col-sm-2 text-center"> <label>Impressão</label></div>
+        </div>
+    </div>
+</div>
+<br />
+<script type="text/javascript">
+    $('#circle1').css("background", "#0a754e");
+    $('#smallCircle1').show();
+</script>
+<br />
+
+<form id="IndexForm" action="@Url.Action("Index", "SeguroAparelho")" method="post">
+    <input type="hidden" id="SeguradoProfissionalId" name="SeguradoProfissionalId" />
+    <div class="row">
+        <div class="col-md-7 mx-auto">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <div class="form-group">
+                        <label>Nome:</label>
+                        <input class="form-control" id="Nome" name="Nome" type="text" placeholder="Nome" />
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label>E-mail:</label>
+                            <input class="form-control" id="Email" name="Email" type="email" placeholder="E-mail" />
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label>Celular:</label>
+                            <input class="form-control mobile" name="Celular" id="Celular" type="text" placeholder="Celular" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label>Telefone:</label>
+                            <input class="form-control phone" name="Telefone" id="Telefone" type="text" placeholder="Telefone" />
+                        </div>
+                        <div class="form-group col-md-6">
+                            <a href="javascript:void(0);" class="amaisvet-green" data-toggle="tooltip" data-placement="top" data-html="true" title="Aparelhos de uso Interno:<br/><ul><li>Cobertura em um único endereço informado.</li></ul>Aparelho de uso Externo (volante):<br/><ul><li>Cobertura em todo o território nacional.</li></ul>"><i class="fas fa-info-circle"></i></a>&nbsp;<label>Tipo de Utilização:</label>
+                            <select class="form-control" id="Plano" name="PlanoSeguroEquipamentoId">
+                                <option value="">Selecione</option>
+                                @foreach (var plano in (List<DAL.PlanoSeguroEquipamento>)ViewData["PlanoSeguroEquipamento"])
+                                {
+                                    <option value="@plano.PlanoSeguroEquipamentoId">@plano.Nome</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label class="control-label">Qtd. de Aparelhos:</label>
+                            <input type="text" id="QtdEquipamento" name="QtdEquipamento" class="form-control" placeholder="Qtd. de aparelhos" />
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label class="control-label">Valor Total do(s) Aparelho(s):</label>
+                            <input type="text" id="PrecoEquipamento" name="PrecoEquipamento" class="form-control money" placeholder="Preço" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label>CRMV:</label>
+                            <input name="Conveniado" id="Conveniado" type="hidden" />
+                            <input class="form-control" id="CRMV" name="CRMV" type="text" placeholder="CRMV" />
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label>Estado do CRMV:</label>
+                            <select class="form-control" id="EstadoCRMV" name="CRMVEstado">
+                                <option value="">Selecione</option>
+                                @foreach (var item in GuardMedWeb.BLL.Utils.Utils.GetEstados())
+                                {
+                                    <option value="@item.EstadoId">@item.Description</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer text-center">
+                    <div class="row">
+                        <div class="col-md-5 col-12"  style="margin-top:5px;">
+                            <input class="form-control text-left" placeholder="# Referência, caso possua." id="Referencia" />
+                        </div>
+                        <div class="col-md-7" style="margin-top:5px;">
+                            <button type="button" id="IndexSubmitButton" class="btn btn-primary float-right">Avançar&nbsp;<i class="fas fa-arrow-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+<script type="text/javascript">
+
+    $('#IndexSubmitButton').click(function () {
+        if (ValidacaoDoIndex()) {
+            $('#Conveniado').val(EConveniado($('#EstadoCRMV').val()));
+            SalvarIndex();
+        }
+    });
+
+    function EConveniado(EstadoCrmv) {
+        return EstadoCrmv == 'SP' || EstadoCrmv == 'GO' || EstadoCrmv == 'PR' || EstadoCrmv == 'SE'
+    }
+
+    $(document).ready(function () {
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+
+    @if (notFound)
+    {
+        <text>
+            alert("Referência não encontrada!");
+        </text>
+    }
+</script>

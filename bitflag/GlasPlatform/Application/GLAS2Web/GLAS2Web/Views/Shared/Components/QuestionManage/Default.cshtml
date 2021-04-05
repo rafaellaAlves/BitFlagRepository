@@ -1,0 +1,32 @@
+﻿@model DTO.Question.QuestionViewModel
+
+@inject BLL.Question.QuestionThemeFunctions questionThemeFunctions
+
+<form id="question-manage-form" method="post" action="@Url.Action("Manage", "Question")">
+    <input type="hidden" name="QuestionId" value="@Model.QuestionId" />
+
+    <div class="row">
+        <div class="col-md-4 form-group">
+            <label class="required">Nome do Tema</label>
+            <select class="form-control" name="QuestionThemeId">
+                <option value="">Selecione</option>
+                @foreach (var item in questionThemeFunctions.GetDataAsNoTracking(x => !x.IsDeleted))
+                {
+                    <option value="@item.QuestionThemeId" @(item.QuestionThemeId == Model.QuestionThemeId ? "selected" : "")>@item.Name</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-8 form-group">
+            <label class="required">Pergunta</label>
+            <input type="text" class="form-control uppercase" name="QuestionText" placeholder="Pergunta" value="@Model.QuestionText" />
+        </div>
+    </div>
+</form>
+
+<script type="text/javascript">
+    function questionSave() {
+        if (!validateInputs('#question-manage-form')) return;
+
+        $('#question-manage-form').submit();
+    }
+</script>

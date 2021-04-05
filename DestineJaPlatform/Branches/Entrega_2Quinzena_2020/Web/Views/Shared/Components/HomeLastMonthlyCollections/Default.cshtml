@@ -1,0 +1,87 @@
+﻿@inject Services.Home.HomeServices homeServices
+@inject Services.Client.ClientServices clientServices
+
+@{
+    int clientId = await clientServices.GetClientIdByLoggedUser(Context);
+
+    DateTime? firstCollectDate = await homeServices.GetFirstCollectDateFromClient(clientId);
+}
+<div class="bg-white">
+    <div class="row p-2">
+        <div class="col text-right">
+            <div class="btn-group" role="group" aria-label="Basic example">
+                @for (int year = firstCollectDate.HasValue ? firstCollectDate.Value.Year : DateTime.Now.Year; year <= DateTime.Now.Year; year++)
+                {
+                    <a href="javascript:loadDemandClientLastMonthlyCollectionsChart(@year)" data-year="@year" class="btn btn-secondary tx-12 @(year == DateTime.Now.Year ? "active" : "")">@year</a>
+                }
+            </div>
+        </div>
+    </div>
+    <div id="client-last-monthly-collections"></div>
+</div>
+
+<script type="text/javascript" asp-cut-key="home-client-last-monthly-collections">
+	function loadDemandClientLastMonthlyCollectionsChart(year) {
+        if (year != null) {
+            $('[data-year]').removeClass('active');
+            $('[data-year="' + year + '"]').addClass('active');
+		}
+
+		$.post('@Url.Action("GetHomeLastMonthlyCollections", "Home")', { year }, function (d) {
+			mountDemandClientLastMonthlyCollectionsChart(d);
+		});
+    }
+
+	$(document).ready(function () {
+		loadDemandClientLastMonthlyCollectionsChart();
+	});
+
+	function mountDemandClientLastMonthlyCollectionsChart(data) {
+		var categories = data.map(function (e) { return e.name; });
+
+		Highcharts.chart('client-last-monthly-collections', {
+			credits: {
+				enabled: false
+			},
+			exporting: {
+				enabled: false
+			},
+			chart: {
+				type: 'line',
+				//backgroundColor: '#d8dce3',
+                height: '200px',
+                scrollablePlotArea: {
+                    minWidth: 400,
+                    scrollPositionX: 1
+                }
+			},
+			title: {
+                text: 'Peso mensal coletado nos últimos meses'
+			},
+			xAxis: {
+				categories,
+				labels: {
+					//rotation: -45
+				}
+			},
+			yAxis: {
+				title: {
+					text: 'Peso (Kg)'
+				}
+			},
+			plotOptions: {
+				line: {
+					dataLabels: {
+						enabled: true
+                    },
+                    showInLegend: false
+					//enableMouseTracking: false
+				}
+			},
+			series: [{
+				name: 'Peso',
+				data
+			}]
+		});
+	}
+</script>

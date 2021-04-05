@@ -1,0 +1,448 @@
+﻿@{
+    ViewData["Title"] = "Espelhar Requisito Legal";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style type="text/css">
+    .form-check-label {
+        padding-left: .3em;
+    }
+</style>
+
+<div class="card shadow">
+    <div class="card-body">
+        <form id="FilterForm">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="control-label">Esfera:</label>
+                        <select class="form-control" style="width: 100%;" id="Esfera" name="Esfera" multiple>
+                            @foreach (var esfera in (List<DAL.Esfera>)ViewData["Esfera"])
+                            {
+                                <option value="@(esfera.EsferaId)">@esfera.Name</option>
+                            }
+                        </select>
+                        <span id="EsferaArea"></span>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="control-label">Segmento:</label>
+                        <select class="form-control" style="width: 100%;" id="Segmento" name="Segmento" multiple>
+                            @foreach (var segmento in (List<DAL.Segmento>)ViewData["Segmento"])
+                            {
+                                <option value="@(segmento.SegmentoId)">@segmento.Name</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="control-label">Aplicabilidade:</label>
+                        <select class="form-control" style="width: 100%;" id="Tipo" name="Tipo" multiple>
+                            @foreach (var lawType in (List<DAL.LawApplicationType>)ViewData["LawApplicationType"])
+                            {
+                                <option value="@(lawType.LawApplicationTypeId)">@lawType.Name</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="row" style="margin-top: 1em;">
+                <div class="col-md-5 form-group">
+                    <div class="input-group" id="OriginCompanyArea">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Origem: </span>
+                        </div>
+                        <select id="OriginCompanyId" name="OriginCompanyId" class="form-control">
+                            <option value="">Selecione uma unidade de negócio</option>
+                            @foreach (var item in (ViewData["Companies"] as List<DTO.Company.CopyCompanyLawCompanyViewModel>))
+                            {
+                                <option value="@item.CompanyId">@item.NomeFantasia</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-5 form-group">
+                    <div class="input-group" id="DestinationCompanyArea">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Destino: </span>
+                        </div>
+                        <select id="DestinationCompanyId" name="DestinationCompanyId" class="form-control">
+                            <option value="">Selecione uma unidade de negócio</option>
+                            @foreach (var item in (ViewData["Companies"] as List<DTO.Company.CopyCompanyLawCompanyViewModel>))
+                            {
+                                <option value="@item.CompanyId">@item.NomeFantasia</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-primary pull-right w-100" id="GetLaws" type="button"><i class="fas fa-filter"></i>&nbsp;Obter requisitos legais</button>
+                </div>
+            </div>
+        </form>
+        <form id="LawsForm">
+            <div style="display:none;" id="SetLawArea">
+                <hr />
+                <div class="form-group">
+                    <label class="form-text text-muted">Informações adicionais para o espelhamento dos requisitos legais:</label>
+                </div>
+                <div class="form-row">
+                    <div class="col text-center">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="EvidencesCheck">
+                            <label class="form-check-label" for="EvidencesCheck">Manter evidencias objetivas?</label>
+                        </div>
+                    </div>
+                    <div class="col text-center">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="ResponseCheck">
+                            <label class="form-check-label" for="ResponseCheck">Manter obrigações?</label>
+                        </div>
+                    </div>
+                    <div class="col text-center">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="AttachmentCheck">
+                            <label class="form-check-label" for="AttachmentCheck">Manter anexos?</label>
+                        </div>
+                    </div>
+                    <div class="col text-center">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="StatusCheck">
+                            <label class="form-check-label" for="StatusCheck">Manter o status?</label>
+                        </div>
+                    </div>
+                </div>
+                <hr />
+                <div class="form-row">
+                    <div class="col-md-12 form-group">
+                        <label class="control-label">Requisitos legais</label>
+                    </div>
+                    <div class="col-md-12 form-group" style="max-height:300px; overflow-y:auto;">
+                        <table class="table table-bordered table-striped table-sm">
+                            <thead>
+                                <tr>
+                                    <td></td>
+                                    <td>Tipo</td>
+                                    <td>Órgão</td>
+                                    <td>Número</td>
+                                    <td>Título</td>
+                                    <td>Esfera</td>
+                                    <td>Aplicabilidade</td>
+                                    <td>Segmento</td>
+                                </tr>
+                            </thead>
+                            <tbody id="Laws"></tbody>
+                        </table>
+                    </div>
+                    <div class="col-md text-center form-group">
+                        <label class="control-label"><b>Requisitos Legais de Esfera:</b> <span id="totalEsfera">0</span></label>
+                    </div>
+                    <div class="col-md text-center form-group">
+                        <label class="control-label"><b>Requisitos Legais de Segmentos:</b> <span id="totalSegmento">0</span></label>
+                    </div>
+                    <div class="col-md text-center form-group">
+                        <label class="control-label"><b>Requisitos Legais de Tipo:</b> <span id="totalTipo">0</span></label>
+                    </div>
+                    <div class="col-md text-center form-group">
+                        <label class="control-label"><b>Requisitos Legais:</b> <span id="total">0</span></label>
+                    </div>
+                </div>
+                <div class="form-row mt-4">
+                    <div class="col-md-2 offset-md-10">
+                        <button class="btn btn-success pull-right w-100" id="SetLaws" type="button"><i class="fas fa-check"></i>&nbsp;Executar</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var companyLaws = [];
+    var totalEsfera = 0;
+    var totalSegmento = 0;
+    var totalTipo = 0;
+
+    $(function () {
+        $('#Esfera, #Segmento, #Tipo').select2({
+            closeOnSelect: false,
+            "language": {
+                "noResults": function () {
+                    return "Nenhum resultado encontrado.";
+                }
+            }
+        });
+    });
+
+    $('#OriginCompanyId').change(function () {
+        companyLaws = [];
+        totalEsfera = 0;
+        totalSegmento = 0;
+        totalTipo = 0;
+        SetTotals();
+        $('#Laws').empty();
+        $('#SetLawArea').hide();
+
+        if ($(this).val() == '') return;
+
+        if ($('#DestinationCompanyId').val() == $('#OriginCompanyId').val()) {
+            alert('A unidade de negócio da origem não pode ser a mesma de destino');
+            $(this).val('');
+        }
+    });
+    $('#DestinationCompanyId').change(function () {
+        if ($(this).val() == '') return;
+
+        if ($('#DestinationCompanyId').val() == $('#OriginCompanyId').val()) {
+            alert('A unidade de negócio da origem não pode ser a mesma de destino');
+            $(this).val('');
+        }
+        $.ajax({
+            url: '@Url.Action("CompanyHasLaws", "CompanyLawManagement")',
+            type: 'POST',
+            datatype: 'JSON',
+            data: { companyId: $('#DestinationCompanyId').val() },
+            success: function (data) {
+                if (data) {
+                    if (!confirm('Unidade de negócio com requisitos legais existentes. Deseja continuar?')) {
+                        $(this).val('');
+                    }
+                }
+            }
+        });
+    });
+
+    function GetLawValidade() {
+        var hasError = false;
+        $('#FilterForm .text-danger').remove();
+
+        if (IsNullOrWhiteSpace($('#OriginCompanyId').val())) {
+            $('#OriginCompanyArea').after($('<div>', { class: 'text-danger' }).append('Escolha a unidade de negócio para a origem.'));
+            hasError = true;
+        }
+
+        if ($('#Esfera').val().length == 0 && $('#Segmento').val().length == 0 && $('#Tipo').val().length == 0) {
+            $('#EsferaArea').after($('<div>', { class: 'text-danger' }).append('Escolha algum item em pelo menos um dos filtros.'));
+            hasError = true;
+        }
+
+        if (hasError)
+            $("html, body").animate({ scrollTop: 0 }, "slow");
+
+        return !hasError;
+    }
+
+    function SetLawValidade() {
+        var hasError = false;
+        $('#FilterForm .text-danger').remove();
+
+        if (IsNullOrWhiteSpace($('#DestinationCompanyId').val())) {
+            $('#DestinationCompanyArea').after($('<div>', { class: 'text-danger' }).append('Escolha a unidade de negócio para o destino.'));
+            hasError = true;
+        }
+
+        if (hasError)
+            $("html, body").animate({ scrollTop: 0 }, "slow");
+
+        return !hasError;
+    }
+
+    function GetLaws() {
+        $.ajax({
+            url: '@Url.Action("GetLaws", "CompanyLawManagement")',
+            type: 'POST',
+            datatype: 'JSON',
+            data: $('#FilterForm').serializeArray(),
+            success: function (data) {
+                companyLaws = [];
+                totalEsfera = data.totalEsfera;
+                totalSegmento = data.totalSegmento;
+                totalTipo = data.totalTipo;
+
+                $('#totalEsfera').text('0');
+                $('#totalSegmento').text('0');
+                $('#totalTipo').text('0');
+                $('#Laws').empty();
+
+                $('#SetLawArea').hide();
+                if (data.companyLaws.length <= 0) {
+                    alert('Nenhum requisito legal encontrado, verifique os filtros e tente obter os requisitos legais novamente.')
+                    return;
+                }
+
+
+                $('#SetLawArea').show();
+                $.each(data.companyLaws, function (i, e) {
+                    companyLaws.push(e.companyLaw.CompanyLawId);
+                    var tr = $('<tr>', { id: e.companyLaw.CompanyLawId }).data('segmento', e.segmento).data('esfera', e.esfera).data('tipo', e.tipo);
+
+                    tr.append($('<td>', { style: 'text-align: center;' }).append('<a href="javascript: RemoveCompanyLaw(' + e.companyLaw.CompanyLawId + ')"><i  class="fas fa-times"></i></a>'));
+
+                    tr.append($('<td>').append(e.companyLaw.LawTypeName));
+                    tr.append($('<td>').append(e.companyLaw.LawOrgaoName));
+                    tr.append($('<td>').append(e.companyLaw.LawNumber));
+                    tr.append($('<td>').append((e.companyLaw.LawTitle.length > 150 ? e.companyLaw.LawTitle.substr(0, 150) + "..." : e.companyLaw.LawTitle)));
+                    tr.append($('<td>').append(e.companyLaw.LawEsferaName));
+                    tr.append($('<td>').append(e.companyLaw.CompanyLawApplicationTypeName));
+                    tr.append($('<td>').append(e.companyLaw.LawSegmentoName));
+
+                    $('#Laws').append(tr);
+                });
+
+                SetTotals();
+            }
+        });
+    }
+
+    function CheckLaws() {
+        $('#CopyCompanyLawsAdditionalInformationModal').modal('hide');
+        var d = [];
+
+        $.each(companyLaws, function (i, e) {
+            d.push({ name: 'companyLawIds', value: e });
+        });
+
+        d.push({ name: 'DestinationCompanyId', value: $('#DestinationCompanyId').val() });
+
+        $.ajax({
+            url: '@Url.Action("CheckLaws", "CompanyLawManagement")',
+            type: 'POST',
+            datatype: 'JSON',
+            data: d,
+            success: function (data) {
+                if (data) {
+                    $('#SetLawsModal').modal('show');
+                    return;
+                }
+
+                SetLaws(false);
+            }
+        });
+    }
+
+    function SetLaws(replaceLaws) {
+        var d = [];
+
+        $.each(companyLaws, function (i, e) {
+            d.push({ name: 'companyLawIds', value: e });
+        });
+
+        d.push({ name: 'DestinationCompanyId', value: $('#DestinationCompanyId').val() });
+        d.push({ name: 'replaceLaws', value: replaceLaws });
+
+        d.push({ name: 'EvidencesCheck', value: $('#EvidencesCheck')[0].checked });
+        d.push({ name: 'ResponseCheck', value: $('#ResponseCheck')[0].checked });
+        d.push({ name: 'AttachmentCheck', value: $('#AttachmentCheck')[0].checked });
+        d.push({ name: 'StatusCheck', value: $('#StatusCheck')[0].checked });
+
+        $.ajax({
+            url: '@Url.Action("SetLaws", "CompanyLawManagement")',
+            type: 'POST',
+            datatype: 'JSON',
+            data: d,
+            success: function (data) {
+                $('#SetLawsModal').modal('hide');
+                alert(data.Total + ' requisitos legais foram adicionados! e ' + data.Removed + ' substituidos!');
+            }
+        });
+    }
+
+    $('#GetLaws').click(function () {
+        if (GetLawValidade()) {
+            GetLaws();
+        }
+    });
+    $('#SetLaws').click(function () {
+        if (SetLawValidade()) {
+            CheckLaws();
+            //$('#CopyCompanyLawsAdditionalInformationModal').modal('show');
+        }
+    });
+
+    function SetTotals() {
+        $('#totalEsfera').text(totalEsfera);
+        $('#totalSegmento').text(totalSegmento);
+        $('#totalTipo').text(totalTipo);
+        $('#total').text(companyLaws.length);
+    }
+
+    function RemoveCompanyLaw(companyLawId) {
+        if (companyLaws.indexOf(companyLawId) != -1) {
+            companyLaws.splice(companyLaws.indexOf(companyLawId), 1);
+
+            var selector = $('#' + companyLawId);
+            if (selector.data('segmento')) totalSegmento--;
+            if (selector.data('esfera')) totalEsfera--;
+            if (selector.data('tipo')) totalTipo--;
+            selector.remove();
+            SetTotals();
+        }
+    }
+</script>
+
+<div class="modal fade" id="SetLawsModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                A unidade de negócio de destino possui requisitos legais presentes na tabela. Deseja substituir os requisitos legais existentes?
+            </div>
+            <div class="modal-footer">
+                <div class="form-row">
+                    <div class="col-md-6 float-left">
+                        <button type="button" class="btn btn-secondary" onclick="SetLaws(false)"><i class="fas fa-times"></i>&nbsp;Não</button>
+                    </div>
+                    <div class="col-md-6 float-right">
+                        <button type="button" class="btn btn-success" onclick="SetLaws(true)"><i class="fas fa-check"></i>&nbsp;Sim</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@*<div class="modal fade" id="CopyCompanyLawsAdditionalInformationModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5>Informações Adicionais</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-text text-muted">Informações adicionais para o espelhamento dos requisitos legais:</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="EvidencesCheck">
+                        <label class="form-check-label" for="EvidencesCheck">Manter evidencias objetivas?</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="ResponseCheck">
+                        <label class="form-check-label" for="ResponseCheck">Manter obrigações?</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="AttachmentCheck">
+                        <label class="form-check-label" for="AttachmentCheck">Manter anexos?</label>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="StatusCheck">
+                        <label class="form-check-label" for="StatusCheck">Manter o status?</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="form-row">
+                        <div class="col-md-6 float-right">
+                            <button type="button" class="btn btn-success" onclick="CheckLaws()"><i class="fas fa-check"></i>&nbsp;Executar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>*@

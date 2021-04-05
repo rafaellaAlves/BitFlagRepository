@@ -1,0 +1,154 @@
+﻿@model DTO.Demand.DemandViewModel
+@inject Services.DemandDestination.DemandDestinationDemandServices demandDestinationDemandServices
+
+@{
+    ViewData["Title"] = "Fechamento de Demanda";
+
+    //var demandDestinationDemand = await demandDestinationDemandServices.GetFirstDataAsync(x => x.DemandId == Model.DemandId);
+}
+
+<style type="text/css">
+    .bootbox.modal-dialog.modal-lg {
+        width: 500px;
+    }
+</style>
+
+<form id="demand-close-form" action="@Url.Action("Close", "Demand")" method="post">
+    <input type="hidden" value="@Model.DemandId" name="DemandId" />
+    <div class="card">
+        <div class="card-body">
+            <div class="card ">
+                <div class="card-header card-header-default tx-uppercase justify-content-between  bg-gray-400">
+                    <h6 class="mg-b-0 tx-14 tx-inverse"><i class="simple-icon-note"></i>&nbsp;Dados Gerais de Coleta e Transporte</h6>
+                    <div class="card-option">
+                        <a href="" class="tx-gray-600 hover-white mg-l-10" data-toggle="collapse" aria-expanded="true" data-target="#demand-area"><i class="simple-icon-arrow-up lh-0"></i></a>
+                    </div>
+                </div>
+                <div class="card-body bd collapse show" id="demand-area">
+                    @(await Component.InvokeAsync<Web.ViewComponents.Demand.DemandManageViewComponent>(new { id = Model.DemandId, viewMode = DTO.Shared.ViewMode.NonEditable }))
+                </div>
+            </div>
+            <br />
+            <div class="card ">
+                <div class="card-header card-header-default tx-uppercase justify-content-between  bg-gray-400">
+                    <h6 class="mg-b-0 tx-14 tx-inverse"><i class="simple-icon-location-pin"></i>&nbsp;Planejamento da Rota</h6>
+                    <div class="card-option">
+                        <a href="" class="tx-gray-600 hover-white mg-l-10" data-toggle="collapse" aria-expanded="true" data-target="#demand-route-area"><i class="simple-icon-arrow-up lh-0"></i></a>
+                    </div>
+                </div>
+                <div class="card-body bd collapse show" id="demand-route-area">
+                    <div id="demand-client-no-route" class="w-100 text-center" style="@(Model.DemandId.HasValue? "display:none;" : "")">
+                        <hr />
+                        <i style="font-size: 20px;">Selecione uma Rota.</i>
+                    </div>
+                    <div id="demand-client-view-component">
+                        @if (Model.DemandId.HasValue)
+                        {
+                            @(await Component.InvokeAsync<Web.ViewComponents.Demand.DemandClientCloseViewComponent>(new { demandId = Model.DemandId }))
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <div class="row">
+                <div class="col">
+                    <a href="@Url.Action("Index", "Demand")" data-disabledAll="false" class="btn btn-secondary"><i class="simple-icon-arrow-left"></i>&nbsp;Voltar</a>
+                </div>
+                <div class="col">
+                    <button id="close-demand-save-button" type="button" style="display: flex;" class="btn btn-success float-right"><i class="simple-icon-cloud-upload"></i>&nbsp;Salvar&nbsp;<span class="d-none d-sm-block" style="font-size: 14px;">as Informações</span></button>
+                    @if (!Model.Closed)
+                    {
+                        <button id="close-demand-button" type="button" style="display: flex;" class="btn btn-info float-right mr-sm-2 mt-2 mt-sm-0"><i class="simple-icon-cloud-upload"></i>&nbsp;Finalizar&nbsp;<span class="d-none d-sm-block" style="font-size: 14px;">Demanda</span></button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts
+{
+    <script type="text/javascript">
+        $(document).ready(function () {
+            InitializeFunctions();
+        });
+
+        $('#close-demand-button').click(function () {
+            if (!validateInputs('demand-close-form')) return;
+
+            var departureDate = moment($('#demand-close-form input[name=\'_DepartureDate\']').val(), 'DD/MM/YYYY')._d;
+            var arrivedDate = moment($('#demand-close-form input[name=\'_ArriveDate\']').val(), 'DD/MM/YYYY')._d;
+
+            if (arrivedDate < departureDate) {
+                $('#demand-close-form input[name=\'_ArriveDate\']').after('<small class="text-danger">A data de chegada não pode ser anterior a data de saída.</small>');
+                return;
+            }
+
+            $.post('@Url.Action("CanClose", "Demand")', $('#demand-close-form').serializeArray(), function (d) {
+                if (!d.canClose) {
+                    bootbox.alert(d.message);
+                    return;
+                }
+
+                bootbox.dialog({
+                    message: "Deseja realmente fechar este MTR de Coleta?",
+                    size: 'large',
+                    buttons: {
+                        cancel: {
+                            label: "Não",
+                            className: 'btn-danger mr-auto float-left',
+                            callback: function () { }
+                        },
+                        ok: {
+                            label: "Finalizar e enviar e-mail",
+                            className: 'btn-success',
+                            callback: function () {
+                                showLoading();
+
+                                $('#demand-close-form').append($('<input>', { name: 'sendEmail', value: 'true' }));
+                                $('#demand-close-form').submit();
+                            }
+                        },
+                        confirm: {
+                            label: "Finalizar",
+                            className: 'btn-success',
+                            callback: function () {
+                                showLoading();
+
+                                $('#demand-close-form').submit();
+                            }
+                        }
+                    }
+                });
+            });
+        });
+        
+        $('#close-demand-save-button').click(function () {
+            if (!validateInputs('demand-close-form')) return;
+
+            var departureDate = moment($('#demand-close-form input[name=\'_DepartureDate\']').val(), 'DD/MM/YYYY')._d;
+            var arrivedDate = moment($('#demand-close-form input[name=\'_ArriveDate\']').val(), 'DD/MM/YYYY')._d;
+
+            if (arrivedDate < departureDate) {
+                $('#demand-close-form input[name=\'_ArriveDate\']').after('<small class="text-danger">A data de chegada não pode ser anterior a data de saída.</small>');
+                return;
+            }
+
+            var form = $('<form>', { action: '@Url.Action("CloseSave", "Demand")', method: 'POST' });
+
+            form.append($('<input>', { type: 'hidden', value: $('#demand-close-form [name="DemandId"]').val(), name: 'DemandId' }));
+            form.append($('<input>', { type: 'hidden', value: $('#demand-close-form [name="_DepartureDate"]').val(), name: '_DepartureDate' }));
+            form.append($('<input>', { type: 'hidden', value: $('#demand-close-form [name="_ArriveDate"]').val(), name: '_ArriveDate' }));
+            $('body').append(form);
+
+            showLoading();
+            form.submit();
+        });
+    </script>
+
+    <script asp-paste-key="demand-manage"></script>
+    <script asp-paste-key="demand-client"></script>
+    <script asp-paste-key="demand-client-manage"></script>
+    <script asp-paste-key="demand-client-selection"></script>
+}

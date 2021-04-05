@@ -1,0 +1,9 @@
+﻿@{
+    ViewData["Title"] = "Serviços";
+    Layout = "~/Views/Shared/_LayoutUplon.cshtml";
+}
+<div id="_ServiceTypeIndexViewComponent"></div>
+
+<script type="text/javascript">
+    $('#_ServiceTypeIndexViewComponent').load('@Url.Action("ServiceTypeIndexComponent", "ServiceType")');
+</script>

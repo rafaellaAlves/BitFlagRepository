@@ -1,0 +1,197 @@
+﻿
+<form id="route-index-form">
+    <div class="row">
+        <div class="col-md form-group">
+            <input type="text" class="form-control" placeholder="Pesquisar..." data-toggle="search-datatable" data-target="#route-table" />
+        </div>
+        <div class="col-md-auto col-12 form-group">
+            <select class="form-control" name="Status" onchange="routeDatatables.draw();">
+                <option value="">Status</option>
+                <option value="1">Ativa</option>
+                <option value="2">Suspensa</option>
+                <option value="3">Cancelada</option>
+            </select>
+        </div>
+        <div class="col-md-auto col-12 form-group">
+            <a href="@Url.Action("Manage", "Route")" class="btn btn-primary w-100"><i class="simple-icon-plus"></i>&nbsp;Novo</a>
+        </div>
+    </div>
+</form>
+<hr />
+<div class="row">
+    <div class="col-md-12">
+        <div id="RouteIndexViewComponent">
+            <div class="row">
+                <div class="col table-responsive">
+                    <table id="route-table" class="display table table-striped table-bordered table-condensed w-100 tablesizeline" style="border-collapse: collapse !important;">
+                        <thead>
+                            <tr>
+                                <th style="width: 60px;">Código</th>
+                                <th>Nome</th>
+                                @*<th>Informações</th>*@
+                                <th style="width: 150px;">Qtd de Geradores</th>
+                                <th style="width: 65px;">Status</th>
+                                <th style="width: 65px;">Tipo</th>
+                                <th style="width: 65px;">Periodicidade</th>
+                                <th width="80px">&nbsp;</th>
+                                <th>StatusId</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script asp-cut-key="route-index">
+    var routeDatatables;
+    $(document).ready(function () {
+        routeDatatables = $('#route-table').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            pageLength: 30,
+            dom: 'tip',
+            ajax: {
+                url: '@Url.Action("List", "Route")',
+                type: 'POST'
+            },
+            columns: [
+                { render: function (data, type, row) { return '<div class="text-center">' + row.routeId + '</div>'; } },
+                { render: function (data, type, row) { return row.name; } },
+                //{ render: function (data, type, row) { return isNull(row.observation, '-'); } },
+                { render: function (data, type, row) { return '<div class="text-center">' + row.routeClientCount + '</div>'; } },
+                { render: function (data, type, row) { return row.canceled ? 'Cancelada' : (row.suspended ? "Suspendida" : 'Ativa'); } },
+                { render: function (data, type, row) { return isNull(row.routeTypeName, "-"); } },
+                { render: function (data, type, row) { return isNull(row.routePeriodicityName, "-"); } },
+                {
+                    render: function (data, type, row)
+                    {
+                        var r = '<div class="text-center">';
+
+                        if (!row.canceled && !row.suspended) {
+                            r += '<a href=\'@Url.Action("Manage", "Route")?id=' + row.routeId + '\' title="Editar"><span class="badge badge-pill badge-success"><i class="simple-icon-note"></i></span></a>';
+                        } else {
+                            r += '<a href=\'@Url.Action("Manage", "Route")?id=' + row.routeId + '\' title="Visualizar"><span class="badge badge-pill badge-primary"><i class="simple-icon-magnifier"></i></span></a>';
+                        }
+                        if (!row.canceled) {
+                            if (row.suspended) r += '&nbsp;<a href=\'javascript:unsuspendRoute(' + JSON.stringify(row) + ')\' title="Habilitar"><span class="badge badge-pill badge-success"><i class="fa fa-unlock"></i></span></a>';
+                            else r += '&nbsp;<a href=\'javascript:suspendRoute(' + JSON.stringify(row) + ')\' title="Suspender"><span class="badge badge-pill badge-warning"><i class="fa fa-lock"></i></span></a>';
+                        }
+
+                        if (!row.canceled) r += '&nbsp;<a href=\'javascript:cancelRoute(' + JSON.stringify(row) + ')\' title="Cancelar"><span class="badge badge-pill badge-danger"><i class="simple-icon-close"></i></span></a>';
+                            //'&nbsp;<a href=\'javascript:removeRoute(' + JSON.stringify(row) + ')\' title="Excluir"><span class="badge badge-pill badge-danger"><i class="simple-icon-trash"></i>&nbsp;Excluir</span></a>' +
+                            r += '</div>';
+
+                        return r;
+                    }
+                },
+                { visible:false, render: function (data, type, row) { return row.canceled ? 3 : (row.suspended ? 2 : 1); } },
+            ]
+        });
+    });
+
+    function removeRoute(route) {
+        bootboxConfirm("Deseja realmente excluir a rota \"" + route.name + "\"?", function(result){
+            if (!result) return;
+
+            $.post('@Url.Action("Delete", "Route")', { id: route.routeId }, function (d) {
+                if (d.hasError) {
+                    bootboxConfirm(d.message, function (d) {
+                        if(d) window.location.href = '@Url.Action("Manage", "Route")?id=' + route.routeId;
+                    })
+                    return;
+                }
+
+                bootbox.alert("Rota \"" + route.name + "\" excluída com sucesso!");
+                routeDatatables.ajax.reload();
+            });
+        });
+    }
+    function cancelRoute(route) {
+        bootbox.prompt({
+            title: "Deseja realmente cancelar a rota \"" + route.name + "\"?<br/>Insira o motivo a baixo:",
+            inputType: 'textarea',
+            buttons: {
+                confirm: {
+                    label: 'Sim',
+                    className: 'btn-success'
+                },
+                cancel: {
+                    label: 'Não',
+                    className: 'btn-danger mr-auto float-left'
+                }
+            },
+            callback: function (result) {
+                if (result == null) return;
+
+                $.post('@Url.Action("Cancel", "Route")', { routeId: route.routeId, reason: result }, function () {
+                    bootbox.alert("Rota \"" + route.name + "\" cancelada com sucesso!");
+                    routeDatatables.ajax.reload();
+                });
+            }
+        });
+    }
+
+    function suspendRoute(route) {
+        bootbox.prompt({
+            title: "Deseja realmente suspender a rota \"" + route.name + "\"?<br/>Insira o motivo a baixo:",
+            inputType: 'textarea',
+            buttons: {
+                confirm: {
+                    label: 'Sim',
+                    className: 'btn-success'
+                },
+                cancel: {
+                    label: 'Não',
+                    className: 'btn-danger mr-auto float-left'
+                }
+            },
+            callback: function (result) {
+                if (result == null) return;
+
+                $.post('@Url.Action("Suspend", "Route")', { routeId: route.routeId, reason: result }, function () {
+                    bootbox.alert("Rota \"" + route.name + "\" suspensa com sucesso!");
+                    routeDatatables.ajax.reload();
+                });
+            }
+        });
+    }
+
+    function unsuspendRoute(route) {
+        bootbox.prompt({
+            title: "Deseja habilitar a rota \"" + route.name + "\"?<br/>Insira o motivo a baixo:",
+            inputType: 'textarea',
+            buttons: {
+                confirm: {
+                    label: 'Sim',
+                    className: 'btn-success'
+                },
+                cancel: {
+                    label: 'Não',
+                    className: 'btn-danger mr-auto float-left'
+                }
+            },
+            callback: function (result) {
+                if (result == null) return;
+
+                $.post('@Url.Action("Unsuspend", "Route")', { routeId: route.routeId, reason: result }, function () {
+                    bootbox.alert("Rota \"" + route.name + "\" habilitada com sucesso!");
+                    routeDatatables.ajax.reload();
+                });
+            }
+        });
+    }
+
+    $.fn.dataTable.ext.search.push(
+        function (settings, data, dataIndex) {
+            if (settings.sInstance != "route-table") return true;
+
+            var status = $('#route-index-form [name="Status"]').val();
+            return isNullOrWhiteSpace(status) || status == data[7];
+        }
+    );
+</script>

@@ -1,0 +1,338 @@
+﻿@using AMaisImob_WEB.Utils;
+
+@model AMaisImob_WEB.Models.Shared.BaseViewModel<AMaisImob_WEB.Models.Charge.FinancialListViewModel>
+
+@inject AMaisImob_WEB.BLL.FinancialFunctions financialFunctions
+
+<style type="text/css">
+    #charge-table td, #charge-table tr {
+        text-align: center;
+        vertical-align: middle;
+        border: 1px solid #ebeff2;
+    }
+
+    #charge-table td, #charge-table tr, #charge-table button, #charge-table span {
+        font-size: 10px !important;
+    }
+
+    #charge-table .pair {
+        background-color: #f4f8fb !important;
+    }
+
+    #charge-table .odd {
+        background-color: transparent !important;
+    }
+
+    a.inactive {
+        color: #5f7f7a75 !important;
+    }
+</style>
+
+<input type="hidden" name="ChargeListChargeContractualGuarantee" value="@Model.ViewModel.ChargeContractualGuarantee" />
+<input type="hidden" name="ChargeListReferenceDate" value="@Model.ViewModel.ReferenceDateISOString" />
+
+<h5 class="text-center">
+    @if (User.IsInRole("Administrator"))
+    {
+        <span>
+            Extrato Financeiro - @(Model.ViewModel.ChargeContractualGuarantee.HasValue ? (Model.ViewModel.ChargeContractualGuarantee.Value ? "Com " : "Sem ") : "")Fatura de Garantia Contratual
+        </span>
+    }
+    else
+    {
+        <span>Extrato Financeiro</span>
+    }
+</h5>
+<div class="table-responsive">
+    <table class="table table-condensed" id="charge-table">
+        <thead>
+            <tr>
+                @if (User.IsInRole("Administrator"))
+                {
+                    if (!Model.ViewModel.Extract)
+                    {
+                        <th>
+                            <input type="checkbox" id="checkbox-all" />
+                        </th>
+                    }
+                    <th>Corretora</th>
+                }
+                <th>Imobiliária</th>
+                <th>Referência</th>
+                <th>Produto</th>
+                <th>Descrição</th>
+                <th>Valor (R$)</th>
+                <th>Total (R$)</th>
+                <th>Vencimento</th>
+                <th>Status Cobrança</th>
+                <th>Relatório</th>
+                <th></th>
+                <th>Status Pagamento</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                int index = 0;
+                foreach (var item in Model.ViewModel.Items)
+                {
+                    var values = (await financialFunctions.GetValuesForCharge(item.RealEstateId, item.ReferenceDate ?? Model.ViewModel.ReferenceDate));
+                    var firstValue = values.FirstOrDefault();
+
+                    <tr class="@(index % 2 == 0? "pair" : "odd")" data-company-id="@item.RealEstateId" data-charge-id="@item.ChargeId">
+                        @if (User.IsInRole("Administrator"))
+                        {
+                            if (!Model.ViewModel.Extract)
+                            {
+                                <td rowspan="@values.Count" class="checkbox-charge-cell">
+                                    @if (!item.IsLocked && item.AllFilesUploaded)
+                                    {
+                                        <input type="checkbox" class="checkbox-charge" data-company-id="@item.RealEstateId" />
+                                    }
+                                </td>
+                            }
+                            <td rowspan="@values.Count">@item.ParentCompanyTradeName</td>
+                        }
+                        <td rowspan="@values.Count">@item.CompanyTradeName</td>
+                        <td rowspan="@values.Count">@(item.ReferenceDateFormated ?? Model.ViewModel.ReferenceDateFormated)</td>
+                        @(await Component.InvokeAsync<AMaisImob_WEB.ViewComponents.Financial.ChargeCertificateContractualTableRowViewComponent>(new { chargePriceItem = firstValue, item.RealEstateId, ChargeContractualGuarantee = item.CompanyChargeContractualGuarantee }))
+                        <td rowspan="@values.Count">@values.Sum(x => x.CertificateContractual && !item.CompanyChargeContractualGuarantee ? 0 : x.AlternativeTotalPrice ?? x.Price).ToPtBR()</td>
+                        <td rowspan="@values.Count">@(string.IsNullOrWhiteSpace(item.DueDateFormated)? "-" : item.DueDateFormated)</td>
+                        <td rowspan="@values.Count" style="vertical-align: top;">
+                            @{
+                                if (item.InvoiceDate.HasValue)
+                                {
+                                    <div>Boleto enviado em <b>@item.InvoiceDateFormated</b></div>
+                                }
+                                if (item.PayedDate.HasValue)
+                                {
+                                    <div>Pago em <b>@item.PayedDateFormated</b></div>
+                                }
+                                if (!item.InvoiceDate.HasValue && !item.PayedDate.HasValue)
+                                {
+                                    <div>Boleto não gerado</div>
+                                }
+                            }
+                        </td>
+                        <td>
+                            @{
+                                if (firstValue != null)
+                                {
+                                    if (firstValue.DocuSign)
+                                    {
+                                        <a href="https://account.docusign.com/" target="_blank">Ir para<br />DocuSign</a>
+                                    }
+                                    else if (firstValue.Certificate)
+                                    {
+                                        <a href="javascript:exportCertificates(@item.RealEstateId, '@item.ReferenceDateFormatedPtBR')"><img style="height: 30px;" src="~/image/Excel_Icon.png" /></a>
+                                    }
+                                    else
+                                    {
+                                        <div style="font-size: 15px !important; white-space: nowrap;">
+                                            @if (firstValue.CertificateContractualHasFile == true)
+                                            {
+                                                <a href="@Url.Action("GetChargeCertificateContractualFile", "Financial", new { firstValue.ChargeCertificateContractualId })" data-guarantor-id="@firstValue.GuarantorId" data-company-id="@item.RealEstateId"><img style="height: 30px;" src="~/image/Pdf_Icon.png" /></a>
+                                            }
+                                            @if (firstValue.CertificateContractualHasInvoiceFile == true)
+                                            {
+                                                <text>
+                                                    @(firstValue.CertificateContractualHasFile == true? " | " : "")<a href="@Url.Action("GetChargeCertificateContractualInvoiceFile", "Financial", new { firstValue.ChargeCertificateContractualId })" data-guarantor-id="@firstValue.GuarantorId" data-company-id="@item.RealEstateId"><img style="width: 28px;" src="~/image/barcode-icon.png" /></a>
+                                                </text>
+                                            }
+                                            @if (firstValue.CertificateContractualHasInvoiceFile != true && firstValue.CertificateContractualHasFile != true)
+                                            {
+                                                <span>-</span>
+                                            }
+                                        </div>
+                                    }
+                                }
+                            }
+                        </td>
+                        <td rowspan="@values.Count" style="vertical-align: top;">
+                            @{
+                                if (User.IsInRole("Administrator"))
+                                {
+                                    if (item.DueDate.HasValue)
+                                    {
+                                        <a class="btn btn-primary" href="@item.IUGUUrl" target="_blank"><i class="fa fa-barcode"></i>&nbsp;Boleto</a>
+                                    }
+                                    else if (item.DueDate < DateTime.Now && !item.PayedDate.HasValue)
+                                    {
+                                        <button class="btn btn-warning" type="button">Pendente</button>
+                                    }
+                                    else if (item.IsLocked)
+                                    {
+                                        <button class="btn btn-primary" disabled target="_blank"><i class="fa fa-barcode"></i>&nbsp;Boleto</button>
+                                    }
+                                    else
+                                    {
+                                        <button onclick="openChargeAnalyseModal(@item.RealEstateId, '@item.ReferenceDateISOString')" class="btn btn-@(item.ChargeId.HasValue? "primary" : "secondary")" type="button">@(item.ChargeId.HasValue ? Html.Raw("<i class=\"fa fa-check\"></i>&nbsp;Analisado") : Html.Raw("<i class=\"fa fa-search\"></i>&nbsp;Analisar"))</button>
+                                    }
+                                }
+                                else
+                                {
+                                    if (item.DueDate.HasValue)
+                                    {
+                                        <a class="btn btn-primary" href="@item.IUGUUrl" target="_blank"><i class="fa fa-barcode"></i>&nbsp;Boleto</a>
+                                    }
+                                }
+                            }
+
+                        </td>
+                        <td rowspan="@values.Count" style="vertical-align: top;">
+                            @if (item.PayedDate.HasValue)
+                            {
+                                <span class="badge badge-success">Pago</span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-warning">Pendente</span>
+                            }
+                        </td>
+                    </tr>
+                    @for (int i = 1; i < values.Count; i++)
+                    {
+                        <tr class="@(index % 2 == 0? "pair" : "odd")">
+                            @(await Component.InvokeAsync<AMaisImob_WEB.ViewComponents.Financial.ChargeCertificateContractualTableRowViewComponent>(new { chargePriceItem = values[i], item.RealEstateId, ChargeContractualGuarantee = item.CompanyChargeContractualGuarantee }))
+                            <td>
+                                @{
+                                    if (values[i] != null)
+                                    {
+                                        if (values[i].DocuSign)
+                                        {
+                                            <a href="https://account.docusign.com/" target="_blank">Ir para<br />DocuSign</a>
+                                        }
+                                        else if (values[i].Certificate)
+                                        {
+                                            <a href="javascript:exportCertificates(@item.RealEstateId, '@item.ReferenceDateFormatedPtBR')"><img style="height: 30px;" src="~/image/Excel_Icon.png" /></a>
+                                        }
+                                        else
+                                        {
+                                            <div style="font-size: 15px !important; white-space: nowrap;">
+                                                @if (values[i].CertificateContractualHasFile == true)
+                                                {
+                                                    <a href="@Url.Action("GetChargeCertificateContractualFile", "Financial", new { values[i].ChargeCertificateContractualId })" data-guarantor-id="@values[i].GuarantorId" data-company-id="@item.RealEstateId"><img style="height: 30px;" src="~/image/Pdf_Icon.png" /></a>
+                                                }
+                                                @if (values[i].CertificateContractualHasInvoiceFile == true)
+                                                {
+                                                    <text>
+                                                        @(values[i].CertificateContractualHasFile == true? " | " : "")<a href="@Url.Action("GetChargeCertificateContractualInvoiceFile", "Financial", new { values[i].ChargeCertificateContractualId })" data-guarantor-id="@values[i].GuarantorId" data-company-id="@item.RealEstateId"><img style="width: 28px;" src="~/image/barcode-icon.png" /></a>
+                                                    </text>
+                                                }
+                                                @if (values[i].CertificateContractualHasInvoiceFile != true && values[i].CertificateContractualHasFile != true)
+                                                {
+                                                    <span>-</span>
+                                                }
+                                            </div>
+                                        }
+                                    }
+                                }
+                            </td>
+                        </tr>
+                    }
+                    index++;
+                }
+                if (Model.ViewModel.Items.Count == 0)
+                {
+                    <tr>
+                        <td colspan="@(Model.ViewModel.Extract? "12" : "13")">
+                            <i>Nenhum item encontrado.</i>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+<div class="modal fade" id="charge-analyse-modal" tabindex="-1" role="dialog" aria-labelledby="charge-analyse-modal-title" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="charge-analyse-modal-title">Analisar</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="max-height: 600px; overflow-y: auto; overflow-x: hidden;">
+                <div id="charge-analyse-view-component"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-times"></i>&nbsp;Fechar</button>
+                <button type="button" class="btn btn-warning" id="charge-analyse-modal-reset-button"><i class="fa fa-undo"></i>&nbsp;Recalcular</button>
+                <button type="button" class="btn btn-primary" id="charge-analyse-modal-save-button"><i class="fa fa-check"></i>&nbsp;Concluir Análise</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript" asp-cut-key="charge-list" asp-cut-javascript-tag="@Model.CutScript">
+    $('#checkbox-all').change(function () {
+        var check = this.checked;
+        $.each($('.checkbox-charge'), function (i, e) {
+            e.checked = check;
+        })
+    });
+
+    $('.checkbox-charge').change(function () {
+        $('#checkbox-all').get(0).checked = false;
+    });
+
+    function exportCertificates(companyId, referenceDate) {
+        var form = $('<form>', { action: "@Url.Action("GetReport", "Certificate")", method: 'post' });
+
+        form.append($('<input>', { type: 'hidden', name: 'CompanyIds.Index', value: 1 }));
+        form.append($('<input>', { type: 'hidden', name: 'CompanyIds[1]', value: companyId }));
+        form.append($('<input>', { type: 'hidden', name: '_refMonth', value: IsNullOrWhiteSpace(referenceDate) ? '@Model.ViewModel.ReferenceDateFormatedPtBR' : referenceDate }));
+
+        $('body').append(form);
+
+        form.submit();
+        form.remove();
+    }
+
+    function openChargeAnalyseModal(companyId, referenceDate) {
+        var chargeId = $('tr[data-company-id="' + companyId + '"]').data('charge-id');
+
+        if (chargeId != null)
+            $('#charge-analyse-modal-reset-button').show();
+        else
+            $('#charge-analyse-modal-reset-button').hide();
+
+        $('#charge-analyse-view-component').load('@Url.Action("LoadChargeAnalyseViewComponent", "Financial")', { companyId, referenceDate: IsNullOrWhiteSpace(referenceDate) ? '@Model.ViewModel.ReferenceDateISOString' : referenceDate, chargeId }, function (d) {
+            $('#charge-analyse-modal').modal('show');
+        });
+    }
+
+    $('#charge-analyse-modal-save-button').click(function () {
+        if (typeof saveChargeCertificateContractual == 'function') {
+            if (saveChargeCertificateContractual())
+                $('#charge-analyse-modal-save-button').attr('disabled', '');
+        }
+    });
+
+    $('#charge-analyse-modal-reset-button').click(function () {
+
+        if (!confirm('Ao recalcular os valores salvos e arquivos serão removidos.\nDeseja continuar?')) return;
+
+        var chargeId = $('tr[data-company-id="' + $('#charge-analyse-form [name="charge.RealEstateId"]').val() + '"]').data('charge-id');
+        $.post('@Url.Action("ResetChargeContractualGuarantee", "Financial")', { chargeId }, function (d) {
+            if (d.hasError) {
+                alert(d.message);
+                return;
+            }
+
+            $('#charge-analyse-modal').modal('hide');
+
+            var realEstateId = $('#charge-analyse-form [name="charge.RealEstateId"]').val();
+            tryReloadChargeList(function () {
+                openChargeAnalyseModal(realEstateId);
+            });
+        });
+    });
+
+    function saveChargeCertificateContractualCallback(d) {
+        $('#charge-analyse-modal-save-button').removeAttr('disabled');
+        $('#charge-analyse-modal').modal('hide');
+
+        typeof tryReloadChargeList == 'function' && tryReloadChargeList();
+    }
+</script>

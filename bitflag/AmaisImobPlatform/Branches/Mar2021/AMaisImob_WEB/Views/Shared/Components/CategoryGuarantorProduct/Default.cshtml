@@ -1,0 +1,157 @@
+﻿@model CategoryGuarantorProductTaxViewModel;
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text"><i class="fa fa-search"></i></span>
+            </div>
+            <input id="_CategoryGuarantorProductSearch" type="text" class="form-control" placeholder="Procurar..." />
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text">Garantidora</span>
+            </div>
+            <select class="form-control" name="GuarantorId" id="GuarantorId" data-toggle="search-datatable" data-target="#_CategoryProductIndexTable">
+                <option value="">Selecione</option>
+                @foreach (var garantidora in (List<AMaisImob_DB.Models.Guarantor>)ViewData["guarantor"])
+                {
+                    if (Model.GuarantorId == garantidora.GuarantorId)
+                    {
+                        <option selected value="@garantidora.GuarantorId">@garantidora.NomeFantasia</option>
+                        continue;
+                    }
+
+                    <option value="@garantidora.GuarantorId">@garantidora.NomeFantasia</option>
+                }
+            </select>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <button type="button" class="btn btn-primary" style="width: 100%;" id="_CertificateIndexFilterButton"><i class="fas fa-filter"></i>&nbsp;Filtrar</button>
+    </div>
+    <div class="col-md-2">
+        <a href="@Url.Action("Manage", "CategoryGuarantorProduct")" class="btn btn-success pull-right w-100"><i class="fas fa-plus-circle"></i>&nbsp;Novo</a>
+    </div>
+</div>
+<hr />
+<div class="table-wrapper">
+    <table id="_CategoryProductIndexTable" class="table display responsive nowrap" style="border-collapse: collapse !important;">
+        <thead>
+            <tr class="text-center">
+                <th>Garantidora</th>
+                <th>Tipo de Garantidora</th>
+                <th>Categoria</th>
+                <th>Produto da Garantidora</th>
+                <th>Tipo de Imovél</th>
+                <th>Taxa (%)</th>
+                <th>Ativo?</th>
+                <th>&nbsp;</th>
+            </tr>
+        </thead>
+        <tbody class="text-center"></tbody>
+    </table>
+</div>
+<script type="text/javascript">
+
+    var _AccountIndexTypingTimer;
+    var _AccountIndexDoneTypingInterval = 500;
+    var datatables = $('#_CategoryProductIndexTable').DataTable({
+		proccessing: true,
+		serverSide: false,
+		searching: true,
+		lengthChange: false,
+		dom: 'tip',
+		ajax: {
+			url: '@Url.Action("List", "CategoryGuarantorProduct")',
+            type: 'POST',
+            data: function (d) {
+                d.categoryGuarantorProductTax = "@Model",
+                d.guarantorId = $('#GuarantorId').val()
+            }
+		},
+		columns: [
+            {
+                data: 'Guarantor',
+                render: function (data, type, row) {
+                return row.guarantorName;
+                }
+			},
+			{
+				data: 'GuarantorTypeName',
+				render: function (data, type, row) {
+					return row.guarantorTypeName;
+				}
+			},
+            {
+                data: 'Category',
+                render: function (data, type, row) {
+                return row.categoryName??"Todos";
+                }
+            },
+            {
+                data: 'GuarantorProduct',
+                render: function (data, type, row) {
+                return row.guarantorProductName;
+                }
+            },
+            {
+                data: 'TipoImovel',
+                render: function (data, type, row) {
+                    if (row.tipoImovel == 1) {
+                        return "Residencial";
+                    } else {
+                        return "Não Residencial";
+                    }
+                  
+                }
+            },
+            {
+                data: 'Taxa',
+                render: function (data, type, row) {
+                return row._TaxaMes;
+                }
+            },
+            {
+                data: 'Active',
+                render: function (data, type, row) {
+                    if (row.active == 1) {
+                        return '<span class="badge badge-pill badge-success text-center">Sim</span>';
+                    } else if (row.active == 0) {
+                        return '<span class="badge badge-pill badge-danger text-center">Não</span>';
+                    } else {
+                        return "-";
+                    }
+                   
+                }
+            },
+            {
+                data: 'Id',
+                render: function (data, type, row) {
+                return '<a href="@Url.Action("Manage", "CategoryGuarantorProduct")?id=' + row.categoryGuarantorProductTaxId + '"><i class="far fa-edit"></i></a>';
+                }
+            }
+
+		]
+    });
+    function _CategoryGuarantorProductIndexDoneTyping() {
+        if ($.fn.DataTable.isDataTable('#_CategoryProductIndexTable')) {
+            datatables.search($('#_CategoryGuarantorProductSearch').val()).draw();
+        }
+    }
+    $('#_CategoryGuarantorProductSearch').keyup(function () {
+        clearTimeout(_AccountIndexDoneTypingInterval);
+        _AccountIndexTypingTimer = setTimeout(_CategoryGuarantorProductIndexDoneTyping, _AccountIndexDoneTypingInterval);
+    });
+    $('#_CategoryGuarantorProductSearch').keydown(function () {
+        clearTimeout(_CategoryGuarantorProductIndexDoneTyping);
+    });
+
+    $('#_CertificateIndexFilterButton').click(function () {
+        datatables.ajax.reload();
+    });
+  
+</script>
+

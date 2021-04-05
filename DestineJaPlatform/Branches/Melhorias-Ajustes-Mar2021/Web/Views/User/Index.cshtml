@@ -1,0 +1,71 @@
+@model string
+
+@inject Services.Client.ClientUserServices clientUserServices
+
+@{
+    ViewData["Title"] = "Usuários DestineJá";
+}
+
+<div class="card">
+    <div class="card-body">
+        @if (User.IsClient())
+        {
+            <div class="alert alert-destineja tx-20 text-center" role="alert">
+                Cadastre até 3 usuários da sua empresa para gerenciar e controlar as documentações.
+            </div>
+        }
+        <div class="row">
+            <div class="col-md">
+                <form method="GET" action="@Url.Action("Index", "User")">
+                    <div class="input-group mb-3">
+                        <div class="input-group-addon">
+                            <span class=""><i class="simple-icon-magnifier"></i></span>
+                        </div>
+                        <input type="text" name="q" class="form-control" placeholder="Procurar..." data-toggle="search-datatable" data-target="#UserIndexTable" value="@Model">
+                    </div>
+                </form>
+            </div>
+            @if ((!User.IsClient() && (!Context.Request.Query.ContainsKey("userType") || int.Parse(Context.Request.Query["userType"]) != (int)DTO.User.UserType.Client)) || (User.IsClient() && await clientUserServices.GetTotalUsersByLoggedUser(Context) <= 3))
+            {
+                <div class="col-md-2">
+                    <a href="@Url.Action("Manage", "User")" class="btn @(!User.IsClient()? "btn-success" : "btn-destineja-orange")  w-100">
+                        <i class="simple-icon-plus"></i>
+                        Novo Usuário
+                    </a>
+                </div>
+            }
+        </div>
+        <hr />
+        <div id="UserIndexViewComponent">
+            @(await Component.InvokeAsync<Web.ViewComponents.User.UserIndexViewComponent>(new { q = Model, userType = Context.Request.Query.ContainsKey("userType")? int.Parse(Context.Request.Query["userType"]) : (int?)null }))
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script type="text/javascript">
+        function DeleteUser(id) {
+            if(confirm('Deseja realmente excluir este usuário?')) {
+                $.get('@Url.Action("Delete", "User")', { id: id }, function(d) {
+                    if(d.hasError) {
+                        document.location.href = '@Url.Action("Index", "User")?error=true';
+                    } else {
+                        document.location.href = '@Url.Action("Index", "User")?success=true';
+                    }
+                });
+            }
+        }
+
+        function sendNewUserEmail(userId) {
+            bootboxConfirm('Deseja realmente enviar um e-mail com as credenciais para este usuário?', function (r) {
+                if (!r) return;
+
+                $.post('@Url.Action("SendNewClientUserEmail", "User")', { userId }, function (d) {
+                    bootbox.alert(d.message);
+                });
+            });
+        }
+    </script>
+
+    <script asp-paste-key="user-index"></script>
+}

@@ -1,0 +1,143 @@
+﻿@model List<DTO.EmailLog.EmailLogViewModel>
+
+@inject BLL.Company.CompanyFunctions companyFunctions
+@inject BLL.Permission.CompanyUserRoleFunctions companyUserRoleFunctions
+@inject Microsoft.AspNetCore.Identity.UserManager<DAL.Identity.User> userManager
+
+@{
+    ViewData["Title"] = "Administração de Requisitos Legais";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var user = (await userManager.GetUserAsync(User));
+    var userCompany = companyUserRoleFunctions.UserCompanies(user.Id);
+}
+
+<style type="text/css">
+    .select2-selection {
+        height: 38px !important;
+    }
+
+    .select2-selection__rendered {
+        line-height: 38px !important;
+    }
+</style>
+<div class="card shadow">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md" style=" padding: 0 40px 0 30px;">
+                <input class="form-control" placeholder="Pesquisar..." id="search" />
+            </div>
+            @if (User.IsInRole(BLL.User.ProfileNames.Administrator) || User.IsInRole(BLL.User.ProfileNames.Master))
+            {
+                <div class="col-md-2">
+                    <select class="form-control" id="companyId">
+                        <option value="">Unidade de Negócio</option>
+                        @foreach (var item in companyFunctions.GetDataViewModel(companyFunctions.GetData(x => !x.IsDeleted)).OrderBy(x => x.NomeFantasia))
+                        {
+                            if (Context.Request.Query.ContainsKey("companyId") && Context.Request.Query["companyId"].ToString() == Convert.ToString(item.CompanyId.Value))
+                            {
+                                <option selected="selected" value="@item.CompanyId">@item.NomeFantasia</option>
+                            }
+                            else
+                            {
+                                <option value="@item.CompanyId">@item.NomeFantasia</option>
+                            }
+                        }
+                    </select>
+                </div>
+            }
+        </div>
+        <div class="row mt-3">
+            <div class="col">
+                <table class="table table-striped table-bordered table-condensed w-100" id="email-log-table">
+                    <thead>
+                        <tr>
+                            <td>Data</td>
+                            @if (User.IsInRole(BLL.User.ProfileNames.Administrator) || User.IsInRole(BLL.User.ProfileNames.Master))
+                            {
+                                <td style="white-space: nowrap;">Unidade de Negócio</td>
+                            }
+                            <td>Destinatário</td>
+                            <td style="width: 100%;">Assunto</td>
+                            <td></td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td data-company-id="@item.CompanyId">@item.CreatedDate</td>
+                                @if (User.IsInRole(BLL.User.ProfileNames.Administrator) || User.IsInRole(BLL.User.ProfileNames.Master))
+                                {
+                                    <td>@item.Company</td>
+                                }
+                                <td>@(string.IsNullOrEmpty(item.Emails)? "-" : item.Emails)</td>
+                                <td>@item.Subject</td>
+                                <td style="text-align: center;"><a href="javascript: loadEmailLogInfoViewComponent(@item.EmailLogId)" class="btn btn-primary"><i class="fa fa-search"></i> Ver</a></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="email-log-info-modal" tabindex="-1" role="dialog" aria-labelledby="email-log-info-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="email-log-info-modal-title">E-mail</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="email-log-info-view-component"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-times"></i> Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var emailLogDatatables = $('#email-log-table').DataTable({
+        proccessing: true
+        , serverSide: false
+        , searching: true
+        , lengthChange: false
+        , bSort: false
+        , dom: 'tip'
+    });
+    $('#search').keyup(function () {
+        emailLogDatatables.search($(this).val()).draw();
+    })
+
+    function loadEmailLogInfoViewComponent(id) {
+        $('#email-log-info-view-component').load('@Url.Action("LoadEmailLogInfoViewComponent", "EmailLog")', { id }, function () {
+            $('#email-log-info-modal').modal('show');
+        });
+    }
+
+    $('#email-log-company-filter').select2({
+        closeOnSelect: false,
+        allowClear: true,
+        placeholder: "Unidade de Negócio",
+        "language": {
+            "noResults": function () {
+                return "Nenhum resultado encontrado.";
+            }
+        }
+    });
+</script>
+@if (User.IsInRole(BLL.User.ProfileNames.Administrator) || User.IsInRole(BLL.User.ProfileNames.Master))
+{
+    <script type="text/javascript">
+        oTable = $('#myTable').DataTable();
+        $('#companyId').change(function () {
+            document.location.href = "@Url.Action("Index", "EmailLog")?companyId=" + $('#companyId').val();
+        });
+    </script>
+}

@@ -1,0 +1,54 @@
+﻿@model WEB.Models.ProductPlanManageViewModel
+
+
+<div id="_ProductPlanAlertError" class="alert alert-danger fade show text-center" style="display:none;">
+    <b>Houve um erro ao salvar os dados, tente novamente.</b>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <label>Planos:</label>
+        <select class="form-control" id="Plans" multiple>
+            @foreach (var plan in (List<DB.Models.Plan>)ViewData["Plans"])
+            {
+                if (Model.PlanIds.Contains(plan.PlanId))
+                {
+            <option value="@(plan.PlanId)" selected>@(plan.Name)</option>
+                    continue;
+                }
+            <option value="@(plan.PlanId)">@(plan.Name)</option>
+            }
+        </select>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#Plans').select2({
+        allowClear: true,
+        escapeMarkup: function (markup) { return markup; },
+        placeholder: "Selecione os planos para @Html.Raw(Model.Product.Name)",
+        "language": {
+            "noResults": function () {
+                return 'Nenhum plano encontrado, <a href="@Url.Action("Manage", "Plan")">clique aqui</a> para criar novos planos.';
+            }
+        },
+        closeOnSelect: false
+    });
+
+    function _ProductPlanSave() {
+        $.ajax({
+            url: '@Url.Action("ProductPlanSave", "Product")',
+            type: 'POST',
+            datatype: 'JSON',
+            data: { productId: '@Model.Product.ProductId', planIds: $('#Plans').val() },
+            success: function (data) {
+                if (data.hasError) {
+                    $('#_ProductPlanAlertError').show();
+                } else {
+                    $('#_ProductPlanAlertError').hide();
+                    _ProductPlanCallBack(data.code);
+                }
+            }
+        });
+    }
+</script>

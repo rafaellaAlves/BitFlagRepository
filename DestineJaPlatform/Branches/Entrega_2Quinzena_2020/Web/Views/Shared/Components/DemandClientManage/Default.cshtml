@@ -1,0 +1,330 @@
+﻿@model DTO.Shared.EntityViewMode<DTO.Demand.DemandClientViewModel>
+
+@inject Services.Demand.DemandClientResidueListServices demandClientResidueListServices
+
+@{
+    var demandClientResidues = await demandClientResidueListServices.GetViewModelAsNoTrackingAsync(x => x.DemandClientId == Model.Model.DemandClientId);
+}
+
+<style type="text/css">
+    @@media (min-width: 1100px) {
+        #demand-client-manage-modal .modal-lg {
+            max-width: 1000px;
+        }
+    }
+
+    #demand-client-residue-table_wrapper td:last-child {
+        white-space: nowrap;
+        /*width: 125px !important;*/
+    }
+</style>
+
+<form id="demand-client-manage-form" action="@Url.Action("DemandClientManage", "Demand")" method="post">
+    <input type="hidden" value="@Model.Model.DemandClientId" name="DemandClientId" />
+    <div id="demand-client-manage-form-area">
+        <div class="row">
+            <div class="col-md form-group">
+                <label class="required">Visitou?</label>
+                <select class="form-control" name="Visited" onchange="updateNonCollectingReasonField()">
+                    <option value="">Selecione</option>
+                    <option value="true" @(Model.Model.Visited.GetValueOrDefault() == true ? "selected" : "")>Sim</option>
+                    <option value="false" @(Model.Model.Visited.HasValue && Model.Model.Visited.Value == false ? "selected" : "")>Não</option>
+                </select>
+            </div>
+            <div class="col-md form-group">
+                <label class="required">Coletou?</label>
+                <select class="form-control" name="Collected" onchange="updateNonCollectingReasonField()">
+                    <option value="">Selecione</option>
+                    <option value="true" @(Model.Model.Collected.GetValueOrDefault() == true ? "selected" : "")>Sim</option>
+                    <option value="false" @(Model.Model.Collected.HasValue && Model.Model.Collected.Value == false ? "selected" : "")>Não</option>
+                </select>
+            </div>
+            <div class="col-md form-group">
+                <label>Hora Chegada</label>
+                <input class="form-control time-2" name="_ArrivedTime" value="@Model.Model._ArrivedTime" placeholder="Hora Chegada" />
+            </div>
+            <div class="col-md form-group">
+                <label>Hora Saída</label>
+                <input class="form-control time-2" name="_DepartureTime" value="@Model.Model._DepartureTime" placeholder="Hora Saída" />
+            </div>
+            <div class="col-md form-group">
+                <label>Dia</label>
+                <input class="form-control date" name="_VisitedDate" value="@Model.Model._VisitedDate" placeholder="Dia" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 form-group">
+                <label>Motivo da não coleta</label>
+                <input class="form-control" name="NonCollectingReason" value="@Model.Model.NonCollectingReason" @(Model.Model.Visited.HasValue && (Model.Model.Visited.GetValueOrDefault() == false || Model.Model.Collected.GetValueOrDefault() == false) ? "" : "disabled") placeholder="Motivo da não coleta" />
+            </div>
+            <div class="col-md-3 form-group">
+                <label>Nome do(a) receptor(a)</label>
+                <input class="form-control" name="ReceptorName" value="@Model.Model.ReceptorName" placeholder="Nome do(a) receptor(a)" />
+            </div>
+            <div class="col-md-3 form-group">
+                <label>CPF do(a) receptor(a)</label>
+                <input class="form-control cpf" name="_ReceptorCPF" value="@Model.Model._ReceptorCPF" placeholder="CPF do(a) receptor(a)" />
+            </div>
+        </div>
+    </div>
+    <hr />
+    @if (Model.CanEdit())
+    {
+        <div class="row">
+            <div class="col form-group text-right">
+                <button type="button" class="btn btn-success" onclick="openDemandClientResidueModal()">Adicionar Resíduos</button>
+            </div>
+        </div>
+    }
+    <div class="row">
+        <div class="col form-group table-responsive">
+            <table class="table table-striped table-condensed table-bordered" id="demand-client-residue-table">
+                <thead>
+                    <tr>
+                        <td>Código IBAMA</td>
+                        <td>Nome do Resíduo</td>
+                        <td>Quantidade (Peso)</td>
+                        <td>Familía do Resíduo</td>
+                        <td>Destino Final</td>
+                        @if (Model.CanEdit())
+                        {
+                            <td>&nbsp;</td>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in demandClientResidues)
+                    {
+                        <tr data-residue-id="@item.ResidueId">
+                            <td>@item.IBAMACode</td>
+                            <td>@item.ResidueName</td>
+                            <td>@item._Weight (@item.UnitOfMeasurementName)</td>
+                            <td>@item.ResidueFamilyName</td>
+                            <td>@item.RecipientName.IfNullChange("-")</td>
+                            @if (Model.CanEdit())
+                            {
+                                <td>
+                                    <a href="javascript:openDemandClientResidueModal(@item.DemandClientResidueId)" class="badge badge-pill badge-primary"><i class="simple-icon-note"></i> Editar</a>
+                                    <a href="javascript:removeDemandClientResidue(@item.ResidueId)" class="badge badge-pill badge-danger"><i class="simple-icon-trash"></i> Remover</a>
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col form-group">
+            <button type="button" class="btn btn-success" id="upload-mt-file-button" onclick='openMTRFileModal(@(Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(new { Model.Model.DemandClientId, Model.Model.MTRFileName }))))'>Upload MTR Assinado</button>
+        </div>
+        <div class="col form-group text-right">
+            <div class="input-group" id="certificateId-area">
+                <div class="input-group-addon">
+                    <span class="">Nº do Certificado</span>
+                </div>
+                <input class="form-control number" disabled value="@(Model.Model.DestineJaCertificateId??(object)"-")">
+                <input type="hidden" value="@(Model.Model.DestineJaCertificateId)">
+            </div>
+        </div>
+    </div>
+</form>
+
+
+
+<script type="text/javascript" asp-cut-key="demand-client-manage" asp-cut-key-load-from-controller="@Model.LoadFromController">
+    var demandClientResidueTable, demandClientResidue = [@(Html.Raw(string.Join(",", demandClientResidues.Select(x => $"{{ residueId: { x.ResidueId }, ibama: '{ x.IBAMACode }', residueName: '{ x.ResidueName }', residueFamilyName: '{ x.ResidueFamilyName }', weight: '{ x._Weight }', unitOfMeasurementId: { x.UnitOfMeasurementId } }}"))))];
+
+    function insertFileCallback1(fileName) {
+        $('#upload-mt-file-button').off('click');
+        $('#upload-mt-file-button').click(function () {
+            openMTRFileModal({ DemandClientId: '@Model.Model.DemandClientId', MTRFileName: fileName });
+        });
+    }
+
+
+    function removeFileCallback1() {
+        $('#upload-mt-file-button').off('click');
+        $('#upload-mt-file-button').click(function () {
+            openMTRFileModal({ DemandClientId: '@Model.Model.DemandClientId' });
+        });
+    }
+
+    function openDemandClientResidueModal(data) {
+        if ($('#demand-client-residue-modal').length == 0) return;
+
+        if ($('#demand-client-manage-modal').length > 0) {
+            //$('#demand-client-manage-modal').css('opacity', 0);
+            $('#demand-client-manage-modal').modal('hide');
+        }
+
+        if (data == null) {
+            $('#demand-client-residue-add-button').show();
+        } else {
+            $('#demand-client-residue-add-button').hide();
+        }
+
+        var d = {};
+        if (typeof data == 'number') {
+            d = { demandClientResidueId: data };
+        } else if (typeof data == 'object') {
+            d = data;
+        }
+        d['demandClientId'] = '@Model.Model.DemandClientId';
+
+        $('#demand-client-residue-modal').modal('show');
+        $('#demand-client-residue-view-component').load('@Url.Action("LoadDemandClientResidueSelectionViewComponent", "Demand")', d );
+    }
+
+    $('#demand-client-residue-modal').on('hidden.bs.modal', function () {
+        if ($('#demand-client-manage-modal').length > 0) {
+            //$('#demand-client-manage-modal').css('opacity', 1);
+
+            $('#demand-client-manage-modal').modal('show');
+        }
+    });
+
+    //$('#demand-client-manage-modal').on('shown.bs.modal', function () {
+    //    $('#demand-client-residue-table').DataTable().columns.adjust();
+    //});
+
+    $(document).ready(function () {
+        demandClientResidueTable = $('#demand-client-residue-table').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            dom: 'tip',
+            scrollY: '250px',
+            scrollCollapse: true,
+            paging: false,
+            drawCallback: function () {
+                setTimeout(function () {
+                    $('#demand-client-residue-table').DataTable().columns.adjust();
+                }, 500);
+            }
+        });
+
+        InitializeFunctions();
+
+        @(Model.CanEdit()? "" : (object)Html.Raw("disableAllFields('#demand-client-manage-form-area');"))
+    });
+
+    function insertResiduesIntoClientResidueTable(data) {
+        if (demandClientResidue.findIndex(x => x.residueId == data.residueId) != -1) return;
+
+        demandClientResidue = demandClientResidue.concat(data);
+
+        $.each(data, function (i, e) {
+            var r = demandClientResidueTable.row.add(
+                $('<tr>').append(
+                    $('<td>').append(e.ibama),
+                    $('<td>').append(e.residueName),
+                    $('<td>').append(e.weight + '(' + e.unitOfMeasurementName + ')'),
+                    $('<td>').append(e.residueFamilyName),
+                    $('<td>').append('-'),
+                    $('<td>').append('<div class=\"text-center\"><a href=\'javascript:openDemandClientResidueModal(' + JSON.stringify(e) + ')\' class="badge badge-pill badge-primary"><i class="simple-icon-note"></i> Editar</a>&nbsp;<a href="javascript:removeDemandClientResidue(' + e.residueId + ')" class="badge badge-pill badge-danger"><i class="simple-icon-trash"></i> Remover</a></div>')
+                )
+            );
+
+            $(r.node()).attr('data-residue-id', e.residueId);
+        });
+
+        demandClientResidueTable.draw(false);
+    }
+
+    function removeDemandClientResidue(residueId) {
+
+        demandClientResidueTable.row($('#demand-client-residue-table tbody tr[data-residue-id="' + residueId + '"]')).remove();
+        demandClientResidueTable.draw();
+
+        var index = demandClientResidue.findIndex(x => x.residueId == residueId);
+        demandClientResidue.splice(index, 1);
+    }
+
+    function saveDemandClient(callback) {
+        if (!validateInputs('demand-client-manage-form')) return;
+
+        if ($('#demand-client-manage-form [name="Visited"]').val() == "true") {
+            var r = true;
+
+            if (isNullOrWhiteSpace($('#demand-client-manage-form [name="_ArrivedTime"]').val())) {
+                $('#demand-client-manage-form [name="_ArrivedTime"]').after('<small class="text-danger">Este campo deve ser preenchido.</div>');
+                r = false;
+            }
+            if (isNullOrWhiteSpace($('#demand-client-manage-form [name="_DepartureTime"]').val())) {
+                $('#demand-client-manage-form [name="_DepartureTime"]').after('<small class="text-danger">Este campo deve ser preenchido.</div>');
+                r = false;
+            }
+            if (isNullOrWhiteSpace($('#demand-client-manage-form [name="_VisitedDate"]').val())) {
+                $('#demand-client-manage-form [name="_VisitedDate"]').after('<small class="text-danger">Este campo deve ser preenchido.</div>');
+                r = false;
+            }
+
+            if (!r) return;
+        }
+
+        if ($('#demand-client-manage-form [name="Collected"]').val() == "true") {
+
+            if ($('#demand-client-manage-form [name="Visited"]').val() == 'false') {
+                $('#demand-client-manage-form [name="Collected"]').after('<small class="text-danger">Não é possível prosseguir com coletado igual a \'SIM\' e Visitado igual a \'NÃO\'.</div>');
+                r = false;
+            }
+            if (!r) return;
+        }
+
+        if ($('#demand-client-manage-form [name="Collected"]').val() == "true" && isNullOrWhiteSpace($('#demand-client-manage-form [name="ReceptorName"]').val())) {
+            $('#demand-client-manage-form [name="ReceptorName"]').after('<small class="text-danger">Este campo deve ser preenchido.</div>');
+            return;
+        }
+
+        //if ($('#demand-client-manage-form [name="Collected"]').val() == "true" && isNullOrWhiteSpace($('#demand-client-manage-form [name="CertificateId"]').val())) {
+        //    $('#certificateId-area').after('<small class="text-danger">Este campo deve ser preenchido.</div>');
+        //    return;
+        //}
+
+        $.post('@Url.Action("ValidateDemandClientManage", "Demand")', { demandClientId: '@Model.Model.DemandClientId', demandResidues: demandClientResidue.map(function (e) { return e.residueId }) }, function (d) {
+            if (d) {
+                $('#demand-client-manage-button').attr('disabled', '');
+
+                insertDemandClientResiduesToForm();
+                $('#demand-client-manage-form').submit();
+            }
+            else {
+                bootboxConfirm('Há resíduos coletados que não pertencem ao contrato.<br/> Deseja salvar e vincular os resíduos no contrato?', function (r) {
+                    if (!r) return;
+
+                    $('#demand-client-manage-button').attr('disabled', '');
+
+                    insertDemandClientResiduesToForm();
+                    $('#demand-client-manage-form').submit();
+                });
+            }
+        });
+    }
+
+    function insertDemandClientResiduesToForm() {
+        $.each(demandClientResidue, function (_i, e) {
+            var i = _i + 1;
+
+            $('#demand-client-manage-form').append($('<input>', { type: 'hidden', name: 'demandClientResidue.Index', value: i }));
+            $('#demand-client-manage-form').append($('<input>', { type: 'hidden', name: 'demandClientResidue[' + i + '].ResidueId', value: e.residueId }));
+            $('#demand-client-manage-form').append($('<input>', { type: 'hidden', name: 'demandClientResidue[' + i + ']._Weight', value: e.weight }));
+            $('#demand-client-manage-form').append($('<input>', { type: 'hidden', name: 'demandClientResidue[' + i + '].UnitOfMeasurementId', value: e.unitOfMeasurementId }));
+        });
+    }
+
+    function updateNonCollectingReasonField() {
+        $('#demand-client-manage-form [name="NonCollectingReason"]').removeAttr('disabled');
+        if ($('#demand-client-manage-form [name="Visited"]').val() == 'false' || $('#demand-client-manage-form [name="Collected"]').val() == 'false') return;
+
+        $('#demand-client-manage-form [name="NonCollectingReason"]').attr('disabled', 'disabled');
+    }
+
+    function saveEditionResidueCallback(data) {
+        removeDemandClientResidue(data.oldResidueId);
+        insertResiduesIntoClientResidueTable([data]);
+
+        $('#demand-client-residue-modal').modal('hide');
+    }
+</script>

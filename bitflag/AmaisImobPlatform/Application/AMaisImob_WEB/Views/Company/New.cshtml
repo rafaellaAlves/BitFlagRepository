@@ -1,0 +1,82 @@
+﻿@model string
+
+@inject AMaisImob_WEB.BLL.CompanyTypeFunctions companyTypeFunctions
+@inject AMaisImob_WEB.BLL.CompanyFunctions companyFunctions
+
+@{
+    ViewData["Title"] = "Nova Imobiliária";
+    Layout = "~/Views/Shared/_LayoutLogin.cshtml";
+
+    int companyTypeId = companyTypeFunctions.GetDataByExternalCode("IMOBILIARIA").CompanyTypeId;
+    var company = await companyFunctions.GetDataByCompanyReference(Model);
+}
+<form id="company-new-form" method="post">
+    <input type="hidden" name="CompanyReference" value="@Model" />
+    <div class="card shadow bg-light mt-3">
+        <div class="card-header"><span id="_CompanyManageCardHeaderTitle">Criação de Imobiliária</span></div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label>Corretora:</label>
+                    <input class="form-control" disabled value="@(string.IsNullOrWhiteSpace(company.RazaoSocial) ? company.FirstName + " " + company.LastName : company.RazaoSocial)" />
+                </div>
+            </div>
+            <hr />
+            @(await Component.InvokeAsync<AMaisImob_WEB.ViewComponents.Company.CompanyManageViewComponent>(new AMaisImob_WEB.Models.CompanyViewModel() { CompanyTypeId = companyTypeId }))
+        </div>
+        <div class="card-footer">
+            <button type="button" id="company-new-save-button" class="btn btn-success float-right"><i class="fas fa-cloud-upload-alt"></i>&nbsp;Salvar</button>
+        </div>
+    </div>
+</form>
+
+<script type="text/javascript">
+    $('#company-new-save-button').click(function () {
+        if (!_CompanyManageValidate()) return;
+
+        if (IsNullOrWhiteSpace($('#compay-manage-user-partner-first-name').val())) {
+            alert('Insira um usuário sócio.');
+            return;
+        }
+
+        $.post('@Url.Action("ValidateNew")', $('#company-new-form').serializeArray(), function (d) {
+            if (d.hasError) {
+                alert(d.message);
+                return;
+            }
+
+            var inputs = [];
+            $('#_AccountManageForm').serializeArray().forEach(function (e) {
+                inputs.push($('<input>', { type: 'hidden', name: 'user.' + e.name, value: e.value }));
+            });
+
+            $('#company-new-form').append(inputs);
+            $('#company-new-form').submit();
+            //inputs.remove();
+        });
+    });
+</script>
+
+@if (Context.Request.Query.ContainsKey("newRealState"))
+{
+<script type="text/javascript">
+    bootbox.dialog({
+        message: "Cadastro realizado com sucesso!<br />Clique em prosseguir para assinar o Termo de Aceite<br />Caso queira assinar depois, enviaremos no seu e-mail o termo de adesão.",
+        size: 'large',
+        buttons: {
+            cancel: {
+                label: "Sair",
+                className: 'btn-secondary mr-auto float-left',
+                callback: function () { }
+            },
+            ok: {
+                label: "Prosseguir",
+                className: 'btn-success',
+                callback: function () {
+                    window.location.href = '@Context.Request.Scheme://@Context.Request.Host@Url.Action("AcceptTerm", "Company")?companyId=@Context.Request.Query["companyId"]&token=@Context.Request.Query["token"]';
+                }
+            },
+        }
+    });
+</script>
+}

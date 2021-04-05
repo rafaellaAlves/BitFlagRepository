@@ -1,0 +1,172 @@
+﻿@model WEB.Models.PlanViewModel
+
+<div id="_PlanCoverageAlertError" class="alert alert-danger fade show text-center" role="alert" style="display: none;">
+    <strong>Atenção!</strong> Deve ser preenchido a garantia de todas cobertura que serão utilizadas.
+</div>
+<div class="table-wrapper">
+    <table id="_ProductCoverageIndexTable" class="table display responsive nowrap" style="border-collapse: collapse !important;">
+        <thead>
+            <tr>
+                <th>&nbsp;</th>
+                <th>Nome</th>
+                <th>Taxa (%)</th>
+                <th>Mínimo (R$)</th>
+                <th>Maximo (R$)</th>
+                <th>Básica</th>
+                <th>Opcional</th>
+                <th>Limite Básico (%)</th>
+                <th>Garantia (R$)</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+<script type="text/javascript">
+    var total = 0;
+    var index = 1;
+    var _ProductCoverageIndexTypingTimer;
+    var _ProductCoverageIndexDoneTypingInterval = 500;
+    var datatables = $('#_ProductCoverageIndexTable').DataTable({
+        "order": [[5, "desc"]],
+        columnDefs: [{
+            targets: [5],
+            orderData: [5, 6, 1]
+        },
+        {
+            targets: [6],
+            "visible": false
+        }],
+		proccessing: true,
+		serverSide: false,
+		searching: true,
+        lengthChange: false,
+        bPaginate: false,
+        info: false,
+        iDisplayLength: 100,
+		dom: 'tip',
+		ajax: {
+            url: '@Url.Action("PlanCoverageList", "Plan")',
+            data: function (d) {
+                d.productId = '@Model.ProductId',
+                d.planId = '@Model.PlanId'
+            },
+			type: 'POST'
+		},
+        columns: [
+            {
+                data: 'IsOptional',
+                render: function (data, type, row) {
+                    var used = false;
+                    if (row.used != null) {
+                        used = row.used;
+                    }
+                    return '<input id="ProductCoverageId_' + index + '" value="' + row.productCoverageId + '" type="hidden" /><div style="text-align:center;"><input id="Used_' + index + '" type="checkbox" ' + (!row.isOptional ? 'checked disabled' : used ? 'checked ' : '') + ' /></div>';
+                }
+            },
+			{ data: 'Name',
+            render: function (data, type, row) {
+                return '<a href="@Url.Action("Manage", "ProductCoverage")?id=' + row.productCoverageId  + '" target="_blank">' + row.name + '</a>';
+                }
+            },
+            {
+                data: 'Taxes',
+            render: function (data, type, row) {
+                return '<span class="percent">' + row._Taxes + '</span>';
+                }
+            },
+            {
+                data: 'Minimum',
+                render: function (data, type, row) {
+                    return row.minimum != null ? '<span class="money">' + row._Minimum + '</span>' : '-';
+                }
+            },
+            {
+                data: 'Maximum',
+                render: function (data, type, row) {
+                    return row.maximum != null ? '<span class="money">' + row._Maximum + '</span>' : '-';
+                }
+            },
+            {
+                data: 'IsBasic',
+                render: function (data, type, row) {
+                    return row.isBasic ? '<span class="badge badge-pill badge-success text-center">Sim</span>' : '<span class="badge badge-pill badge-danger text-center">Não</span>';
+                }
+            },
+            {
+                data: 'IsOptional',
+                render: function (data, type, row) {
+                    return !row.isOptional;
+                }
+            },
+            {
+                data: 'BasicLimit',
+                render: function (data, type, row) {
+                    return row.basicLimit != null ? '<span class="percent">' + row._BasicLimit + '</span>' : '-';
+                }
+            },
+            {
+                data: null,
+                render: function (data, type, row) {
+                    var r = '<div style="text-align:center; width:100%;"><input id="Garantia_' + index + '" style="padding: 0.090rem 0.75rem;" type="text" class="form-control money" Placeholder="Garantia de ' + row.name + '" ' + (row._Garantia != null ? 'value="' + row._Garantia  + '"' : '') + ' /></div>';
+
+                    index++;
+                    return r;
+                }
+            }
+        ],
+        initComplete: function (settings, json) {
+
+            total = json.recordsFiltered;
+
+            _MaskData();
+        }
+    });
+
+    function _PlanCoverageValidacao() {
+        var _PlanCoverageHasError = false;
+        $('.text-danger').remove();
+
+        for (var i = 1; i <= total; i++) {
+            if ($('#Used_' + i)[0].checked && IsNullOrWhiteSpace($('#Garantia_' + i).val())) {
+                _PlanCoverageHasError = true;
+            }
+        }
+
+        if (_PlanCoverageHasError) {
+            $('#_PlanCoverageAlertError').show();
+        } else {
+            $('#_PlanCoverageAlertError').hide();
+        }
+
+        return (!_PlanCoverageHasError);
+    }
+
+    function _PlanCoverageSave () {
+        var model = [];
+        for (var i = 1; i <= total; i++) {
+            model.push({
+                'ProductCoverageId': $('#ProductCoverageId_' + i).val(), 'Used': $('#Used_' + i)[0].checked, '_Garantia': $('#Garantia_' + i).val(), 'PlanId': @if (Model.PlanId.HasValue) {<text>'@Model.PlanId'</text>}else{<text>null</text>}, 'PlanCoverageId': null
+            });
+        }
+        if (total == 0) {
+            model.push({
+                'ProductCoverageId': null, 'Used': null, '_Garantia': null, 'PlanId': @if (Model.PlanId.HasValue) {<text>'@Model.PlanId'</text>}else{<text>null</text>}, 'PlanCoverageId': null
+            });
+        }
+        var d = JSON.stringify(model)
+        $.ajax({
+            url: '@Url.Action("PlanCoverageSave", "Plan")',
+            type: 'POST',
+            data: d,
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            success: function (data) {
+                if(data.hasError){
+                    alert(data.message);
+                    return;
+                }
+                _PlanCoverageCallBack(data.code);
+            }
+        });
+    }
+</script>

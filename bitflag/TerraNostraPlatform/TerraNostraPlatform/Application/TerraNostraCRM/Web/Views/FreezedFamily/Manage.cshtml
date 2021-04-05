@@ -1,0 +1,59 @@
+﻿@model DTO.FreezedFamily.FreezedFamilyViewModel
+
+@using Web.Utils
+
+@{
+    ViewData["Title"] = "Árvore Gerada";
+    ViewData["SubTitle"] = "Cliente <b>" + Model.ClientName + "</b> gerada por <b>" + Model._CreatedBy + "</b> em <b>" + Model._CreatedDate + "</b>";
+}
+<div>
+    <h2 class="mb-2" style="font-size:25px;"><b>@Model.ClientName</b><br /><small>Aprovação de Árvore</small></h2>
+</div>
+<div class="card">
+    <div class="card-body">
+        @if (Model.AcceptedBy.HasValue && Model.Accepted.Value)
+        {
+            <div class="alert alert-success">
+                <b>Árvore aprovada por <b>@Model._AcceptedBy</b> em <b>@Model._AcceptedDate</b>.</b>
+            </div>
+        }
+        @if (Model.AcceptedBy.HasValue && !Model.Accepted.Value)
+        {
+            <div class="alert alert-danger">
+                <b>Árvore reprovada por <b>@Model._AcceptedBy</b> em <b>@Model._AcceptedDate</b>.</b>
+            </div>
+        }
+        <div id="_FreezedFamilyManageViewComponent"></div>
+        <hr />
+        <div class="row">
+            <div class="col-md-6">
+                <a class="btn btn-secondary text-white" href="@Url.Action("Index", "FreezedFamily")"><i class="simple-icon-action-undo"></i>&nbsp;Voltar</a>
+            </div>
+            @if (!Model.AcceptedBy.HasValue && User.FreezedFamilyCanAccessEdition())
+            {
+                <div class="col-md-6">
+                    <div class="btn-group float-right" role="group">
+                        <a href="javascript:void(0)" id="FreezeFamilyReproveButton" class="btn btn-danger text-white"><i class="simple-icon-close"></i>&nbsp;Reprovar</a>
+                        <a href="javascript:void(0)" id="FreezeFamilyAcceptButton" class="btn btn-success text-white"><i class="simple-icon-check"></i>&nbsp;Aprovar</a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#_FreezedFamilyManageViewComponent').load('@Url.Action("FreezedFamilyManageComponent", "FreezedFamily")', { 'freezedFamilyId': '@Model.FreezedFamilyId'});
+
+    $('#FreezeFamilyAcceptButton').click(function () {
+        if (!confirm('Deseja realmente aprovar esta árvore?')) return;
+
+        window.location.href = '@Url.Action("AcceptFreezedFamily", "FreezedFamily", new { freezedFamilyId = Model.FreezedFamilyId })';
+    });
+    $('#FreezeFamilyReproveButton').click(function () {
+        if (!confirm('Deseja realmente reprovar esta árvore?')) return;
+
+        window.location.href = '@Url.Action("ReproveFreezedFamily", "FreezedFamily", new { freezedFamilyId = Model.FreezedFamilyId })';
+    });
+</script>
+

@@ -1,0 +1,663 @@
+﻿@model GuardMedWeb.Models.CotacaoPageViewModel
+@inject DAL.GuardMedWebContext context
+@inject GuardMedWeb.BLL.SeguradoProfissional.SeguradoProfissionalFunctions seguradoProfissionalFunctions
+@inject GuardMedWeb.BLL.SeguradoProfissional.PlanoSeguroProfissionalFunctions planoSeguroProfissionalFunctions
+@inject GuardMedWeb.BLL.SeguradoProfissional.MedicGroupFunctions medicGroupFunctions
+
+@using GuardMedWeb.BLL.Utils;
+
+@{
+    ViewData["Title"] = "GuardMed";
+
+    var especialidadeProfissionalFunctions = new GuardMedWeb.BLL.SeguradoProfissional.EspecialidadeProfissionalFunctions(context);
+    GuardMedWeb.Models.MedicGroupViewModel medicGroup = ViewData.ContainsKey("MedicGroup") ? (GuardMedWeb.Models.MedicGroupViewModel)ViewData["MedicGroup"] : null;
+    var especialidades = especialidadeProfissionalFunctions.GetDataViewModel(especialidadeProfissionalFunctions.GetData(x => x.SeguradoProfissionalId == Model.SeguradoProfissionalViewModel.SeguradoProfissionalId));
+}
+
+<style type="text/css">
+    .show-when-small {
+        display: none;
+    }
+
+    .hide-when-small {
+        display: block;
+    }
+
+    .oldPrice {
+        text-decoration: line-through;
+        color: white;
+    }
+
+        .oldPrice h5 {
+            font-size: 15px;
+            color: black;
+        }
+
+        .oldPrice h6 {
+            font-size: 12px;
+            color: black;
+            display: none;
+        }
+
+        .oldPrice strong {
+            font-size: 12px;
+            color: white;
+        }
+
+        .oldPrice #precoCarrinhoStrong {
+            font-size: 12px;
+            color: black;
+            display: none;
+        }
+
+    .discountPrice {
+        display: none;
+    }
+
+    .title-align-middle {
+        line-height: 38px;
+        vertical-align: middle;
+    }
+
+    .centsArea {
+        text-align: left;
+        line-height: 15px;
+        padding-top: 5px;
+    }
+
+    .cents {
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    .cifrao {
+        font-size: 20px;
+        font-weight: bold;
+        padding-top: 10px;
+    }
+
+    .perMonth {
+        font-size: 12px;
+        white-space: nowrap
+    }
+
+    #tbodyBlock {
+        display: none;
+    }
+
+    #tbodyBlock1 {
+        display: block;
+    }
+
+    @@media only screen and (max-width: 800px) {
+        #tbodyBlock {
+            display: block;
+        }
+
+        #tbodyBlock1 {
+            display: none;
+        }
+
+        tr #block {
+            display: block;
+            margin-top: 1px;
+        }
+
+        #list {
+            text-align: justify;
+            padding-left: 0;
+        }
+
+        #block2 td {
+            display: block;
+        }
+    }
+
+    /* @@media screen and (max-width: 575px) {
+            .hide-when-small {
+                display: none;
+            }
+
+            .show-when-small {
+                display: block;
+            }
+
+            .card {
+                margin-top: .5em;
+            }
+
+            .tableFont12 td small {
+                font-size: 12px;
+            }
+        }
+    */
+    .list-custom li {
+        margin-top: .5em;
+        font-size: 13px;
+    }
+
+    #CoberturaDiretorMedicoDiv[disabled] b {
+        color: #e9e9e9;
+    }
+
+    #CoberturaPessoaJuridicaDiv[disabled] b {
+        color: #e9e9e9;
+    }
+</style>
+
+@if (!Context.Request.Query.ContainsKey("RenewToken") || Model.SeguradoProfissionalViewModel.PodeRenovar)
+{
+    Html.RenderPartial("~/Views/SeguroProfissional/Shared/_StepCotacao.cshtml");
+}
+else
+{
+    Html.RenderPartial("~/Views/SeguroProfissional/Shared/_StepCotacao_Renew.cshtml");
+}
+
+<br />
+
+<form id="CotacaoForm" method="post">
+    <div class="no-screen" style="text-align: center;">
+        <img src="~/assets/images/logo.png" class="img-circle" width="240" height="80">
+        <h4 style="margin-top: 1em;">Cotação de @(!Context.Request.Query.ContainsKey("RenewToken")? "Adesão" : "Renovação da Adesão") ao Programa de Proteção Profissional GuardMed</h4>
+        <hr />
+    </div>
+
+    <div id="infoIntro" class="w-100">
+        <label>Olá Dr(a). <strong>@Model.SeguradoProfissionalViewModel.Nome</strong>.</label><br />
+        <label>
+            Veja os planos para o seu perfil com especialidades <b>@string.Join(", ", especialidades.Select(x => x.NomeEspecialidade))</b>@(medicGroup != null ? Html.Raw($" e grupo médico <b>{medicGroup.MedicGroupName}</b>.") : Html.Raw("."))
+        </label><br />
+        @if (!Context.Request.Query.ContainsKey("RenewToken"))
+        {
+            <label>Anote o número desta simulação para acessos futuros: <strong># Referência @Model.SeguradoProfissionalViewModel.Referencia</strong>.</label>
+        }
+
+        @if (Context.Request.Query.ContainsKey("RenewToken"))
+        {
+            <div class="row no-print mt-4">
+                @if (medicGroup != null)
+                {
+                    <div class="form-group col-md-7">
+                        <div class="input-group">
+                            <span class="input-group-addon">Grupo Médico</span>
+                            <input disabled class="form-control bg-white" value="@(medicGroup == null ? "Você não pertence a nenhum grupo médico associado." : medicGroup.MedicGroupName)" />
+                        </div>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <div class="input-group" id="medic-group-discount-area">
+                            <span class="input-group-addon">Desconto</span>
+                            <input class="form-control bg-white percent" name="MedicGroupDiscount" value="@(Model.SeguradoProfissionalViewModel.DescontoGrupoMedico.HasValue ? Model.SeguradoProfissionalViewModel.DescontoGrupoMedicoFormatado : medicGroup.Discount)" />
+                        </div>
+                    </div>
+                    <div class="form-group col-md-2">
+                        <button class="btn btn-primary w-100" onclick="loadPrices()" type="button">Aplicar</button>
+                    </div>
+                }
+                else
+                {
+                    <div class="form-group mx-auto col-md-4" style="display: inherit;">
+                        <div class="input-group">
+                            <span class="input-group-addon">Desconto</span>
+                            <select class="form-control" id="discount" name="Discount">
+                                <option value="0">Sem Desconto</option>
+                                <option value="1" selected="@(Model.SeguradoProfissionalViewModel.DescontoPlataforma == 1)">1%</option>
+                                <option value="2" selected="@(Model.SeguradoProfissionalViewModel.DescontoPlataforma == 2)">2%</option>
+                                <option value="3" selected="@(Model.SeguradoProfissionalViewModel.DescontoPlataforma == 3)">3%</option>
+                                <option value="4" selected="@(Model.SeguradoProfissionalViewModel.DescontoPlataforma == 4)">4%</option>
+                                <option value="5" selected="@(Model.SeguradoProfissionalViewModel.DescontoPlataforma == 5)">5%</option>
+                                <option value="6" selected="@(Model.SeguradoProfissionalViewModel.DescontoPlataforma == 6)">6%</option>
+                                <option value="7" selected="@(Model.SeguradoProfissionalViewModel.DescontoPlataforma == 7)">7%</option>
+                                <option value="8" selected="@(Model.SeguradoProfissionalViewModel.DescontoPlataforma == 8)">8%</option>
+                                <option value="9" selected="@(Model.SeguradoProfissionalViewModel.DescontoPlataforma == 9)">9%</option>
+                                <option value="10" selected="@(Model.SeguradoProfissionalViewModel.DescontoPlataforma == 10)">10%</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary ml-3" onclick="loadPrices()" type="button">Aplicar</button>
+                    </div>
+                }
+            </div>
+        }
+        <div class="row">
+            <div class="form-group col">
+                <a href="javascript:void(0)" class="btn btn-primary no-print float-right" id="Imprimir" onclick="window.print();"><i class="fas fa-print"></i>&nbsp;Imprimir</a>
+            </div>
+        </div>
+        @if (Context.Request.Query.ContainsKey("RenewToken"))
+        {
+            //Botão de enviar por e-mail
+        }
+    </div>
+    <br />
+    <script type="text/javascript">
+        var IsSeguroPrincipalSelected = false;
+        var IsSeguroProtecaoSelected = false;
+    </script>
+    <input type="hidden" name="reference" value="@Model.SeguradoProfissionalViewModel.Referencia" />
+    <input type="hidden" id="PlanoSeguroProfissionalId" name="PlanoSeguroProfissionalId" value="@Model.SeguradoProfissionalViewModel.PlanoSeguroProfissionalId" />
+    <input type="hidden" id="ProtecaoRendaAceito" name="ProtecaoRenda" value="@Model.SeguradoProfissionalViewModel.ProtecaoRenda" />
+
+    @{
+        var colspan = (Model.Cotacoes.Count * 2) + 1;
+    }
+    <div id="SeguroPrincipal">
+        <div class="row">
+            <div class="col-md-12">
+                <table id="teste" style="margin: 0 auto; width: 100%; border-collapse: separate;" cellspacing="0" cellpadding="0">
+                    <tbody id="tbodyBlock1">
+                        <tr>
+                            @foreach (var cotacaoViewModel in Model.Cotacoes)
+                            {
+                                <td style="width: 2%">&nbsp;</td>
+                                <td style="text-align: center; color: #2e5071; border: 2px solid #2e5071; border-top-left-radius: 0.5em; border-top-right-radius: 0.5em; font-size: 1.2em;">@cotacaoViewModel.Nome</td>
+                            }
+                            <td style="width: 2%">&nbsp;</td>
+                        </tr>
+                        <tr>
+                            @foreach (var cotacaoViewModel in Model.Cotacoes)
+                            {
+                                <td style="width: 2%">&nbsp;</td>
+                                <td style="text-align:center; border: 2px solid #2e5071; background-color: #2e5071; color: white; padding: 1em;">
+                                    <div>
+                                        @if (cotacaoViewModel.PossuiDesconto)
+                                        {
+                                            <div style="text-decoration: line-through;">
+
+                                                <table style="margin-left: 50%; transform: translateX(-50%);">
+                                                    <tr>
+                                                        <td class="cifrao" style="font-size: 14px">R$</td>
+                                                        <td style="font-size:28px; font-weight:bold;">@cotacaoViewModel.PrecoMensalFormatadoInteiro</td>
+                                                        <td class="centsArea" style="font-size: 10px; line-height: 10px;">
+                                                            ,<span class="cents" style="font-size: 10px">@cotacaoViewModel.PrecoMensalFormatadoCentavos</span><br />
+                                                            <span class="perMonth" style="font-size: 10px">mensais</span>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                        }
+                                        <div>
+                                            <table style="margin-left: 50%; transform: translateX(-50%);">
+                                                <tr>
+                                                    <td class="cifrao">R$</td>
+                                                    <td style="font-size:40px; font-weight:bold;">@cotacaoViewModel.PrecoMensalTotalFormatadoInteiro</td>
+                                                    <td class="centsArea">
+                                                        ,<span class="cents">@cotacaoViewModel.PrecoMensalTotalFormatadoCentavos</span><br />
+                                                        <span class="perMonth">mensais</span>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                        <div style="margin-top: -18px;"><small>Recorrente no cartão de crédito</small></div>
+                                        <h6>ou</h6>
+                                        <h6>R$ <span>@cotacaoViewModel.PrecoAnualTotalFormatado</span> à vista<br /> no boleto bancário</h6>
+                                    </div>
+                                    @if (!Context.Request.Query.ContainsKey("RenewToken") || Model.SeguradoProfissionalViewModel.PodeRenovar)
+                                    {
+                                        <div class="no-print">
+                                            <br />
+                                            <button onclick="selecionarPlano(@cotacaoViewModel.PlanoSeguroProfissionalId)" class="btn btn-primary" style="border-color: #59c93e; background-color: #59c93e;">Selecionar</button>
+                                            <br />
+                                            <br />
+                                        </div>
+                                    }
+                                </td>
+                            }
+                            <td style="width: 2%">&nbsp;</td>
+                        </tr>
+                        <tr>
+                            <td colspan="@colspan" style="height: 2px;"></td>
+                        </tr>
+                        <tr>
+                            @foreach (var cotacaoViewModel in Model.Cotacoes)
+                            {
+
+                                <td>&nbsp;</td>
+                                <td style="text-align:center; border: 2px solid #2e5071; background-color: #2e5071; color: white; line-height: 20px;" class="ProIIArea"><span style="margin-bottom:2px;"><small>Valor de cobertura individual</small> <br /> <b style="font-size: 20px;">@cotacaoViewModel.ValorCoberturaFormatado</b></span></td>
+                            }
+                            <td style="width: 2%">&nbsp;</td>
+                        </tr>
+                        <tr>
+                            <td colspan="@colspan" style="height: 2px;"></td>
+                        </tr>
+                        <tr>
+
+                            <td style="border-top: 2px solid #2e5071; padding: 1em;" colspan="@colspan">
+                                <div style="line-height: 13px;">
+                                    <small style="font-size: 13px;"><b>P.O.S (Participação Obrigatória do Segurado)</b> - 10% dos Prejuízos Indenizáveis com mínimo de R$ 3.500,00</small>
+
+                                </div>
+                            </td>
+
+                            <td style="width: 2%">&nbsp;</td>
+                        </tr>
+                        <tr>
+                            <td style="border-top: 2px solid #2e5071; padding: 1em;" colspan="@colspan">
+                                <div style="line-height: 13px;">
+                                    <small style="font-size: 13px;"><b>O Programa de Proteção Profissional Guardmed é o produto mais completo do mercado, cobrindo:</b></small>
+                                    <ul class="list-custom" style="list-style: none;">
+                                        <li>As reclamações decorrentes do <b>ato médico profissional</b>, incluindo a negligência, imprudência e imperícia;</li>
+                                        <li>As indenizações de processos judiciais, civis e/ou administrativos decorrentes de <b>danos materiais, danos estéticos, danos morais</b> e <b>danos corporais</b> causados a terceiros no exercício da profissão;</li>
+                                        <li>As condenações por <b>sentenças judiciais transitadas em julgado</b> ou <b>decisões arbitrais finais</b>, além dos <b>acordos judiciais</b> ou <b>extrajudiciais</b> negociados com o consentimento da Seguradora.</li>
+                                        <li>O Programa conta ainda com cobertura para as <b>custas de defesa e honorários</b>, nas esferas civis, administrativas, criminais e/ou disciplinares, em defesas e/ou explicações.</li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="border-top: 2px solid #2e5071;  padding: 1em;" colspan="@colspan">
+                                <div style="line-height: 13px;">
+                                    <small style="font-size:13px;"><b>Além das coberturas mencionadas acima, o Programa conta com os seguintes serviços ao profissional:</b></small>
+                                    <ul class="list-custom" style="list-style: none;">
+                                        <li>Orientação quanto à jurisprudência regional atual acerca de casos análogos: Pesquisa nos tribunais competentes, limitado a 20 (vinte) decisões que serão disponibilizadas em forma de relatório;</li>
+                                        <li>Intermediação entre o paciente (reclamante) e o profissional (reclamado);</li>
+                                        <li>Disponibilização de lista de documentos básicos que poderão ser reunidos e utilizados em eventual defesa judicial;</li>
+                                        <li>Disponibilização de modelos de documentos, contratos relacionados a atividade médica e legislação pertinente;</li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tbody id="tbodyBlock">
+
+                        <tr id="block2">
+
+
+                            @foreach (var cotacaoViewModel in Model.Cotacoes)
+                            {
+                                <td style="width: 2%">&nbsp;</td>
+                                <td style=" word-wrap: break-word; text-align: center; color: #2e5071; border: 2px solid #2e5071; border-top-left-radius: 0.5em; border-top-right-radius: 0.5em; font-size: 1.2em;">@cotacaoViewModel.Nome</td>
+
+                                <td style="text-align:center; border: 2px solid #2e5071; background-color: #2e5071; color: white; padding: 1em;">
+                                    <div>
+                                        @if (cotacaoViewModel.PossuiDesconto)
+                                        {
+                                            <div style="text-decoration: line-through;">
+                                                <div class="row" style="padding-top: 20px; padding-left:37%; font-weight: bold; font-size:14px;">
+                                                    R$
+
+                                                    <div style="font-size:28px; padding-left:5px; margin-top: -15px; font-weight: bold;">@cotacaoViewModel.PrecoMensalFormatadoInteiro</div>
+                                                    <div class="centsArea" style="font-size:10px; line-height: 10px; padding-left: 5px; margin-top:-8px;">
+                                                        ,<span class="cents" style="font-size: 10px">@cotacaoViewModel.PrecoMensalFormatadoCentavos</span><br />
+                                                        <span class="perMonth" style="font-size: 10px">mensais</span>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        }
+                                        <div>
+                                            <div class="row" style="margin-top: 40px; padding-left:32%; font-weight: bold; font-size:17px;">
+                                                R$
+
+                                                <div style="font-size:40px; padding-left:5px; margin-top: -24px; font-weight: bold;">@cotacaoViewModel.PrecoMensalTotalFormatadoInteiro</div>
+                                                <div class="centsArea" style="padding-left: 5px; margin-top:-14px;">
+                                                    ,<span class="cents">@cotacaoViewModel.PrecoMensalTotalFormatadoCentavos</span><br />
+                                                    <span class="perMonth">mensais</span>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                        <div><small>Recorrente no cartão de crédito</small></div>
+                                        <h6>ou</h6>
+                                        <h6>R$ <span>@cotacaoViewModel.PrecoAnualTotalFormatado</span> à vista<br /> no boleto bancário</h6>
+                                    </div>
+                                    @if (!Context.Request.Query.ContainsKey("RenewToken") || Model.SeguradoProfissionalViewModel.PodeRenovar)
+                                    {
+                                        <div class="no-print">
+                                            <br />
+                                            <button onclick="selecionarPlano(@cotacaoViewModel.PlanoSeguroProfissionalId)" class="btn btn-primary" style="border-color: #59c93e; background-color: #59c93e;">Selecionar</button>
+                                            <br />
+                                            <br />
+                                        </div>
+                                    }
+                                </td>
+
+                                <td style="text-align:center; border-top: 1px solid white; background-color: #2e5071; color: white; padding: 2px; line-height: 20px;" class="ProIIArea"><span style="margin-bottom:2px;"><small>Valor de cobertura individual</small> <br /> <b style="font-size: 20px;">@cotacaoViewModel.ValorCoberturaFormatado</b></span></td>
+
+
+                            }
+                            <td style="width: 2%">&nbsp;</td>
+                        </tr>
+                        <tr>
+                            <td id="block" style="border-top: 2px solid #2e5071;  padding: 1em; " colspan="@colspan">
+                                <div style="line-height: 13px;">
+                                    <small style="font-size:13px;"><b>P.O.S (Participação Obrigatória do Segurado)</b> - 10% dos Prejuízos Indenizáveis com mínimo de R$ 3.500,00</small>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td id="block" style="border-top: 2px solid #2e5071; padding: 1em;" colspan="@colspan">
+                                <div style="line-height: 13px;">
+                                    <small style="font-size: 13px;"><b>O Programa de Proteção Profissional Guardmed é o produto mais completo do mercado, cobrindo:</b></small>
+                                    <ul id="list" class="list-custom" style="list-style: none;">
+                                        <li>As reclamações decorrentes do <b>ato médico profissional</b>, incluindo a negligência, imprudência e imperícia;</li>
+                                        <li>As indenizações de processos judiciais, civis e/ou administrativos decorrentes de <b>danos materiais, danos estéticos, danos morais</b> e <b>danos corporais</b> causados a terceiros no exercício da profissão;</li>
+                                        <li>As condenações por <b>sentenças judiciais transitadas em julgado</b> ou <b>decisões arbitrais finais</b>, além dos <b>acordos judiciais</b> ou <b>extrajudiciais</b> negociados com o consentimento da Seguradora.</li>
+                                        <li>O Programa conta ainda com cobertura para as <b>custas de defesa e honorários</b>, nas esferas civis, administrativas, criminais e/ou disciplinares, em defesas e/ou explicações.</li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td id="block" style="border-top: 2px solid #2e5071;  padding: 1em; " colspan="@colspan">
+                                <div style="line-height: 13px;">
+                                    <small style="font-size:13px;"><b>Além das coberturas mencionadas acima, o Programa conta com os seguintes serviços ao profissional:</b></small>
+                                    <ul id="list" class="list-custom" style="list-style: none; ">
+                                        <li>Orientação quanto à jurisprudência regional atual acerca de casos análogos: Pesquisa nos tribunais competentes, limitado a 20 (vinte) decisões que serão disponibilizadas em forma de relatório;</li>
+                                        <li>Intermediação entre o paciente (reclamante) e o profissional (reclamado);</li>
+                                        <li>Disponibilização de lista de documentos básicos que poderão ser reunidos e utilizados em eventual defesa judicial;</li>
+                                        <li>Disponibilização de modelos de documentos, contratos relacionados a atividade médica e legislação pertinente;</li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</form>
+@if (Context.Request.Query.ContainsKey("RenewToken") && !Model.SeguradoProfissionalViewModel.PodeRenovar)
+{
+    <div class="row">
+
+        <div class="col-md-6 form-group no-print"><a href="@Url.Action("Renew", "SeguroProfissional")?seguradoProfissionalId=@Model.SeguradoProfissionalViewModel.RenovadoPor&RenewToken=@Context.Request.Query["RenewToken"]" class="btn btn-secondary"><i class="fas fa-arrow-left"></i>&nbsp;Voltar</a></div>
+        <div class="col-md-6 form-group text-right no-print"><a href="javascript:void(0)" id="save-discount" class="btn btn-primary"><i class="fas fa-upload"></i>&nbsp;Salvar</a></div>
+    </div>
+    <script type="text/javascript">
+        $('#save-discount').click(function () {
+            if (!validateMedicGroupDiscount()) return;
+
+            var medicGroupDiscount = $('[name="MedicGroupDiscount"]').length > 0 ? $('[name="MedicGroupDiscount"]').val().replace('%', '') : null;
+
+            $.post('@Url.Action("SaveRenewDiscount", "SeguroProfissional")', { reference: '@Model.SeguradoProfissionalViewModel.Referencia', discount: $('#discount').val(), medicGroupDiscount, renewToken: '@(Context.Request.Query.ContainsKey("RenewToken") ? Context.Request.Query["RenewToken"].ToString() : "")' }, function (d) {
+                alert(d.message);
+            });
+        });
+    </script>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-12 form-group text-right"><a href="javascript:void(0)" id="SubmitButton" class="btn btn-primary" style="display:none;"><i class="fas fa-arrow-right"></i>&nbsp;Continuar</a></div>
+    </div>
+}
+
+<script type="text/javascript">
+    function selecionarPlano(id) {
+        $('#PlanoSeguroProfissionalId').val(id);
+        $('#CotacaoForm').submit();
+    }
+</script>
+
+<script type="text/javascript">
+    function AtribuirValores(data) {
+
+        if (!data) return;
+
+        valoresPlano = data;
+
+        $('.BasicoPreco').empty().append(data[0]._PrecoAnual);
+        $('.BasicoPrecoMensal').empty().html(data[0]._PrecoMensal.split(',')[0]);
+        $('.BasicoPrecoMensalCents').empty().html(data[0]._PrecoMensal.split(',')[1]);
+        $('.BasicoPrecoMensal10').empty().text(data[0]._PrecoMensalCobertura);
+
+        $('.IPreco').empty().append(data[1]._PrecoAnual);
+
+        $('.IPrecoMensal').empty().html(data[1]._PrecoMensal.split(',')[0]);
+        $('.IPrecoMensalCents').empty().html(data[1]._PrecoMensal.split(',')[1]);
+
+        $('.IPrecoMensal10').empty().text(data[1]._PrecoMensalCobertura);
+
+        $('.IIPreco').empty().append(data[2]._PrecoAnual);
+        $('.IIPrecoMensal').empty().html(data[2]._PrecoMensal.split(',')[0]);
+        $('.IIPrecoMensalCents').empty().html(data[2]._PrecoMensal.split(',')[1]);
+        $('.IIPrecoMensal10').empty().text(data[2]._PrecoMensalCobertura);
+
+        if (data[0].precoMensalDesconto != null) {
+            $('.remove-with-discount').remove();
+            $('.oldPriceArea').addClass('oldPrice');
+
+            $('.oldPrice').find('td.cifrao').css('font-size', '16px');
+            $('.oldPrice').find('td.PrecoMensal').css('font-size', '30px');
+            $('.oldPrice').find('span.PrecoMensalCents').css('font-size', '10px');
+            $('.oldPrice').find('span.perMonth').css('font-size', '10px');
+            $('.oldPrice').find('.centsArea').css('line-height', '5px');
+            $('.oldPrice').find('.centsArea').css('padding-top', '0px');
+
+            $('.AreaBasicoPrecoMensalDesconto').show();
+            $('.AreaIPrecoMensalDesconto').show();
+            $('.AreaIIPrecoMensalDesconto').show();
+            $('.BasicoPrecoMensalDesconto').empty().append(data[0].precoMensalDesconto);
+            $('.IPrecoMensalDesconto').empty().append(data[1].precoMensalDesconto);
+            $('.IIPrecoMensalDesconto').empty().append(data[2].precoMensalDesconto);
+            $('.AreaBasicoPrecoDesconto').show();
+            $('.AreaIPrecoDesconto').show();
+            $('.AreaIIPrecoDesconto').show();
+
+            $('.BasicoPrecoMensal10').empty().text(data[0].precoMensalDescontoCobertura);
+            $('.IPrecoMensal10').empty().text(data[1].precoMensalDescontoCobertura);
+            $('.IIPrecoMensal10').empty().text(data[2].precoMensalDescontoCobertura);
+
+            $('.BasicoPrecoDesconto').empty().append(data[0].precoAnualDesconto);
+            $('.IPrecoDesconto').empty().append(data[1].precoAnualDesconto);
+            $('.IIPrecoDesconto').empty().append(data[2].precoAnualDesconto);
+
+            $('.BasicoPrecoMensal').empty().html(data[0]._PrecoMensal.split(',')[0]);
+            $('.BasicoPrecoMensalCents').empty().html(data[0]._PrecoMensal.split(',')[1]);
+
+            $('.IPrecoMensal').empty().html(data[1]._PrecoMensal.split(',')[0]);
+            $('.IPrecoMensalCents').empty().html(data[1]._PrecoMensal.split(',')[1]);
+
+            $('.IIPrecoMensal').empty().html(data[2]._PrecoMensal.split(',')[0]);
+            $('.IIPrecoMensalCents').empty().html(data[2]._PrecoMensal.split(',')[1]);
+
+            $('#newPriceArea').show();
+        }
+    }
+    function LimparClasseDosCards() {
+        $('#ProBasicoCard').removeClass('shadow');
+        $('#ProICard').removeClass('shadow');
+        $('#ProIICard').removeClass('shadow');
+    }
+</script>
+<script type="text/javascript">
+    var cardId = null;
+    var cardTitle = null;
+    var valoresPlano;
+
+    function loadPrices() {
+        if (!validateMedicGroupDiscount()) return;
+
+        var medicGroupDiscount = $('[name="MedicGroupDiscount"]').length > 0 ? $('[name="MedicGroupDiscount"]').val().replace('%', '') : null;
+
+        $.ajax({
+            url: '@Url.Action("Consulta", "SeguroProfissional")',
+		    type: 'POST',
+            data: { seguradoProfissionalId: '@Model.SeguradoProfissionalViewModel.SeguradoProfissionalId', discount: $('#discount').val(), medicGroupDiscount  },
+            dataType: 'json',
+            success: AtribuirValores
+        });
+    }
+
+    function validateMedicGroupDiscount() {
+        $('#medic-group-discount-area').next('.text-danger').remove();
+
+        if ($('[name="MedicGroupDiscount"]').length > 0) {
+            if (IsNullOrWhiteSpace($('[name="MedicGroupDiscount"]').val())) {
+                $('#medic-group-discount-area').after('<div class="text-danger">Insira o desconto.</div>');
+                return false;
+            } else {
+                var valor = $('[name="MedicGroupDiscount"]').val().replace('%', '');
+                if (valor.indexOf(',') != -1) valor = valor.replace(',', '.');
+
+                if (parseFloat(valor) > 100) {
+                    $('#medic-group-discount-area').after('<div class="text-danger">O desconto deve ser inferior ou igual a 100%.</div>');
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    $(document).ready(function () {
+        loadPrices();
+
+        $('.CotacaoSubmitButton1').click(function () {
+            LimparClasseDosCards();
+            $('#ProBasicoCard').addClass('shadow');
+            $('#PlanoSeguroProfissionalId').val(1);
+            $('#CotacaoForm').submit();
+        });
+
+        $('.CotacaoSubmitButton2').click(function () {
+            LimparClasseDosCards();
+            $('#ProICard').addClass('shadow');
+            $('#PlanoSeguroProfissionalId').val(2);
+            $('#CotacaoForm').submit();
+        });
+
+        $('.CotacaoSubmitButton3').click(function () {
+            LimparClasseDosCards();
+            $('#ProIICard').addClass('shadow');
+            $('#PlanoSeguroProfissionalId').val(3);
+            $('#CotacaoForm').submit();
+        });
+
+
+        $('#CotacaoForm').submit(function () {
+            if (!validateMedicGroupDiscount()) return false;
+
+            if($('[name="MedicGroupDiscount"]').length > 0)
+                $('[name="MedicGroupDiscount"]').val($('[name="MedicGroupDiscount"]').val().replace('%', ''));
+
+            return true;
+        });
+
+        @if (Model.SeguradoProfissionalViewModel.PlanoSeguroProfissionalId.HasValue) {
+            if (Model.SeguradoProfissionalViewModel.PlanoSeguroProfissionalId == 1)
+            {
+            <text>
+                LimparClasseDosCards();
+                $('#ProBasicoCard').addClass('shadow');
+                $('#PlanoSeguroProfissionalId').val(1);
+            </text>
+            }else if (Model.SeguradoProfissionalViewModel.PlanoSeguroProfissionalId == 2)
+            {
+            <text>
+                LimparClasseDosCards();
+                $('#ProICard').addClass('shadow');
+                $('#PlanoSeguroProfissionalId').val(2);
+            </text>
+            }else if (Model.SeguradoProfissionalViewModel.PlanoSeguroProfissionalId == 3)
+            {
+            <text>
+                LimparClasseDosCards();
+                $('#ProIICard').addClass('shadow');
+                $('#PlanoSeguroProfissionalId').val(3);
+            </text>
+            }
+        }
+    });
+</script>

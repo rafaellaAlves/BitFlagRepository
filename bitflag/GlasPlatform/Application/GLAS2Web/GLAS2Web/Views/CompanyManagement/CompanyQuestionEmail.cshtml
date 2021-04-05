@@ -1,0 +1,25 @@
+﻿@model DTO.Company.CompanyViewModel
+
+
+<div style="text-align: center;">
+    <table style="background: #31bdff0a; width: 700px; margin: auto; text-align: left; border: 1px solid #4c4e40;">
+        <tr>
+            <td style="text-align:center;">
+                <img src="cid:BioteraLogo">
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 15px">
+                <p style="margin-top: 0 !important; margin-bottom: .7em !important;">Olá <b>@Model.NomeFantasia</b>, é um prazer recebê-lo.</p>
+                <p style="margin-top: 0 !important; margin-bottom: 1rem !important;">Você está recebendo este e-mail, para que possamos conhecer sua operação, identificar e associar os requisitos legais obrigatórios à mesma.</p>
+                <p style="margin-top: 0 !important; margin-bottom: 1rem !important;">Requisitos legais, são toda a gama de legislação como lei, decreto, normas, melhores práticas, instrução normativa, decisão de diretoria, dentre outras que implicam no seu negócio.</p>
+                <p style="margin-top: 0 !important; margin-bottom: 1rem !important;">Preparamos um questionário para você, que pode ser acessado <a href="@Url.Action("Index", "CompanyQuestion", new { companyId = Model.CompanyId, companyQuestionToken = Model.CompanyQuestionToken }, Context.Request.Scheme, Context.Request.Host.Value)">clicando aqui</a>.</p>
+                <p style="margin-top: 0 !important; margin-bottom: 1rem !important;">Após respondê-lo, não esqueça de clicar em <b>FINALIZAR</b>, para que o trabalho dos nossos consultores seja iniciado. Lembrando que após <b>FINALIZADO</b>, o questionário não poderá ser editado.</p>
+                <p style="margin-top: 0 !important; margin-bottom: 1.5em !important;">Este questionário poderá ser feito em etapas e recomendamos gravá-las de tempo em tempo.</p>
+                <p style="margin-top: 0 !important; margin-bottom: 1.5em !important;">A partir de agora, vamos juntos trabalhar para sua organização, nutrindo de informações para a gestão completa do seu negócio.</p>
+                <p style="margin-top: 0 !important; margin-bottom: 1rem !important;">Atenciosamente,</p>
+                <p style="margin-top: 0 !important; margin-bottom: 1rem !important;">Equipe Biotera.</p>
+            </td>
+        </tr>
+    </table>
+</div>

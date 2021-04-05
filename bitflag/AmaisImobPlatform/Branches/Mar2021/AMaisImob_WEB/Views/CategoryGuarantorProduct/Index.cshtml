@@ -1,0 +1,16 @@
+﻿
+@{
+    ViewData["Title"] = "Produto e Categoria da Garantidora";
+}
+
+<div class="card shadow bg-light">
+    <div class="card-body" style="overflow-x:scroll;">
+        <div id="_CategoryGuarantorProductIndexViewComponent"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#_CategoryGuarantorProductIndexViewComponent').load('@Url.Action("CategoryGuarantorProductComponent", "CategoryGuarantorProduct")');
+</script>
+
+

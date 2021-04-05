@@ -1,0 +1,113 @@
+﻿<div class="card collapse" id="clonable-card" style="display: none;">
+    <div class="card-header">
+        <h5 class="mb-0">
+            <button class="btn btn-link" type="button" data-toggle="collapse"></button>
+        </h5>
+    </div>
+    <div class="collapse" data-parent="#accordion">
+        <div class="card-body">
+            <div class="card-body-text"></div>
+            <div class="controls">
+                <hr />
+                <div class="row">
+                    <div class="col-md-3">
+                        <a href="javascript: __PreviousStepModal();" class="btn btn-primary previous-step" style="display: none;"><i class="simple-icon-action-undo"></i>&nbsp;Voltar Etapa</a>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="#" class="btn btn-primary job-family-info"><i class="simple-icon-pencil"></i>&nbsp;Preencher Informações</a>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <a href="javascript: __AddMessageModal();" class="btn btn-primary comment-step"><i class="simple-icon-bubbles"></i>&nbsp;Adicionar Observação</a>
+                    </div>
+                    <div class="col-md-3 text-right">
+                        <a href="javascript: __NextStepModal();" class="btn btn-primary next-step" style="display: none;">Próxima Etapa&nbsp;<i class="simple-icon-action-redo"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<div class="accordion" id="accordion"></div>
+
+<script type="text/javascript">
+
+    $.get('@Url.Action("GetWorkflow", "Workflow")', { workflowId: @ViewData["WorkflowId"] }, function (d) {
+        $.get('@Url.Action("GetCurrentStepDetails", "Workbench")', { jobId: @ViewData["JobId"] }, function (currentStepDetails) {
+            $.get('@Url.Action("CanManageStep", "Workbench")', { jobId: @ViewData["JobId"] }, function (canManageStep) {
+
+                 $('#workflow').empty();
+                var finalizado = true;
+                $.each(d, function (i, e) {
+
+                    var card = $('#clonable-card').clone();
+
+                    $(card).prop('id', '');
+                    $(card).css('display', 'block');
+
+                    var cardHeader = $(card).find('.card-header')[0];
+                    $(cardHeader).prop('id', 'heading-' + i);
+
+                    var cardBody = $(card).find('.collapse')[0];
+
+                    var cardHeaderButton = $($(card).find('.card-header')[0]).find('button')[0];
+                    $(cardHeaderButton).attr('data-target', '#collapse-' + i);
+
+                    if (e.enableJobFreezedFamilyInfo) {
+                        if (!canManageStep) {
+                            $(cardBody).find('.job-family-info').attr('href', '@Url.Action("JobFamilyInfoManage", "Workbench", new { jobId = ViewData["JobId"] })&workflowStepId=' + e.workflowStepId + '&block=true');
+                        } else {
+                            $(cardBody).find('.job-family-info').attr('href', '@Url.Action("JobFamilyInfoManage", "Workbench", new { jobId = ViewData["JobId"] })&workflowStepId=' + e.workflowStepId);
+                        }
+                        $(cardBody).find('.job-family-info').show();
+                    }else {
+                        $(cardBody).find('.job-family-info').hide();
+                    }
+
+                    if (e.workflowStepId == currentStepDetails.workflowStepId) {
+                        $(cardHeaderButton).attr('aria-expanded', 'true');
+                        $(cardHeaderButton).addClass('collapsed');
+                        $(cardHeaderButton).html('<b><i class="simple-icon-arrow-right"></i> ' + e.name + '</b>');
+
+                        $(cardBody).find('.next-step').show();
+                        $(cardBody).find('.previous-step').show();
+
+                        if (i == 0) {
+                            $(cardBody).find('.previous-step').hide();
+                        }
+
+
+
+                        if (i == d.length - 1) {
+                            $(cardBody).find('.next-step').hide();
+                        }
+
+                        finalizado = false;
+                    } else {
+                        $(cardHeaderButton).attr('aria-expanded', 'false');
+                        if (finalizado) {
+                            $(cardHeaderButton).html('<i class="simple-icon-check"></i> ' + e.name);
+                        } else {
+                            $(cardHeaderButton).html('<i class="simple-icon-exclamation"></i> ' + e.name);
+                        }
+                    }
+                    $(cardHeaderButton).attr('aria-controls', 'collapse-' + i);
+
+                    $(cardBody).prop('id', 'collapse-' + i);
+                    $(cardBody).attr('aria-labelledby', 'card-header-' + i);
+                    if (e.workflowStepId == currentStepDetails.workflowStepId) {
+                        if (!canManageStep) {
+                            $(cardBody).find('.next-step').hide();
+                            $(cardBody).find('.previous-step').hide();
+                        }
+
+                        $(cardBody).addClass('show');
+                    }
+                    $($(cardBody).find('.card-body .card-body-text')[0]).html(e.description);
+
+                    $(accordion).append(card);
+                });
+            });
+        });
+    });
+</script>

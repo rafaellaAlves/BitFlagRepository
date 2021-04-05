@@ -1,0 +1,61 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29920.165
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AMaisImob_WEB", "AMaisImob_WEB\AMaisImob_WEB.csproj", "{FCC63498-51B0-490F-B30D-599A8973A7A8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AMaisImob_DB", "AMaisImob_DB\AMaisImob_DB.csproj", "{F374D700-0755-4EB0-8A31-27EBF3F409D5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AMaisImob_API", "AMaisImob_API\AMaisImob_API.csproj", "{FD3AE41D-BAAC-4822-B328-DA1EB78CAD27}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BackgroundServices", "BackgroundServices\BackgroundServices.csproj", "{EE627CA3-DD18-4F18-8F6B-58A7B7E189C0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FCC63498-51B0-490F-B30D-599A8973A7A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FCC63498-51B0-490F-B30D-599A8973A7A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FCC63498-51B0-490F-B30D-599A8973A7A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FCC63498-51B0-490F-B30D-599A8973A7A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F374D700-0755-4EB0-8A31-27EBF3F409D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F374D700-0755-4EB0-8A31-27EBF3F409D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F374D700-0755-4EB0-8A31-27EBF3F409D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F374D700-0755-4EB0-8A31-27EBF3F409D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD3AE41D-BAAC-4822-B328-DA1EB78CAD27}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD3AE41D-BAAC-4822-B328-DA1EB78CAD27}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD3AE41D-BAAC-4822-B328-DA1EB78CAD27}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD3AE41D-BAAC-4822-B328-DA1EB78CAD27}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EE627CA3-DD18-4F18-8F6B-58A7B7E189C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EE627CA3-DD18-4F18-8F6B-58A7B7E189C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EE627CA3-DD18-4F18-8F6B-58A7B7E189C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE627CA3-DD18-4F18-8F6B-58A7B7E189C0}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {85B5FF71-7BB2-4D28-95A2-D2BB76AEF367}
+	EndGlobalSection
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 5
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = https://chokosysvsts.visualstudio.com/
+		SccLocalPath0 = .
+		SccProjectUniqueName1 = AMaisImob_WEB\\AMaisImob_WEB.csproj
+		SccProjectName1 = AMaisImob_WEB
+		SccLocalPath1 = AMaisImob_WEB
+		SccProjectUniqueName2 = AMaisImob_DB\\AMaisImob_DB.csproj
+		SccProjectName2 = AMaisImob_DB
+		SccLocalPath2 = AMaisImob_DB
+		SccProjectUniqueName3 = AMaisImob_API\\AMaisImob_API.csproj
+		SccProjectName3 = AMaisImob_API
+		SccLocalPath3 = AMaisImob_API
+		SccProjectUniqueName4 = BackgroundServices\\BackgroundServices.csproj
+		SccProjectName4 = BackgroundServices
+		SccLocalPath4 = BackgroundServices
+	EndGlobalSection
+EndGlobal

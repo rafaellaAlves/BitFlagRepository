@@ -1,0 +1,38 @@
+﻿@model EntityViewMode<List<ApplicationDbContext.Models.Service>>
+
+@inject Services.Service.ServiceStatusServices serviceStatusServices
+
+<table class="table table-condensed table-striped table-bordered" id="demand-client-so-selection-table">
+	<thead>
+		<tr>
+			<td></td>
+			<td>Código</td>
+			<td>Status</td>
+		</tr>
+	</thead>
+	<tbody>
+		@foreach (var item in Model.Model)
+		{
+			<tr>
+				<td><input type="checkbox" data-selection-service-id="@item.ServiceId" /></td>
+				<td>@item.Code</td>
+				<td>@((await serviceStatusServices.GetDataByIdAsync(item.ServiceStatusId)).Name)</td>
+			</tr>
+		}
+	</tbody>
+</table>
+
+<script type="text/javascript" asp-cut-key="demand-client-so-selection" asp-cut-key-load-from-controller="@Model.LoadFromController">
+	var orderServicesSelected = null;
+
+	$('#demand-client-so-selection-table input[type="checkbox"][data-selection-service-id]').click(function () {
+		var checked = this.checked;
+
+		$('#demand-client-so-selection-table input[type="checkbox"]').each(function (i, e) {
+			e.checked = false;
+		});
+
+		this.checked = checked;
+		orderServicesSelected = $(this).data('selection-service-id');
+	});
+</script>

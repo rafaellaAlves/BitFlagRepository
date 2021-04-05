@@ -1,0 +1,348 @@
+﻿@model DTO.Client.ClientViewModel
+@inject DB.TerraNostraContext context
+@inject FUNCTIONS.User.UserFunctions userFunctions
+@inject FUNCTIONS.ContactMedium.ContactMediumFunctions contactMediumFunctions
+
+@using Web.Utils
+
+@{
+    var clientTypeFunctions = new FUNCTIONS.Client.ClientTypeFunctions(context);
+    var clientTypes = clientTypeFunctions.GetData();
+}
+
+<script type="text/javascript">
+    _MaskData();
+    function _ClientManageMoreInfo() {
+        $('#_ClientManageMoreInfo').hide();
+        $('#_ClientManageDivMoreInfo').show();
+    }
+    function _ClientManageLessInfo() {
+        $('#_ClientManageMoreInfo').show();
+        $('#_ClientManageDivMoreInfo').hide();
+    }
+    _ClientManageMoreInfo();
+</script>
+
+@if (User.ClientCanAccessEdition())
+{
+    <script type="text/javascript">
+        function _ClientManageValidate() {
+	        var hasError = false;
+	        $('#_ClientManageForm .text-danger').remove();
+
+            // CPF
+            //if (IsNullOrWhiteSpace($('#_ClientManageCPF').val())) {
+            //    $('#_ClientManageCPF').after('<div class="text-danger">Preencha o CPF.</div>');
+            //    hasError = true;
+            //}
+
+            // FirstName
+            if (IsNullOrWhiteSpace($('#_ClientManageFirstName').val())) {
+                $('#_ClientManageFirstName').after('<div class="text-danger">Preencha o Nome.</div>');
+                hasError = true;
+            }
+
+            // LastName
+            if (IsNullOrWhiteSpace($('#_ClientManageLastName').val())) {
+                $('#_ClientManageLastName').after('<div class="text-danger">Preencha o Sobrenome.</div>');
+                hasError = true;
+            }
+
+            if (IsNullOrWhiteSpace($('#_ClientManageEmail').val())) {
+                $('#_ClientManageEmail').after('<div class="text-danger">Preencha o e-mail.</div>');
+                hasError = true;
+            }
+
+            if (hasError) {
+                $('#_ClientManageAlertErrorClient').show();
+            }
+            else {
+                $('#_ClientManageForm .text-danger').remove();
+                $('#_ClientManageAlertErrorClient').hide();
+            }
+
+	        return (!hasError);
+        }
+
+        function _ClientManageSave() {
+	        var d = $('#_ClientManageForm').serializeArray();
+            $.post('@Url.Action("Manage", "Client")', d, function (data) {
+                if (data.hasError) {
+                    $('#_ClientManage' + data.data).after('<div class="text-danger">' + data.message + '</div>'); //data.data contem o nome do campo que ocorreu o erro
+                    $('#_ClientManageForm .text-danger').show();
+                    $('#_ClientManageAlertErrorClient').show();
+                } else {
+                    $('#_ClientManageClientId').val(data.code);
+                        _ClientManageCallBack(data.code);
+                }
+                $('#_ClientManageButtonSubmit').removeAttr('disabled');
+	        });
+        }
+    </script>
+}
+<form id="_ClientManageForm" method="post" enctype="multipart/form-data">
+    <div id="_ClientManageAlertErrorClient" class="alert alert-danger fade show text-center" role="alert" style="display: none;">
+        <strong>Atenção!</strong> O Formulário contém erros.
+    </div>
+    <input type="hidden" id="_ClientManageClientId" name="ClientId" value="@Model.ClientId" />
+    <div id="_ClientManageDivRequiredInfo">
+        <div class="form-row">
+            @if (User.IsInRole("Administrator") || User.IsInRole("Contact Manager"))
+            {
+                var nextSalesman = userFunctions.GetNextSalesman();
+                <div class="form-group col-md-6">
+                    <label><b class="control-label">Responsável</b></label>
+                    <select class="form-control" name="ResponsibleId">
+                        <option value="">Nenhum</option>
+                        @foreach (var item in (List<TerraNostraIdentityDbContext.User>)ViewBag.Responsibles)
+                        {
+                            if (item.Id == Model.ResponsibleId)
+                            {
+                                <option value="@item.Id" selected>@item.FirstName @item.LastName</option>
+                            }
+                            else
+                            {
+                                if (!Model.ClientId.HasValue)
+                                {
+                                    if (!Model.ResponsibleId.HasValue && nextSalesman.HasValue && item.Id == nextSalesman.Value)
+                                    {
+                                        <option value="@item.Id" selected>@item.FirstName @item.LastName (Seleção Automática)</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@item.Id">@item.FirstName @item.LastName</option>
+                                    }
+                                }
+                                else
+                                {
+                                    if (!Model.ResponsibleId.HasValue && nextSalesman.HasValue && item.Id == nextSalesman.Value)
+                                    {
+                                        <option value="@item.Id">[Rodízio de Vendas] @item.FirstName @item.LastName </option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@item.Id">@item.FirstName @item.LastName</option>
+                                    }
+                                }
+                            }
+                        }
+                    </select>
+                </div>
+            }
+            @if (Model.ClientId.HasValue && Model.FirstContactBy.HasValue)
+            {
+                <div class="form-group col-md-4">
+                    <label class="control-label"><b>Status</b></label>
+                    <select class="form-control" id="_ClientManageClientStatusId" name="ClientStatusId">
+                        <option value="">Nenhum</option>
+                        @foreach (var item in (List<DB.ClientStatus>)ViewBag.Status)
+                        {
+                            if (item.ClientStatusId == Model.ClientStatusId)
+                            {
+                                <option selected="selected" value="@item.ClientStatusId">@item.Name</option>
+                            }
+                            else
+                            {
+                                <option value="@item.ClientStatusId">@item.Name</option>
+                            }
+                        }
+                    </select>
+                </div>
+            }
+            <div class="form-group col-md-6">
+                <label><b class="control-label">Fonte</b></label>
+                <select class="form-control" name="ContactMediumId">
+                    <option value="">Nenhum</option>
+                    @foreach (var contactMedium in contactMediumFunctions.GetData().OrderBy(x => x.Order))
+                    {
+                        <option value="@contactMedium.ContactMediumId" selected="@(contactMedium.ContactMediumId == Model.ContactMediumId)">@contactMedium.Name</option>
+                    }
+                </select>
+            </div>
+        </div>
+        <hr />
+        <div class="form-row">
+            <div class="form-group col-md-4">
+                <label>Nome*</label>
+                <input class="form-control" name="FirstName" value="@Model.FirstName" id="_ClientManageFirstName" type="text" placeholder="Nome" />
+            </div>
+            <div class="form-group col-md-4">
+                <label>Sobrenome*</label>
+                <input class="form-control" name="LastName" value="@Model.LastName" id="_ClientManageLastName" type="text" placeholder="Sobrenome" />
+            </div>
+            <div class="form-group col-md-4">
+                <label class="control-label" for="Email">E-mail*</label>
+                <input type="text" class="form-control" id="_ClientManageEmail" name="Email" value="@Model.Email" placeholder="E-mail">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-4">
+                <label>Familia</label>
+                <input class="form-control" name="Family" value="@Model.Family" id="_ClientManageFamily" type="text" placeholder="Familia" />
+            </div>
+            <div class="form-group col-md-4">
+                <label class="control-label">Estado Civil</label>
+                <select class="form-control" name="CivilStatusId">
+                    <option value="">Nenhum</option>
+                    @foreach (var civil in (List<DB.CivilStatus>)ViewData["CivilStatus"])
+                    {
+                        if (civil.CivilStatusId == Model.CivilStatusId)
+                        {
+                            <option selected="selected" value="@civil.CivilStatusId">@civil.StatusDescription</option>
+                        }
+                        else
+                        {
+                            <option value="@civil.CivilStatusId">@civil.StatusDescription</option>
+                        }
+
+                    }
+                </select>
+            </div>
+            <div class="form-group col-md-4">
+                <label>Profissão</label>
+                <input class="form-control" name="Occupation" value="@Model.Occupation" id="_ClientManageOccupation" type="text" placeholder="Profissão" />
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-4">
+                <label class="control-label" for="PhoneNumber">Tel. 1 @if(!string.IsNullOrWhiteSpace(Model.Telefone)) { <span>&nbsp;- &nbsp;</span><a href="http://wa.me/+55@(Model.Telefone)" target="_blank"><i class="fab fa-whatsapp"></i> Iniciar Conversa</a> }</label>
+                <input type="text" class="form-control " id="_ClientManageTelefone" name="Telefone" value="@Model.Telefone" placeholder="Telefone">
+            </div>
+            <div class="form-group col-md-4">
+                <label class="control-label" for="PhoneNumber">Tel. 2 @if(!string.IsNullOrWhiteSpace(Model.Celular)) { <span>&nbsp;- &nbsp;</span><a href="http://wa.me/+55@(Model.Celular)" target="_blank"><i class="fab fa-whatsapp"></i> Iniciar Conversa</a> }</label>
+                <input type="text" class="form-control " id="_ClientManageCelular" name="Celular" value="@Model.Celular" placeholder="Celular">
+            </div>
+            <div class="form-group col-md-2">
+                <label>CPF</label>
+                <input class="form-control cpf" value="@Model.Cpf" id="_ClientManageCPF" name="CPF" type="text" placeholder="CPF" />
+            </div>
+            <div class="form-group col-md-2">
+                <label>RG</label>
+                <input class="form-control rg" value="@Model.Rg" id="_ClientManageRG" name="RG" type="text" placeholder="RG" />
+            </div>
+        </div>
+        <a id="_ClientManageMoreInfo" href="javascript: _ClientManageMoreInfo();">Mais Informações...</a>
+    </div>
+    <div id="_ClientManageDivMoreInfo" style="display: none;">
+        <hr style="border-bottom: 1px solid rgba(0,0,0,.1);" />
+        <div class="form-row">
+            <div class="form-group col-md-2">
+                <label class="control-label" for="CEP">CEP</label>
+                <input type="text" class="form-control cep" id="_ClientManageCep" name="Cep" value="@Model.Cep" placeholder="CEP" maxlength="9">
+            </div>
+            <div class="form-group col-md-4">
+                <label class="control-label" for="Endereco">Endereço</label>
+                <input type="text" class="form-control" id="_ClientManageEndereco" name="Endereco" value="@Model.Endereco" placeholder="Endereço">
+            </div>
+            <div class="form-group col-md-2">
+                <label class="control-label" for="Numero">Número</label>
+                <input type="text" class="form-control number" id="_ClientManageNumero" name="Numero" value="@Model.Numero" placeholder="Número">
+            </div>
+            <div class="form-group col-md-4">
+                <label class="control-label" for="Complemento">Complemento</label>
+                <input type="text" class="form-control" id="_ClientManageComplemento" name="Complemento" value="@Model.Complemento" placeholder="Complemento">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-3">
+                <label class="control-label" for="Bairro">Bairro</label>
+                <input type="text" class="form-control" id="_ClientManageBairro" name="Bairro" value="@Model.Bairro" placeholder="Bairro">
+            </div>
+            <div class="form-group col-md-3">
+                <label class="control-label" for="_ClientManageStateId">Estado</label>
+                <select id="_ClientManageEstado" name="UF" class="form-control">
+                    <option value="">Selecione</option>
+                    @foreach (var item in DTO.Utils.StatesUtils.GetEstados())
+                    {
+                        if (item.StateId == Model.Uf)
+                        {
+                            <option selected="selected" value="@item.StateId">@item.Description</option>
+                        }
+                        else
+                        {
+                            <option value="@item.StateId">@item.Description</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="form-group col-md-3">
+                <label class="control-label" for="_ClientManageCidade">Cidade</label>
+                <input id="_ClientManageCidade" name="Cidade" value="@Model.Cidade" class="form-control" placeholder="Cidade" />
+            </div>
+            <div class="form-group col-md-3">
+                <label class="control-label">Ativo?</label>
+                <div class="selectContainer">
+                    <select class="form-control w-100" id="_ClientManageIsActive" name="IsActive">
+                        <option id="True" value="true">Sim</option>
+                        <option id="False" value="false">Não</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <hr>
+        <div class="form-row">
+            <div class="col-md-12">
+                <label class="control-label">Observações</label>
+                <textarea class="form-control" id="_ClientManageObservation" name="Observation" placeholder="Observações">@Html.Raw(Model.Observation)</textarea>
+            </div>
+        </div>
+        @if (Model.IsActive.HasValue)
+        {
+            <script type="text/javascript">
+				$('#_ClientManageIsActive').find('[id=' + "@Model.IsActive" + ']').attr('selected', true);
+            </script>
+        }
+        <br />
+        <a id="_ClientManageLessInfo" href="javascript: _ClientManageLessInfo();">Menos Informações...</a>
+    </div>
+</form>
+
+<script type="text/javascript">
+    $("#_ClientManageCep").blur(function () {
+
+        var cep = $(this).val().replace(/\D/g, '');
+
+        $('.CEPError').remove();
+        if (cep != "") {
+            var validacep = /^[0-9]{8}$/;
+
+            if (validacep.test(cep)) {
+
+                LimparCamposEndereco();
+
+                $.getJSON("https://viacep.com.br/ws/" + cep + "/json/?callback=?", function (dados) {
+                    if (!("erro" in dados)) {
+                        $("#_ClientManageEndereco").val(dados.logradouro);
+                        $("#_ClientManageBairro").val(dados.bairro);
+                        $("#_ClientManageCidade").val(dados.localidade);
+                        $("#_ClientManageEstado").val(dados.uf);
+                    } else {
+                        LimparCamposEndereco();
+                        $('#_ClientManageCep').after('<div class="text-danger CEPError">CEP não encontrado.</div>');
+                    }
+                });
+            }
+            else {
+                LimparCamposEndereco();
+                $('#_ClientManageCep').after('<div class="text-danger CEPError">Formato de CEP inválido.</div>');
+            }
+        }
+        else {
+            limpa_formulário_cep();
+        }
+    });
+
+    function LimparCamposEndereco() {
+        $("#_ClientManageEndereco").val("");
+        $("#_ClientManageBairro").val("");
+        $("#_ClientManageCidade").val("");
+        $("#_ClientManageEstado").val("");
+    }
+</script>
+
+@if (!User.ClientCanAccessEdition())
+{
+    <script type="text/javascript">
+        disabledFields();
+    </script>
+}

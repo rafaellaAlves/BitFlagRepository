@@ -1,0 +1,100 @@
+﻿@model WEB.Models.Subscription.Questionnaire.QuestionnaireViewModel
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["title"] = "Questionário";
+}
+
+@*<div class="row">
+        <div class="col-md-12">
+            <div class="mb-2">
+                <h2>
+                    Questionário de Saúde
+
+                </h2>
+            </div>
+            <hr />
+        </div>
+    </div>*@
+<div class="row">
+    <div class="col-md-12">
+        <form id="health-questionnaire-form" method="post" action="@Url.Action("SubmitQuestionnaire", "Subscription", new { reference = Model.Subscription.Reference })">
+            <input type="hidden" name="Reference" value="@Model.Subscription.Reference" />
+            <div class="row" id="error-message" style="display: none;">
+                <div class="col-md-12">
+                    <div class="alert alert-danger">
+                        Por favor, responda todas as perguntas.
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card card-blue">
+                        <div class="card-body">
+                            @foreach (var question in Model.HealthQuestionnaire.Questions)
+                            {
+                                var healthQuestionnaireResponse = Model.HealthQuestionnaireResponses.SingleOrDefault(x => x.HealthQuestionnaireQuestionId == question.HealthQuestionnaireQuestionId);
+                                string response = healthQuestionnaireResponse?.Response;
+
+                                <input type="hidden" name="@string.Format("QuestionResponses[{0}].HealthQuestionnaireQuestionId", Model.HealthQuestionnaire.Questions.IndexOf(question))" value="@question.HealthQuestionnaireQuestionId" />
+                                <div class="row mb-4">
+                                    <div class="col-md-12">
+                                        <p class="text-justify"><b>@Html.Raw(question.Description)</b></p>
+                                        @foreach (var option in question.Options)
+                                        {
+                                            <div class="form-check">
+                                                <input type="radio" class="checkmark form-check-input health-questionnaire-option" id="@string.Format("opt-{0}", option.HealthQuestionnaireOptionId)" value="@option.Value" name="@string.Format("QuestionResponses[{0}].Response", Model.HealthQuestionnaire.Questions.IndexOf(question))" @(option.Value == response ? "checked=\"checked\"" : string.Empty)>
+                                                <label class="form-check-label" for="@string.Format("opt-{0}", option.HealthQuestionnaireOptionId)">@option.Name</label>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <hr />
+            <div class="row">
+                <div class="col">
+                    <a class="btn btn-secondary" href="@Url.Action("Plans", new { Model.Subscription.Reference })">Voltar</a>
+                </div>
+                <div class="col text-right">
+                    <button type="submit" class="btn btn-primary">Avançar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<div class="modal fade" id="modal-alert">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="exampleModalLabel">Assinatura Suspensa</h4>
+            </div>
+            <div class="modal-body">
+                Olá, Dr(a) @Model.Subscription.FullName<br /><br />
+                Como houve pelo menos uma resposta <b>Não</b> no questionário simplificado, a sua adesão ficará suspensa até que a sua seguradora analise a Declaração Pessoal de Saúde que enviamos em seu e-mail.
+            </div>
+            <div class="modal-footer">
+                <a class="btn btn-secondary" href="@Url.Action("Plans", new { Model.Subscription.Reference })">Voltar</a>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script type="text/javascript">
+        var questionCount = @Model.HealthQuestionnaire.Questions.Count;
+        $(document).ready(function () {
+            $('#health-questionnaire-form').on('submit', function (e) {
+                var responseCount = $('.health-questionnaire-option:checked').length;
+                if (responseCount < questionCount) {
+                    e.preventDefault();
+                    $('#error-message').show();
+                    $('html').scrollTop(0);
+                }
+            });
+        });
+    </script>
+}

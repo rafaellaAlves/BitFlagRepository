@@ -1,0 +1,12 @@
+﻿@inject Services.Route.RouteServices routeServices
+
+<label>Rotas</label>
+<select name="RouteIds" class="form-control filter-input" data-filter-name="Rotas" multiple>
+    <option value="">Selecione</option>
+    @{
+        foreach (var item in await routeServices.GetDataAsNoTrackingAsync(x => !x.IsDeleted))
+        {
+            <option value="@item.RouteId" data-name="#@item.RouteId - @item.Name">@item.Name</option>
+        }
+    }
+</select>

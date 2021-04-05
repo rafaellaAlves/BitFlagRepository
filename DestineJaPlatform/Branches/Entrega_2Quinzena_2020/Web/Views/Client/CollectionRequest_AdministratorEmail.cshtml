@@ -1,0 +1,41 @@
+﻿@model DTO.Client.CollectionRequestEmailViewModel
+
+@inject Services.Residue.ResidueFamilyServices residueFamilyServices
+@inject Services.Residue.PackagingServices packagingServices
+@inject Services.Residue.PhysicalStateServices physicalStateServices
+
+<div style="max-width: 600px; margin-left: auto; margin-right: auto; padding: 15px; border: 1px solid #bbbbbb; background-color: #f1f1f152;">
+    <div style="width:100%; text-align: center; margin-bottom: 3em;">
+        <img style="width:400px;" src="cid:Logo" />
+    </div>
+    <div>
+        <label style="font-size: 16px;">Uma solicitação de coleta de resíduos foi aberta em <a style="font-size: 16px;" href="@Url.Action("Index", "Home", Context.Request.Scheme)">@Url.Action("", "", null, Context.Request.Scheme)</a>.</label>
+        <br />
+        <br />
+        <label style="font-size: 14px;">Dados do solicitante:</label>
+        <ul>
+            <li><b>Nome da empresa:</b> @Model.Client.Name</li>
+            <li><b>Nome da pessoa:</b> @Model.User.FirstName @Model.User.LastName</li>
+            <li><b>Telefone:</b> @Model.Client.Phone</li>
+            <li><b>Cidade/Estado:</b> @Model.Address.City/@Model.Address.State</li>
+            <li><b>Endereço/CEP:</b> @Model.Address.Address, @Model.Address.Number / @Model.Address.CEP.CEPMask()</li>
+            <li><b>Email:</b> @Model.User.Email</li>
+        </ul>
+        <label style="font-size: 14px;">Dados do Resíduo:</label>
+        <ul>
+            <li><b>Tipo de Resíduo:</b> @Model.CollectionRequest.Residue</li>
+            <li><b>Estado:</b> @((await physicalStateServices.GetDataByIdAsync(Model.CollectionRequest.PhysicalStateId)).Name)</li>
+            <li><b>Familía:</b> @((await residueFamilyServices.GetDataByIdAsync(Model.CollectionRequest.ResidueFamilyId)).Name)</li>
+            <li><b>Quantidade aproximada (Kg):</b> @Model.CollectionRequest._Weight.IfNullChange("-")</li>
+            <li><b>Acondicionamento:</b> @((await packagingServices.GetDataByIdAsync(Model.CollectionRequest.PackagingId)).Name)</li>
+            <li><b>Observação:</b> @Html.Raw(Model.CollectionRequest.Observation.IfNullChange("-").Replace("\n", "<br />"))</li>
+            @if (!string.IsNullOrWhiteSpace(Model.CollectionRequest.GuidName))
+            {
+                <li>
+                    <b>Foto: Em anexo</b>
+                </li>
+            }
+        </ul>
+    </div>
+</div>
+

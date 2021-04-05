@@ -1,0 +1,58 @@
+@model DTO.ClassStudent.StudentInstituteDocumentationViewModel
+<div class="row">
+    <div class="col">
+        <div class="form-check">
+            @Html.CheckBox("StudentInstituteDocumentation.Contract", Model.Contract, new { Class = "form-check-input", id = "Contract" })
+            <label class="form-check-label" for="Contract">
+                Contrato
+            </label>
+        </div>
+        <div class="form-check">
+            @Html.CheckBox("StudentInstituteDocumentation.MatriculationForm", Model.MatriculationForm, new { Class = "form-check-input", id = "MatriculationForm" })
+            <label class="form-check-label" for="MatriculationForm">
+                Ficha de Matrícula
+            </label>
+        </div>
+        <div class="form-check">
+            @Html.CheckBox("StudentInstituteDocumentation.MatriculationRequirement", Model.MatriculationRequirement, new { Class = "form-check-input", id = "MatriculationRequirement" })
+            <label class="form-check-label" for="MatriculationRequirement">
+                Requerimento de Matrícula
+            </label>
+        </div>
+    </div>
+    <div class="col">
+        <div class="form-check">
+            @Html.CheckBox("StudentInstituteDocumentation.Photos", Model.Photos, new { Class = "form-check-input", id = "Photos" })
+            <label class="form-check-label" for="Photos">
+                3 Fotos 3 x 4
+            </label>
+        </div>
+        <div class="form-check">
+            @Html.CheckBox("StudentInstituteDocumentation.InternalRegulation", Model.InternalRegulation, new { Class = "form-check-input", id = "InternalRegulation" })
+            <label class="form-check-label" for="InternalRegulation">
+                Regulamento Interno
+            </label>
+        </div>
+        <div class="form-check">
+            @Html.CheckBox("StudentInstituteDocumentation.ThesisAgreementTerm", Model.ThesisAgreementTerm, new { Class = "form-check-input", id = "ThesisAgreementTerm" })
+            <label class="form-check-label" for="ThesisAgreementTerm">
+                Termo de Concordância de Testes
+            </label>
+        </div>
+        <div class="form-check">
+            @Html.CheckBox("StudentInstituteDocumentation.InternshipAgreementTerm", Model.InternshipAgreementTerm, new { Class = "form-check-input", id = "InternshipAgreementTerm" })
+            <label class="form-check-label" for="InternshipAgreementTerm">
+                Termo de Concordância de Estágio
+            </label>
+        </div>
+    </div>
+</div>
+<hr />
+<div class="row">
+    <div class="col">
+        <div class="form-group">
+            <label class="control-label">Observações</label>
+            <textarea class="form-control" name="StudentInstituteDocumentation.InstituteDocumentationComments" rows="10">@Model.InstituteDocumentationComments</textarea>
+        </div>
+    </div>
+</div>

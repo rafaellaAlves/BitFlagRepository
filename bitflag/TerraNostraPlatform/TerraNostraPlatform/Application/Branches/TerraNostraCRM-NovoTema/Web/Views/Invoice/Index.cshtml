@@ -1,0 +1,11 @@
+﻿@model int?
+@{
+    Layout = "~/Views/Shared/_LayoutUplon.cshtml";
+    ViewData["Title"] = "Orçamentos";
+}
+
+<div id="_InvoiceIndexViewComponent"></div>
+
+<script type="text/javascript">
+    $('#_InvoiceIndexViewComponent').load('@Url.Action("InvoiceIndexViewComponent", "Invoice")', { "invoiceStatusId": @if (Model.HasValue) {<text>'@Model'</text>}else{<text>null</text>} });
+</script>

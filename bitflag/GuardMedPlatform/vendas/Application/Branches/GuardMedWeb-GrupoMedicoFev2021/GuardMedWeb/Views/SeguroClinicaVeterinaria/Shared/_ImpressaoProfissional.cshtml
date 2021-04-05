@@ -1,0 +1,527 @@
+﻿@model GuardMedWeb.Models.SeguradoProfissionalViewModel
+@inject GuardMedWeb.DAL.GuardMedWebContext context
+@{
+    ViewData["Title"] = "Seguro Profissional AmaisVet";
+
+    var planoSeguroProfissionalFunctions = new GuardMedWeb.BLL.SeguradoProfissional.PlanoSeguroProfissionalFunctions(context);
+    var planoProfissionalBassicoId = planoSeguroProfissionalFunctions.GetData().First(x => x.ExternalCode == "PROFISSIONALBASICO").PlanoSeguroProfissionalId;
+
+    var pagamentoTipoFunctions = new GuardMedWeb.BLL.Pagamento.PagamentoTipoFunctions(context);
+
+    var tiposPagamento = pagamentoTipoFunctions.GetData();
+    var cartaoId = tiposPagamento.First(x => x.ExternalCode == "CARTAO").PagamentoTipoId;
+    var boletoId = tiposPagamento.First(x => x.ExternalCode == "BOLETO").PagamentoTipoId;
+
+    double mensalLiquido;
+    mensalLiquido = Convert.ToDouble(Model.PrecoPan) * 0.9962;
+}
+<div style="width: 100%; text-align: center;">
+    <strong class="impressao-titulo amaisvet-orange">CERTIFICADO INDIVIDUALll DE SEGURO Nº @Model.Referencia</strong><br />
+    <label class="impressao-subtitulo control-label">ESTE CERTIFICADO INDIVIDUAL DE SEGURO É EMITIDO PELA A MAIS AFINIDADES SERVIÇOS ADMINISTRATIVOS LTDA</label>
+</div>
+<br />
+
+<table style="width: 100%;">
+    <tr>
+        <td style="text-align: center;">
+            <small><strong>APÓLICE DE RESPONSABILIDADE CIVIL PROFISSIONAL Nº:</strong> 30.78.0078520.28</small>
+        </td>
+    </tr>
+    <tr>
+        <td style="text-align: center;">
+            <small>CHUBB Seguros S.A - Registro SUSEP 06513</small>
+        </td>
+    </tr>
+    <tr>
+        <td style="text-align: center;">
+            <small><strong>APÓLICE DE ACIDENTES PESSOAIS Nº:</strong> 01.82.6088599</small>
+        </td>
+    </tr>
+    <tr>
+        <td style="text-align: center;">
+            <small>PAN SEGUROS S/A - Registro SUSEP 665-3</small>
+        </td>
+    </tr>
+</table>
+
+<table style="width: 100%;">
+    <tr>
+        <td>
+            <small><strong>INÍCIO DE VIGÊNCIA:</strong>&nbsp;01/@Model.DataAtualizacao.Value.Month.ToString("00")/@Model.DataAtualizacao.Value.Year</small>
+        </td>
+        <td>
+            <small><strong>FIM DA VIGÊNCIA:</strong>&nbsp;01/@Model.DataAtualizacao.Value.Month.ToString("00")/@(Model.DataAtualizacao.Value.Year + 1)</small>
+        </td>
+        <td>
+            <small><i style="text-align:right;">DATA DE EMISSÃO:@Model.DataCriacao</i></small>
+        </td>
+    </tr>
+</table>
+<br />
+<table style="width: 100%; margin-top:-1em; margin-bottom:1em;">
+    <tr>
+        <td colspan="4" class="bgamaisvet-darkgreen" style="border-radius: 15px 15px 0px 0px;">
+            <small style="color:white">DADOS DO ESTIPULANTE</small>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2"><small class="smallFont"><strong>NOME DO ESTIPULANTE:</strong> AMAIS AFINIDADES - SERVIÇOS ADMINISTRATIVOS LTDA</small></td>
+        <td colspan="2"><small class="smallFont"><strong>CNPJ:</strong> 26.521.553/0001-83</small></td>
+    </tr>
+    <tr>
+        <td><small class="smallFont"><strong>ENDEREÇO:</strong> RUA MANUEL DA NÓBREGA</small></td>
+        <td><small class="smallFont"><strong>Nº:</strong> 354</small></td>
+        <td><small class="smallFont"><strong>COMP:</strong> 8º ANDAR</small></td>
+        <td>&nbsp;</td>
+    </tr>
+    <tr>
+        <td><small class="smallFont"><strong>BAIRRO:</strong> PARAÍSO</small></td>
+        <td><small class="smallFont"><strong>CEP:</strong> 04.001-001</small></td>
+        <td><small class="smallFont"><strong>CIDADE:</strong> SÃO PAULO</small></td>
+        <td><small class="smallFont"><strong>UF:</strong> SP</small></td>
+    </tr>
+    <tr>
+        <td colspan="2"><small class="smallFont"><strong>E-MAIL:</strong><a href="mailto:contato@amaisvet.com.br"> contato@amaisvet.com.br</a></small></td>
+        <td colspan="2"><small class="smallFont"><strong>TELEFONE:</strong> (11) 3253-3678</small></td>
+    </tr>
+</table>
+<table style="width: 100%;">
+    <tr>
+        <td colspan="3" class="bgamaisvet-darkgreen" style="border-radius: 15px 15px 0px 0px;">
+            <small style="color:white">DADOS DO SEGURADO</small>
+        </td>
+    </tr>
+    <tr>
+        <td class="bgamaisvet-green" colspan="2"><small style="color:white">NOME DO SEGURADO: @Model.Nome</small></td>
+        <td class="bgamaisvet-green"><small style="color:white">DATA DE NASCIMENTO: @(Model.DataNascimento.HasValue ? Model.DataNascimento.Value.ToString("dd/MM/yyyy") : "-")</small></td>
+    </tr>
+    <tr>
+        <td class="bgamaisvet-green"><small style="color:white">CPF: @Model.CPF</small></td>
+        <td class="bgamaisvet-green"><small style="color:white">CRM Nº: @Model.CRM</small></td>
+        <td class="bgamaisvet-green"><small style="color:white">E-MAIL: @Model.Email</small></td>
+    </tr>
+    <tr>
+        <td class="bgamaisvet-green">
+            <small style="color:white">
+                TELEFONE: @if (string.IsNullOrWhiteSpace(Model.Telefone))
+                {<text>-</text> }
+            else
+            { <text>@Model.Telefone</text>}
+            </small>
+        </td>
+        <td class="bgamaisvet-green"><small style="color:white">CELULAR: @Model.Celular</small></td>
+        <td class="bgamaisvet-green">
+            <small style="color:white">
+                VENCIMENTO: @if (Model.PagamentoTipoId == boletoId)
+                {<text>Vide vencimento no Boleto</text>}
+            else
+            {<text>Vide lançamento no Cartão</text>}
+            </small>
+        </td>
+    </tr>
+    <tr>
+        <td class="bgamaisvet-green"><small style="color:white">CEP: @Model.CEP</small></td>
+        <td class="bgamaisvet-green"><small style="color:white">CIDADE - UF: @Model.Cidade -  @Model.Estado</small></td>
+        <td class="bgamaisvet-green">
+            <small style="color:white">ENDEREÇO: @Model.Endereco,  @Model.EnderecoNumero - @Model.Bairro</small>
+        </td>
+    </tr>
+    <tr></tr>
+    <tr>
+        <td colspan="3" class="bgamaisvet-darkgreen" style="border-radius: 0px 0px 15px 15px;">
+            &nbsp;
+        </td>
+    </tr>
+</table>
+<br />
+<table style="width: 100%;">
+    <tr>
+        <td class="bgamaisvet-green" style="border-top-left-radius: 15px; padding: 8px; width: 50%;"><small style="color:white">CHUBB SEGUROS S.A. - Responsabilidade Civil Profissional - Processo SUSEP 15414000218/2006-82</small></td>
+        <td class="bgamaisvet-green" style="width: 15%; text-align: center; border-left: 1px solid black;"><small style="color:white;">Franquias</small></td>
+        <td class="bgamaisvet-green" style="width: 15%; text-align: center; border-left: 1px solid black;"><small style="color:white;">Capital | Serviço</small></td>
+        <td class="bgamaisvet-green" style="border-top-right-radius: 15px; border-left: 1px solid black; padding: 8px; width: 15%; text-align: center;"><small style="color:white">Prêmio Cobertura</small></td>
+    </tr>
+    <tr>
+        <td style="background-color:lightgrey;"><small class="smallFont"><strong class="amaisvet-orange">COBERTURAS</strong></small></td>
+        <td style="background-color:lightgrey; border-left: 1px solid black;">&nbsp;</td>
+        <td style="background-color:lightgrey; border-left: 1px solid black;">&nbsp;</td>
+        <td style="background-color:lightgrey; border-left: 1px solid black;">&nbsp;</td>
+    </tr>
+    <tr>
+        <td style="background-color:lightgrey;">
+            <small class="smallFont"><strong class="amaisvet-orange">Dano Material</strong> - É o dano físico causado exclusivamente à propriedade material tangivel, inclusive todas as perdas relacionadas com o uso dessa propriedade.</small>
+        </td>
+        <td style="background-color:lightgrey; text-align: center; border-left: 1px solid black;"><small class="smallFont amaisvet-orange">R$1.000,00</small></td>
+
+        <td style="background-color:lightgrey; text-align: center; border-left: 1px solid black;"><small class="smallFont amaisvet-orange">R$50.000,00</small></td>
+        <td style="background-color:lightgrey; border-left: 1px solid black;">&nbsp;</td>
+    </tr>
+    <tr>
+        <td style="background-color:lightgrey;">
+            <small class="smallFont"><strong class="amaisvet-orange">Dano Morais</strong> - Lesão, praticamente por outrem, ao patrimônio psiquico ou a dignidade da pessoa ou, mais, amplamente, aos direitos independentemente da ocorrência conjunta de danos materiais.</small>
+        </td>
+        <td style="background-color:lightgrey; text-align: center; border-left: 1px solid black;"><small class="smallFont amaisvet-orange">R$1.000,00</small></td>
+        <td style="background-color:lightgrey; text-align: center; border-left: 1px solid black;"><small class="smallFont amaisvet-orange">100% - Limite Máximo de Indenização</small></td>
+        <td style="background-color:lightgrey; text-align: center; border-left: 1px solid black;"><small class="smallFont amaisvet-orange">Não se aplica</small></td>
+    </tr>
+    <tr>
+        <td style="background-color:lightgrey;">
+            <small class="smallFont"><strong class="amaisvet-orange">Honorários de Advogado</strong> - Honorários advocatícios, laudos periciais e demais despesas necessárias para a defesa de uma reclamação, seja na esfera cível, criminal ou na administrativa.</small>
+        </td>
+        <td style="background-color:lightgrey; text-align: center; border-left: 1px solid black;"> <small class="smallFont amaisvet-orange">Não há</small></td>
+        <td style="background-color:lightgrey; border-left: 1px solid black;">&nbsp;</td>
+        <td style="background-color:lightgrey; border-left: 1px solid black;">&nbsp;</td>
+    </tr>
+    <tr>
+        <td class="bgamaisvet-darkgreen" colspan="@if (!Model.SeguradoClinicaVeterinariaId.HasValue) {<text>3</text>} else {<text>2</text>}" style=" text-align: right;">
+            <small style="color:white;">
+                PRÊMIO LIQUIDO @if (Model.VezesPagamento > 1)
+                {<text>MENSAL</text>}
+            else
+            {<text>ANUAL</text>}
+            </small>
+        </td>
+        <td class="bgamaisvet-darkgreen" style="text-align: left; border-left: 1px solid black;" @if (Model.SeguradoClinicaVeterinariaId.HasValue) { <text> colspan="2" </text> }>
+            <small style="color:white;">
+                @if (!Model.SeguradoClinicaVeterinariaId.HasValue)
+                {
+                    <text>
+                        R$ @if (Model.VezesPagamento > 1)
+                        {<text>10,80</text>}
+                else
+                {<text>129,67</text>}
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Seguro faturado pela Empresa Contratante
+                        </text>
+                    }
+            </small>
+        </td>
+    </tr>
+    <tr>
+        <td class="bgamaisvet-darkgreen" style="border-radius: 0px 0px 0px 15px; text-align: right;" colspan="@if (!Model.SeguradoClinicaVeterinariaId.HasValue) {<text>3</text>} else {<text>2</text>}">
+            <small style="color:white;">
+                PRÊMIO TOTAL @if (Model.VezesPagamento > 1)
+                {<text>MENSAL</text>}
+            else
+            {<text>ANUAL</text>} COM IOF DE 7,38%
+            </small>
+        </td>
+        <td class="bgamaisvet-darkgreen" style="text-align: left; border-left: 1px solid black; border-radius: 0px 0px 15px 0px;" @if (Model.SeguradoClinicaVeterinariaId.HasValue) { <text> colspan="2" </text> }>
+            <small style="color:white;">
+                @if (!Model.SeguradoClinicaVeterinariaId.HasValue)
+                {<text>
+                        R$ @if (Model.VezesPagamento > 1)
+                        {<text>11,67</text>}
+            else
+            {<text>140,00</text>}
+                        </text>}
+                    else
+                    {<text>Seguro faturado pela Empresa Contratante</text>}
+            </small>
+        </td>
+    </tr>
+</table>
+<div style="page-break-after: always;">&nbsp;</div>
+<table style="width: 100%;  margin-bottom:1em;">
+    <tr>
+        <td class="bgamaisvet-green" style="border-top-left-radius: 15px; padding: 8px; width: 50%;"><small style="color:white">PAN SEGUROS S/A - Renda Protegida Acidentes Pessoais - Processo SUSEP 15414.005238/2011-06</small></td>
+        <td class="bgamaisvet-green" style="width: 15%; text-align: center; border-left: 1px solid black;"><small style="color:white;">Franquias</small></td>
+        <td class="bgamaisvet-green" style="width: 15%; text-align: center; border-left: 1px solid black;"><small style="color:white;">Capital | Serviço</small></td>
+        <td class="bgamaisvet-green" style="border-top-right-radius: 15px; border-left: 1px solid black; padding: 8px; width: 15%; text-align: center;"><small style="color:white">Prêmio Cobertura</small></td>
+    </tr>
+    <tr>
+        <td style="background-color:lightgrey;"><small class="smallFont"><strong class="amaisvet-orange">COBERTURAS</strong></small></td>
+        <td style="background-color:lightgrey; border-left: 1px solid black;">&nbsp;</td>
+        <td style="background-color:lightgrey; border-left: 1px solid black;">&nbsp;</td>
+        <td style="background-color:lightgrey; border-left: 1px solid black;">&nbsp;</td>
+    </tr>
+    <tr>
+        <td style="background-color:lightgrey;">
+            <small class="smallFont"><strong class="amaisvet-orange">Perda de Renda por Incapacidade Física Total e Temporária por Doença.</strong></small>
+        </td>
+        <td style="background-color:lightgrey; text-align: center; border-left: 1px solid black;"><small class="smallFont amaisvet-orange">15 dias</small></td>
+        <td style="background-color:lightgrey; text-align: center; border-left: 1px solid black;">
+            <small class="smallFont amaisvet-orange">
+                @if (Model.PlanoSeguroProfissionalId == 1)
+                {<text>R$ - </text>}
+            else if (Model.PlanoSeguroProfissionalId == 2)
+            {<text>R$ 2.500,00</text>}
+        else if (Model.PlanoSeguroProfissionalId == 3)
+        {<text>R$ 3.500,00</text>}
+    else if (Model.PlanoSeguroProfissionalId == 4)
+    {<text>R$ 5.000,00</text>}
+            </small>
+        </td>
+        <td style="background-color:lightgrey; text-align: center; border-left: 1px solid black;"><small class="smallFont amaisvet-orange">Não se aplica</small></td>
+    </tr>
+    <tr>
+        <td style="background-color:lightgrey;">
+            <small class="smallFont"><strong class="amaisvet-orange">Perda de Renda por Incapacidade Física Total e Temporária por Acidente.</strong></small>
+        </td>
+        <td style="background-color:lightgrey; text-align: center; border-left: 1px solid black;"><small class="smallFont amaisvet-orange">15 dias</small></td>
+        <td style="background-color:lightgrey; text-align: center; border-left: 1px solid black;">
+            <small class="smallFont amaisvet-orange">
+                @if (Model.PlanoSeguroProfissionalId == 1)
+                {<text>R$ - </text>}
+            else if (Model.PlanoSeguroProfissionalId == 2)
+            {<text>R$ 2.500,00</text>}
+        else if (Model.PlanoSeguroProfissionalId == 3)
+        {<text>R$ 3.500,00</text>}
+    else if (Model.PlanoSeguroProfissionalId == 4)
+    {<text>R$ 5.000,00</text>}
+            </small>
+        </td>
+        <td style="background-color:lightgrey; text-align: center; border-left: 1px solid black;"><small class="smallFont amaisvet-orange">Não se aplica</small></td>
+    </tr>
+    <tr>
+        <td style="background-color:lightgrey;">
+            <small class="smallFont">Garantir uma indenização de até 365 dias.</small>
+        </td>
+        <td style="background-color:lightgrey; text-align: center; border-left: 1px solid black;">&nbsp;</td>
+        <td style="background-color:lightgrey; border-left: 1px solid black;">&nbsp;</td>
+        <td style="background-color:lightgrey; border-left: 1px solid black;">&nbsp;</td>
+    </tr>
+    <tr>
+        <td style="background-color:lightgrey;">
+            <small class="smallFont amaisvet-orange">*Para a cobertura de Perda de Renda existe uma carência de 60 dias.</small>
+        </td>
+        <td style="background-color:lightgrey; text-align: center; border-left: 1px solid black;">&nbsp;</td>
+        <td style="background-color:lightgrey; border-left: 1px solid black;">&nbsp;</td>
+        <td style="background-color:lightgrey; border-left: 1px solid black;">&nbsp;</td>
+    </tr>
+    <tr>
+        <td style="background-color:lightgrey;">
+            <small class="smallFont"><strong class="amaisvet-orange">Morte Acidental</strong> - Garantir o pagamento do capital segurado ao Beneficiário, no caso de morte acidental do segurado</small>
+        </td>
+        <td style="background-color:lightgrey; text-align: center; border-left: 1px solid black;"><small class="smallFont amaisvet-orange">Não há</small></td>
+        <td style="background-color:lightgrey; text-align: center; border-left: 1px solid black;">
+            <small class="smallFont amaisvet-orange">
+                @if (Model.PlanoSeguroProfissionalId == 1)
+                {<text>R$ - </text>}
+            else if (Model.PlanoSeguroProfissionalId == 2)
+            {<text>R$ 15.000,00</text>}
+        else if (Model.PlanoSeguroProfissionalId == 3)
+        {<text>R$ 30.000,00</text>}
+    else if (Model.PlanoSeguroProfissionalId == 4)
+    {<text>R$ 45.000,00</text>}
+            </small>
+        </td>
+        <td style="background-color:lightgrey; text-align: center; border-left: 1px solid black;"><small class="smallFont amaisvet-orange">Não se aplica</small></td>
+    </tr>
+    <tr>
+        <td style="background-color:lightgrey;">
+            <small class="smallFont"><strong class="amaisvet-orange">Invalidez Permanente Total ou Parcial por Acidente</strong> - Garantir o pagamento de indenização ao Segurado.</small>
+        </td>
+        <td style="background-color:lightgrey; text-align: center; border-left: 1px solid black;"><small class="smallFont amaisvet-orange">Não há</small></td>
+        <td style="background-color:lightgrey; text-align: center; border-left: 1px solid black;">
+            <small class="smallFont amaisvet-orange">
+                @if (Model.PlanoSeguroProfissionalId == 1)
+                {<text>R$ - </text>}
+            else if (Model.PlanoSeguroProfissionalId == 2)
+            {<text>R$ 15.000,00</text>}
+        else if (Model.PlanoSeguroProfissionalId == 3)
+        {<text>R$ 30.000,00</text>}
+    else if (Model.PlanoSeguroProfissionalId == 4)
+    {<text>R$ 45.000,00</text>}
+            </small>
+        </td>
+        <td style="background-color:lightgrey; text-align: center; border-left: 1px solid black;"><small class="smallFont amaisvet-orange">Não se aplica</small></td>
+    </tr>
+    <tr>
+        <td style="background-color:lightgrey;">
+            <small class="smallFont">
+                <strong class="amaisvet-orange">Assistência Funeral Individual</strong> - Será prestado um serviço de Assistência 24 horas por dia , 365 dias por ano, realizada por empresa terceirizada contratada pela PAN SEGUROS S/A. Acessar o serviço atraves do 0800 707 7749.
+            </small>
+        </td>
+        <td style="background-color:lightgrey; text-align: center; border-left: 1px solid black;"><small class="smallFont amaisvet-orange">Não há</small></td>
+        <td style="background-color:lightgrey; text-align: center; border-left: 1px solid black;">
+            <small class="smallFont amaisvet-orange">
+                @if (Model.PlanoSeguroProfissionalId == 1)
+                {<text>R$ - </text>}
+            else if (Model.PlanoSeguroProfissionalId == 2)
+            {<text>R$ 4.000,00</text>}
+        else if (Model.PlanoSeguroProfissionalId == 3)
+        {<text>R$ 4.000,00</text>}
+    else if (Model.PlanoSeguroProfissionalId == 4)
+    {<text>R$ 4.000,00</text>}
+            </small>
+        </td>
+        <td style="background-color:lightgrey; text-align: center; border-left: 1px solid black;"><small class="smallFont amaisvet-orange">Não se aplica</small></td>
+    </tr>
+    <tr>
+        <td style="background-color:lightgrey;">
+            <small class="smallFont">
+                <strong class="amaisvet-orange">Assistência Farmácia</strong> - Concede descontos de 20% a 40% em medicamentos adquiridos nas farmácias da rede credenciada. Para informações da rede credenciada acessar o serviço atraves do 0800 707 7749.
+            </small>
+        </td>
+        <td style="background-color:lightgrey; text-align: center; border-left: 1px solid black;"><small class="smallFont amaisvet-orange">Não há</small></td>
+        <td style="background-color:lightgrey; text-align: center; border-left: 1px solid black;">
+            <small class="smallFont amaisvet-orange">
+                @if (Model.PlanoSeguroProfissionalId == 1)
+                {<text>Não Contratado</text>}
+            else if (Model.PlanoSeguroProfissionalId == 2)
+            {<text>Contratado</text>}
+        else if (Model.PlanoSeguroProfissionalId == 3)
+        {<text>Contratado</text>}
+    else if (Model.PlanoSeguroProfissionalId == 4)
+    {<text>Contratado</text>}
+            </small>
+        </td>
+        <td style="background-color:lightgrey; text-align: center; border-left: 1px solid black;"><small class="smallFont amaisvet-orange">Não se aplica</small></td>
+    </tr>
+    <tr>
+        <td style="background-color:lightgrey; border-top:1px solid" colspan="4">
+            <small class="smallFont amaisvet-orange">**O capital segurado de Morte Acidental será para os herdeiros, de acordo com o artigo 792 do Código Civil Brasileiro.</small>
+        </td>
+    </tr>
+    <tr>
+        <td style="background-color:lightgrey;" colspan="4">
+            <small class="smallFont amaisvet-orange">**O valor do seguro é calculado com base na faixa etária de 20-29 anos | 30-39 anos | 40-49 anos | acima de 50 anos - no aniversário da apólice, havendo mudança de faixa etária, o prêmio de seguro poderá ser alterado.</small>
+        </td>
+    </tr>
+    <tr>
+        <td class="bgamaisvet-darkgreen" colspan="@if(!Model.SeguradoClinicaVeterinariaId.HasValue) {<text>3</text>} else {<text>2</text>}" style=" text-align: right;">
+            <small class="smallFont" style="color:white;">
+                PRÊMIO LIQUIDO @if (Model.VezesPagamento > 1)
+                {<text>MENSAL</text>}
+            else
+            {<text>ANUAL</text>}
+            </small>
+        </td>
+        <td class="bgamaisvet-darkgreen" style=" text-align: left; border-left: 1px solid black;" @if (Model.SeguradoClinicaVeterinariaId.HasValue) { <text> colspan="2" </text> }>
+            <small style="color:white;">
+                @if (!Model.SeguradoClinicaVeterinariaId.HasValue)
+                {<text>
+                        R$ <span class="money">@mensalLiquido.ToString("0.00")</span>
+                </text>}
+            else
+            {<text>Seguro faturado pela Empresa Contratante</text>}
+            </small>
+        </td>
+    </tr>
+    <tr>
+        <td class="bgamaisvet-darkgreen" style="border-radius: 0px 0px 0px 15px; text-align: right;" colspan="@if(!Model.SeguradoClinicaVeterinariaId.HasValue) {<text>3</text>} else {<text>2</text>}">
+            <small class="smallFont" style="color:white;">
+                PRÊMIO TOTAL @if (Model.VezesPagamento > 1)
+                {<text>MENSAL</text>}
+            else
+            {<text>ANUAL</text>} COM IOF DE 0,38%
+            </small>
+        </td>
+        <td class="bgamaisvet-darkgreen" style="text-align: left; border-left: 1px solid black; border-radius: 0px 0px 15px 0px;" @if (Model.SeguradoClinicaVeterinariaId.HasValue) { <text> colspan="2" </text> }>
+            <small style="color:white;">
+                @if (!Model.SeguradoClinicaVeterinariaId.HasValue)
+                {<text>
+                        R$ <span class="money">@Model.PrecoPan</span>
+                </text>}
+            else
+            {<text>Seguro faturado pela Empresa Contratante</text>}
+            </small>
+        </td>
+    </tr>
+</table>
+<table style="width: 100%; margin-bottom:1em;">
+    <tr>
+        <td class="bgamaisvet-green" style="border-top-left-radius: 15px; padding: 8px; width: 50%;"><small style="color:white">SERVIÇOS ADICIONAIS</small></td>
+        <td class="bgamaisvet-green" style="width: 15%; text-align: center; border-left: 1px solid black;"><small style="color:white;">Franquias</small></td>
+        <td class="bgamaisvet-green" style="width: 15%; text-align: center; border-left: 1px solid black;"><small style="color:white;">Capital | Serviço</small></td>
+        <td class="bgamaisvet-green" style="border-top-right-radius: 15px; border-left: 1px solid black; padding: 8px; width: 15%; text-align: center;"><small style="color:white">Prêmio Cobertura</small></td>
+    </tr>
+    <tr>
+        <td style="background-color:lightgrey;"><small class="smallFont"><strong class="amaisvet-orange">Serviços Administrativos</strong></small></td>
+        <td style="background-color:lightgrey; text-align: center; border-left: 1px solid black;"><small class="amaisvet-orange">Não há</small></td>
+        <td colspan="2" style="background-color:lightgrey; text-align: center; border-left: 1px solid black;"><small class="amaisvet-orange">Não se aplica</small></td>
+    </tr>
+    <tr>
+        <td class="bgamaisvet-darkgreen" style="border-radius: 0px 0px 0px 15px; text-align: right;" colspan="@if(!Model.SeguradoClinicaVeterinariaId.HasValue) {<text>3</text>} else {<text>2</text>}">
+            <small style="color:white;">
+                PRÊMIO TOTAL @if (Model.VezesPagamento > 1)
+                {<text>MENSAL</text>}
+            else
+            {<text>ANUAL</text>}
+            </small>
+        </td>
+        <td class="bgamaisvet-darkgreen" style="text-align: left; border-left: 1px solid black; border-radius: 0px 0px 15px 0px;" @if (Model.SeguradoClinicaVeterinariaId.HasValue) { <text> colspan="2" </text> }>
+            <small style="color:white;">
+                @if (!Model.SeguradoClinicaVeterinariaId.HasValue)
+                {<text>
+                        R$ @if (Model.VezesPagamento > 1)
+                        {
+                            if (Model.Conveniado.Value)
+                            {<text>7,50</text>}
+            else
+            {<text>11,67</text>}
+    }
+    else
+    {
+        if (Model.Conveniado.Value)
+        {<text>90,00</text>}
+    else
+    {<text>140,00</text>}
+}
+                        </text>}
+                    else
+                    {<text>Seguro faturado pela Empresa Contratante</text>}
+            </small>
+        </td>
+    </tr>
+</table>
+
+<table style="width: 100%; text-align:center; margin-bottom:1em;">
+    <tr>
+        <td class="bgamaisvet-darkgreen" style="padding: 8px;">
+            <small style="color:white;">
+
+                @if (!Model.SeguradoClinicaVeterinariaId.HasValue)
+                {<text>
+                        FORMA DE PAGAMENTO: @tiposPagamento.First(x => x.PagamentoTipoId == Model.PagamentoTipoId).Nome | PRÊMIO TOTAL DE R$ <span class="money">@Model.PrecoTotal</span>  | @if (Model.VezesPagamento == 1)
+                        {<text>1 PARCELA DE R$ <span class="money">@Model.PrecoTotal</span></text>}
+            else if (Model.VezesPagamento > 1)
+            {<text>1 + 11 PARCELAS MENSAIS DE R$ <span class="money">@Model.PrecoMensal</span></text>}
+                        </text>}
+                    else
+                    {<text>Seguro faturado pela Empresa Contratante</text>}
+            </small>
+        </td>
+    </tr>
+</table>
+
+<table style="width: 100%;">
+    <tr>
+        <td class="bgamaisvet-darkgreen" style="border-radius: 15px 15px 0px 0px; padding: 8px;"><small style="color:white">PAGAMENTO DO PRÊMIO DE SEGURO</small></td>
+    </tr>
+    <tr>
+        <td><small>O pagamento do seguro será efetuado pelo Segurado, Pessoa Física ou Jurídica, o não pagamento do prêmio de Seguro, implicará na suspensão da cobertura secutirária após 5 dias da data de vencimento, sendo que, após 10 dias da data de comunicação, não havendo regularização por parte do Segurado, o contrato será cancelado. Vide o artigo 757 do Código Civil - “Pelo contrato de seguro, o segurador se obriga, mediante o pagamento do prêmio, a garantir interesse legítimo do segurado, relativo a pessoa ou a coisa, contra riscos predeterminados.”</small></td>
+    </tr>
+</table>
+<div class="page-break">&nbsp;</div>
+<br />
+<table>
+    <tr>
+        <td class="bgamaisvet-darkgreen" style="border-radius: 15px 15px 0px 0px;"><small style="color:white;">SEGURADORAS E CONDIÇÕES GERAIS DOS SEGUROS</small></td>
+    </tr>
+    <tr>
+        <td style="text-align: center;">
+            <small class="amaisvet-darkorange">
+                Este seguro é garantido pela CHUBB Seguros S.A - Registro SUSEP 06513 - CNPJ nº 03.502.099/0001-18, Av. Rebouças, 3.970, 25º Andar, Parte B, 26º, 27º 28º AD - Pinheiros, São Paulo - SP - CEP: 05.401-450  - www.chubb.com.br - Telefones - Grande São Paulo (11) 3003-4363 e outras localidades 0800 702 5048<br />
+                Este seguro é garantido pela PAN SEGUROS S/A - Registro SUSEP 665-3, Av Paulista, 1374 - 11º andar - São Paulo SP - CEP 01310-100 - www.panseguros.com.br - Telefones Grande São Paulo e demais localidades (11) 3264-7823 e (11) 3264-7823<br />
+                A MAIS ADM E CORRETORA DE SEGUROS LTDA - Registro SUSEP 100695033 - CNPJ 12.939.904/0001-66, Rua Manuel da Nobrega, 354 - 8ª andar - Paraiso, São Paulo -SP - CEP 04001-001 - Telefone 11 3253-3678 - www.amaisvet.com.br<br />
+                ATENDIMENTO SUSEP: 0800-021-8484 - Os segurados poderão consultar informações sobre os produtos através do site:  www.susep.gov.br
+            </small>
+            <br />
+            <small class="control-label" style="text-align:center">
+                “SUSEP – Superintendência de Seguros Privados – Autarquia Federal responsável pela fiscalização, normatização e controle dos mercados de seguro, previdência complementar aberta, capitalização, resseguro e corretagem de seguros.”. Parágrafo único. Para fins do disposto no inciso VII, caso o segurado seja estrangeiro, poderá ser utilizado o número do passaporte, com a identificação do País de expedição.<br />
+                Art. 4º As sociedades seguradoras poderão emitir uma única apólice vinculada a vários produtos de seguro, com diferentes coberturas, desde que destinada a garantir um mesmo segurado, grupo segurado ou objeto segurável, contra diversos riscos.<br />
+                Art. 5º Poderão ser estabelecidos requisitos complementares para apólices e certificados individuais em função de critérios específicos inerentes a determinados ramos de seguro.<br />
+                Art. 6º Os documentos contratuais de que trata esta Circular deverão ser entregues ao segurado por ocasião da efetivação da contratação do plano de seguro, juntamente com as condições gerais, refletindo de forma clara todas as coberturas contratadas. Parágrafo único. O disposto no caput poderá ser realizado com a utilização de meios remotos.<br />
+                Art.7º As sociedades seguradoras terão o prazo de 180 dias para se adequarem ao disposto nesta Circular.<br />
+                Art. 8º Esta Circular entra em vigor na data de sua publicação, ficando revogadas a Circular Susep nº 5, de 11 de março 1969, a Circular Susep nº 34, de 22 de junho de 1972, a Circular Susep nº 39, de 3 de novembro de 1975, a Circular Susep nº 8, de 9 de fevereiro de 1976, a Circular Susep nº 176, de 11 de dezembro de 2001, a Circular Susep nº 401, de 25 de fevereiro de 2010, a Circular Susep nº 432, de 13 de abril de 2012, e a Circular Susep nº 434, de 19 de abril de 2012.<br />
+                <strong>Agora você faz parte de um grupo seleto de médicos-veterinários que escolheu a AmaisVet para fazer a gestão da sua apólice de Seguro.</strong>
+            </small>
+        </td>
+    </tr>
+</table>

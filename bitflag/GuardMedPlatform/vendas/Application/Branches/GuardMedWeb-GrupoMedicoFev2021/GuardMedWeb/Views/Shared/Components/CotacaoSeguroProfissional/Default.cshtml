@@ -1,0 +1,561 @@
+﻿@model GuardMedWeb.Models.SeguradoProfissionalViewModel
+
+<style type="text/css">
+    .show-when-small {
+        display: none;
+    }
+
+    .hide-when-small {
+        display: block;
+    }
+
+    @@media screen and (max-width: 575px) {
+        .hide-when-small {
+            display: none;
+        }
+
+        .show-when-small {
+            display: block;
+        }
+
+        .card {
+            margin-top: .5em;
+        }
+
+        .tableFont12 td small {
+            font-size: 12px;
+        }
+    }
+</style>
+<script type="text/javascript">
+    var IsSeguroPrincipalSelected = false;
+    var IsSeguroProtecaoSelected = false;
+</script>
+<form id="CotacaoForm" action="@Url.Action("Cotacao", "SeguroProfissional")" method="post">
+    <input type="hidden" name="reference" value="@Model.Referencia" />
+    <input type="hidden" id="PlanoPrincipalId" name="PlanoPrincipalId" value="@Model.PlanoSeguroProfissionalId" />
+    <input type="hidden" id="ProtecaoRendaAceito" name="ProtecaoRendaAceito" value="" />
+    <input type="hidden" id="ProtecaoRendaFaixaIdade" name="ProtecaoRendaFaixaIdade" value="" />
+</form>
+<div id="SeguroPrincipal">
+    <div class="row hide-when-small">
+        <div class="col-md-12">
+            <table style="border-radius:5px;">
+                <thead style="background-color:rgba(0,0,0,.03); line-height: 60px;">
+                    <tr>
+                        <th style="text-align:center; width:40%; border-top-left-radius:5px; border:1px solid #e0e0e0;">Cobertura</th>
+                        <th style="text-align:center; width:20%; border:1px solid #e0e0e0;">PG 200</th>
+                        <th style="text-align:center; width:20%; border:1px solid #e0e0e0;">PG 350</th>
+                        <th style="text-align:center; width:20%; border:1px solid #e0e0e0; border-top-right-radius:5px;">PG 500</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="border-left:1px solid #e0e0e0;">
+                        <td style="padding: 10px; border-right:1px solid #e0e0e0;">
+                            <small>Responsabilidade Civil Profissional - Ato Médico</small>
+                            <div style="margin-top: -4px; line-height: 13px;"><small style="font-size:11px;">Cobre as reclamações decorrentes de ato médico profissional, incluindo a negligência, imprudência e imperícia;</small></div>
+                        </td>
+                        <td style="text-align:center; border-right:1px solid #e0e0e0;"><small>R$ 200.000,00</small></td>
+                        <td style="text-align:center; border-right:1px solid #e0e0e0;"><small>R$ 350.000,00</small></td>
+                        <td style="text-align:center; border-right:1px solid #e0e0e0;"><small>R$ 500.000,00</small></td>
+                    </tr>
+                    <tr style="border-left:1px solid #e0e0e0;">
+                        <td style="padding: 10px; border-right:1px solid #e0e0e0;">
+                            <div style="margin-top: 15px; line-height: 13px;">
+                                <small style="font-size:11px;">
+                                    Paga as indenizações de processos judiciais, civis e/ou procedimentos administrativos decorrentes de <b>danos materiais</b> e/ou <b>danos estéticos</b> e/ou <b>danos morais</b> e/ou <b>danos corporais</b> causados a terceiros no exercício da profissão;<br />
+                                    Cobre as condenações por sentenças judiciais transitadas em julgado ou decisões arbitrais finais contra o Segurado;<br />
+                                    Além dos acordos judiciais ou extrajudiciais negociados com o consentimento da Seguradora.
+                                </small>
+                            </div>
+                        </td>
+                        <td style="text-align:center; border-right:1px solid #e0e0e0;"><small>Até o limite máximo</small></td>
+                        <td style="text-align:center; border-right:1px solid #e0e0e0;"><small>Até o limite máximo</small></td>
+                        <td style="text-align:center; border-right:1px solid #e0e0e0;"><small>Até o limite máximo</small></td>
+                    </tr>
+                    <tr style="border-left:1px solid #e0e0e0;">
+                        <td style="padding: 10px; border-right:1px solid #e0e0e0;">
+                            <div style="margin-top: 15px;">
+                                <small>Custas de defesa e honorários</small>
+                                <div style="margin-top: -4px; line-height: 13px;"><small style="font-size:11px;">As custas de defesa nas esferas civis, administrativas, criminais e/ou disciplinares, em defesas e/ou explicações estão cobertas no seguro.</small></div>
+                            </div>
+                        </td>
+                        <td style="text-align:center; border-right:1px solid #e0e0e0;"><small>Até o limite máximo</small></td>
+                        <td style="text-align:center; border-right:1px solid #e0e0e0;"><small>Até o limite máximo</small></td>
+                        <td style="text-align:center; border-right:1px solid #e0e0e0;"><small>Até o limite máximo</small></td>
+                    </tr>
+                    <tr style="border-left:1px solid #e0e0e0;">
+                        <td style="padding: 15px; text-align:center; border-right:1px solid #e0e0e0;">
+                            <hr />
+                            <h5><strong>&nbsp;</strong></h5>
+                            <h6>&nbsp;</h6>
+                            <h6 style="margin-top:25px;">&nbsp;</h6>
+                        </td>
+                        <td style="padding: 15px; text-align:center; border-right:1px solid #e0e0e0; border-bottom:1px solid #e0e0e0;">
+                            <hr />
+                            <h5><strong>R$ <span class="BasicoPrecoMensal"></span> / Mês</strong></h5>
+                            <h6>ou</h6>
+                            <h6>R$ <span class="BasicoPreco"></span> à vista<br /> no boleto bancário</h6>
+                        </td>
+                        <td style="padding: 15px; text-align:center; border-right:1px solid #e0e0e0; border-bottom:1px solid #e0e0e0;">
+                            <hr />
+                            <h5><strong>R$ <span class="IPrecoMensal"></span> / Mês</strong></h5>
+                            <h6>ou</h6>
+                            <h6>R$ <span class="IPreco"></span> à vista<br /> no boleto bancário</h6>
+                        </td>
+                        <td style="padding: 15px; text-align:center; border-right:1px solid #e0e0e0; border-bottom:1px solid #e0e0e0;">
+                            <hr />
+                            <h5><strong>R$ <span class="IPrecoMensal"></span> / Mês</strong></h5>
+                            <h6>ou</h6>
+                            <h6>R$ <span class="IPreco"></span> à vista<br /> no boleto bancário</h6>
+                        </td>
+                    </tr>
+                    <tr style="line-height: 60px; border-bottom:1px solid #e0e0e0;">
+                        <td style="text-align:center; width:40%; border-bottom-left-radius:5px; border-left:1px solid #e0e0e0;"></td>
+                        <td style="background-color:rgba(0,0,0,.03); text-align:center; width:20%; border:1px solid #e0e0e0;">
+                            <div class="text-center"><a href="javascript:void(0)" id="CotacaoSubmitButton1" class="btn btn-primary">Avançar</a></div>
+                        </td>
+                        <td style="background-color:rgba(0,0,0,.03); text-align:center; width:20%; border:1px solid #e0e0e0;">
+                            <div class="text-center"><a href="javascript:void(0)" id="CotacaoSubmitButton2" class="btn btn-primary">Avançar</a></div>
+                        </td>
+                        <td style="background-color:rgba(0,0,0,.03); text-align:center; width:20%; border:1px solid #e0e0e0; border-bottom-right-radius:5px;">
+                            <div class="text-center"><a href="javascript:void(0)" id="CotacaoSubmitButton3" class="btn btn-primary">Avançar</a></div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-group show-when-small" id="CardGeral">
+        <div class="card" id="InfoCard" style="flex-grow: 2.5">
+            <div class="card-header">
+                <h6 class="card-title text-center"><strong>Coberturas</strong></h6>
+            </div>
+            <div class="card-body">
+                <br />
+                <div class="row" style="margin-left:-25px;">
+                    <div class="col-lg-12"><small>Responsabilidade Civil Profissional - Ato Médico</small></div>
+                    <div class="col-lg-12" style="margin-top: -4px; line-height: 13px;"><small style="font-size:11px;">Cobre as reclamações decorrentes de ato médico profissional, incluindo a negligência, imprudência e imperícia;</small></div>
+                    <div class="col-lg-12" style="margin-top: 15px; line-height: 13px;">
+                        <small style="font-size:11px;">
+                            Paga as indenizações de processos judiciais, civis e/ou procedimentos administrativos decorrentes de <b>danos materiais</b> e/ou <b>danos estéticos</b> e/ou <b>danos morais</b> e/ou <b>danos corporais</b> causados a terceiros no exercício da profissão;<br />
+                            Cobre as condenações por sentenças judiciais transitadas em julgado ou decisões arbitrais finais contra o Segurado;<br />
+                            Além dos acordos judiciais ou extrajudiciais negociados com o consentimento da Seguradora.
+                        </small>
+                    </div>
+                    <div class="col-lg-12" style="margin-top: 15px;"><small>Custas de defesa e honorários</small></div>
+                    <div class="col-lg-12" style="margin-top: -4px; line-height: 13px;"><small style="font-size:11px;">As custas de defesa nas esferas civis, administrativas, criminais e/ou disciplinares, em defesas e/ou explicações estão cobertas no seguro.</small></div>
+                    <br />
+                </div>
+                <hr />
+            </div>
+        </div>
+        <div class="card" id="ProBasicoCard">
+            <div class="card-header">
+                <h6 style="white-space: nowrap;" class="card-title text-center amaisvet-green" id="CardTitle1"><strong>Profissional básico</strong></h6>
+            </div>
+            <div class="card-body text-center">
+                <strong>Valores</strong>
+                <div class="row">
+                    <div class="col-lg-12" style="margin-top:1em;"><small class="card-text">R$200.000,00</small></div>
+                    <div class="col-lg-12"><small class="card-text">Até o limite máximo</small></div>
+                    <div class="col-lg-12"><small class="card-text">Até o limite máximo</small></div>
+                    <br />
+                </div>
+                <hr />
+                <div class="row">
+                    <div class="col-lg-12"><h5><strong>R$ <span class="BasicoPrecoMensal"></span> / Mês</strong></h5></div>
+                    <div class="col-lg-12"><h6>ou</h6></div>
+                    <div class="col-lg-12"><h6>R$ <span idclassBasicoPreco"></span> à vista<br /> no boleto bancário</h6></div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="text-center"><a href="javascript:void(0)" id="CotacaoSubmitButton1" class="btn btn-primary">Avançar</a></div>
+            </div>
+        </div>
+        <div class="card" id="ProICard">
+            <div class="card-header">
+                <h6 class="card-title text-center amaisvet-green" id="CardTitle2"><strong>Profissional I</strong></h6>
+            </div>
+            <div class="card-body text-center">
+                <strong>Valores</strong>
+                <div class="row">
+                    <div class="col-lg-12" style="margin-top:1em;"><small class="card-text">R$350.000,00</small></div>
+                    <div class="col-lg-12"><small class="card-text">Até o limite máximo</small></div>
+                    <div class="col-lg-12"><small class="card-text">Até o limite máximo</small></div>
+                    <br />
+                </div>
+                <hr />
+                <div class="row">
+                    <br />
+                    <div class="col-lg-12"><h5><strong>R$ <span class="IPrecoMensal"></span> / Mês</strong></h5></div>
+                    <div class="col-lg-12"><h6>ou</h6></div>
+                    <div class="col-lg-12"><h6>R$ <span class="IPreco"></span> à vista<br /> no boleto bancário</h6></div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="text-center"><a href="javascript:void(0)" id="CotacaoSubmitButton2" class="btn btn-primary">Avançar</a></div>
+            </div>
+        </div>
+        <div class="card" id="ProIICard">
+            <div class="card-header">
+                <h6 class="card-title text-center amaisvet-green" id="CardTitle3"><strong>Profissional II</strong></h6>
+            </div>
+            <div class="card-body text-center">
+                <strong>Valores</strong>
+                <div class="row">
+                    <div class="col-lg-12" style="margin-top:1em;"><small class="card-text">R$500.000,00</small></div>
+                    <div class="col-lg-12"><small class="card-text">Até o limite máximo</small></div>
+                    <div class="col-lg-12"><small class="card-text">Até o limite máximo</small></div>
+                    <br />
+                </div>
+                <hr />
+                <div class="row">
+                    <br />
+                    <div class="col-lg-12"><h5><strong>R$ <span class="IIPrecoMensal"></span> / Mês</strong></h5></div>
+                    <div class="col-lg-12"><h6>ou</h6></div>
+                    <div class="col-lg-12"><h6>R$ <span class="IIPreco"></span> à vista<br /> no boleto bancário</h6></div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="text-center"><a href="javascript:void(0)" id="CotacaoSubmitButton3" class="btn btn-primary">Avançar</a></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="ProtecaoRendaCardGroup" style="margin-top:3em; display:none;">
+    <div class="form-row">
+        <div class="form-group col-md-12" style="background-color:lightgrey;">
+            <div style="padding-top:5px;padding-left:5px;">
+                <small>
+                    Caro Dr(a). XXXXX, mediante as informações do seu perfil gostaríamos de lhe sugerir a inclusão da cobertura de proteção de renda da Prudential Seguros conforme descrição abaixo
+                </small>
+            </div>
+        </div>
+    </div>
+    <br />
+    <div class="card-group">
+        <div class="card" id="ProtecaoRendaInfoCard" style="flex-grow: 2">
+            <div class="card-header hide-when-small">
+                <h5 class="card-title text-center"><strong>Coberturas</strong></h5>
+            </div>
+            <div class="card-body hide-when-small">
+                <div class="row">
+                    <div class="col-md-12"><span class="card-text" style="white-space: nowrap;"><b>&nbsp;</b></span></div>
+                    <div class="col-md-12"><small class="card-text">Proteção de Renda</small></div>
+                    <br /><br />
+                    <div class="col-md-12"><h5>&nbsp;</h5></div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="col-md-12 text-center"><a href="javascript:void(0);" id="ProtecaoRendaSubmitButton0" class="btn btn-primary">Não desejo contratar</a></div>
+            </div>
+        </div>
+        <div class="card" id="ProtecaoRendaProI">
+            <div class="card-header">
+                <h5 class="card-title text-center"><strong class="amaisvet-green">23 ~ 29 anos</strong></h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <table style="width:100%; font-size:12px; margin-bottom:1em;" class="show-when-small tableFont12">
+                            <thead>
+                                <tr>
+                                    <th style="width:80%;">Cobertura</th>
+                                    <th class="text-center">Valores (R$)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><small>Proteção de Renda</small></td>
+                                    <td class="text-center"><small>5.000,00</small></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center hide-when-small" style="width:100%; margin-bottom:1em;">
+                        <div class="col-md-12 text-center"><span class="card-text" style="white-space: nowrap;"><b>Valores</b></span></div>
+                        <div class="col-md-12 text-center"><small class="card-text" style="white-space: nowrap;">R$5.000</small></div>
+                    </div>
+                    <div class="col-md-12 text-center"><h5><strong>R$ <span class="money">46,90</span> / Mês</strong></h5></div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="col-md-12 text-center"><a href="javascript:void(0)" id="ProtecaoRendaSubmitButton1" class="btn btn-primary">Selecionar</a></div>
+            </div>
+        </div>
+        <div class="card" id="ProtecaoRendaProII">
+            <div class="card-header">
+                <h5 class="card-title text-center"><strong class="amaisvet-green">30 ~ 39 anos</strong></h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <table style="width:100%; font-size:12px; margin-bottom:1em;" class="show-when-small tableFont12">
+                            <thead>
+                                <tr>
+                                    <th style="width:80%;">Cobertura</th>
+                                    <th class="text-center">Valores (R$)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><small>Proteção de Renda</small></td>
+                                    <td class="text-center"><small>5.000,00</small></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center hide-when-small" style="width:100%; margin-bottom:1em;">
+                        <div class="col-md-12 text-center"><span class="card-text" style="white-space: nowrap;"><b>Valores</b></span></div>
+                        <div class="col-md-12 text-center"><small class="card-text">R$ 5.000,00</small></div>
+                    </div>
+                    <div class="col-md-12 text-center"><h5><strong>R$ <span class="money">60,90</span> / Mês</strong></h5></div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="col-md-12 text-center"><a href="javascript:void(0)" id="ProtecaoRendaSubmitButton2" class="btn btn-primary">Selecionar</a></div>
+            </div>
+        </div>
+        <div class="card" id="ProtecaoRendaProIII">
+            <div class="card-header">
+                <h5 class="card-title text-center"><strong class="amaisvet-green">40 ~ 49 anos</strong></h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <table style="width:100%; font-size:12px; margin-bottom:1em;" class="show-when-small tableFont12">
+                            <thead>
+                                <tr>
+                                    <th style="width:80%;">Cobertura</th>
+                                    <th class="text-center">Valores (R$)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><small>Proteção de Renda</small></td>
+                                    <td class="text-center"><small>5.000,00</small></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center hide-when-small" style="width:100%; margin-bottom:1em;">
+                        <div class="col-md-12 text-center"><span class="card-text" style="white-space: nowrap;"><b>Valores</b></span></div>
+                        <div class="col-md-12 text-center"><small class="card-text">R$ 5.000,00</small></div>
+                    </div>
+                    <div class="col-md-12 text-center"><h5><strong>R$ <span class="money">64,90</span> / Mês</strong></h5></div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="col-md-12 text-center"><a href="javascript:void(0)" id="ProtecaoRendaSubmitButton3" class="btn btn-primary">Selecionar</a></div>
+            </div>
+        </div><div class="card" id="ProtecaoRendaProIII">
+            <div class="card-header">
+                <h5 class="card-title text-center"><strong class="amaisvet-green">50 ~ 59 anos</strong></h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <table style="width:100%; font-size:12px; margin-bottom:1em;" class="show-when-small tableFont12">
+                            <thead>
+                                <tr>
+                                    <th style="width:80%;">Cobertura</th>
+                                    <th class="text-center">Valores (R$)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><small>Proteção de Renda</small></td>
+                                    <td class="text-center"><small>5.000,00</small></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center hide-when-small" style="width:100%; margin-bottom:1em;">
+                        <div class="col-md-12 text-center"><span class="card-text" style="white-space: nowrap;"><b>Valores</b></span></div>
+                        <div class="col-md-12 text-center"><small class="card-text">R$ 5.000,00</small></div>
+                    </div>
+                    <div class="col-md-12 text-center"><h5><strong>R$ <span class="money">81,90</span> / Mês</strong></h5></div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="col-md-12 text-center"><a href="javascript:void(0)" id="ProtecaoRendaSubmitButton4" class="btn btn-primary">Selecionar</a></div>
+            </div>
+        </div>
+    </div>
+    <br />
+</div>
+
+<div class="row">
+    <div class="col-md-12 text-center">
+        <hr />
+        <h4><strong>Preço total:&nbsp;R$&nbsp;<label id="_PrecoTotal">0,00</label> / Mês</strong></h4>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12 form-group text-right"><a href="javascript:void(0)" id="SubmitButton" class="btn btn-primary" style="display:none;"><i class="fas fa-arrow-right"></i>&nbsp;Continuar</a></div>
+</div>
+
+<script type="text/javascript">
+    var cardId = null, cardTitle = null;
+
+    function SalvarCotacao(planoId) {
+        $('#PlanoSeguroProfissionalId').val(planoId);
+        $('#CotacaoForm').submit();
+    }
+
+    function ConsultarCusto() {
+        var d = { idade: '@Model.Idade' };
+        $.ajax({
+            url: '@Url.Action("Consulta", "SeguroProfissional")',
+		    type: 'POST',
+		    data: d,
+            dataType: 'json',
+            success: function (data) {
+                $('.BasicoPreco').append(data[0].custo);
+                $('.BasicoPrecoMensal').append( data[0].custoMensal);
+                $('.IPreco').append(data[1].custo);
+                $('.IPrecoMensal').append(data[1].custoMensal);
+                $('.IIPreco').append(data[2].custo);
+                $('.IIPrecoMensal').append(data[2].custoMensal);
+                $('.IIIPreco').append(data[3].custo);
+                $('.IIIPrecoMensal').append(data[3].custoMensal);
+            }
+        });
+    }
+
+    $('#CardGeral').ready(function () {
+        ConsultarCusto();
+    });
+
+    function SeguroPrincipalSelect(planoId, planoNome, planoPreco) {
+        IsSeguroPrincipalSelected = true;
+        $('.text-danger').remove();
+        $('#PlanoPrincipalId').val(planoId);
+        $('#planoPrincipalNome').text(planoNome);
+        $('#planoPrincipalPreco').text(planoPreco);
+        $('#SeguroPrincipal').hide();
+        $('#PlanoPrincipalnfo').hide();
+        $('#ProdutosSelecionadosTabela').show();
+        $('#planoClinicaInfoSelecionado').show();
+        RemoveIntroInfo();
+        CalcularPreco();
+        if (!IsSeguroProtecaoSelected) {
+            $('#ProtecaoRendaCardGroup').show();
+            $('html,body').animate({ scrollTop: 300 }, 'slow');
+        }
+        if (HasFinished()) $('#SubmitButton').show();
+        else $('#SubmitButton').hide();
+    }
+
+    $('#CotacaoSubmitButton1').click(function () {
+        SeguroPrincipalSelect(1, 'Profissional básico', 'R$ 0,00');
+    });
+
+    $('#CotacaoSubmitButton2').click(function () {
+        SeguroPrincipalSelect(2, 'Profissional I', 'R$ 0,00');
+    });
+    $('#CotacaoSubmitButton3').click(function () {
+        SeguroPrincipalSelect(3, 'Profissional II', 'R$ 0,00');
+    });
+    $('#CotacaoSubmitButton4').click(function () {
+        SeguroPrincipalSelect(3, 'Profissional III', 'R$ 0,00');
+    });
+
+    function ProtecaoRendaSelect(aceito, faixaIdade, preco) {
+        IsSeguroProtecaoSelected = true;
+        $('#ProtecaoRendaAceito').val(aceito);
+        if (aceito) {
+            $('#ProtecaoRendaFaixaIdade').val(faixaIdade);
+        }
+        $('#ProtecaoRendaCardGroup').hide();
+        $('#ProtecaoRendaNome').text((aceito? 'Contratado' : 'Não contratado'));
+        $('#ProtecaoRendaPreco').text('R$ ' + (aceito ? preco : '0,00'));
+        $('#ProtecaoRendaInfoSelecionado').show();
+        $('#ProdutosSelecionadosTabela').show();
+        CalcularPreco();
+
+        if (HasFinished()) $('#SubmitButton').show();
+        else $('#SubmitButton').hide();
+    }
+
+    $('#ProtecaoRendaSubmitButton0').click(function () {
+        ProtecaoRendaSelect(false, 0, '0,00');
+    });
+
+    $('#ProtecaoRendaSubmitButton1').click(function () {
+        ProtecaoRendaSelect(true, 1, '46,90');
+    });
+
+    $('#ProtecaoRendaSubmitButton2').click(function () {
+        ProtecaoRendaSelect(true, 2, '60,90');
+    });
+    $('#ProtecaoRendaSubmitButton3').click(function () {
+        ProtecaoRendaSelect(true, 3, '64,90');
+    });
+    $('#ProtecaoRendaSubmitButton4').click(function () {
+        ProtecaoRendaSelect(true, 4, '81,90');
+    });
+
+    function CalcularPreco() {
+        var precoPlanoPrincipal = 0, precoProtecaoRenda = 0;
+        switch ($('#PlanoPrincipalId').val()) {
+            case '1':
+                precoPlanoPrincipal = 23.33;
+                break;
+            case '2':
+                precoPlanoPrincipal = 58.23;
+                break;
+            case '3':
+                precoPlanoPrincipal = 58.23;
+                break;
+            default:
+                precoPlanoPrincipal = 0;
+                break;
+        }
+        if ($('#ProtecaoRendaAceito').val() === 'true') {
+            switch ($('#ProtecaoRendaFaixaIdade').val()) {
+                case '1':
+                    precoProtecaoRenda = 46.90;
+                    break;
+                case '2':
+                    precoProtecaoRenda = 60.90;
+                    break;
+                case '3':
+                    precoProtecaoRenda = 64.90;
+                    break;
+                case '4':
+                    precoProtecaoRenda = 81.90;
+                    break;
+                default:
+                    precoProtecaoRenda = 0;
+                    break;
+            }
+        }
+
+        var data = precoPlanoPrincipal + precoProtecaoRenda;
+        $('#_PrecoTotal').text(data.toFixed(2).replace('.', ','));
+        $('#PrecoTotal').val(data.toFixed(2).replace('.', ','));
+        return data;
+    }
+
+    function HasFinished() {
+        return IsSeguroPrincipalSelected && IsSeguroProtecaoSelected ? true : false;
+    }
+
+    @if (Model.PlanoSeguroProfissionalId.HasValue)
+    {
+        <text>
+    if (@Model.PlanoSeguroProfissionalId == 1) {
+        SeguroPrincipalSelect(1, 'Profissional básico', 'R$ 0,00');
+    } else if (@Model.PlanoSeguroProfissionalId == 2) {
+        SeguroPrincipalSelect(2, 'Profissional I', 'R$ 0,00');
+    } else if (@Model.PlanoSeguroProfissionalId == 3) {
+        SeguroPrincipalSelect(3, 'Profissional II', 'R$ 0,00');
+    } else if (@Model.PlanoSeguroProfissionalId == 4) {
+        SeguroPrincipalSelect(3, 'Profissional III', 'R$ 0,00');
+    }
+        </text>
+    }
+</script>

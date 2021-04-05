@@ -1,0 +1,117 @@
+﻿@model int?
+
+@{
+    ViewData["Title"] = "Gerenciar Coletor / Transportador";
+}
+
+<div class="card bd-0">
+    <div class="card-header">
+        <ul class="nav nav-tabs card-header-tabs" id="transporter-pills-tab">
+            <li class="nav-item">
+                <a class="nav-link @(!Context.Request.Query.ContainsKey("success")? "active" : "")" id="pills-general-tab" data-toggle="pill" href="#pills-general" role="tab" aria-controls="pills-general" aria-selected="true">Dados Cadastrais</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(Context.Request.Query.ContainsKey("success")? "active" : "")" id="pills-contact-tab" data-toggle="pill" href="#pills-contact" role="tab" aria-controls="pills-contact" aria-selected="false">Contatos</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="pills-environmental-documentation-tab" data-toggle="pill" href="#pills-environmental-documentation" role="tab" aria-controls="pills-environmental-documentation" aria-selected="false">Documentação Ambiental</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="pills-vehicle-tab" data-toggle="pill" href="#pills-vehicle" role="tab" aria-controls="pills-vehicle" aria-selected="false">Cadastro de Veículo</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="pills-driver-tab" data-toggle="pill" href="#pills-driver" role="tab" aria-controls="pills-driver" aria-selected="false">Cadastro do Motorista</a>
+            </li>
+        </ul>
+    </div>
+    <div class="card-body">
+        <div class="tab-content" id="pills-tabContent">
+            <div class="tab-pane fade  @(!Context.Request.Query.ContainsKey("success")? "show active" : "")" id="pills-general" role="tabpanel" aria-labelledby="pills-general-tab">@(await Component.InvokeAsync("TransporterManage", new { id = Model }))</div>
+            <div class="tab-pane fade @(Context.Request.Query.ContainsKey("success")? "show active" : "")" id="pills-contact" role="tabpanel" aria-labelledby="pills-contact-tab">@(Model.HasValue ? await Component.InvokeAsync("TransporterContactIndex", new { transporterId = Model }) : (object)"")</div>
+            <div class="tab-pane fade" id="pills-environmental-documentation" role="tabpanel" aria-labelledby="pills-environmental-documentation-tab">@(Model.HasValue ? await Component.InvokeAsync("TransporterEnvironmentalDocumentationIndex", new { transporterId = Model }) : (object)"")</div>
+            <div class="tab-pane fade" id="pills-vehicle" role="tabpanel" aria-labelledby="pills-vehicle-tab">@(Model.HasValue ? await Component.InvokeAsync("TransporterVehicleIndex", new { transporterId = Model }) : (object)"")</div>
+            <div class="tab-pane fade" id="pills-driver" role="tabpanel" aria-labelledby="pills-driver-tab">@(Model.HasValue ? await Component.InvokeAsync("TransporterDriverIndex", new { transporterId = Model }) : (object)"")</div>
+        </div>
+    </div>
+    <div class="card-footer">
+        <div class="row">
+            <div class="col-6">
+                <button id="transporter-prev-step-button" class="btn btn-secondary"><i class="simple-icon-arrow-left"></i>&nbsp;Voltar</button>
+            </div>
+            <div class="col-6">
+                &nbsp;<button id="transporter-next-step-button" style="@(!Context.Request.Query.ContainsKey("success")? "display:none;" : "")" class="btn btn-secondary float-right">Próximo&nbsp;<i class="simple-icon-arrow-right"></i></button>
+                &nbsp;<button id="transporter-save-button" style="@(Context.Request.Query.ContainsKey("success")? "display:none;" : "")" class="btn btn-success float-right mr-2"><i class="simple-icon-cloud-upload"></i>&nbsp;Salvar</button>
+                &nbsp;<a href="@Url.Action("CreationComplete", "Transporter", new { id = Model })" style="display:none" id="transporter-finish-step-button" class="btn btn-success float-right mr-2"><i class="simple-icon-like"></i>&nbsp;Finalizar</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts
+{
+    <script type="text/javascript">
+        $(document).ready(function () {
+            InitializeFunctions();
+        });
+
+        $('.nav-link').on('show.bs.tab', function (a, b, c) {
+            $('#transporter-save-button').hide();
+            $('#transporter-next-step-button').show();
+            $('#transporter-finish-step-button').hide();
+
+            if ($(this).is($('#pills-general-tab'))) {
+                $('#transporter-save-button').show();
+                $('#transporter-next-step-button').hide();
+            }
+            if ($(this).is($('#pills-driver-tab'))) {
+                $('#transporter-next-step-button').hide();
+                $('#transporter-finish-step-button').show();
+            }
+
+        });
+
+        $('#transporter-next-step-button').click(function () {
+            $('.nav-tabs > .nav-item > .active').parent().next('li').find('a').trigger('click');
+        });
+
+        $('#transporter-prev-step-button').click(function () {
+            if ($('#pills-general-tab').hasClass('active')) {
+                window.location.href = "@Url.Action("Index", "Transporter")";
+                return;
+            }
+            if ($('#pills-driver-tab').hasClass('active')) {
+                window.location.href = "@Url.Action("Index", "Transporter")";
+                return;
+            }
+
+            $('.nav-tabs > .nav-item > .active').parent().prev('li').find('a').trigger('click');
+        });
+    </script>
+
+    <script asp-paste-key="transporter-manage-script"></script>
+    <script asp-paste-key="transporter-environmental-documentation-index"></script>
+    <script asp-paste-key="transporter-environmental-documentation-manage"></script>
+    <script asp-paste-key="transporter-vehicle-index"></script>
+    <script asp-paste-key="transporter-vehicle-manage"></script>
+    <script asp-paste-key="script-transporter-vehicle"></script>
+    <script asp-paste-key="company-script"></script>
+
+
+    <script asp-paste-key="script-transporter-contact"></script>
+
+    <script asp-paste-key="transporter-driver-index"></script>
+    <script asp-paste-key="transporter-driver-manage"></script>
+
+    @if (!Model.HasValue)
+    {
+        <script type="text/javascript">
+            $(function () {
+                $('#pills-environmental-documentation-tab').addClass('disabled');
+                $('#pills-vehicle-tab').addClass('disabled');
+                $('#pills-driver-tab').addClass('disabled');
+                $('#pills-contact-tab').addClass('disabled');
+                $('#transporter-next-step-button').hide();
+            });
+        </script>
+    }
+}

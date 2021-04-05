@@ -1,0 +1,47 @@
+﻿@model AMaisImob_WEB.Models.ProductFamilyViewModel
+
+<script type="text/javascript">
+    _MaskData();
+</script>
+
+<script type="text/javascript">
+    function _ProductFamilyManageSave() {
+        var d = $('#_ProductFamilyManageForm').serializeArray();
+        $.post('@Url.Action("Manage", "ProductFamily")', d, function (data) {
+            if (data.hasError) {
+                $('#alertErrorProductFamily').show();
+                return;
+            }
+            _ProductFamilyManageCallBack(data.code);
+	    });
+    }
+
+    function _ProductFamilyManageValidate() {
+        var r = validateInputs('_ProductFamilyManageForm');
+
+        if (!r) {
+            $('#_ProductFamilyManageAlertError').show();
+        } else {
+            $('#_ProductFamilyManageAlertError').hide();
+        }
+
+        return r;
+    }
+
+</script>
+<div id="_ProductFamilyManageAlertError" class="alert alert-danger fade show text-center" role="alert" style="display: none;">
+    <strong>Atenção!</strong> O Formulário contém erros.
+</div>
+<form id="_ProductFamilyManageForm" method="post">
+    <input type="hidden" id="_ProductFamilyManageProductFamilyId" name="ProductFamilyId" value="@Model.ProductFamilyId" />
+    <div class="form-row">
+        <div class="form-group col-md-12">
+            <label class="control-label">Nome*</label>
+            <input type="text" class="form-control required" id="_ProductFamilyManageName" name="Name" value="@Model.Name" placeholder="Nome">
+        </div>
+        <div class="form-group col-md-12">
+            <label class="control-label">Descrição</label>
+            <textarea class="form-control" id="_ProductFamilyManageDescription" name="Description" placeholder="Descrição">@Model.Description</textarea>
+        </div>
+    </div>
+</form>

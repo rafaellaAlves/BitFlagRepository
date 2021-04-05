@@ -1,0 +1,1202 @@
+﻿@model AMaisImob_WEB.Models.CertificateContractualViewModel
+
+@inject AMaisImob_DB.Models.AMaisImob_HomologContext context
+@inject AMaisImob_WEB.BLL.CategoryGuarantorProductTaxFunctions categoryGuarantorProductTaxFunctions
+@inject AMaisImob_WEB.BLL.ResidenceTypeFunctions residenceTypeFunctions
+@inject AMaisImob_WEB.BLL.RegimeTributarioFunctions regimeTributarioFunctions
+@inject AMaisImob_WEB.BLL.UtilizacaoFunctions utilizacaoFunctions
+@inject AMaisImob_WEB.BLL.GuarantorProductFunctions guarantorProductFunctions
+@inject AMaisImob_WEB.BLL.CertificateContractualMemberFunctions certificateContractualMemberFunctions
+@inject AMaisImob_WEB.BLL.StatusTypeFunctions statusTypeFunctions
+@inject AMaisImob_WEB.BLL.CompanyFunctions companyFunctions
+@inject AMaisImob_WEB.BLL.CertificateContractualIncomeTypeFunctions certificateContractualIncomeTypeFunctions
+@inject AMaisImob_WEB.BLL.MartialStatusFunctions martialStatusFunctions
+@inject AMaisImob_WEB.BLL.KinshipFunctions kinshipFunctions
+
+@using AMaisImob_WEB.Utils;
+@{
+    var companyTypeFunctions = new AMaisImob_WEB.BLL.CompanyTypeFunctions(context);
+    var CompanyWOnerTypeFunctions = new AMaisImob_WEB.BLL.CompanyOwnerTypeFunctions(context);
+    var companyOwnerTypes = CompanyWOnerTypeFunctions.GetData();
+    var companyTypes = companyTypeFunctions.GetData();
+    var certificateContractualIncomeTypes = certificateContractualIncomeTypeFunctions.GetData();
+    var kinships = kinshipFunctions.GetData().OrderBy(x => x.Order);
+
+    var imobiliariaId = companyTypes.Single(x => x.ExternalCode == "IMOBILIARIA").CompanyTypeId;
+
+    int? categoryId = null;
+
+    if (Model.CategoryGuarantorProductTaxId.HasValue)
+    {
+        var categoryGuarantorProductTax = categoryGuarantorProductTaxFunctions.GetDataByID(Model.CategoryGuarantorProductTaxId);
+        categoryId = categoryGuarantorProductTax.CategoryId;
+    }
+
+    List<CertificateContractualMemberViewModel> members = new List<CertificateContractualMemberViewModel>();
+    if (Model.CertificateContractualId.HasValue)
+    {
+        members = certificateContractualMemberFunctions.GetDataViewModel(certificateContractualMemberFunctions.GetByCertificateContractualId(Model.CertificateContractualId.Value));
+    }
+
+    var cotacaoStatusId = statusTypeFunctions.GetByExternalCode("COTACAO").StatusTypeId;
+    var analiseStatusId = statusTypeFunctions.GetByExternalCode("ANALISE").StatusTypeId;
+
+    int? userRealEstateAgencyId = null, userRealEstateId = null;
+    if (ViewData.ContainsKey("UserRealEstateAgencyId")) { userRealEstateAgencyId = (int)ViewData["UserRealEstateAgencyId"]; }
+    if (ViewData.ContainsKey("UserRealEstateId"))
+    {
+        userRealEstateId = (int)ViewData["UserRealEstateId"];
+        if (!categoryId.HasValue)
+        {
+            categoryId = companyFunctions.GetDataByID(userRealEstateId).CategoryId;
+        }
+    }
+
+    var cantUpdateBasicData = Model.CertificateContractualId.HasValue && ((Model.StatusTypeId != cotacaoStatusId) || Model.Inactive || !Context.Request.Query.ContainsKey("editable") || User.IsInRole("ImobiliariaVendas")) && !(User.IsInRole("Administrator") && Context.Request.Query.ContainsKey("editable"));
+}
+
+<form id="_CertificateGuaranteeForm" method="post" enctype="multipart/form-data">
+    <div id="_ErrorDiv" class="alert alert-danger fade show text-center" role="alert" style="display: none;">
+        <strong>Atenção!</strong> O Formulário contém erros.
+    </div>
+    <div id="">
+        <div class="form-row">
+            <input type="hidden" name="CertificateContractualId" value="@Model.CertificateContractualId" />
+            <input type="hidden" name="PriceQuote" value="@Model.PriceQuote" />
+            <input type="hidden" name="StatusTypeId" value="@Model.StatusTypeId" />
+            <input type="hidden" name="PaymentWayId" value="@Model.PaymentWayId" />
+            <input type="hidden" name="Reference" value="@Model.Reference" />
+            <input type="hidden" id="CategoryId" value="@categoryId" />
+
+            @if (cantUpdateBasicData)
+            {
+                <input type="hidden" name="ResidenceTypeId" id="ResidenceTypeId" value="@Model.ResidenceTypeId" />
+                <input type="hidden" name="UtilizacaoId" value="@Model.UtilizacaoId" />
+                <input type="hidden" name="CPFCNPJ" value="@Model.CPFCNPJ" />
+                <input type="hidden" id="CertificateContratualDocument" name="CertificateContratualDocument" value="@Model.CertificateContratualDocument" />
+                <input type="hidden" name="_RendaMensal" id="RendaMensal" value="@Model._RendaMensal" />
+                <input type="hidden" name="_FaturamentoMedio" id="FaturamentoMedio" value="@Model._FaturamentoMedio" />
+                <input type="hidden" name="RegimeTributarioId" value="@Model.RegimeTributarioId" />
+                <input type="hidden" name="_Aluguel" value="@Model._Aluguel" />
+                <input type="hidden" name="ClientStatusId" value="@Model.ClientStatusId" />
+                <input type="hidden" name="RealEstateId" value="@Model.RealEstateId" />
+                <input type="hidden" name="RealEstateAgencyId" value="@Model.RealEstateAgencyId" />
+
+                <input type="hidden" name="CertificateContractualIncomeTypeId" id="CertificateContractualIncomeTypeId" value="@Model.CertificateContractualIncomeTypeId" />
+                <input type="hidden" name="Occupation" id="Occupation" value="@Model.Occupation" />
+                <input type="hidden" name="IPTU" id="IPTU" value="@Model.IPTU" />
+                <input type="hidden" name="CondominiumPrice" id="CondominiumPrice" value="@Model.CondominiumPrice" />
+                <input type="hidden" name="LightPrice" id="LightPrice" value="@Model.LightPrice" />
+                <input type="hidden" name="WaterPrice" id="WaterPrice" value="@Model.WaterPrice" />
+                <input type="hidden" name="Total" id="Total" value="@Model.Total" />
+                <input type="hidden" name="BirthDate" id="BirthDate" value="@Model.BirthDate" />
+                <input type="hidden" name="OldZipCode" id="OldZipCode" value="@Model.OldZipCode" />
+
+                <input type="hidden" name="ClientFullName" value="@Model.ClientFullName" />
+                <input type="hidden" name="CertificateContractualIncomeTypeId" value="@Model.CertificateContractualIncomeTypeId" />
+                <input type="hidden" name="CEP" value="@Model.CEP" />
+                <input type="hidden" name="Endereco" value="@Model.Endereco" />
+                <input type="hidden" name="Numero" value="@Model.Numero" />
+                <input type="hidden" name="Complemento" value="@Model.Complemento" />
+                <input type="hidden" name="Cidade" value="@Model.Cidade" />
+                <input type="hidden" name="Estado" value="@Model.Estado" />
+                <input type="hidden" name="Bairro" value="@Model.Bairro" />
+            }
+
+            <input type="hidden" name="@((Model.CertificateContractualId.HasValue && Model.StatusTypeId != cotacaoStatusId)? "GuarantorProductId" : "")" id="GuarantorProductId" value="@Model.GuarantorProductId" />
+
+            @if (User.IsInRealEstate() || User.IsInRole("ImobiliariaVendas") || User.IsInRole("Corretor"))
+            {
+                <input type="hidden" id="RealEstateAgency" name="RealEstateAgencyId" value="@userRealEstateAgencyId" />
+            }
+            else
+            {
+                <div class="form-group col-md-4">
+                    <label class="required">Corretora</label>
+                    <select class="form-control" id="RealEstateAgency" name="RealEstateAgencyId" @(cantUpdateBasicData ? Html.Raw("disabled=\"disabled\"") : (object)"")>
+                        <option value="">Selecione</option>
+                        @foreach (var item in (List<AMaisImob_DB.Models.Company>)ViewData["Corretoras"])
+                        {
+                            var companyName = string.IsNullOrWhiteSpace(item.RazaoSocial) ? item.FirstName + " " + item.LastName : item.RazaoSocial;
+                            if (item.CompanyId == Model.RealEstateAgencyId)
+                            {
+                                <option selected="selected" value="@item.CompanyId">@companyName</option>
+                                continue;
+                            }
+                            <option value="@item.CompanyId">@companyName</option>
+                        }
+                    </select>
+                </div>
+            }
+            @if (User.IsInRealEstate() || User.IsInRole("ImobiliariaVendas"))
+            {
+                <input id="RealEstateId" name="RealEstateId" type="hidden" value="@userRealEstateId" />
+            }
+            else
+            {
+                <div class="form-group col-md-4">
+                    <label class="required">Imobiliária</label>
+                    <select class="form-control" id="RealEstateId" name="RealEstateId" @(cantUpdateBasicData ? Html.Raw("disabled=\"disabled\"") : (object)"")>
+                        @*onchange="loadTaxItems()"*@
+                        <option value="">Selecione uma corretora</option>
+                    </select>
+                </div>
+            }
+            <div class="form-group col-md-2">
+                <label class="control-label">Tipo do imóvel</label>
+                <select class="form-control" @(!cantUpdateBasicData ? Html.Raw("id=\"ResidenceTypeId\"") : (object)"") name="ResidenceTypeId" data-initial-data="@Model.ResidenceTypeId" data-label="Tipo do imóvel" @(cantUpdateBasicData ? Html.Raw("disabled=\"disabled\"") : (object)"")>
+                    @*onchange="loadTaxItems()"*@
+                    @foreach (var item in residenceTypeFunctions.GetData())
+                    {
+                        if (Model.ResidenceTypeId == item.ResidenceTypeId)
+                        {
+                            <option selected value="@item.ResidenceTypeId">@item.Name</option>
+                            continue;
+                        }
+                        <option value="@item.ResidenceTypeId">@item.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group col-md-2" id="UtilizacaoDiv" style="display:none;">
+                <label>Utilização</label>
+                <select class="form-control" name="UtilizacaoId" id="Utilizacao" @(cantUpdateBasicData ? Html.Raw("disabled=\"disabled\"") : (object)"")>
+                    <option>Selecione</option>
+                    @foreach (var item in utilizacaoFunctions.GetData())
+                    {
+                        if (item.UtilizacaoId == Model.UtilizacaoId)
+                        {
+                            <option selected="selected" value="@item.UtilizacaoId">@item.UtilizacaoName</option>
+                            continue;
+                        }
+                        <option value="@item.UtilizacaoId">@item.UtilizacaoName</option>
+                    }
+                </select>
+            </div>
+        </div>
+        <hr />
+        <div class="form-row">
+            <div class="form-group col-md-3" id="_PersonStatus">
+                <label>Tipo de Pessoa: </label>
+                <select class="form-control" name="ClientStatusId" value="@Model.ClientStatusId" id="TipoPessoa" @(cantUpdateBasicData ? Html.Raw("disabled=\"disabled\"") : (object)"")>
+                    <option value="1">Pessoa Física</option>
+                    <option value="2">Pessoa Jurídica</option>
+                </select>
+            </div>
+            <div class="form-group col-md-3" id="ClientFullNameArea">
+                <label class="required"><span id="ClientFullNameLabel">Nome Completo</span></label>
+                <input class="form-control" name="ClientFullName" value="@Model.ClientFullName" id="FullName" type="text" placeholder="Nome" />
+            </div>
+            <div class="form-group col-md-3" id="CPFCNPJArea">
+                <label class="required">CPF ou CNPJ</label>
+                <input class="form-control @(string.IsNullOrWhiteSpace(Model.CPFCNPJ) || Model.CPFCNPJ.NumbersOnly().Length <= 11? "_cpf" : "cnpj")" value="@Model.CPFCNPJ" id="CPFCNPJ" name="_CPFCNPJ" @(cantUpdateBasicData ? Html.Raw("disabled=\"disabled\"") : (object)"") type="text" placeholder="CPF/CNPJ" data-label="CPF ou CNPJ" @(cotacaoStatusId == Model.StatusTypeId ? Html.Raw("data-initial-data=\"" + Model.CPFCNPJ.NumbersOnly() + "\"") : (object)"") />
+            </div>
+            <div class="form-group col-md-3 pessoa-fisica-area">
+                <label>Data de Nascimento</label>
+                <input class="form-control date" value="@Model._BirthDate" id="BirthDate" name="_BirthDate" @(cantUpdateBasicData ? Html.Raw("disabled=\"disabled\"") : (object)"") type="text" placeholder="Data de Nascimento" />
+            </div>
+            <div class="form-group col-md-12" id="PessoaJuridicaDiv" style="display:none;">
+                <div class="form-row">
+                    <div class="col-md-4">
+                        <label class="required">Faturamento médio</label>
+                        <input class="form-control money" name="_FaturamentoMedio" @(cantUpdateBasicData ? Html.Raw("disabled=\"disabled\"") : (object)"") value="@Model._FaturamentoMedio;" id="FaturamentoMedio" type="text" placeholder="R$" />
+                    </div>
+                    <div class="col-md-4">
+                        <label>Regime Tributario</label>
+                        <select class="form-control" id="RegimeTributario" name="RegimeTributarioId" @(cantUpdateBasicData ? Html.Raw("disabled=\"disabled\"") : (object)"")>
+                            <option>Selecione</option>
+                            @foreach (var item in regimeTributarioFunctions.GetData())
+                            {
+
+                                if (item.RegimeTributarioId == Model.RegimeTributarioId)
+                                {
+                                    <option selected value="@item.RegimeTributarioId">@item.RegimeTributarioName</option>
+                                    continue;
+                                }
+                                <option value="@item.RegimeTributarioId">@item.RegimeTributarioName</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="form-row pessoa-fisica-area">
+            <div class="form-group col-md">
+                <label class="required">Renda média mensal</label>
+                <input class="form-control money" name="_RendaMensal" @(cantUpdateBasicData ? Html.Raw("disabled=\"disabled\"") : (object)"") value="@Model.RendaMensal.ToPtBR();" placeholder="Renda média mensal" id="RendaMensal" type="text" />
+            </div>
+            <div class="form-group col-md">
+                <label>Tipo de Renda</label>
+                <select class="form-control" id="selectIncome" name="CertificateContractualIncomeTypeId">
+                    <option value="">Selecione</option>
+                    @foreach (var item in certificateContractualIncomeTypes)
+                    {
+                        if (Model.CertificateContractualIncomeTypeId == item.CertificateContractualIncomeTypeId)
+                        {
+                            <option selected value="@item.CertificateContractualIncomeTypeId">@item.Name</option>
+                            continue;
+                        }
+                        <option value="@item.CertificateContractualIncomeTypeId">@item.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group col-md" id="inputCnpj" style="display:none;">
+                <label class="required">CNPJ</label>
+                <input class="form-control cnpj" value="@Model.CertificateContratualDocument" id="CertificateContratualDocument" name="CertificateContratualDocument" @(cantUpdateBasicData ? Html.Raw("disabled=\"disabled\"") : (object)"") type="text" placeholder="CNPJ" data-label="CertificateContratualDocument" />
+            </div>
+            <div class="form-group col-md">
+                <label>Profissão</label>
+                <input class="form-control validate-special-carecters" name="Occupation" @(cantUpdateBasicData ? Html.Raw("disabled=\"disabled\"") : (object)"") value="@Model.Occupation" placeholder="Profissão" id="Occupation" type="text" />
+            </div>
+            <div class="form-group col-md">
+                <label>Estado Cívil</label>
+                <select class="form-control" name="MartialStatusId" @(cantUpdateBasicData ? Html.Raw("disabled=\"disabled\"") : (object)"")>
+                    <option value="">Selecione</option>
+                    @foreach (var item in martialStatusFunctions.GetData().OrderBy(x => x.Order))
+                    {
+                        if (Model.MartialStatusId == item.MartialStatusId)
+                        {
+                            <option selected value="@item.MartialStatusId">@item.Name</option>
+                            continue;
+                        }
+                        <option value="@item.MartialStatusId">@item.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group col-md">
+                <label>CEP da moradia atual</label>
+                <input class="form-control cep" value="@Model.OldZipCode" id="OldZipCode" name="OldZipCode" @(cantUpdateBasicData ? Html.Raw("disabled=\"disabled\"") : (object)"") type="text" placeholder="CEP da moradia atual" />
+            </div>
+
+        </div>
+        @(members.Count > 0 || !Model.CertificateContractualId.HasValue? Html.Raw("<hr />") : (object)"")
+        <div id="aditional-members" style="max-height: 300px; overflow-y: auto; overflow-x: hidden;">
+            @for (int i = 0; i < members.Count; i++)
+            {
+                if (cantUpdateBasicData)
+                {
+                    <input type="hidden" class="cpf" value="@members[i]._CPF" />
+                    @*<input type="hidden" class="income" value="@members[i]._Income" />*@
+                }
+                <div class="member" data-id="@i">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label>Nome</label>
+                            <input type="text" class="form-control name validate-special-carecters" placeholder="Nome" value="@members[i].Name" />
+                        </div>
+                        <div class="col-md">
+                            <label>CPF</label>
+                            <input type="text" class="form-control cpf" placeholder="CPF" value="@members[i]._CPF" @(cantUpdateBasicData ? Html.Raw("disabled=\"disabled\"") : (object)"") />
+                        </div>
+                        @if (Model.ClientStatusId == 1)
+                        {
+                            <div class="mb-1 col-md">
+                                <label>Renda</label>
+                                <input type="text" class="form-control money income" data-income-value="@members[i]._Income" placeholder="Renda" value="@members[i]._Income" @(cantUpdateBasicData ? Html.Raw("disabled=\"disabled\"") : (object)"") />
+                            </div>
+                        }
+                        @if (Model.ClientStatusId == 2 && !Model.Inactive && (Model.StatusTypeId == 0 || Model.StatusTypeId == cotacaoStatusId))
+                        {
+                            <div class="form-group col-md-1">
+                                <a class='fas fa-times' href='javascript:removeMember(@i)' style='margin-top: 30px; font-size: 16px !important;'></a>
+                            </div>
+                        }
+                    </div>
+                    @if (Model.ClientStatusId == 1)
+                    {
+                <div class="row">
+                    <div class="form-group col-md">
+                        <label>Data de Nascimento</label>
+                        <input type="text" class="form-control birthDate date" placeholder="Data de Nascimento" value="@members[i]._BirthDate" @(cantUpdateBasicData ? Html.Raw("disabled=\"disabled\"") : (object)"") />
+                    </div>
+                    <div class="form-group col-md">
+                        <label>Parentesco</label>
+                        <select class="form-control kinshipId" value="@members[i].KinshipId" @(cantUpdateBasicData ? Html.Raw("disabled=\"disabled\"") : (object)"")>
+                            <option value="">Selecione</option>
+                            @foreach (var item in kinships)
+                            {
+                                if (members[i].KinshipId == item.KinshipId)
+                                {
+                                    <option selected value="@item.KinshipId">@item.Name</option>
+                                    continue;
+                                }
+                                <option value="@item.KinshipId">@item.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group col-md">
+                        <label>Tipo de Renda</label>
+                        <select class="form-control certificateContractualIncomeTypeId"  onchange="_selectIncome()" id="_selectIncome" placeholder="Tipo de Renda" value="@members[i].CertificateContractualIncomeTypeId" @(cantUpdateBasicData ? Html.Raw("disabled=\"disabled\"") : (object)"")>
+                            <option value="">Selecione</option>
+                            @foreach (var item in certificateContractualIncomeTypes)
+                            {
+                                if (members[i].CertificateContractualIncomeTypeId == item.CertificateContractualIncomeTypeId)
+                                {
+                                    <option selected value="@item.CertificateContractualIncomeTypeId">@item.Name</option>
+                                    continue;
+                                }
+                                <option value="@item.CertificateContractualIncomeTypeId">@item.Name</option>
+                            }
+                        </select>
+                    </div>
+                   
+                    <div class="form-group col-md">
+                        <label>Profissão</label>
+                        <input type="text" class="form-control occupation validate-special-carecters" placeholder="Profissão" value="@members[i].Occupation" @(cantUpdateBasicData ? Html.Raw("disabled=\"disabled\"") : (object)"") />
+                    </div>
+                    @if (Model.ClientStatusId == 2 && !Model.Inactive && (Model.StatusTypeId == 0 || Model.StatusTypeId == cotacaoStatusId))
+                    {
+                        <div class="form-group col-md-1">
+                            <a class='fas fa-times' href='javascript:removeMember(@i)' style='margin-top: 30px; font-size: 16px !important;'></a>
+                        </div>
+                    }
+                </div>
+                    }
+                </div>
+            }
+        </div>
+        @if (!Model.Inactive && (Model.StatusTypeId == 0 || Model.StatusTypeId == cotacaoStatusId) && (!User.IsInRole("ImobiliariaVendas") || User.IsInRole("ImobiliariaVendas") && !Model.CertificateContractualId.HasValue))
+        {
+            <div class="col-md-12 text-center">
+                <a href="javascript:void(0)" id="aditional-members-button" @(members.Count == 2 && Model.ClientStatusId == 1 ? "style=display:none" : "")><i class="fas fa-plus-circle"></i>&nbsp; adicionar outra pessoa/socio</a>
+                <br />
+            </div>
+        }
+    </div>
+    <hr />
+    <div id="">
+        <h6><b>Dados do Endereço Pretendido</b></h6>
+        <div class="form-row">
+            <div class="form-group col-md-2">
+                <label class="control-labe required" for="CEP">CEP</label>
+                <input type="text" class="form-control cep" id="_CampoCep" name="CEP" value="@Model.CEP" placeholder="CEP" maxlength="9">
+            </div>
+            <div class="form-group col-md-4">
+                <label class="control-label" for="Endereco">Endereço</label>
+                <input type="text" class="form-control validate-special-carecters" id="_CampoEndereco" name="Endereco" value="@Model.Endereco" placeholder="Endereço">
+            </div>
+            <div class="form-group col-md-2">
+                <label class="control-label" for="Numero">Número</label>
+                <input type="text" class="form-control number" id="_CampoNumero" name="Numero" value="@Model.Numero" placeholder="Número">
+            </div>
+            <div class="form-group col-md-4">
+                <label class="control-label" for="Complemento">Complemento</label>
+                <input type="text" class="form-control validate-special-carecters-with-numbers" id="_CampoComplemento" name="Complemento" value="@Model.Complemento" placeholder="Complemento" maxlength="30">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-4">
+                <label class="control-label" for="Bairro">Bairro</label>
+                <input type="text" class="form-control validate-special-carecters" id="_CampoBairro" name="Bairro" value="@Model.Bairro" placeholder="Bairro">
+            </div>
+            <div class="form-group col-md-4">
+                <label class="control-label" for="_CompanyManageCidade">Cidade</label>
+                <input id="_CampoCidade" name="Cidade" value="@Model.Cidade" class="form-control validate-special-carecters" placeholder="Cidade" />
+            </div>
+            <div class="form-group col-md-4">
+                <label class="control-label" for="_CompanyManageStateId">Estado</label>
+                <select id="_CampoEstado" name="Estado" class="form-control">
+                    <option value="">Selecione</option>
+                    @foreach (var item in AMaisImob_WEB.Utils.StatesUtils.GetEstados())
+                    {
+                        if (item.EstadoId == Model.Estado)
+                        {
+                            <option selected="selected" value="@item.EstadoId">@item.Description</option>
+                        }
+                        else
+                        {
+                            <option value="@item.EstadoId">@item.Description</option>
+                        }
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md">
+                <label class="control-label">Valor do aluguel</label>
+                <input type="text" class="form-control money" id="_CampoValorAluguel" name="_Aluguel" value="@Model._Aluguel;" @(cantUpdateBasicData ? Html.Raw("disabled=\"disabled\"") : (object)"") data-label="Valor do aluguel" data-initial-data="@Model.Aluguel.ToPtBR().NumbersOnly()" placeholder="Valor do aluguel"> @*onchange="loadTaxItems()"*@
+            </div>
+            <div class="form-group col-md">
+                <label class="control-label">IPTU Mês</label>
+                <input type="text" class="form-control money" id="_IPTU" name="_IPTU" value="@(string.IsNullOrWhiteSpace(Model._IPTU)? "0,00" : Model._IPTU);" @(cantUpdateBasicData ? Html.Raw("disabled=\"disabled\"") : (object)"") data-label="Valor mesal do IPTU" data-initial-data="@Model.IPTU.ToPtBR().NumbersOnly()" placeholder="Valor mesal do IPTU">
+            </div>
+            <div class="form-group col-md">
+                <label class="control-label">Condomínio</label>
+                <input type="text" class="form-control money" id="_CondominiumPrice" name="_CondominiumPrice" value="@(string.IsNullOrWhiteSpace(Model._CondominiumPrice)? "0,00" : Model._CondominiumPrice);" @(cantUpdateBasicData ? Html.Raw("disabled=\"disabled\"") : (object)"") data-label="Valor do Condomínio" data-initial-data="@Model.CondominiumPrice.ToPtBR().NumbersOnly()" placeholder="Valor do Condomínio">
+            </div>
+            @*<div class="form-group col-md-3">
+                    <label class="control-label">Cobertura</label>
+                    <select class="form-control" @(!cantUpdateBasicData ? Html.Raw("id=\"GuarantorProductId\"") : (object)"") name="GuarantorProductId" data-initial-data="@Model.GuarantorProductId" data-label="Cobertura" onchange="loadTaxItems()" @(cantUpdateBasicData ? Html.Raw("disabled=\"disabled\"") : (object)"")>
+                        @foreach (var item in guarantorProductFunctions.GetData())
+                        {
+                            if (Model.GuarantorProductId == item.GuarantorProductId)
+                            {
+                                <option selected value="@item.GuarantorProductId">@item.Description</option>
+                                continue;
+                            }
+                            <option value="@item.GuarantorProductId">@item.Description</option>
+                        }
+                    </select>
+                </div>*@
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md">
+                <label style="margin-bottom:.3em" class="control-label">Luz</label>
+                <div style="font-size:10px !important" class="m-0">10% do Aluguel c/ mínimo de R$ 30,00</div>
+                @*<input type="hidden" class="_LightPrice" name="_LightPrice" value="@Model._LightPrice">*@
+                <input type="text" class="form-control money _LightPrice" id="LightPrice" placeholder="Luz" name="_LightPrice" value="@Model._LightPrice" onblur="checkWaterAndLightPrice()" @(cantUpdateBasicData ? Html.Raw("disabled=\"disabled\"") : (object)"")>
+            </div>
+            <div class="form-group col-md">
+                <label style="margin-bottom:.3em" class="control-label">Água</label>
+                <div style="font-size:10px !important" class="m-0">5% do Aluguel c/ mínimo de R$ 20,00</div>
+                @*<input type="hidden" class="_WaterPrice" name="_WaterPrice" value="@Model._WaterPrice">*@
+                <input type="text" class="form-control money _WaterPrice" id="WaterPrice" placeholder="Água" name="_WaterPrice" value="@Model._WaterPrice" onblur="checkWaterAndLightPrice()" @(cantUpdateBasicData ? Html.Raw("disabled=\"disabled\"") : (object)"")>
+            </div>
+            <div class="form-group col-md">
+                <label style="margin-top: .9em;" class="control-label">Total</label>
+                <input type="hidden" class="_Total" name="_Total" value="@Model._Total">
+                <input type="text" class="form-control money _Total" id="_Total" placeholder="Total" disabled="disabled" value="@Model._Total">
+            </div>
+            <div class="form-group col-md">
+                <label style="margin-top: .9em;" class="control-label">Renda X Aluguel</label>
+                <input type="text" class="form-control" id="RendaXAluguel" placeholder="Renda X Aluguel" disabled="disabled">
+            </div>
+            <div class="form-group col-md">
+                <label style="margin-top: .9em;" class="control-label">Renda X Aluguel + Encargos</label>
+                <input type="text" class="form-control" id="RendaXAluguel_Encargos" placeholder="Renda X Aluguel + Encargos" disabled="disabled">
+            </div>
+        </div>
+        <br />
+    </div>
+</form>
+<script type="text/javascript">
+    $(document).ready(function () {
+        _MaskData();
+        //loadTaxItems($('#CategoryId').val());
+        @(User.IsInRealEstate() || User.IsInRole("ImobiliariaVendas") ? "loadTaxItems()" : "")
+        @(Model.ClientStatusId.HasValue? Html.Raw("$('#TipoPessoa').val(" + Model.ClientStatusId + ")") : (object)"")
+        ComboPessoaFisica();
+        updatePrices(@(Model.CertificateContractualId.HasValue? "true" : "false"));
+    });
+
+    $('#selectIncome').change(function () {
+        if ($(this).val() == '3') {
+            $('#inputCnpj').css("display", "block");
+        } else {
+            $('#inputCnpj').css("display", "none");
+        }
+    }).change();
+    function updatePrices(notLoadData, _lightPrice, _waterPrice) {
+        var renda = 0;
+        if ($('#TipoPessoa').val() == 1) renda = Globalize.parseFloat(Globalize.format($('#RendaMensal').val()));
+        else renda = Globalize.parseFloat(Globalize.format($('#FaturamentoMedio').val()));
+
+        var price = getRentPrice();
+
+        var iptu = getIPTUPrice();
+
+        var condominium = getCondominiumPrice();
+
+        var income = 0;
+        $('.income').each(function (i, e) {
+            var _incomeValue = $(e).data('income-value');
+            var incomeValue = _incomeValue == null ? $(e).val() : _incomeValue;
+
+            income += Globalize.parseFloat(Globalize.format(IsNullOrWhiteSpace(incomeValue)? 0 : incomeValue));
+        });
+
+        var lightPrice = getLightPrice(price, true);
+
+        if ($.isNumeric(_lightPrice)) lightPrice = _lightPrice;
+
+        var waterPrice = getWaterPrice(price, true);
+
+        if ($.isNumeric(_waterPrice)) waterPrice = _waterPrice;
+
+        var total = price + iptu + condominium + lightPrice + waterPrice;
+
+        $('#RendaXAluguel').val($('.money').masked((price * 100 / (renda + income)).toFixed(2)) + '%');
+        $('#RendaXAluguel_Encargos').val($('.money').masked(((price + iptu + condominium + lightPrice + waterPrice) * 100 / (renda + income)).toFixed(2)) + '%');
+
+        if (notLoadData == true) return;
+
+        $('._LightPrice').val($('.money').masked(lightPrice.toFixed(2)));
+        $('._WaterPrice').val($('.money').masked(waterPrice.toFixed(2)));
+        $('._Total').val($('.money').masked(total.toFixed(2)));
+    }
+    $('#RendaMensal, #FaturamentoMedio, #_CampoValorAluguel, #_IPTU, #_CondominiumPrice, #TipoPessoa, .income').change(updatePrices);
+
+    function getRentPrice() {
+        var price = Globalize.parseFloat(Globalize.format($('#_CampoValorAluguel').val()));
+        price = $.isNumeric(price) ? price : 0;
+
+        return price;
+    }
+
+    function getIPTUPrice() {
+        var iptu = Globalize.parseFloat(Globalize.format($('#_IPTU').val()));
+        iptu = $.isNumeric(iptu) ? iptu : 0;
+
+        return iptu;
+    }
+
+    function getCondominiumPrice() {
+        var condominium = Globalize.parseFloat(Globalize.format($('#_CondominiumPrice').val()));
+        condominium = $.isNumeric(condominium) ? condominium : 0;
+
+        return condominium;
+    }
+
+    function getLightPrice(price, forceUpdate) {
+        var lightPrice;
+
+        lightPrice = Globalize.parseFloat(Globalize.format($('#LightPrice').val()));
+        if ($.isNumeric(lightPrice) && forceUpdate != true)
+            return lightPrice;
+
+        lightPrice = price * .1;
+        lightPrice = lightPrice < 30 ? 30 : lightPrice;
+        if (price == 0) lightPrice = 0;
+
+        return lightPrice;
+    }
+
+    function getWaterPrice(price, forceUpdate) {
+        var waterPrice;
+
+        waterPrice = Globalize.parseFloat(Globalize.format($('#WaterPrice').val()));
+        if ($.isNumeric(waterPrice) && forceUpdate != true)
+            return waterPrice;
+
+        waterPrice = price * .05;
+        waterPrice = waterPrice < 20 ? 20 : waterPrice;
+        if (price == 0) waterPrice = 0;
+
+        return waterPrice;
+    }
+
+    function loadTaxItems(categoryId, guarantorProductId, scrollDown) {
+        if (IsNullOrWhiteSpace($('#_CertificateGuaranteeForm [name="CertificateContractualId"]').val()) || IsNullOrWhiteSpace($('[name="StatusTypeId"]').val())) return;
+
+        $('#cotacao-area').empty();
+
+        if (categoryId == null) {
+            categoryId = $('#CategoryId').val();
+            if ($('#RealEstateId').is('select') && !IsNullOrWhiteSpace($('#RealEstateId').val())) {
+                categoryId = $('#RealEstateId option:selected').data('category-id');
+            }
+        }
+
+        $('#cotacao-area').load('@Url.Action("LoadCategoryGuarantorProductTaxItems", "ContractualGuarantee")',
+            {
+                categoryId: categoryId,
+                price: $('#_CampoValorAluguel').val(),
+                rentAndChargesPrice: $('#_Total').val(),
+                residenceTypeId: $('#ResidenceTypeId').val(),
+                guarantorProductId: (guarantorProductId == null ? $('#GuarantorProductId').val() : guarantorProductId),
+                categoryGuarantorProductTaxId: '@(Model.CategoryGuarantorProductTaxId.HasValue? Model.CategoryGuarantorProductTaxId : (object)"null")'
+            },
+            function () { //depois de carregar o component
+                @if (Model.Inactive || Model.StatusTypeId != cotacaoStatusId) { <text> inactiveForm(); $('.category-guarantor-product-tax-select-button-footer').remove(); </text> } //desabilita todo formulário caso esteja este contrato esteja inativo ou não esteja mais em cotação
+                @(Context.Request.Query.ContainsKey("saved") ? "scroolDownToQuotes()" : "if(scrollDown == true) scroolDownToQuotes();")
+            }
+        );
+
+    }
+
+    $("#_CampoCep").blur(function () {
+        var cep = $(this).val().replace(/\D/g, '');
+
+        $('.CEPError').remove();
+        if (cep != "") {
+            var validacep = /^[0-9]{8}$/;
+
+            if (validacep.test(cep)) {
+
+                LimparCamposEndereco();
+
+                $.getJSON("https://viacep.com.br/ws/" + cep + "/json/?callback=?", function (dados) {
+                    if (!("erro" in dados)) {
+                        $("#_CampoEndereco").val(dados.logradouro);
+                        $("#_CampoBairro").val(dados.bairro);
+                        $("#_CampoCidade").val(dados.localidade);
+                        $("#_CampoEstado").val(dados.uf);
+                    } else {
+                        LimparCamposEndereco();
+                        $('#_CampoCep').after('<div class="text-danger CEPError">CEP não encontrado.</div>');
+                    }
+                });
+            }
+            else {
+                LimparCamposEndereco();
+                $('#_CampoCep').after('<div class="text-danger CEPError">Formato de CEP inválido.</div>');
+            }
+        }
+        else {
+            limpa_formulário_cep();
+        }
+    });
+
+    function LimparCamposEndereco() {
+        $("#_CampoEndereco").val("");
+        $("#_CampoBairro").val("");
+        $("#_CampoCidade").val("");
+        $("#_CampoEstado").val("");
+    }
+
+
+   function GetRealEstates(realEstateId) {
+        if (IsNullOrWhiteSpace($('#RealEstateAgency').val())) {
+            $('#RealEstateId').empty();
+            $('#RealEstateId').append($('<option>', { value: '' }).append('Selecione um corretora.'));
+        }
+        else {
+            $.ajax({
+                url: '@Url.Action("GetRealEstatesByRealEstateAgencyId", "Company")',
+                type: 'POST',
+                datatype: 'JSON',
+                data: { id: $('#RealEstateAgency').val() },
+                success: function (data) {
+                    $('#RealEstateId').empty();
+                    if (data == false || data.length == 0) {
+                        $('#RealEstateId').append($('<option>', { value: '' }).append('Nenhuma imobiliária encontrada.'));
+                    }
+                    if (data.length > 0) {
+                        $('#RealEstateId').append($('<option>', { value: '' }).append('Selecione'));
+                        for (var i = 0; i < data.length; i++) {
+                            var companyName = IsNullOrWhiteSpace(data[i].nomeFantasia) ? data[i].firstName + " " + data[i].lastName : data[i].nomeFantasia;
+                            var option = $('<option>', { value: data[i].companyId });
+                            option.data('category-id', data[i].categoryId);
+                            option.data('name', companyName);
+                            option.append(companyName);
+                            if (data[i].companyId == '@Model.RealEstateId') {
+                            option.attr('selected', 'selected');
+                        }
+                            $('#RealEstateId').append(option);
+                        }
+                    }
+                    if (realEstateId != null) {
+                        $('#RealEstateId').val(realEstateId);
+                    }
+
+                    loadTaxItems();
+                    //if(typeof callback === "function") callback();
+                }
+            });
+        }
+    }
+
+    function CertificateGuaranteeSave(guarantorProductId, redirectToIndex) {
+        var d = $('#_CertificateGuaranteeForm').serializeArray();
+        if (guarantorProductId != null) {
+            d.push({ name: 'GuarantorProductId', value: guarantorProductId });
+        }
+        var members = getMembers();
+        if (members.hasError) return;
+
+        $.each(members.r, function (i, e) { d.push(e); });
+
+        save(d, redirectToIndex);
+    }
+
+    function getMembers()
+    {
+        var hasError = false;
+        var r = [];
+
+        $.each($('.member'), function (i, e) {
+            var name = $(e).find('.name').val();
+            var cpf = $(e).find('.cpf').val();
+
+            if (IsNullOrWhiteSpace(name)) {
+                hasError = true;
+                $(e).find('.name').after('<div class="text-danger">Preencha o Nome.</div>');
+            }
+
+            if (IsNullOrWhiteSpace(cpf)) {
+                hasError = true;
+                $(e).find('.cpf').after('<div class="text-danger">Preencha o CPF.</div>');
+            }
+
+            r.push({ name: 'members[' + i + '].Name', value: name });
+            r.push({ name: 'members[' + i + ']._CPF', value: cpf });
+
+            if ($('[name="ClientStatusId"]').val() == 1)
+            {
+                r.push({ name: 'members[' + i + ']._Income', value: $(e).find('.income').val() });
+                r.push({ name: 'members[' + i + ']._BirthDate', value: $(e).find('.birthDate').val() });
+                r.push({ name: 'members[' + i + '].CertificateContractualIncomeTypeId', value: $(e).find('.certificateContractualIncomeTypeId option:selected').val() });
+                r.push({ name: 'members[' + i + '].KinshipId', value: $(e).find('.kinshipId option:selected').val() });
+                r.push({ name: 'members[' + i + '].Occupation', value: $(e).find('.occupation').val() });
+            }
+        });
+
+        return { hasError, r };
+    }
+
+    function GetTaxas() {
+        var d = $('#_CertificateGuaranteeForm').serializeArray();
+        $.post('@Url.Action("GetPrice", "ContractualGuarantee")', d, function (data) {
+            if (data.hasError == true) {
+                $('#_ErrorDiv').show();
+            }
+            else {
+                $.each(data, function (i, e) {
+                    var divFilho = $('<div style="font-size: medium;" class="col-md-3" id="Garantidora' + i + '">' + e.guarantorName + '<div>');
+
+                    $('#cotacao-area').append(divFilho);
+                    $.each(e.taxas, function (p, q) {
+
+                        var divNeto = $('<span>'+q.guarantorProductName + ' - Valor Mensal: R$ ' + q.taxaMes + '</span></br>');
+
+                        $('#Garantidora'+i).append(divNeto);
+                    });
+                });
+            }
+	    });
+    }
+
+    function GetCategoryRealEstate() {
+        $.ajax({
+                url: '@Url.Action("GetCategory", "Company")',
+                type: 'POST',
+                datatype: 'JSON',
+                data: { id: $('#RealEstateId').val() },
+            success: function (data) {
+                $('#CategoryId').empty();
+
+                if (data.categoryId == null) {
+                    alert('Essa imobiliária não se encontra em nenhuma categoria, não sera possivel cotar.')
+                    window.location.reload();
+                    return false;
+                }
+                $('#CategoryId').val(data.categoryId);
+                }
+            });
+
+    }
+
+    function GetTipoServico() {
+        var idCategory = $('#CategoryId').val();
+         $.post('@Url.Action("BuscarProdutosGarantidores", "CategoryGuarantorProduct")',{ id: idCategory }, function (data) {
+            $('#GuarantorProduct').empty();
+            $.each(data, function (i, e) {
+                $('#GuarantorProduct').append('<option value=' + e.guarantorProductId + '>' + e.guarantorProductDescription + '</option>');
+            });
+
+        });
+
+    }
+    @if(Model.ResidenceTypeId == 2)
+    {
+        <text>
+    $('#UtilizacaoDiv').show();
+        </text>
+    }
+    else
+    {
+        <text>
+    $('#UtilizacaoDiv').hide();
+        </text>
+    }
+
+    @if (Model.RealEstateAgencyId.HasValue && !(User.IsInRealEstate() || User.IsInRole("ImobiliariaVendas")))
+    {
+        <text>
+        GetRealEstates();
+        //GetRealEstates(function() { GetCategoryRealEstate() });
+
+        </text>
+    }
+
+    @if (userRealEstateAgencyId.HasValue && !(User.IsInRealEstate() || User.IsInRole("ImobiliariaVendas")))
+    {
+        <text>
+        GetRealEstates();
+        </text>
+    }
+
+    @*@if (Model.RealEstateId != null)
+    {
+        <text>
+        GetCategoryRealEstate();
+        </text>
+    }*@
+
+    $('#RealEstateAgency').change(function () {
+        GetRealEstates();
+    });
+    $('#RealEstateId').change(function () {
+        GetCategoryRealEstate();
+
+    });
+
+
+    function VerificarCampos() {
+        $('.text-danger').remove();
+        $('#contractual-guarantee-manage-alert-error').hide();
+
+        var verificado = true;
+    if (IsNullOrWhiteSpace($('#RealEstateAgency').val())) {
+        $('#RealEstateAgency').after('<div class="text-danger">Escolha uma corretora.</div>');
+        verificado = false;
+    }
+
+    if (IsNullOrWhiteSpace($('#RealEstateId').val())) {
+        $('#RealEstateId').after('<div class="text-danger">Escolha uma imobiliária.</div>');
+        verificado = false;
+    }
+    if (IsNullOrWhiteSpace($('#ResidenceTypeId').val())) {
+        $('#ResidenceTypeId').after('<div class="text-danger">Escolha um tipo de imovel.</div>');
+        verificado = false;
+    }
+
+    if (IsNullOrWhiteSpace($('#TipoPessoa').val())) {
+        $('#TipoPessoa').after('<div class="text-danger">Escolha tipo de pessoa.</div>');
+        verificado = false;
+    }
+    if (IsNullOrWhiteSpace($('#_CampoValorAluguel').val())) {
+        $('#_CampoValorAluguel').after('<div class="text-danger">Digite o valor do aluguel.</div>');
+        verificado = false;
+    }
+    if (IsNullOrWhiteSpace($('#FullName').val())) {
+        $('#FullName').after('<div class="text-danger">Preencha este campo.</div>');
+        verificado = false;
+    }
+    if ($('#TipoPessoa').val() == 1 && IsNullOrWhiteSpace($('#RendaMensal').val())) {
+        $('#RendaMensal').after('<div class="text-danger">Preencha a renda média mensal.</div>');
+        verificado = false;
+    }
+    if ($('#TipoPessoa').val() == 2 && IsNullOrWhiteSpace($('#FaturamentoMedio').val())) {
+        $('#RendaMensal').after('<div class="text-danger">Preencha o faturamento médio mensal.</div>');
+        verificado = false;
+    }
+    if (IsNullOrWhiteSpace($('#CPFCNPJ').val())) {
+        $('#CPFCNPJ').after('<div class="text-danger">Preencha este campo.</div>');
+        verificado = false;
+    }
+    if (IsNullOrWhiteSpace($('#_CampoCep').val())) {
+        $('#_CampoCep').after('<div class="text-danger">Preencha o cep.</div>');
+        verificado = false;
+    }
+    if (IsNullOrWhiteSpace($('#_CampoNumero').val())) {
+        $('#_CampoNumero').after('<div class="text-danger">Preencha o numero.</div>');
+        verificado = false;
+    }
+
+    if ($('#_CampoValorAluguel').val() <= 0) {
+        alert('Campo valor do aluguel deve ser positivo');
+        $('#_CampoValorAluguel').val(0);
+        verificado = false;
+    }
+
+
+    if ($('#TipoPessoa').val() == 1 && $('#RendaMensal').val() < 0) {
+        alert('Campo renda média mensal tem que ser positivo');
+        $('#RendaMensal').val(0);
+        verificado = false;
+    }
+
+        if (IsNullOrWhiteSpace($('#_IPTU').val())) {
+            $('#_IPTU').after('<div class="text-danger">Preencha o valor do IPTU.</div>');
+            verificado = false;
+        }
+        if (IsNullOrWhiteSpace($('#_CondominiumPrice').val())) {
+            $('#_CondominiumPrice').after('<div class="text-danger">Preencha o valor do condomínio.</div>');
+            verificado = false;
+        }
+
+        if (!verificado) {
+            $('#contractual-guarantee-manage-alert-error').show();
+            $("html, body").animate({ scrollTop: 0 }, 500);
+        }
+
+        $.each($('.validate-special-carecters').not('disabled'), function (i, e) {
+            var charReg = /^\s*[a-zA-ZÀÁÂÃÄÅàáâãäåÒÓÔÕÖØòóôõöÈÉÊËèéêëÇçÌÍÎÏìíîïÙÚÛÜùúûüÿÑñ\s]+\s*$/;
+
+            var inputVal = $(e).val();
+
+            if (!IsNullOrWhiteSpace(inputVal) && !charReg.test(inputVal)) {
+                verificado = false;
+                $(e).after('<div class="text-danger">Este campo possuí caracteres não permitidos.</div>');
+            }
+        });
+
+        $.each($('.validate-special-carecters-with-numbers').not('disabled'), function (i, e) {
+            var charReg = /^\s*[0-9a-zA-ZÀÁÂÃÄÅàáâãäåÒÓÔÕÖòóôõöÈÉÊËèéêëÇçÌÍÎÏìíîïÙÚÛÜùúûüÿÑñ\s]+\s*$/;
+
+            var inputVal = $(e).val();
+
+            if (!IsNullOrWhiteSpace(inputVal) && !charReg.test(inputVal)) {
+                verificado = false;
+                $(e).after('<div class="text-danger">Este campo possuí caracteres não permitidos.</div>');
+            }
+        });
+
+        return verificado;
+    }
+
+    function CPFChangeMask(selectorId) {
+        if ($('#' + selectorId).val().length > 14 && $('#' + selectorId).hasClass("_cpf")) {
+            $('#' + selectorId).removeClass("_cpf").addClass("cnpj");
+        } else if ($('#' + selectorId).val().length <= 14 && $('#' + selectorId).hasClass("cnpj")) {
+            $('#' + selectorId).removeClass("cnpj").addClass("_cpf");
+        }
+        _MaskData();
+    }
+
+    $('#CPFCNPJ').keyup(function () {
+        CPFChangeMask('CPFCNPJ');
+    });
+    $('#Suitor1CPFCNPJ').keyup(function () {
+        CPFChangeMask('Suitor1CPFCNPJ');
+    });
+    $('#Suitor2CPFCNPJ').keyup(function () {
+        CPFChangeMask('Suitor2CPFCNPJ');
+    });
+
+
+    $('#aditional-members-button').click(function () {
+        if ($('#TipoPessoa').val() == 1 && $('.member').length >= 2) {
+            $('#aditional-members-button').hide();
+            return;
+        }
+
+        var row_id = new Date().getTime();
+
+        var div = $('<div>', { class: 'member', 'data-id': row_id });
+        var div_parent = $('<div>', { class: 'row' });
+        var div_parent2 = $('<div>', { class: 'row' });
+
+        var div_parent_name = $('<div>', { class: 'col-md-6' });
+        var label_name = $('<label>').append('Nome');
+        var input_name = $('<input>', { class: 'form-control name', type: 'text', placeholder: 'Nome' });
+        div_parent_name.append(label_name, input_name);
+
+        var div_parent_cpf = $('<div>', { class: 'col-md' });
+        var label_cpf = $('<label>').append('CPF');
+        var input_cpf = $('<input>', { class: 'form-control cpf', type: 'text', placeholder: 'CPF' });
+        div_parent_cpf.append(label_cpf, input_cpf);
+
+        div_parent.append(div_parent_name, div_parent_cpf);
+
+        if ($('#TipoPessoa').val() == 1) {
+            var div_parent_income = $('<div>', { class: 'mb-1 col-md' });
+            var label_income = $('<label>').append('Renda');
+            var input_income = $('<input>', { class: 'form-control income money', type: 'text', placeholder: 'Renda' });
+            div_parent.append(div_parent_income.append(label_income, input_income));
+
+            var div_parent_birthDate = $('<div>', { class: 'form-group col-md' });
+            var label_birthDate = $('<label>').append('Data de Nascimento');
+            var input_birthDate = $('<input>', { class: 'form-control birthDate date', type: 'text', placeholder: 'Data de Nascimento' });
+            div_parent2.append(div_parent_birthDate.append(label_birthDate, input_birthDate));
+
+            var div_parent_kinship = $('<div>', { class: 'form-group col-md' });
+            var label_kinship = $('<label>').append('Parentesco');
+            var select_kinship = $('<select>', { class: 'form-control kinshipId' });
+            select_kinship.append('<option value="">Selecione</option>');
+            @foreach (var item in kinships)
+            {
+            <text>select_kinship.append('<option value="@item.KinshipId">@item.Name</option>');</text>
+            }
+            div_parent2.append(div_parent_kinship.append(label_kinship, select_kinship));
+
+            var div_parent_incomeType = $('<div>', { class: 'form-group col-md' });
+            var label_incomeType = $('<label>').append('Tipo de Renda');
+            var select_incomeType = $('<select>', { class: 'form-control certificateContractualIncomeTypeId' });
+            select_incomeType.append('<option value="">Selecione</option>');
+            @foreach (var item in certificateContractualIncomeTypes)
+            {
+            <text>select_incomeType.append('<option value="@item.CertificateContractualIncomeTypeId">@item.Name</option>');</text>
+            }
+            div_parent2.append(div_parent_incomeType.append(label_incomeType, select_incomeType));
+
+            var div_parent_occupation = $('<div>', { class: 'form-group col' });
+            var label_occupation = $('<label>').append('Profissão');
+            var input_occupation = $('<input>', { class: 'form-control occupation', type: 'text', placeholder: 'Profissão' });
+            div_parent2.append(div_parent_occupation.append(label_occupation, input_occupation));
+        }
+
+        var div_parent_delete = $('<div>', { class: 'form-group col-1' });
+        var input_delete = $('<a>', { class: 'fas fa-times', href: 'javascript:removeMember(' + row_id + ')', style: 'margin-top: 30px; font-size: 16px !important;' });
+        if ($('#TipoPessoa').val() == 1) {
+            div_parent2.append(div_parent_delete.append(input_delete));
+            div.append(div_parent, div_parent2);
+        }
+        if ($('#TipoPessoa').val() == 2) {
+            div_parent.append(div_parent_delete.append(input_delete));
+            div.append(div_parent);
+        }
+
+        $('#aditional-members').append(div);
+
+        if ($('#TipoPessoa').val() == 1 && $('.member').length >= 2) {
+            $('#aditional-members-button').hide();
+        }
+
+        $('.income').change(updatePrices);
+
+        _MaskData();
+    });
+
+    function removeMember(row_id)
+    {
+        $('.member[data-id="' + row_id + '"]').remove();
+
+        if ($('#TipoPessoa').val() == 1 && $('.member').length < 2) {
+            $('#aditional-members-button').show();
+        }
+    }
+
+    $('#ResidenceTypeId').change(function () {
+        AbrirUtilizacao();
+    });
+    function AbrirUtilizacao() {
+        if ($('#ResidenceTypeId').val() == 2) {
+            $('#UtilizacaoDiv').show();
+        }
+        else {
+            $('#UtilizacaoDiv').hide();
+        }
+    }
+
+    $('#TipoPessoa').change(function () {
+        ComboPessoaFisica();
+
+        $('.member').remove();
+        $('#aditional-members-button').show();
+    });
+
+    function Contract(categoryGuarantorProductTaxId, guarantorProductId) {
+        var d = $('#_CertificateGuaranteeForm').serializeArray();
+
+        d.push({ name: 'GuarantorProductId', value: guarantorProductId });
+        d.push({ name: 'CategoryGuarantorProductTaxId', value: categoryGuarantorProductTaxId });
+        d.push({ name: 'ValorFinal', value: $('.valor-final[data-category-guarantor-product-tax-id="'+categoryGuarantorProductTaxId +'"]').val() });
+        var members = getMembers();
+        if (members.hasError) return;
+
+        $.each(members.r, function (i, e) { d.push(e); });
+
+        save(d);
+    }
+
+    function ComboPessoaFisica() {
+        $('#ClientFullNameArea, #CPFCNPJArea, #_PersonStatus').removeClass('col-md-3 col');
+
+        if ($('#TipoPessoa').val() == 1) {
+            $('.pessoa-fisica-area').show();
+            $('#PessoaJuridicaDiv').hide();
+
+            $('#ClientFullNameLabel').text('Nome Completo');
+            $('#ClientFullNameArea, #CPFCNPJArea, #_PersonStatus').addClass('col-md-3');
+
+            //$('#ClientFullNameArea').addClass('col-md-3');
+            //$('#CPFCNPJArea').addClass('col-md-3');
+        }
+        else if ($('#TipoPessoa').val() == 2) {
+            $('.pessoa-fisica-area').hide();
+            $('#PessoaJuridicaDiv').show();
+
+            $('#ClientFullNameLabel').text('Razão Social - Pretendente');
+            $('#ClientFullNameArea, #CPFCNPJArea, #_PersonStatus').addClass('col-md');
+
+            //$('#ClientFullNameArea').addClass('col-md-4');
+            //$('#CPFCNPJArea').addClass('col-md-4');
+        }
+        else {
+            $('.pessoa-fisica-area').hide();
+            $('#PessoaJuridicaDiv').hide();
+        }
+    }
+
+    function save(d, redirectToIndex)
+    {
+
+		d.push({ name: 'changeBasicValues', value: false }); //quando este valor é true, é criada uma nova garantia baseada nos dados da garantia já existente
+        $.post('@Url.Action("Manage", "ContractualGuarantee")', d, function (data) {
+            if (data.hasError == true) {
+                $('#_ErrorDiv').show();
+            }
+            else {
+                if (data.creation == true) {
+                    window.location.href = '@Url.Action("Manage", "ContractualGuarantee")?id=' + data.id + '&saved=true&creation=true';
+                }
+                else if (data.requestAnalyse == true) {
+                    window.location.href = '@Url.Action("Index", "ContractualGuarantee")?id=' + data.id + '&saved=true&statusId=1&reference=' + data.reference;
+                } else {
+                    window.location.href = '@Url.Action("Manage", "ContractualGuarantee")?id=' + data.id + '&saved=true';
+                }
+            }
+	    });
+    }
+
+    function getChangedFields()
+    {
+        var r = [];
+
+        $.each($('[data-initial-data]'), function (i, e) {
+            try {
+                if ($(e).data('initial-data') != $(e).cleanVal()) r.push($(e).data('label'));
+            }
+            catch{
+                if ($(e).data('initial-data') != $(e).val()) r.push($(e).data('label'));
+
+            }
+        });
+
+        return r;
+    }
+
+    function getChangedFieldsString() {
+        var x = getChangedFields();
+        if (x.length == 1) return x[0] + ' foi alterado';
+
+        r = "";
+
+        var last = x[x.length - 1];
+        x.splice(x.length - 1, 1);
+
+        r += x.join(', ');
+
+        return r + ' e ' + last + ' foram alterados'
+    }
+
+    function inactiveForm() {
+        $('input, button, select, option').attr('disabled', 'disabled');
+    }
+
+    function inactiveManageForm() {
+        $('#_CertificateGuaranteeForm input:not([type="hidden"]), #_CertificateGuaranteeForm button, #_CertificateGuaranteeForm select, #_CertificateGuaranteeForm option').attr('disabled', 'disabled').removeAttr('name');
+    }
+
+    function checkWaterAndLightPrice() {
+        var light = 0;
+        if (!IsNullOrWhiteSpace($('._LightPrice').val())) light = Globalize.parseFloat(Globalize.format($('._LightPrice').val()));
+
+        var water = 0;
+        if (!IsNullOrWhiteSpace($('._WaterPrice').val())) water = Globalize.parseFloat(Globalize.format($('._WaterPrice').val()));
+
+        if (light < 30) light = 30;
+        if (water < 20) water = 20;
+
+        $('._LightPrice').val($('.money').masked(light.toFixed(2)));
+        $('._WaterPrice').val($('.money').masked(water.toFixed(2)));
+
+        console.log(light);
+        updatePrices(false, light, water);
+    }
+</script>
+
+@if (Model.StatusTypeId == cotacaoStatusId && !Context.Request.Query.ContainsKey("editable"))//desabilita o formulário de Manage caso este contrato não esteja no modo edição
+{
+<script type="text/javascript">
+    $(document).ready(inactiveManageForm);
+</script> 
+}
+
+@if (Model.Inactive)
+{
+    <script type="text/javascript">
+        $(document).ready(inactiveForm);
+    </script>
+}

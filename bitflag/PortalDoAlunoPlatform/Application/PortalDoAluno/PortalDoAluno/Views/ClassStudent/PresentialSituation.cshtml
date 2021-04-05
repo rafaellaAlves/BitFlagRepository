@@ -1,0 +1,158 @@
+﻿@model int
+@inject Services.OptionPresence.OptionPresenceService optionPresenceFunctions
+@inject Services.ClassStudent.ClassStudentService classStudentService
+@inject Services.Class.ClassService classService
+@{
+    var student = await classStudentService.GetClassStudentInfoViewModel(Model);
+    var _class = await classService.GetById(student.ClassId);
+    ViewData["Title"] = "Situação Presencial: " + student.Name;
+}
+
+@section HeaderButtons {
+    @if (Context.Request.Query.ContainsKey("ClassId"))
+    {
+        <a href="@Url.Action("Index", "ClassStudent", new { ClassId = Context.Request.Query["ClassId"] })" class="btn btn-secondary"><i class="simple-icon-arrow-left"></i>&nbsp;Voltar</a>
+    }
+    else
+    {
+        <a href="javascript:window.open('','_self').close();" class="btn btn-secondary"><i class="simple-icon-arrow-left"></i>&nbsp;Voltar</a>
+    }
+    <button id="add-situation-button-modal" class="btn btn-success"><i class="simple-icon-plus"></i>&nbsp;Novo</button>
+}
+<div id="PresentialSituation"></div>
+
+@section Modals {
+    <div class="modal fade" id="add-situation-modal" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Incluir </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-situation-form">
+                        <input type="hidden" name="StudentPresenceId" value="" />
+                        <input type="hidden" name="ClassStudentId" value="@Model" />
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="control-label required">Módulo</label>
+                                    <select name="Module" class="form-control">
+                                        @for (int i = 1; i <= _class.ModuleCount; i++)
+                                        {
+                                            <option value="@i">Módulo @i</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="control-label">Participação em Aula (%)</label>
+                                    <input name="CompletionPercent" type="number" class="form-control" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="control-label required">Sábado</label>
+                                    <select name="Saturday" class="form-control">
+                                        @foreach (var item in await optionPresenceFunctions.List())
+                                        {
+                                            <option value="@item.OptionPresenceId">@item.Description</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label required">Data</label>
+                                    <input name="SaturdayDate" type="text" class="form-control datepicker" />
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label">Descrição (Sábado)</label>
+                                    <textarea name="SaturdayComments" class="form-control"></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="control-label">Domingo (Opcional)</label>
+                                    <select name="Sunday" class="form-control">
+                                        <option value="">-</option>
+                                        @foreach (var item in await optionPresenceFunctions.List())
+                                        {
+                                            <option value="@item.OptionPresenceId">@item.Description</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label">Data</label>
+                                    <input name="SundayDate" type="text" class="form-control datepicker" />
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label">Descrição (Domingo)</label>
+                                    <textarea name="SundayComments" class="form-control"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        @if (_class.CourseId == 2)
+                        {
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="control-label">Nota da Prova</label>
+                                        <input name="TestGrade" type="text" class="form-control" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="control-label">Nota da Atividade</label>
+                                        <input name="ActivityGrade" type="text" class="form-control" />
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        <hr />
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label">Observações</label>
+                                    <textarea name="Comments" class="form-control"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="simple-icon-close"></i>&nbsp;Fechar</button>
+                    <button type="button" id="save-situation-button" class="btn btn-success"><i class="simple-icon-cloud-upload"></i>&nbsp;Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+@section Scripts {
+    <script type="text/javascript">
+        $('#PresentialSituation').load('@Url.Action("PresentialSituation", "ViewComponentLoader")', { classStudentId: '@Model' });
+
+        $('#add-situation-button-modal').click(function () {
+            $('#add-situation-modal').modal('show');
+        });
+
+        $('#save-situation-button').click(function () {
+            if (validateInputs()){
+                $.post("@Url.Action("SavePresentialSituation", "ClassStudent")", $('#add-situation-form').serializeArray(), function (d) {
+                    alert(d.message);
+                    if (!d.hasError) {
+                        reloadPresentialSituationTable();
+                        $('#add-situation-modal').modal('hide');
+                    }
+                });
+            }
+        });
+
+        $('#add-situation-modal').on('hidden.bs.modal', function () {
+            $('[name="StudentPresenceId"]').val('');
+            $('#add-situation-form textarea').val('');
+            $('#add-situation-form select').val(1);
+        });
+    </script>
+}

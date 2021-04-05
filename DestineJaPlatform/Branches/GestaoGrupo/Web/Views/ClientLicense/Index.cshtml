@@ -1,0 +1,42 @@
+﻿@model DTO.Client.ClientViewModel
+@inject Services.Client.ClientServices clientServices
+@{ DTO.Client.ClientViewModel userClient = null;
+
+@if (User.IsClient())
+{
+    userClient = await clientServices.GetViewModelByIdAsync(await clientServices.GetClientIdByLoggedUser(Context));
+} }
+@{ ViewData["Title"] = "Lista de Licenças"; }
+
+@section Header{
+    <style type="text/css">
+        .simple-icon-menu, .simple-icon-doc {
+            font-size: 16px;
+        }
+
+        .dropdown-menu a {
+            font-size: 14px !important;
+        }
+    </style>
+}
+
+<div class="card">
+    <div class="card-header">
+        <div class="row">
+            @await Html.PartialAsync("../Report/Heading.cshtml");
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-destineja tx-20 text-center" role="alert">
+            Utilize nosso sistema para controlar o vencimento das licenças, documentações e alvarás de sua empresa.
+        </div>
+        <div id="client-license-index-view-component">
+            @(await Component.InvokeAsync<Web.ViewComponents.Client.ClientLicenseIndexViewComponent>())
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script asp-paste-key="client-license-index"></script>
+    <script asp-paste-key="client-license-manage"></script>
+}

@@ -1,0 +1,106 @@
+﻿@model DTO.Client.ClientViewModel
+@inject DB.TerraNostraContext context
+
+@{
+    var clientTypeFunctions = new FUNCTIONS.Client.ClientTypeFunctions(context);
+    var clientTypes = clientTypeFunctions.GetData();
+
+    var personId = clientTypes.Single(x => x.ExternalCode == "PERSON").ClientTypeId;
+}
+
+<script type="text/javascript">
+
+    _MaskData();
+    function _ClientQuickManageMoreInfo() {
+        $('#_ClientQuickManageMoreInfo').hide();
+        $('#_ClientQuickManageDivMoreInfo').show();
+    }
+    function _ClientQuickManageLessInfo() {
+        $('#_ClientQuickManageMoreInfo').show();
+        $('#_ClientQuickManageDivMoreInfo').hide();
+    }
+    _ClientQuickManageLessInfo();
+</script>
+
+<script type="text/javascript">
+
+function _ClientQuickManageValidate() {
+
+	var hasError = false;
+	$('#_ClientQuickManageForm .text-danger').remove();
+
+
+    var clientTypeId = $('#ClientTypeId').val();
+
+    if (IsNullOrWhiteSpace($('#_ClientQuickManageEmail').val())) {
+        $('#_ClientQuickManageEmail').after('<div class="text-danger">Preencha o e-mail.</div>');
+        hasError = true;
+    }
+
+    if (hasError) {
+        $('#_ClientQuickManageAlertErrorClient').show();
+    }
+    else {
+        $('#_ClientQuickManageForm .text-danger').remove();
+        $('#_ClientQuickManageAlertErrorClient').hide();
+    }
+
+	return (!hasError);
+}
+
+    function _ClientQuickManageSave() {
+	var d = $('#_ClientQuickManageForm').serializeArray();
+        $.post('@Url.Action("QuickManage", "Client")', d, function (data) {
+            console.log(data);
+            if (data.hasError) {
+            $('#_ClientQuickManage' + data.data).after('<div class="text-danger">' + data.message + '</div>'); //data.data contem o nome do campo que ocorreu o erro
+            $('#_ClientQuickManageForm .text-danger').show();
+            $('#_ClientQuickManageAlertErrorClient').show();
+            } else {
+                _ClientQuickManageCallback(data);
+            }
+	    });
+    }
+</script>
+
+<form id="_ClientQuickManageForm" method="post" enctype="multipart/form-data">
+    <div id="_ClientQuickManageAlertErrorClient" class="alert alert-danger fade show text-center" role="alert" style="display: none;">
+        <strong>Atenção!</strong> O Formulário contém erros.
+    </div>
+    <input type="hidden" id="_ClientQuickManageClientId" name="ClientId" value="@Model.ClientId" />
+    <input type="hidden" id="_ClientQuickManageClientTypeId" name="ClientTypeId" value="@personId" />
+    <div id="_ClientQuickManageDivRequiredInfo">
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label class="control-label">Nome*</label>
+                <input type="text" class="form-control" id="_ClientQuickManageFirstName" name="FirstName" value="@Model.FirstName" placeholder="Nome">
+            </div>
+            <div class="form-group col-md-6">
+                <label class="control-label">Sobrenome*</label>
+                <input type="text" class="form-control" id="_ClientQuickManageLastName" name="LastName" value="@Model.LastName" placeholder="Sobrenome">
+            </div>
+            <div class="form-group col-md-6">
+                <label class="control-label" for="Email">E-mail*</label>
+                <input type="text" class="form-control" id="_ClientQuickManageEmail" name="Email" value="@Model.Email" placeholder="E-mail">
+            </div>
+            <div class="form-group col-md-6">
+                <label class="control-label" for="PhoneNumber">Telefone</label>
+                <input type="text" class="form-control phone" id="_ClientQuickManageTelefone" name="Telefone" value="@Model.Telefone" placeholder="Telefone">
+            </div>
+        </div>
+        <div class="form-row">
+            <a id="_ClientQuickManageMoreInfo" href="javascript: _ClientQuickManageMoreInfo();">Mais Informações...</a>
+        </div>
+        <div id="_ClientQuickManageDivMoreInfo" style="display: none;">
+            <hr>
+            <div class="form-row">
+                <div class="col-md-12">
+                    <label class="control-label">Observações</label>
+                    <textarea class="form-control" id="_ClientQuickManageObservation" name="Observation" placeholder="Observações">@Html.Raw(Model.Observation)</textarea>
+                </div>
+            </div>
+            <br />
+            <a id="_ClientQuickManageLessInfo" href="javascript: _ClientQuickManageLessInfo();">Menos Informações...</a>
+        </div>
+    </div>
+</form>

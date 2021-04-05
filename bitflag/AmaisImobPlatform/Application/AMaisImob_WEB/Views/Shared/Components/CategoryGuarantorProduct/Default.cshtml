@@ -1,0 +1,79 @@
+﻿<div class="row">
+    <div class="col-md-10"></div>
+    <div class="col-md-2">
+        <a href="@Url.Action("Manage", "CategoryGuarantorProduct")" class="btn btn-success pull-right w-100"><i class="fas fa-plus-circle"></i>&nbsp;Novo</a>
+    </div>
+</div>
+<hr />
+<div class="table-wrapper">
+    <table id="_CategoryProductIndexTable" class="table display responsive nowrap" style="border-collapse: collapse !important;">
+        <thead>
+			<tr>
+				<th>Garantidora</th>
+				<th>Tipo de Garantidora</th>
+				<th>Categoria</th>
+				<th>Produto da Garantidora</th>
+				<th>Taxa (%)</th>
+
+				<th>&nbsp;</th>
+			</tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+<script type="text/javascript">
+
+    var _AccountIndexTypingTimer;
+    var _AccountIndexDoneTypingInterval = 500;
+    var datatables = $('#_CategoryProductIndexTable').DataTable({
+		proccessing: true,
+		serverSide: false,
+		searching: true,
+		lengthChange: false,
+		dom: 'tip',
+		ajax: {
+			url: '@Url.Action("List", "CategoryGuarantorProduct")',
+			type: 'POST'
+		},
+		columns: [
+            {
+                data: 'Guarantor',
+                render: function (data, type, row) {
+                return row.guarantorName;
+                }
+			},
+			{
+				data: 'GuarantorTypeName',
+				render: function (data, type, row) {
+					return row.guarantorTypeName;
+				}
+			},
+            {
+                data: 'Category',
+                render: function (data, type, row) {
+                return row.categoryName??"Todos";
+                }
+            },
+            {
+                data: 'GuarantorProduct',
+                render: function (data, type, row) {
+                return row.guarantorProductName;
+                }
+            },
+            {
+                data: 'Taxa',
+                render: function (data, type, row) {
+                return row._TaxaMes;
+                }
+            },
+            {
+                data: 'Id',
+                render: function (data, type, row) {
+                return '<a href="@Url.Action("Manage", "CategoryGuarantorProduct")?id=' + row.categoryGuarantorProductTaxId + '"><i class="far fa-edit"></i></a>';
+                }
+            }
+
+		]
+	});
+</script>
+

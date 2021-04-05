@@ -1,0 +1,9 @@
+﻿@{
+
+    ViewData["Title"] = "Processos";
+}
+<div id="_ActiveJobsViewComponent"></div>
+
+<script type="text/javascript">
+    $('#_ActiveJobsViewComponent').load('@Url.Action("ActiveJobsViewComponent", "Workbench")');
+</script>

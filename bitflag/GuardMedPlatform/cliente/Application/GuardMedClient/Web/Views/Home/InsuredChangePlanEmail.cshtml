@@ -1,0 +1,25 @@
+﻿@model Web.DTO.SeguradoProfissional.InsuredChangePlanEmailViewModel
+
+<div style="width: 45%; margin-left: 33%; border: 1px solid #cecece; -webkit-box-shadow: -1px -5px 20px 0px #b5b5b5; box-shadow: -1px -5px 20px 0px #b5b5b5; background: linear-gradient(to bottom, #e2e2e2, #e2e2e2 70px, #a8c6e28a 250px, #adc2d8);">
+    <div style="padding: 15px; font-weight: bold; font-size: 25px; text-align: center;">
+        <img src="cid:LogoImg" width="300">
+        <div style="margin-top: 1em;">
+            - Alteração de Dados Profissionais -<br />
+            #@Model.Segurado.Referencia
+        </div>
+    </div>
+    <div style="padding: 15px; font-size: 16px; line-height: 25px; padding-bottom: 40px;">
+        O cliente <b>@Model.Segurado.Nome</b> realizou uma alteração em seus dados profissionais que ocasionou em um aumento no <b>Preço Total</b> em seu plano de <b>R$ @Model._OldPrice (R$ @Model._MonthlyOldPrice /mês)</b> para <b>@Model._NewPrice  (R$ @Model._MonthlyNewPrice /mês)</b>.<br /><br />
+        Alteração(ões) feita(s) pelo cliente:
+        <ul style="list-style:circle;">
+            @if (Model.UpgradedPlan != null)
+            {
+                <li>Alterou o plano para <b>@Model.UpgradedPlan.Nome</b>;</li>
+            }
+            @foreach (var item in Model.Especialidades)
+            {
+                <li>Adicionou a especialidade <b>@item.Nome</b>;</li>
+            }
+        </ul>
+    </div>
+</div>

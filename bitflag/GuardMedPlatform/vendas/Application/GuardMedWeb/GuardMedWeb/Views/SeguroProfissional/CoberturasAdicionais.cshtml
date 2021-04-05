@@ -1,0 +1,232 @@
+﻿@model GuardMedWeb.Models.SeguradoProfissionalViewModel
+
+@{ Html.RenderPartial("~/Views/SeguroProfissional/Shared/_StepCotacao.cshtml"); }
+
+
+<form method="post" id="formulario">
+    <div class="row">
+        <div class="col-md-10 mx-auto">
+            <div class="card bg-light">
+                <div class="card-header">
+                    <h5 class="amaisvet-green">O profissional possui cargo de Diretor Médico e/ou Chefe de Equipe?</h5>
+                </div>
+                <div class="card-body">
+
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-md-1"></div>
+                            <div class="col-md-2">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="DiretorChefeEquipe" id="CargoDiretorSim" value="True">
+                                    <label class="form-check-label" for="inlineRadio1"><strong>Sim</strong></label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-2">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="DiretorChefeEquipe" id="CargoDiretorNao" value="False">
+                                    <label class="form-check-label" for="inlineRadio2"><strong>Não</strong></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="container-fluid" id="CargoDiretorDiv" style="display: none">
+                        <h5 class="amaisvet-green">Contratar cobertura adicional para Diretor Médico e/ou Chefe de Equipe?</h5>
+                        <h5 class="card-subtitle mb-2 text-muted">Custo adicional de 10%.</h5>
+                        <div class="row">
+                            <div class="container-fluid">
+                                <div class="row">
+                                    <div class="col-md-1"></div>
+                                    <div class="col-md-2">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="CoberturaAdicionalDiretorChefeEquipe" id="CoberturaAdicionalDiretor1" value="True">
+                                            <label class="form-check-label" for="inlineRadio1"><strong>Sim</strong></label>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-2">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="CoberturaAdicionalDiretorChefeEquipe" id="CoberturaAdicionalDiretor2" value="False">
+                                            <label class="form-check-label" for="inlineRadio2"><strong>Não</strong></label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br />
+            <div class="card bg-light">
+                <div class="card-header">
+                    <h5 class="amaisvet-green">O profissional é socio de alguma empresa da área médica?</h5>
+                </div>
+                <div class="card-body">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-md-1"></div>
+                            <div class="col-md-2">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="SocioEmpresaAreaMedica" id="SocioAreaMedicaSim" value="True">
+                                    <label class="form-check-label" for="inlineRadio3"><strong>Sim</strong></label>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="SocioEmpresaAreaMedica" id="SocioAreaMedicaNao" value="False">
+                                    <label class="form-check-label" for="inlineRadio4"><strong>Não</strong></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="container-fluid" id="SocioAreaDiv" style="display: none">
+                        <h5 class="col-md-12">Contratar cobertura adicional para Pessoa Jurídica quando reclamação ocorrer por danos causados por ele?</h5>
+                        <h5 class="col-md-12 card-subtitle mb-2 text-muted">Custo adicional de 10%.</h5>
+                        <div class="row">
+                            <div class="container-fluid">
+                                <div class="row">
+                                    <div class="col-md-1"></div>
+                                    <div class="col-md-2">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="CoberturaAdicionalSocioEmpresaAreaMedica" id="CoberturaAdicionalSocioEmpresaAreaMedica1" value="True">
+                                            <label class="form-check-label" for="inlineRadio3"><strong>Sim</strong></label>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-2">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="CoberturaAdicionalSocioEmpresaAreaMedica" id="CoberturaAdicionalSocioEmpresaAreaMedica2" value="False">
+                                            <label class="form-check-label" for="inlineRadio4"><strong>Não</strong></label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br />
+    <div class="row">
+        <div class="col-md-10 mx-auto">
+            <button type="submit" id="save" class="btn btn-primary float-right">Avançar&nbsp;<i class="fas fa-arrow-right"></i></button>
+            <a href="@Url.Action("Cotacao", "SeguroProfissional")?reference=@Model.Referencia" class="btn btn-secondary"><i class="fas fa-arrow-left"></i>&nbsp;Voltar</a>
+        </div>
+    </div>
+</form>
+
+
+
+<script type="text/javascript">
+    $("#CargoDiretorSim").change(function () {
+        $("#CargoDiretorDiv").show();
+    });
+    $("#CargoDiretorNao").change(function () {
+        $("#CargoDiretorDiv").hide();
+    });
+    $("#SocioAreaMedicaSim").change(function () {
+        $("#SocioAreaDiv").show();
+    });
+    $("#SocioAreaMedicaNao").change(function () {
+        $("#SocioAreaDiv").hide();
+    });
+
+    function Validar() {
+
+        var error = false;
+
+
+        if ($('#CargoDiretorSim').is(':checked') == false && $('#CargoDiretorNao').is(':checked') == false) {
+            error = true;
+        }
+        else {
+            if ($('#CargoDiretorSim').is(':checked') == true) {
+                if ($('#CoberturaAdicionalDiretor1').is(':checked') == false && $('#CoberturaAdicionalDiretor2').is(':checked') == false) {
+                    error = true;
+                }
+            }
+
+        }
+        if ($('#SocioAreaMedicaSim').is(':checked') == false && $('#SocioAreaMedicaNao').is(':checked') == false) {
+            error = true;
+        }
+        else {
+            if ($('#SocioAreaMedicaSim').is(':checked') == true) {
+                if ($('#CoberturaAdicionalSocioEmpresaAreaMedica1').is(':checked') == false && $('#CoberturaAdicionalSocioEmpresaAreaMedica2').is(':checked') == false) {
+                    error = true;
+                }
+            }
+
+        }
+        return (!error);
+    }
+
+    $('#formulario').submit(function () {
+        if (Validar() == false) {
+
+            alert("Preencha todos os campos");
+            return false;
+        }
+        else {
+            return true;
+        }
+    });
+
+
+</script>
+
+@if (Model.DiretorChefeEquipe == true)
+{
+    <text>
+      <script>
+          $("#CargoDiretorSim").prop("checked", true);
+          $("#CargoDiretorSim").change();
+          </script> </text>
+   
+    if (Model.CoberturaAdicionalDiretorChefeEquipe == true)
+    {
+         <text> <script>$("#CoberturaAdicionalDiretor1").prop("checked", true);</script> </text>
+
+    }
+    else if (Model.CoberturaAdicionalDiretorChefeEquipe == false)
+    {
+        <text>
+            <script>$("#CoberturaAdicionalDiretor2").prop("checked", true);</script> </text>
+    }
+}
+else
+{
+    <text>
+        <script>$("#CargoDiretorNao").prop("checked", true);
+    $("#CargoDiretorNao").change();</script>
+    </text>
+    Model.CoberturaAdicionalDiretorChefeEquipe = null;
+}
+
+@if (Model.SocioEmpresaAreaMedica == true)
+{
+    <text>
+        <script>$("#SocioAreaMedicaSim").prop("checked", true);
+            $("#SocioAreaMedicaSim").change();</script> </text>
+    if (Model.CoberturaAdicionalSocioEmpresaAreaMedica == true)
+    {
+        <text>
+            <script>$("#AreaMedica1").prop("checked", true);</script> </text>
+    }
+    else if (Model.CoberturaAdicionalSocioEmpresaAreaMedica == false)
+    {
+        <text>
+            <script>$("#AreaMedica2").prop("checked", true);</script> </text>
+    }
+}
+else
+{
+    <text>
+        <script>$("#SocioAreaMedicaNao").prop("checked", true);
+            $("#SocioAreaMedicaNao").change();</script> </text>
+    Model.CoberturaAdicionalSocioEmpresaAreaMedica = null;
+}
+
+
+<br />

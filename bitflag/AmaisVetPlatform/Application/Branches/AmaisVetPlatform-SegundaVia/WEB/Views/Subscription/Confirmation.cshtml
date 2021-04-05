@@ -1,0 +1,40 @@
+﻿@model DTO.Subscription.SubscriptionViewModel
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["title"] = "Confirmação de Assinatura";
+}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card card-blue text-center">
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-12 text-center">
+                        <img src="~/assets/image/confirmacao.png" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 text-center">
+                        <h2>
+                            Parabéns, <b>Dr(a). @Model.FullName</b>!<br /><small>
+                                Você se protegeu com a confiança das maiores seguradoras do Brasil.<br />
+                            </small>
+                        </h2>
+                        <p>
+                            Enviamos o seu Certificado Individual de Seguro no seu e-mail.
+                        </p>
+                        <p>
+                            Caso deseje visualiza-lo, <a class="text-green font-weight-bold" target="_blank" href="@Url.Action("Certificate", "Subscription", new { reference = Model.Reference })">clique aqui</a>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <hr />
+        <div class="row">
+            <div class="col-md-12">
+                <a href="@Url.Action("Index", "Home")" class="btn btn-secondary">Voltar</a>
+            </div>
+        </div>
+    </div>
+</div>

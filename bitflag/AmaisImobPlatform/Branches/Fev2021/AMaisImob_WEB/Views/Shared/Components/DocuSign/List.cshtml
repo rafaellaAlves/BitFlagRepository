@@ -1,0 +1,89 @@
+﻿@model AMaisImob_WEB.Models.Shared.BaseViewModel<List<CompanyDocuSignViewModel>>
+
+<table class="table table-striped table-bordered table-condensed">
+    <thead>
+        <tr>
+            <td>Imobiliária</td>
+            <td>Mês/Ano</td>
+            <td>Categoria</td>
+            <td>Benefício</td>
+            <td>Custo por utilização</td>
+            <td>Qtde. de Contratos @(User.IsInRole("Administrator")? Html.Raw("<span id=\"QtdContratosInfo\" title=\"Dê um clique duplo na célula para editá-la.\"><i class=\"fa fa-info-circle\"></i></span>") : (object)"")</td>
+            <td>Fatura</td>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.ViewModel)
+        {
+            <tr data-docusign-id="@item.CompanyDocuSignId" data-company-id="@item.CompanyId" data-reference-date="@item.ReferenceDateISO">
+                <td>@item.CompanyTradeName</td>
+                <td>@item.ReferenceDateFormated</td>
+                <td>@item.CategoryDescription</td>
+                <td>@item.Bonus</td>
+                <td>R$ @item.PriceFormated</td>
+                <td><label data-value="@item.Amount" class="editable-label">@item.Amount CONTRATOS</label></td>
+                <td>R$ @item.TotalFormated</td>
+            </tr>
+        }
+        @if (Model.ViewModel.Count == 0)
+        {
+            <tr>
+                <td colspan="7" class="text-center">Nenhum item encontrado</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (User.IsInRole("Administrator"))
+{
+    <script type="text/javascript" asp-cut-key="docusign-index-list" asp-cut-javascript-tag="@Model.CutScript">
+    $(function () {
+        initEditableLabel();
+        $('#QtdContratosInfo').tooltip();
+    });
+
+    function initEditableLabel() {
+        $('.editable-label').off('click');
+
+        $(".editable-label").click(function () {
+            var input = $('<input>', { class: 'form-control to-label number', value: $(this).data('value') });
+            $(this).replaceWith(input);
+            $(input).focus();
+
+            _MaskData();
+            initToLabel();
+        });
+    }
+
+    function initToLabel() {
+        $('.to-label').off('blur').off('keypress');
+
+        $('.to-label').blur(function () {
+            saveCompanyDocuSign(this);
+            toLabel(this);
+        }).keypress(function (e) {
+            if (e.which == 13) {
+                saveCompanyDocuSign(this);
+                toLabel(this);
+            }
+        });
+    }
+
+    function toLabel(sel) {
+        var value = $(sel).val();
+        if (isNaN(value) || !value) value = 0;
+        $(sel).replaceWith($('<label>', { class: 'editable-label', 'data-value': value }).text(value + ' CONTRATOS'));
+        initEditableLabel();
+    }
+
+    function saveCompanyDocuSign(sel) {
+        var tr = $(sel).closest('tr');
+
+        $.post('@Url.Action("SaveCompanyDocuSign", "DocuSign")', { amount: $(sel).val(), companyId: $(tr).data('company-id'), docuSignId: $(tr).data('docusign-id'), referenceDate: $(tr).data('reference-date') }, function (d) {
+            $(tr).data('docusign-id', d.companyDocuSignId);
+
+            $(tr).find('td:last-child').text('R$ ' + d.totalPrice);
+        });
+    }
+    </script>
+}

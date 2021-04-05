@@ -1,0 +1,154 @@
+﻿@inject FUNCTIONS.Invoice.InvoiceStatusFunctions invoiceStatusFunctions
+@model int?
+
+@using Web.Utils
+<div class="row">
+
+    @if (User.InvoiceCanAccessEdition())
+    {
+        <div class="col-md-7">
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="simple-icon-magnifier"></i></span>
+                </div>
+                <input id="_InvoiceIndexSearch" type="text" class="form-control" placeholder="Procurar..." />
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="col-md-9">
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="simple-icon-magnifier"></i></span>
+                </div>
+                <input id="_InvoiceIndexSearch" type="text" class="form-control" placeholder="Procurar..." />
+            </div>
+        </div>
+    }
+
+    <div class="col-md-3">
+        <select id="InvoiceStatusFilter" class="form-control">
+            <option value="">Todos os Status</option>
+            @foreach (var item in invoiceStatusFunctions.GetData())
+            {
+                if (Model.HasValue && Model == item.InvoiceStatusId)
+                {
+                    <option value="@item.InvoiceStatusId" selected>@item.Name</option>
+                }
+                else
+                {
+                    <option value="@item.InvoiceStatusId">@item.Name</option>
+                }
+
+            }
+        </select>
+    </div>
+    @if (User.InvoiceCanAccessEdition())
+    {
+        <div class="col-md-2">
+            <a href="@Url.Action("Manage", "Invoice")" class="btn btn-success pull-right w-100"><i class="simple-icon-plus"></i>&nbsp;Novo</a>
+        </div>
+    }
+</div>
+<hr />
+<div class="table-wrapper">
+    <table id="_InvoiceIndexTable" class="display table table-striped table-bordered table-condensed" style="border-collapse: collapse !important; width:100%;">
+        <thead>
+            <tr>
+                <th style="white-space: nowrap">&nbsp;</th>
+                <th>Cliente</th>
+                <th>Data</th>
+                <th>Status</th>
+                <th>Valor Total</th>
+                <th>Imposto</th>
+                <th>Valor Final</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<script type="text/javascript">
+    var _InvoiceIndexTypingTimer;
+    var _InvoiceIndexDoneTypingInterval = 500;
+    var _InvoiceIndexDatatables = $('#_InvoiceIndexTable').DataTable({
+		proccessing: true,
+		serverSide: true,
+		searching: true,
+		lengthChange: false,
+		dom: 'tip',
+		ajax: {
+            url: '@Url.Action("List", "Invoice")',
+            data: function (d) {
+                d.invoiceStatusFilter = $('#InvoiceStatusFilter').val()
+            },
+			type: 'POST'
+        },
+        order: [[0, 'desc']],
+        columns: [
+            {
+                data: 'InvoiceId',
+                render: function (data, type, row) {
+                    return '<div class="text-center"><a title="Editar Registro" href="@Url.Action("Manage", "Invoice")?invoiceId=' + row.invoiceId + '">' + row.invoiceTerraNostraId + '</a></div>';
+                }
+            },
+            {
+                data: 'ClientName',
+                
+                render: function (data, type, row) {
+                    return row.clientName;
+                }
+            },
+            {
+                data: '_CreatedDate',
+                render: function (data, type, row) {
+                    return row._CreatedDate;
+                }
+            },
+            {
+                data: 'StatusName',
+                render: function (data, type, row) {
+                    console.log(row);
+                    return row.statusName == null ? 'Novo' : row.statusName;
+                }
+            },
+            {
+                data: 'Cost',
+                render: function (data, type, row) {
+                    return '<div class="text-center">' + (!row.cost ? '-' : 'R$ ' + row._Cost) + '</div>';
+                }
+            },
+            {
+                data: 'Tax',
+                render: function (data, type, row) {
+                    return '<div class="text-center">' + (!row.tax ? '-' : row._Tax + '%') + '</div>';
+                }
+            },
+            {
+                data: 'GrandTotal',
+                render: function (data, type, row) {
+                    return '<div class="text-center">' + (!row.grandTotal ? '-' : 'R$ ' + row._GrandTotal) + '</div>';
+                }
+            },
+            
+        ]
+	});
+    function _InvoiceIndexDoneTyping() {
+        if ($.fn.DataTable.isDataTable('#_InvoiceIndexTable')) {
+            _InvoiceIndexDatatables.search($('#_InvoiceIndexSearch').val()).draw();
+        }
+    }
+    $('#_InvoiceIndexSearch').keyup(function () {
+        clearTimeout(_InvoiceIndexDoneTypingInterval);
+        _InvoiceIndexTypingTimer = setTimeout(_InvoiceIndexDoneTyping, _InvoiceIndexDoneTypingInterval);
+    });
+    $('#_InvoiceIndexSearch').keydown(function () {
+        clearTimeout(_InvoiceIndexDoneTyping);
+    });
+    $('#InvoiceStatusFilter').on('change', function() {
+        if ($.fn.DataTable.isDataTable('#_InvoiceIndexTable')) {
+            _InvoiceIndexDatatables.search($('#_InvoiceIndexTable').val()).draw();
+        }
+    });
+</script>

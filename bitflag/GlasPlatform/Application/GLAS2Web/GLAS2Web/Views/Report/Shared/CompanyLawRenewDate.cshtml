@@ -1,0 +1,10 @@
+﻿<div class="form-group">
+    <label class="control-label">@translationFunctions.GetTranslation("Data de Renovação do Requisito Legal", User.FindFirstValue("CultureInfo"))</label>
+    <div class="input-group">
+        <input type="text" class="form-control date ReportParameter" data-hidden-parameter="CompanyLawRenewDate_START" />
+        <div class="input-group-append">
+            <span class="input-group-text">&nbsp;@translationFunctions.GetTranslation("até", User.FindFirstValue("CultureInfo"))&nbsp;</span>
+        </div>
+        <input type="text" class="form-control date ReportParameter" data-hidden-parameter="CompanyLawRenewDate_END" />
+    </div>
+</div>

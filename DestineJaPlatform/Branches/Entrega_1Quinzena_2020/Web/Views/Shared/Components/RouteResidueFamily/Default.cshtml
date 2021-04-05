@@ -1,0 +1,129 @@
+﻿@model DTO.Shared.EntityViewMode<DTO.Route.RouteResidueFamilyParameterViewModel>
+
+<style type="text/css">
+    #route-client-families-selection-table td:first-child {
+        text-align: center;
+    }
+
+    #route-client-families-selection-table td {
+        cursor: pointer;
+    }
+
+    #route-client-families-selection-table {
+        max-height: 350px;
+        overflow-y: auto;
+    }
+
+    #route-client-family-modal thead tr {
+        background: #a1a1a1;
+        color: white;
+    }
+</style>
+
+<div class="row">
+    <div class="col-12">
+        <table class="table table-condensed table-striped table-bordered" id="route-client-families-selection-table">
+            <thead>
+                <tr>
+                    <th class="text-center"><input type="checkbox" id="select-all-families-checkbox" onclick="selectAllFamiliesCheckbox(this)" /></th>
+                    <th>Classe</th>
+                    <th>Nome</th>
+                    <th>Abreviação</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Model.Items)
+                {
+                    <tr onclick="showResiduesTr(@item.ResidueFamily.ResidueFamilyId, '@item.ResidueFamily.Name')" data-family-id="@item.ResidueFamily.ResidueFamilyId">
+                        <td><input type="checkbox" data-family-id="@item.ResidueFamily.ResidueFamilyId" data-name="@(string.IsNullOrWhiteSpace(item.ResidueFamily.NameAbbreviation)? item.ResidueFamily.Name : item.ResidueFamily.NameAbbreviation)" /></td>
+                        <td>@item.ResidueFamily.ResidueFamilyClassName</td>
+                        <td>@item.ResidueFamily.Name</td>
+                        <td>@item.ResidueFamily.NameAbbreviation</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<hr />
+<div class="row">
+    <div class="col-12">
+        <table class="table table-condensed table-striped table-bordered" id="route-client-residue-table">
+            <thead>
+                <tr>
+                    <th colspan="3" class="text-center" style="border-bottom:0px;">
+                        Residuos a coletar <span id="route-client-residue-table-family-name"></span>
+                    </th>
+                </tr>
+                <tr>
+                    <th>Código IBAMA</th>
+                    <th>Nome</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr id="route-client-residue-table-tr-none">
+                    <td colspan="2" class="text-center">Clique em uma familía para visualizar os Resíduos</td>
+                </tr>
+                @foreach (var item in Model.Model.Items)
+                {
+                    foreach (var residue in item.Residues)
+                    {
+                        <tr style="display:none;" data-family-id="@item.ResidueFamily.ResidueFamilyId">
+                            <td>@residue.IBAMACode</td>
+                            <td>@residue.Name</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script type="text/javascript" asp-cut-key="route-client-family" asp-cut-key-load-from-controller="@Model.LoadFromController">
+    function showResiduesTr(familyId, name)
+    {
+        $('#select-all-families-checkbox')[0].checked = false;
+
+        $('#route-client-residue-table-family-name').text('(' + name + ')');
+        $('#route-client-residue-table tbody tr').hide();
+
+        var trs = $('#route-client-residue-table tbody tr[data-family-id="' + familyId + '"]');
+
+        $(trs).show();
+        if (trs.length == 0) $('#route-client-residue-table-tr-none').show();
+    }
+
+    function _selectResidueFamiliesCallback()
+    {
+        if (typeof selectResidueFamiliesCallback != 'function') return;
+
+        if ($('#route-client-families-selection-table input[type="checkbox"][data-family-id]:checked').length == 0) {
+            bootbox.alert('Selecione ao menos uma família');
+            return;
+        }
+
+        var families = []
+
+        $('#route-client-families-selection-table input[type="checkbox"][data-family-id]:checked').each(function (i, e) {
+            families.push({
+                id: $(e).data('family-id'),
+                name: $(e).data('name')
+            });
+        });
+
+        selectResidueFamiliesCallback({
+            families,
+            clientCollectionAddressId: @Model.Model.ClientCollectionAddressId
+        });
+
+        selectAddresses();
+    }
+
+
+    function selectAllFamiliesCheckbox(sel) {
+        $('#route-client-families-selection-table input[type="checkbox"]').each(function (i, e) {
+            e.checked = sel.checked;
+        });
+    }
+
+</script>

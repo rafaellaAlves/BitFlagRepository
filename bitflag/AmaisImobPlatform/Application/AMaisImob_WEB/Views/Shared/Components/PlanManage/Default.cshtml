@@ -1,0 +1,54 @@
+﻿@model AMaisImob_WEB.Models.PlanViewModel
+
+<script type="text/javascript">
+    _MaskData();
+</script>
+
+<script type="text/javascript">
+
+function _PlanManageSave() {
+    ShowLoading();
+    var d = $('#_PlanManageForm').serializeArray();
+    $.post('@Url.Action("Manage", "Plan")', d, function (data) {
+            _PlanManageCallBack(data);
+	});
+}
+
+function _PlanManageValidate() {
+    var _PlanManagehasError = false;
+    $('.text-danger').remove();
+
+    if (IsNullOrWhiteSpace($('#_PlanManageName').val())) {
+        $('#_PlanManageName').after('<div class="text-danger">Preencha o nome.</div>');
+        _PlanManagehasError = true;
+	}
+
+    if (_PlanManagehasError) {
+        $('#_PlanManageAlertError').show();
+    } else {
+        $('#_PlanManageAlertError').hide();
+    }
+
+    return (!_PlanManagehasError);
+}
+
+</script>
+<div id="_PlanManageAlertError" class="alert alert-danger fade show text-center" role="alert" style="display: none;">
+    <strong>Atenção!</strong> O Formulário contém erros.
+</div>
+<form id="_PlanManageForm" method="post">
+    <input type="hidden" id="_PlanManageProductId" name="ProductId" value="@Model.ProductId" />
+    <input type="hidden" id="_PlanManagePlanId" name="PlanId" value="@Model.PlanId" />
+    <div class="form-row">
+        <div class="form-group col-md-12">
+            <label class="control-label" for="_PlanManageFirstName">Nome*</label>
+            <input type="text" class="form-control" id="_PlanManageName" name="Name" value="@Model.Name" placeholder="Nome">
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group col-md-12">
+            <label class="control-label" for="_PlanManageEmail">Descrição</label>
+            <textarea type="text" class="form-control" id="_PlanManageDescription" name="Description" placeholder="Descrição">@Model.Description</textarea>
+        </div>
+    </div>
+</form>

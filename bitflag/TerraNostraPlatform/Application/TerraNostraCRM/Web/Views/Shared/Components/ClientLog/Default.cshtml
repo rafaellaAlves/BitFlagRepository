@@ -1,0 +1,349 @@
+﻿@model DTO.Client.ClientLogDetalhadoViewModel
+<style type="text/css">
+    .list-item {
+        display: none;
+    }
+</style>
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card m-b-30">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-10">
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text" id="basic-addon1"><i class="simple-icon-magnifier"></i></span>
+                            </div>
+                            <input class="form-control" style="width:40%;" id="_ClientLogSearch" placeholder="Pesquisar..." />
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-success w-100" onclick="OpenNewLogModal()"><i class="simple-icon-plus"></i>&nbsp;<span style="padding:3px;">Novo</span></button>
+                    </div>
+                </div>
+                <hr />
+                <div class="table-responsive">
+                    <table class="display table table-striped table-bordered table-condensed" style="border-collapse: collapse !important; width:100%;">
+                        <thead>
+                            <tr>
+                                @*<td></td>*@
+                                <th>Assunto</th>
+                                <th>Mensagem / Anexo</th>
+                                <th>Responsável</th>
+                                <th>Data</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (int i = 0; i < Model.ClientLogs.Count; i++)
+                            {
+                                <tr class="email-unread list-item search-active">
+                                    @*<td>
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="@Model.ClientLogs[i].ClientLogId">
+                                    <label class="custom-control-label psn-abs" for="@Model.ClientLogs[i].ClientLogId"></label>
+                                </div>
+                            </td>*@
+                                    <td style="cursor:pointer;" data-search="@Model.ClientLogs[i].Title" onclick="OpenNewLogModal('@Model.ClientLogs[i].ClientLogId')">@Model.ClientLogs[i].Title</td>
+                                    <td style="cursor:pointer;" data-search="@Model.ClientLogs[i].PlainText" onclick="OpenNewLogModal('@Model.ClientLogs[i].ClientLogId')">
+                                        @if (Model.ClientLogs[i].PlainText.Length > 50)
+                                        {
+                                            @(Html.Raw(Model.ClientLogs[i].PlainText.Substring(0, 50) + "..."))
+                                        }
+                                        else
+                                        {
+                                            @(Html.Raw(Model.ClientLogs[i].PlainText))
+                                        }
+                                    </td>
+                                    <td style="cursor:pointer;  white-space: nowrap;" data-search="@Model.ClientLogs[i].UserFullName" onclick="OpenNewLogModal('@Model.ClientLogs[i].ClientLogId')">
+                                        @if (string.IsNullOrWhiteSpace(Model.ClientLogs[i].UserFullName))
+                                        {@("-")}
+                                    else
+                                    {@(Model.ClientLogs[i].UserFullName)}
+                                    </td>
+                                    @if (DateTime.Now.Year == Model.ClientLogs[i].CreatedDate.Year && DateTime.Now.Month == Model.ClientLogs[i].CreatedDate.Month && DateTime.Now.Day == Model.ClientLogs[i].CreatedDate.Day)
+                                    {
+                                        <td style="cursor:pointer; white-space: nowrap;" data-search="@Model.ClientLogs[i]._CreatedDateHour" onclick="OpenNewLogModal('@Model.ClientLogs[i].ClientLogId')">Hoje, @Model.ClientLogs[i]._CreatedDateHour</td>
+                                    }
+                                    else
+                                    {
+                                        <td style="cursor:pointer; white-space: nowrap;" data-search="@Model.ClientLogs[i]._CreatedDate" onclick="OpenNewLogModal('@Model.ClientLogs[i].ClientLogId')">@Model.ClientLogs[i]._CreatedDateTime</td>
+                                    }
+                                </tr>
+                            }
+                            @if (Model.ClientLogs.Count == 0)
+                            {
+                                <tr class="email-unread">
+                                    <td colspan="4"><i>Nenhum Item</i></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="row">
+                    <div class="col-6 col-md-6 align-self-center">
+                        <div class="email-show-label">
+                            <span>
+                                Mostrando de <span id="startPagination"></span> até <span id="endPagination"></span> de <span id="totalPagination">@Model.ClientLogs.Count</span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-6 align-self-center">
+                        <div class="email-pagination float-right">
+                            <ul class="pagination mb-0">
+                                <li class="page-item">
+                                    <a class="page-link" href="#" onclick="PrevPage()" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                        <span class="sr-only">Anterior</span>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="#" onclick="NextPage()" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                        <span class="sr-only">Próximo</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <hr />
+                <div class="row">
+                    <div class="col-md-12">
+                        <a href="@Url.Action("Index", "Client")" class="btn btn-secondary"><i class="simple-icon-arrow-left"></i> Voltar</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalNewLog" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalNewLogTitle">Novo Registro</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning" id="ErrorAlert" style="display:none;" role="alert">
+                    <label id="ErrorAlertText"></label>
+                </div>
+                <div class="alert alert-success" id="SuccessAlert" style="display:none;" role="alert">
+                    <label id="SuccessAlertText"></label>
+                </div>
+                <div id="ClientLogManageViewComponent"></div>
+            </div>
+            <div class="modal-footer" id="modalNewLogFooter">
+                <div class="row" style="width: 100%; margin: 0;">
+                    <div class="col-md-6">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-times"></i> Fechar</button>
+                    </div>
+                    <div class="col-md-6">
+                        <button type="button" class="btn btn-success float-right" id="SaveClientLogButton"><i class="simple-icon-cloud-upload"></i> Salvar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var itemsPerPage = 10;
+    var page = 1;
+
+    $('#modalNewLog').on('hidden.bs.modal', function () {
+        $('#title').val('');
+        $("#message").summernote("reset");
+    })
+
+    function OpenNewLogModal(id) {
+        $('#ErrorAlert').hide();
+        $('#SuccessAlert').hide();
+
+        if (id != null) {
+            $('#modalNewLogFooter').hide();
+        } else {
+            $('#modalNewLogFooter').show();
+        }
+
+        $('#ClientLogManageViewComponent').load('@Url.Action("ClientLogManageComponent", "Client")', { id: id, clientId: '@Model.Client.ClientId' });
+        $('#modalNewLog').modal('show');
+    }
+
+    $('#SaveClientLogButton').click(function () {
+        if (_ClientLogManageValidate()) {
+            _ClientLogManageSave(_ClientLogManageCallback);
+        }
+    });
+
+    function _ClientLogManageCallback(d) {
+        if (d.hasError) {
+            $('#ErrorAlert').show();
+            $('#ErrorAlertText').text(d.message);
+        } else {
+            window.location.reload();
+        }
+    }
+
+    function SelectAllChecks() {
+        var checks = $('input[type="checkbox"]');
+
+        if ($('#PrincipalCheckbox').hasClass('active')) {
+            $('#PrincipalCheckbox').find('i').removeClass('mdi-checkbox-marked-outline').addClass('mdi-checkbox-blank-outline');
+            $('#PrincipalCheckbox').removeClass('active');
+
+            for (var i = 0; i < checks.length; i++) {
+                checks[i].checked = false;
+            }
+
+        } else {
+            $('#PrincipalCheckbox').find('i').removeClass('mdi-checkbox-blank-outline').addClass('mdi-checkbox-marked-outline');
+            $('#PrincipalCheckbox').addClass('active');
+            for (var i = 0; i < checks.length; i++) {
+                if ($(checks[i]).parents('tr').is(":visible")) {
+                    checks[i].checked = true;
+                }
+            }
+        }
+    }
+
+    $('input[type="checkbox"]').change(function () {
+        var on = 0;
+        for (var i = 0; i < $('input[type="checkbox"]').length; i++) {
+            if ($('input[type="checkbox"]')[i].checked == true) on++;
+        }
+
+        if ($('input[type="checkbox"]').length == on) {
+            if (!$('#PrincipalCheckbox').hasClass('active')) {
+                $('#PrincipalCheckbox').addClass('active');
+                $('#PrincipalCheckbox').find('i').removeClass('mdi-checkbox-blank-outline').addClass('mdi-checkbox-marked-outline');
+            }
+        } else {
+            if ($('#PrincipalCheckbox').hasClass('active')) {
+                $('#PrincipalCheckbox').find('i').removeClass('mdi-checkbox-marked-outline').addClass('mdi-checkbox-blank-outline');
+                $('#PrincipalCheckbox').removeClass('active');
+            }
+        }
+    });
+
+    function Delete() {
+        var ids = [];
+        for (var i = 0; i < $('input[type="checkbox"]').length; i++) {
+            if ($('input[type="checkbox"]')[i].checked == true) {
+                ids.push({ name: 'clientLogIds', value: $($('input[type="checkbox"]')[i]).attr('id') });
+            }
+        }
+
+        if (ids.length == 0) {
+            alert('Nenhum Item Selecionado.');
+            return;
+        }
+
+        if (!confirm('Deseja realmente excluir os itens selecionados?')) return;
+
+        $.post('@Url.Action("DeleteClientLog", "Client")', ids, function (d) {
+            alert(d.message);
+            if (!d.hasError) {
+                window.location.reload();
+            }
+        });
+
+    }
+
+    function NextPage() {
+        if (page * itemsPerPage < $('.list-item.search-active').length) {
+            page++;
+            ShowLines();
+        }
+    }
+    function PrevPage() {
+        if (page > 1) {
+            page--;
+            ShowLines();
+        }
+    }
+
+    function ShowLines() {
+        HideAllChecks();
+
+        var finishIndex = page * itemsPerPage;
+
+        if (finishIndex - itemsPerPage + 1 > $('.list-item.search-active').length) {
+            $('#startPagination').text($('.list-item.search-active').length);
+        } else {
+            $('#startPagination').text(finishIndex - itemsPerPage + 1);
+        }
+
+        $('#totalPagination').text($('.list-item.search-active').length);
+
+        if (finishIndex > $('.list-item.search-active').length) {
+            $('#endPagination').text($('.list-item.search-active').length);
+        } else {
+            $('#endPagination').text(finishIndex);
+        }
+
+        for (var i = 0; i < $('.list-item').length; i++) {
+            $($('.list-item')[i]).hide();
+        }
+
+        var itemList = $('.list-item.search-active');
+        for (var i = 0; i < itemList.length; i++) {
+            if (i >= finishIndex - itemsPerPage && i < finishIndex) {
+                $(itemList[i]).show();
+            }
+        }
+    }
+
+    $(document).ready(function () {
+        ShowLines();
+    });
+
+    function HideAllChecks() {
+        if ($('#PrincipalCheckbox').hasClass('active')) {
+            $('#PrincipalCheckbox').find('i').removeClass('mdi-checkbox-marked-outline').addClass('mdi-checkbox-blank-outline');
+            $('#PrincipalCheckbox').removeClass('active');
+        }
+        for (var i = 0; i < $('input[type="checkbox"]').length; i++) {
+            $('input[type="checkbox"]')[i].checked = false;
+        }
+    }
+
+    function Search() {
+        page = 1;
+        var s = $('#_ClientLogSearch').val();
+        var item = $('.list-item');
+
+        for (var i = 0; i < item.length; i++) {
+            var childs = $(item[i]).children('td');
+            if ($(item[i]).hasClass('search-active')) {
+                $(item[i]).removeClass('search-active'); // remove a classe q valida o item para adicionar futuramente
+            }
+
+            for (var j = 0; j < childs.length; j++) {
+                var _s = $(childs[j]).data('search');
+                if (_s != null && _s.toString().toUpperCase().indexOf(s.toUpperCase()) != -1) {
+                    if (!$(item[i]).hasClass('search-active')) {
+                        $(item[i]).addClass('search-active');
+                        break;
+                    }
+                }
+            }
+
+        }
+
+        ShowLines();
+    }
+
+    var _ClientLogTypingTimer;
+    var _ClientLogDoneTypingInterval = 500;
+    $('#_ClientLogSearch').keyup(function () {
+        clearTimeout(_ClientLogDoneTypingInterval);
+        _ClientLogTypingTimer = setTimeout(Search, _ClientLogDoneTypingInterval);
+    });
+    $('#_ClientLogSearch').keydown(function () {
+        clearTimeout(Search);
+    });
+</script>

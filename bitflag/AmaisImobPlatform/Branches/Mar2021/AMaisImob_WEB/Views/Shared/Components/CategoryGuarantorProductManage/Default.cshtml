@@ -1,0 +1,235 @@
+﻿@model CategoryGuarantorProductTaxViewModel;
+@inject AMaisImob_WEB.BLL.ResidenceTypeFunctions residenceTypeFunctions
+
+@{
+    var noResidencialId = residenceTypeFunctions.GetByExternalCode("NAORESIDENCIAL").ResidenceTypeId;
+}
+
+<div id="_ErrorDiv" class="alert alert-danger fade show text-center" role="alert" style="display: none;">
+    <strong>Atenção!</strong>
+    <span id="_MessageError"></span>
+</div>
+<div id="_SuccessDiv" class="alert alert-success fade show text-center" role="alert" style="display: none;">
+    Os dados foram salvos com sucesso.
+</div>
+<form id="_CategoryGuarantorProductForm" method="post">
+    <div class="form-row">
+        <div class="form-group col-md-3">
+            <label class="control-label" for="">Garantidora*</label>
+            <select class="form-control" name="GuarantorId" id="GuarantorId">
+                <option value="">Selecione</option>
+                @foreach (var garantidora in (List<AMaisImob_DB.Models.Guarantor>)ViewData["guarantor"])
+                {
+                    if (Model.GuarantorId == garantidora.GuarantorId)
+                    {
+                        <option selected value="@garantidora.GuarantorId">@garantidora.NomeFantasia</option>
+                        continue;
+                    }
+
+                    <option value="@garantidora.GuarantorId">@garantidora.NomeFantasia</option>
+                }
+            </select>
+        </div>
+        <input name="CategoryGuarantorProductTaxId" value="@Model.CategoryGuarantorProductTaxId" type="hidden" />
+        <div class="form-group col-md">
+            <label class="control-label" for="">Categoria*</label>
+            <select class="form-control" name="CategoryId" id="_Category">
+                <option value="">Selecione</option>
+                @foreach (var categoria in (List<AMaisImob_DB.Models.Category>)ViewData["Categorias"])
+                {
+                    <option data-categoryaExternalCode="@categoria.ExternalCode" value="@categoria.CategoryId">@categoria.Description</option>
+                }
+            </select>
+        </div>
+        <div class="form-group col-md">
+            <label class="control-label">Produtos Garantidores</label>
+            <select class="form-control" name="GuarantorProductId" id="_ProdutosGarantidores">
+                <option value="">Selecione</option>
+                @foreach (var products in (List<AMaisImob_DB.Models.GuarantorProduct>)ViewData["ProdutosGarantidores"])
+                {
+                    <option data-productExternalCode="@products.ExternalCode" value="@products.GuarantorProductId">@products.Description</option>
+                }
+            </select>
+        </div>
+        <div class="form-group col-md">
+            <label>Tipo Imóvel</label>
+            <select class="form-control" id="TipoImovel" name="TipoImovel" onchange="updateNoneCategoryText()">
+                @foreach (var item in residenceTypeFunctions.GetData())
+                {
+                    if (Model.TipoImovel == item.ResidenceTypeId)
+                    {
+                        <option value="@item.ResidenceTypeId" selected>@item.Name</option>
+                        continue;
+                    }
+
+                    <option value="@item.ResidenceTypeId">@item.Name</option>
+                }
+            </select>
+        </div>
+        <div class="form-group col-md">
+            <label class="control-label">Taxa Mês (%)</label>
+            <input class="form-control money" id="_TaxaMes" value="@Model._TaxaMes" name="_TaxaMes" placeholder="Taxa Mês" />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-3">
+            <label class="control-label">Limite máximo de aluguel</label>
+            <input class="form-control money" value="@Model._MaxRentPrice" name="_MaxRentPrice" placeholder="Limite máximo de aluguel" />
+        </div>
+        <div class="col-md-3">
+            <label class="control-label">Limite máximo de aluguel + encargos</label>
+            <input class="form-control money" value="@Model._MaxRentAndChargesPrice" name="_MaxRentAndChargesPrice" placeholder="Limite máximo de aluguel + encargos" />
+        </div>
+        <div class="col-md-2">
+            <label class="control-label">Ativo?</label>
+            <label class="control-label">Ativo?</label>
+            <select class="form-control" id="Active" name="Active">
+                @if(Model.Active != null)
+                {
+                    <option value="@Model.Active" selected>@if (Model.Active == true)
+                    { <text>Sim</text>}
+                    else { <text>Não</text>}</option>
+                }
+                <option value="True">Sim</option>
+                <option value="False">Não</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="col-md-12">
+            <hr />
+            <label>Descrição</label>
+            <textarea id="description">@Model.Description</textarea>
+        </div>
+    </div>
+</form>
+
+@if (Model.CategoryGuarantorProductTaxId != null)
+{
+    <script type="text/javascript">
+        $('#_ProdutosGarantidores').find('[value=' + "@Model.GuarantorProductId" + ']').attr('selected', true);
+        $('#_Category').find('[value="' + @(Model.CategoryId??0) + '"]').attr('selected', true);
+        $('#GuarantorId').find('[value="' + @Model.GuarantorId + '"]').attr('selected', true);
+    </script>
+}
+
+
+<script type="text/javascript">
+        function CategoryGuarantorProductManageSave() {
+            var d = $('#_CategoryGuarantorProductForm').serializeArray();
+            d.push({ name: "Description", value: $('#description').summernote('code') });
+
+            $.post('@Url.Action("Manage", "CategoryGuarantorProduct")', d, function (data) {
+                if (data.hasError == true) {
+                    $('#_ErrorDiv').show();
+                    $('#_MessageError').text(data.message);
+                    return false;
+                }
+                else {
+                    window.location.href = '@Url.Action("Index", "CategoryGuarantorProduct")';
+                    }
+	            });
+    }
+
+    function RightSelectOptions() {
+        $('.text-danger').remove();
+
+        var idCategory = $('#_Category').val();
+        $('#_ProdutosGarantidores').empty();
+
+        if (IsNullOrWhiteSpace(idCategory) && $('#TipoImovel').val() != @noResidencialId) {
+
+            $('#_ProdutosGarantidores').append('<option value="">Selecione</option>');
+        }
+        else {
+            $.post('@Url.Action("BuscarProdutosGarantidores", "CategoryGuarantorProduct")', { id: idCategory }, function (data) {
+                $.each(data, function (i, e) {
+                    $('#_ProdutosGarantidores').append('<option value="' + e.guarantorProductId + '">' + e.description + '</option>');
+                });
+            });
+        }
+    }
+
+    function VerificarCamposTaxas() {
+        var taxaMes = $('#_TaxaMes').val();
+
+        if (taxaMes < 0) {
+            $('#_ErrorDiv').show();
+            $('#_MessageError').text('A taxa não pode ser negativa');
+            return false;
+        }
+
+        else if (taxaMes > 100) {
+            $('#_ErrorDiv').show();
+            $('#_MessageError').text('A taxa ultrapassou o maximo de 100%');
+            return false;
+        }
+
+        else {
+            $('#_ErrorDiv').hide();
+            return true;
+        }
+    }
+
+    function CamposSelecionados() {
+        $('.text-danger').remove();
+
+        if (IsNullOrWhiteSpace($('#_Category').val()) && $('#TipoImovel').val() != @noResidencialId) {
+            $('#_Category').after('<div class="text-danger">Selecione uma categoria.</div>');
+            return false;
+        }
+        else if (IsNullOrWhiteSpace($('#_ProdutosGarantidores').val())) {
+            $('#_ProdutosGarantidores').after('<div class="text-danger">Selecione um produto.</div>');
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+
+    $('#_Category').change(function () {
+        RightSelectOptions();
+    });
+
+    @if (Model.CategoryGuarantorProductTaxId != null)
+{
+    <text>
+        $('#TipoImovel').find('[value=' + "@Model.TipoImovel" + ']').attr('selected', true);
+    </text>
+}
+
+    function updateNoneCategoryText(start) {
+        if(!start) RightSelectOptions();
+
+        if ($('#TipoImovel').val() == @noResidencialId) {
+            $('#_Category option[value=""]').text("Todos");
+            return;
+        }
+
+        $('#_Category option[value=""]').text("Selecione");
+    }
+
+
+    $(document).ready(function () {
+        updateNoneCategoryText(true);
+
+        $('#description').summernote({
+            toolbar: [
+                ['style', ['bold', 'italic', 'underline', 'clear']],
+                ['font', ['strikethrough', 'superscript', 'subscript']],
+                ['fontsize', ['fontsize']],
+                ['color', ['color']],
+                ['para', ['ul', 'ol', 'paragraph']],
+                ['height', ['height']]
+            ],
+            height: 150
+        });
+
+        _MaskData();
+    });
+
+    function Contract(guarantorId)
+    {
+
+    }
+</script>

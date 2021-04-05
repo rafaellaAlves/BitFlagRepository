@@ -1,0 +1,233 @@
+﻿@inject Services.DemandDestination.DemandDestinationStatusServices demandDestinationStatusServices
+@inject Services.DemandDestination.DemandDestinationServices demandDestinationServices
+@inject Web.Helpers.DropDownListHelper dropDownListHelper
+
+<div class="row" id="demand-destination-index-table-filter-area">
+    <div class="col-md form-group">
+        <input type="text" class="form-control" placeholder="Pesquisar..." data-toggle="search-datatable" data-target="#demand-destination-table" />
+    </div>
+    <div class="col-md-auto col-12 form-group">
+        @Html.DropDownList("DemandDestinationStatusId", dropDownListHelper.ToSelectListItem((await demandDestinationStatusServices.GetDataAsNoTrackingAsync()).OrderBy(x => x.Order), x => x.DemandDestinationStatusId, x => x.Name, ""), "Status da Destinação", new { Class = "form-control", onchange = "demandDestinationDatatables.draw();" })
+    </div>
+    <div class="col-md-auto col-12 form-group">
+        <a href= "@Url.Action("Manage", "DemandDestination")" class="btn btn-primary w-100"><i class="simple-icon-plus"></i>&nbsp;Novo</a>
+    </div>
+</div>
+<hr />
+<div class="row">
+    <div class="col-12 text-center mb-1" style="font-size: 18px;">
+        <b>@(await demandDestinationServices.GetDemandDestinationsThisMonth())</b> MTR(s) de Destinação feitos este mês.
+    </div>
+    <div class="col">
+        <table id="demand-destination-table" class="display nowrap table table-striped table-bordered table-condensed w-100 tablesizeline" style="border-collapse: collapse !important;">
+            <thead>
+                <tr>
+                    <th>MTR</th>
+                    <th style="text-align:center">Saída</th>
+                    <th style="text-align:center">Chegada</th>
+                    <th>Destinador</th>
+                    <th>Família</th>
+                    <th>Destinação</th>
+                    @*<th>MTR de Coletas</th>*@
+                    <th>CDF</th>
+                    <th width="80px">&nbsp;</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<script asp-cut-key="demand-destination-index">
+    var demandDestinationDatatables;
+    $(document).ready(function () {
+        demandDestinationDatatables = $('#demand-destination-table').DataTable({
+            order: [[9, "asc"]],
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            pageLength: 30,
+            dom: 'tip',
+            scrollX: true,
+            ajax: {
+                url: '@Url.Action("List", "DemandDestination")',
+                type: 'POST'
+            },
+            columnDefs: [{
+                targets: [0],
+                orderData: [8]
+            }],
+            columns: [
+                { render: function (data, type, row) { return '<div class="text-center">' + row.destineJaDemandDestinationId + '</div>'; } },
+                { render: function (data, type, row) { return '<div class="text-center">' + row._DepartureDate + '</div>'; } },
+                { render: function (data, type, row) { return '<div class="text-center">' + row._ArrivedDate + '</div>'; } },
+                { render: function (data, type, row) { return row.companyName; } },
+                { render: function (data, type, row) { return row.residueFamilyName; } },
+                { render: function (data, type, row) { return '<div data-status-id="' + row.demandDestinationStatusId + '">' + row.demandDestintionStatusName + '</div>'; } },
+                //{ render: function (data, type, row) { return isNull(row.demandIds, '-'); } },
+                { render: function (data, type, row) { return isNull(row.cdf, '-'); } },
+                {
+                    render: function (data, type, row)
+                    {
+                        var r = '<div class="text-center">' +
+                            '&nbsp;<a href=\'javascript:openDemandList("' + row.demandDestinationId + '")\' title="Editar"><span class="badge badge-pill badge-primary" title="MTRs de Coletas"><i class="simple-icon-directions"></i></span></a>' +
+                            '&nbsp;<a href=\'@Url.Action("Manage", "DemandDestination")?id=' + row.demandDestinationId + '\' title="Editar"><span class="badge badge-pill badge-success"><i class="simple-icon-note"></i></span></a>';
+
+                        if (!row.finished) {
+                            r += '&nbsp;<a href=\'@Url.Action("Finish", "DemandDestination")?id=' + row.demandDestinationId + '\' title="Fechar Destinação"><span class="badge badge-pill badge-primary"><i class="simple-icon-lock"></i></span></a>';
+                        } else {
+                            r += '&nbsp;<a href=\'@Url.Action("Finish", "DemandDestination")?id=' + row.demandDestinationId + '\' title="Visualizar/Editar Fechamento"><span class="badge badge-pill badge-danger"><i class="simple-icon-lock"></i></span></a>';
+                            r += '&nbsp;<a href=\'javascript:unlockDestinationDemand("' + row.destineJaDemandDestinationId + '", ' + row.demandDestinationId + ')\' title="Abrir MTR de Destinação"><span class="badge badge-pill badge-warning"><i class="fa fa-unlock"></i></span></a>';
+                        }
+
+                        r += '</div>';
+
+                        return r;
+                    }
+                },
+                { visible: false, render: function (data, type, row) { return row.destineJaDemandDestinationId; } }
+                , {
+                    visible: false, render: function (data, type, row) {
+                        return row.demandDestintionStatusOrder;
+                    }
+                }
+            ]
+        });
+    });
+
+    function unlockDestinationDemand(destineJaDemandDestinationId, demandId) {
+        bootbox.prompt({
+            title: "Deseja realmente abrir a destinação \"" + destineJaDemandDestinationId + "\"?<br/>Insira o motivo a baixo:",
+            inputType: 'textarea',
+            buttons: {
+                confirm: {
+                    label: 'Sim',
+                    className: 'btn-success'
+                },
+                cancel: {
+                    label: 'Não',
+                    className: 'btn-danger mr-auto float-left'
+                }
+            },
+            callback: function (result) {
+                if (result == null) return;
+
+                $.post('@Url.Action("Unlock", "DemandDestination")', { demandId, reason: result }, function (d) {
+                    bootbox.alert(d.message);
+                    if (d.hasError) return;
+
+                    demandDestinationDatatables.ajax.reload();
+                });
+            }
+        });
+    }
+
+    $.fn.dataTable.ext.search.push(
+        function (settings, data, dataIndex) {
+            if (settings.sInstance != "demand-destination-table") return true;
+
+            var r = true;
+
+            var statusID = $('#demand-destination-index-table-filter-area [name="DemandDestinationStatusId"]').val();
+
+            r = isNullOrWhiteSpace(statusID) || statusID == $(settings.aoData[dataIndex].anCells[5]).find('[data-status-id]').data('status-id');
+
+            return r;
+        }
+    );
+
+    function openDemandList(demandDestinationId)
+    {
+        $('#demand-destination-index-demands-table tbody').empty();
+
+        $.post('@Url.Action("GetDemandsFromDemandDestination", "DemandDestination")', { demandDestinationId }, function (d) {
+            $.each(d, function (i, e) {
+                var tr = $('<tr>');
+                tr.append($('<td>').append('<a target="_blank" href="@Url.Action("Manage", "Demand")?id=' + e.demandId + '">' + e.destinaJaDemandId + '</a>'));
+                tr.append($('<td>', {class: 'text-center'}).append('<a href="javascript:openDemandClientModal(' + e.demandId + ')">' + e.totalClient + '</a>'));
+                tr.append($('<td>').append(e._DepartureDate));
+                tr.append($('<td>').append(e._ArriveDate));
+                //tr.append($('<td>').append(e.routeName));
+                tr.append($('<td>').append(e._TotalWeight));
+
+                $('#demand-destination-index-demands-table tbody').append(tr);
+            });
+
+            if ($('#demand-destination-index-demands-table tbody tr').length == 0) {
+                var tr = $('<tr>').append($('<td>', { colspan: 5 }).append('Nenhum MTR de Coleta.'));
+
+                $('#demand-destination-index-demands-table tbody').append(tr);
+            }
+
+            $('#demand-destination-index-demands').modal('show');
+        });
+    }
+
+    function openDemandClientModal(demandId)
+    {
+        $('#demand-destination-index-demand-clients-view-component').load('@Url.Action("LoadDemandClientQuickListViewComponent", "Demand")', { demandId }, function () {
+            $('#demand-destination-index-demand-clients').modal('show');
+            InitializeFunctions();
+        });
+    }
+
+    $('#demand-destination-index-demand-clients').on('show.bs.modal', function () {
+        $('#demand-destination-index-demands').css('opacity', 0);
+    }).on('hidden.bs.modal', function () {
+        $('#demand-destination-index-demands').css('opacity', 1);
+    });
+</script>
+
+<div class="modal fade" id="demand-destination-index-demands" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content" style="max-width: 550px;">
+            <div class="modal-header">
+                <h5 class="modal-title tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold" id="demand-destination-index-demands-title">MTR de Coletas</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col table-responsive">
+                        <table class="table table-striped table-condensed table-bordered" id="demand-destination-index-demands-table">
+                            <thead>
+                                <tr>
+                                    <td>MTR</td>
+                                    <td>Qtd. de Clientes</td>
+                                    <td>Saída</td>
+                                    <td>Chegada</td>
+                                    <td>Peso (Kg)</td>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="col-md-12">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="simple-icon-close"></i>&nbsp;Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="demand-destination-index-demand-clients" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content" style="max-width: 550px;">
+            <div class="modal-header">
+                <h5 class="modal-title tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold" id="demand-destination-index-demand-clients-title">Geradores</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+            </div>
+            <div class="modal-body">
+                <div id="demand-destination-index-demand-clients-view-component"></div>
+            </div>
+            <div class="modal-footer">
+                <div class="col-md-12">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="simple-icon-close"></i>&nbsp;Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

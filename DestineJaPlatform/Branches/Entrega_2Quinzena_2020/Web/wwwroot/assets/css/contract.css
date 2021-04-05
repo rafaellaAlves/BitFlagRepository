@@ -1,0 +1,22 @@
+﻿
+.lightRed, .lightRed td {
+    background-color: #fbc8c8 !important;
+}
+
+.lightYellow, .lightYellow td {
+    background-color: #fffbcf !important;
+}
+
+.lightGreen, .lightGreen td {
+    background-color: #e1ffce !important;
+}
+
+#row-total label {
+    cursor: pointer;
+}
+
+.select2.select2-container, .select2-selection {
+    min-width: 140px;
+    min-height: 40px !important;
+    width: auto !important;
+}

@@ -1,0 +1,151 @@
+﻿@model DTO.Shared.EntityViewMode<List<DTO.Client.Report.ClientReportCollectionMapViewModel>>
+@{
+	List<string> chartCategories = new List<string>();
+	List<object> chartData = new List<object>();
+}
+<div class="card ">
+	<div class="card-header card-header-default card-header-destineja-green tx-uppercase justify-content-between bg-gray-400">
+		<h6 class="mg-b-0 tx-14 tx-inverse"><i class="fa fa-table"></i>&nbsp;Tabela</h6>
+        <div class="card-option">
+            <button type="button" class="btn btn-sm btn-primary" style="border-radius: 3px;" onclick="downloadListPrint(collectionMapTable, [collectionMapChart], 'Relatório - Mapa de Coleta - Resíduos')"><i class="simple-icon-cloud-download"></i> Download</button>
+            <button type="button" class="btn btn-sm btn-primary" style="border-radius: 3px;" onclick="openListPrint(collectionMapTable, [collectionMapChart], 'Relatório - Mapa de Coleta - Resíduos')"><i class="simple-icon-printer"></i> Imprimir</button>
+            <a href="" class="tx-gray-600 hover-white mg-l-10" data-toggle="collapse" aria-expanded="true" data-target="#client-collection-table-area"><i class="simple-icon-arrow-up lh-0"></i></a>
+        </div>
+	</div>
+	<div class="card-body bd collapse show" id="client-collection-table-area">
+		<div class="row">
+			<div class="col">
+				<table class="table nowrap table-condensed table-bordered w-100 tablesizeline" id="client-collection-list-table">
+					<thead>
+						<tr>
+							<th></th>
+							@if (Model.Model.Count > 0)
+							{
+								foreach (var item in Model.Model.GroupBy(x => x.ResidueFamilyName).FirstOrDefault())
+								{
+									chartCategories.Add(item._Month);
+
+									<th>@item._Month</th>
+								}
+							}
+							<th>Total</th>
+						</tr>
+					</thead>
+					<tbody>
+						@{
+							int i = 0;
+							foreach (var group in Model.Model.GroupBy(x => x.ResidueFamilyName))
+							{
+
+								chartData.Add(new { name = group.Key, data = group.Select(x => x.Weight) });
+
+								<tr class="@(i % 2 == 0 ? "tr-pair" : "tr-odd")">
+									<td>@group.Key</td>
+									@foreach (var item in group)
+									{
+										<td>@item._Weight</td>
+									}
+									<td>@group.Sum(x => x.Weight).ToWeightPtBr()</td>
+								</tr>
+								i++;
+							}
+							if (Model.Model.Count > 1)
+							{
+								<tr class="tr-dark-alt">
+									<td>TOTAL</td>
+									@foreach (var group in Model.Model.GroupBy(x => x.Month))
+									{
+										<td>@group.Sum(x => x.Weight).ToWeightPtBr()</td>
+									}
+									<td>@Model.Model.Sum(x => x.Weight).ToWeightPtBr()</td>
+								</tr>
+							}
+						}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+<br />
+<div class="card ">
+	<div class="card-header card-header-default card-header-destineja-green tx-uppercase justify-content-between  bg-gray-400">
+		<h6 class="mg-b-0 tx-14 tx-inverse"><i class="fa fa-bar-chart"></i>&nbsp;Gráfico</h6>
+		<div class="card-option">
+			<a href="" class="tx-gray-600 hover-white mg-l-10" data-toggle="collapse" aria-expanded="true" data-target="#client-collection-chart-area"><i class="simple-icon-arrow-up lh-0"></i></a>
+		</div>
+	</div>
+	<div class="card-body bd collapse show" id="client-collection-chart-area">
+		<div class="row">
+			<div class="col">
+				<div id="client-collection-chart"></div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="row">
+	<div class="col">
+	</div>
+</div>
+
+<script type="text/javascript" asp-cut-key="report-collection-map" asp-cut-key-load-from-controller="@Model.LoadFromController">
+	var collectionMapChart, collectionMapTable;
+
+	$(document).ready(function () {
+		collectionMapTable = $('#client-collection-list-table').DataTable({
+			serverSide: false,
+			proccessing: true,
+			searching: true,
+			lengthChange: false,
+			dom: 'tip',
+			paging: false,
+			info: false,
+			ordering: false,
+			scrollX: true
+		});
+
+		mountClientCollectionMapChart();
+	});
+
+	function mountClientCollectionMapChart() {
+		collectionMapChart = Highcharts.chart('client-collection-chart', {
+			credits: {
+				enabled: false
+			},
+			exporting: {
+				enabled: false
+			},
+			chart: {
+				type: 'column'
+			},
+			title: {
+				text: ''
+			},
+			xAxis: {
+				categories: [@Html.Raw(string.Join(", ", chartCategories.Select(x => $"\"{x}\"")))],
+				crosshair: true
+			},
+			yAxis: {
+				min: 0,
+				title: {
+					text: 'Peso (Kg)'
+				}
+			},
+			tooltip: {
+				headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+				pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+					'<td style="padding:0"><b>{point.y:.1f} Kg</b></td></tr>',
+				footerFormat: '</table>',
+				shared: true,
+				useHTML: true
+			},
+			plotOptions: {
+				column: {
+					pointPadding: 0.2,
+					borderWidth: 0
+				}
+			},
+			series: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(chartData)),
+		});
+	}
+</script>

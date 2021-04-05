@@ -1,0 +1,124 @@
+﻿
+@{
+    ViewData["Title"] = "Agrupamentos do Sistema";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link rel="stylesheet" href="@Url.Content("~/Assets/Common/Custom/style/jqtree.css")" />
+
+<div class="card shadow">
+    <div class="card-header">
+        Agrupamentos do Sistema
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-12">
+                <h3><span id="groupName">GLAS</span><br /><small><span id="groupDescription">Gestão e Assessoria em Legislação Ambiental e Segurança do Trabalho</span></small></h3>
+            </div>
+        </div>
+        <hr />
+        <div id="groupControls">
+            <div class="text-left">
+                <div class="btn-group" role="group">
+                    <button id="buttonNewGroup" class="btn btn-sm btn-success" data-toggle="modal" data-target="#newGroupModal"><i class="fa fa-plus"></i>&nbsp;Novo Grupo</button>
+                    <button id="buttonAddCompany" class="btn btn-sm btn-info" data-toggle="modal" data-target="#addCompanyModal"><i class="fa fa-building"></i>&nbsp;Nova Unidade de Negócio</button>
+                    <button id="buttonRenameGroup" class="btn btn-sm btn-warning" data-toggle="modal" data-target="#updateGroupModal"><i class="fa fa-edit"></i>&nbsp;Renomear Grupo</button>
+                    <button id="buttonRemoveGroup" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#removeGroupModal"><i class="fa fa-times-circle"></i>&nbsp;Excluir Grupo</button>
+                </div>
+                <div class="btn-group" role="group">
+					<button type="button" class="btn  btn-sm btn-primary" data-toggle="modal" data-target="#addLawModal"><i class="fa fa-gavel"></i>&nbsp;Associar Requisito legal</button>
+                </div>
+            </div>
+        </div>
+        <div id="companyControls" style="display: none;">
+            <div class="text-left">
+                <div class="btn-group" role="group">
+                    <a href="javascript:void(0)" onclick="ViewCompany()" class="btn btn-sm btn-info"><i class="fa fa-eye"></i>&nbsp;Ver Unidade Negócio</a>
+                    <button class="btn btn-sm btn-danger" data-toggle="modal" data-target="#removeCompanyModal"><i class="fa fa-times-circle"></i>&nbsp;Remover Unidade de Negócio</button>
+                </div>
+            </div>
+        </div>
+        <hr />
+        <div id="tree"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function UpdateTreeNode(node) {
+        if (node == null) {
+            $('#groupName').html('<i>Nenhum item selecionado.</i>');
+            $('#groupDescription').html('<i>Escolha um item na árvore ao lado.</i>');
+            $('#groupControls').hide();
+            $('#companyControls').hide();
+            return;
+        }
+
+        $('#groupName').html(node.Name);
+        $('#groupDescription').html(node.Description);
+
+
+        if (node.IsCompany) {
+            $('#groupControls').hide();
+            $('#companyControls').show();
+        } else if (node.GroupId == null) {
+            $('#groupControls').show();
+            $('#buttonNewGroup').show();
+            $('#buttonRenameGroup').hide();
+            $('#buttonRemoveGroup').hide();
+            $('#buttonAddCompany').show();
+            $('#companyControls').hide();
+        } else {
+            $('#groupControls').show();
+            $('#buttonNewGroup').show();
+            $('#buttonRenameGroup').show();
+            $('#buttonRemoveGroup').show();
+            $('#companyControls').hide();
+            $('#groupControls').show();
+        }
+    }
+    function UpdateTreeView(data) {
+        $('#tree').tree({
+            data: data,
+            autoOpen: true,
+            closedIcon: $('<i class="fa fa-plus-circle"></i>'),
+            openedIcon: $('<i class="fa fa-minus-circle"></i>'),
+            onCreateLi: function (node, $li, is_selected) {
+                if (node.IsCompany) {
+                    $li.find('.jqtree-title').after('&nbsp;<span class="far fa-building"></span>');
+                }
+            }
+        });
+        $('#tree').bind(
+            'tree.select',
+            function (event) {
+                var node = event.node;
+                UpdateTreeNode(node);
+            }
+        );
+        var firstNode = $('#tree').tree('getNodeByName', 'GLAS');
+        $('#tree').tree('selectNode', firstNode);
+    }
+    $(document).ready(function () {
+        $.ajax({
+            url: '@Url.Action("GetCompanyModelHierarchized", "GroupManagement")',
+            type: 'POST',
+            data: { parentId: null },
+            dataType: 'json',
+            success: function (data) {
+                UpdateTreeView(data);
+            }
+        });
+    });
+    function ViewCompany() {
+        var node = $('#tree').tree('getSelectedNode');
+        if (node == null) return;
+        if (node.IsCompany == false) return;
+        window.open('@Url.Action("Index", "CompanyManagement")?id=' + node.Company.CompanyId, '_blank');
+    }
+</script>
+
+@{ Html.RenderPartial("~/Views/GroupManagement/Partial/_NewGroupModal.cshtml"); }
+@{ Html.RenderPartial("~/Views/GroupManagement/Partial/_AddCompanyModal.cshtml"); }
+@{ Html.RenderPartial("~/Views/GroupManagement/Partial/_UpdateGroupModal.cshtml"); }
+@{ Html.RenderPartial("~/Views/GroupManagement/Partial/_RemoveGroupModal.cshtml"); }
+@{ Html.RenderPartial("~/Views/GroupManagement/Partial/_RemoveCompanyModal.cshtml"); }
+@{ Html.RenderPartial("~/Views/GroupManagement/Partial/_AddLawModal.cshtml"); }

@@ -1,0 +1,382 @@
+﻿@model GuardMedWeb.Models.SeguradoProfissionalViewModel
+@using GuardMedWeb.BLL.Utils
+
+@inject GuardMedWeb.DAL.GuardMedWebContext context
+@inject GuardMedWeb.BLL.SeguradoProfissional.SeguradoProfissionalFunctions seguradoProfissionalFunctions
+
+@{
+    ViewData["Title"] = "GuardMed";
+
+    double? desconto = null;
+    double precoMensal = 0, precoAnual = 0, precoAnualSemDesconto = 0, precoMensalSemDesconto = 0;
+    double.TryParse(ViewData["PrecoMensal"].ToString(), out precoMensal);
+
+    precoMensal = (double)ViewData["PrecoMensal"];
+    precoAnual = Model.PrecoTotal.Value;
+    precoAnualSemDesconto = precoAnual;
+    precoMensalSemDesconto = precoMensal;
+
+    if (ViewData.ContainsKey("Desconto"))
+    {
+        desconto = (double)ViewData["Desconto"];
+        precoAnual *= (100 - (double)desconto) / 100;
+        precoMensal *= (100 - (double)desconto) / 100;
+    }
+
+    var renewedInsurance = Model.RenovadoPor.HasValue ? seguradoProfissionalFunctions.GetDataByID(Model.RenovadoPor) : null;
+}
+@if (!Model.RenovacaoPagamentoBloqueado)
+{
+    Html.RenderPartial("~/Views/SeguroProfissional/Shared/_StepCotacao.cshtml");
+}
+
+<br />
+@{ Html.RenderPartial("~/Views/Shared/_ProdutoSelecionado.cshtml", new ViewDataDictionary(this.Vi‌​ewData) { { "model", Model } }); }
+<br />
+
+<div id="loading" style="position: fixed; top: 0; left: 0; height: 100%; width: 100%; background-color: rgba(0, 0, 0, 0.6); z-index: 1000; display: none;">
+    <div style="position: fixed; height: 300px; width: 100%; top: 50%; margin-top: -150px; text-align: center;">
+        <img src="@Url.Content("~/assets/images/Rolling-1s-200px.svg")" style="position: relative; height: 200px; width: 200px;" />
+        <br />
+        <b style="color: white; background-color: #000000; padding: 0.5em;">Processando seu pagamento, por favor, continue conectado.</b>
+    </div>
+</div>
+
+<input type="hidden" name="reference" value="@Model.Referencia" />
+<div class="card bg-light">
+    <div class="card-header">
+        <h5 class="amaisvet-green">Formas de Pagamento</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label class="control-label">Forma de pagamento</label>
+                    <form id="form" method="post" action="@Url.Action("Pagamento", "SeguroProfissional")">
+                        <input type="hidden" name="reference" value="@Model.Referencia" />
+                        @if (Model.RenovacaoPagamentoBloqueado)
+                        {
+                            <input type="hidden" value="@Model.PagamentoTipoId" name="PagamentoTipoId" />
+                        }
+                        <select id="PagamentoTipoId" name="@(Model.RenovacaoPagamentoBloqueado ? "" : "PagamentoTipoId")" class="form-control" @(Model.RenovacaoPagamentoBloqueado ? "disabled" : "")>
+                            <option value="1" selected="@(Model.PagamentoTipoId == 1 || (!Model.PagamentoTipoId.HasValue && renewedInsurance?.PagamentoTipoId == 1))">Boleto Bancário - R$ @(precoAnual.ToPtBr()) à vista</option>
+                            <option value="2" selected="@(Model.PagamentoTipoId == 2 || (!Model.PagamentoTipoId.HasValue && renewedInsurance?.PagamentoTipoId == 2))">Cartão de Crédito - R$ @(precoMensal.ToPtBr()) por mês</option>
+                        </select>
+                    </form>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div id="DivCartaoDeCredito" style="@(Model.PagamentoTipoId == 2 || (!Model.PagamentoTipoId.HasValue && renewedInsurance?.PagamentoTipoId == 2) ? "" : "display: none;")">
+                    <div class="row">
+                        <div class="col-md text-center">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <b>Cartão de Crédito</b>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <i style="font-size: 5em;" class="fas fa-credit-card"></i>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+
+                                            @if (!desconto.HasValue)
+                                            {
+                                                <b>R$ @(precoMensal.ToPtBr()) por mês</b>
+                                            }
+                                            else
+                                            {
+                                                <b><span style="text-decoration:line-through; color:red; font-size:12px;"><span style="color:black;">R$ @(precoMensalSemDesconto.ToPtBr())</span></span></b>
+                                                <br />
+                                                <b>R$ @(precoMensal.ToPtBr()) por mês</b>
+                                            }
+                                        </div>
+                                    </div>
+                                    <hr />
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <i class="fab fa-cc-visa fa-2x"></i>&nbsp;
+                                            <i class="fab fa-cc-mastercard fa-2x"></i>&nbsp;
+                                            <i class="fab fa-cc-amex fa-2x"></i>&nbsp;
+                                            <i class="fab fa-cc-diners-club fa-2x"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @if (!Context.Request.Query.ContainsKey("RenewToken"))
+                        {
+                            <div class="col-md-6">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label>Número do Cartão</label>
+                                            <input id="CC_Numero" placeholder="Número no Cartão de Crédito" type="text" class="form-control form-control-sm" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label>Titular do Cartão</label>
+                                            <input id="CC_Nome" placeholder="Nome no Cartão de Crédito" type="text" class="form-control form-control-sm" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label>Mês</label>
+                                            <input id="CC_Mes" placeholder="MM" type="text" class="form-control form-control-sm" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label>Ano</label>
+                                            <input id="CC_Ano" placeholder="AAAA" type="text" class="form-control form-control-sm" />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label>CVV</label>
+                                            <input id="CC_CVV" placeholder="CVV" type="text" class="form-control form-control-sm" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div id="DivBoletoBancario" style="text-align: center; @((Model.PagamentoTipoId == 1 || (!Model.PagamentoTipoId.HasValue && renewedInsurance?.PagamentoTipoId == 1)) || renewedInsurance == null? "" : "display: none;")">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <b>Boleto Bancário</b>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <i style="font-size: 5em;" class="fas fa-barcode"></i>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            @if (!desconto.HasValue)
+                            {
+                                <b>R$ @(precoAnual.ToPtBr()) à vista</b>
+                            }
+                            else
+                            {
+                                <b><span style="text-decoration:line-through; color:red; font-size:12px;"><span style="color:black;">R$ @(precoAnualSemDesconto.ToPtBr())</span></span></b>
+                                <br />
+                                <b>R$ @(precoAnual.ToPtBr()) à vista</b>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer">
+        @if (renewedInsurance == null || !Model.RenovacaoPagamentoBloqueado)
+        {
+            <a href="@Url.Action(Context.Request.Query.ContainsKey("RenewToken")? "DetailRenew" : "Formulario", "SeguroProfissional")?reference=@Model.Referencia@(Context.Request.Query.ContainsKey("RenewToken")? $"&RenewToken={Context.Request.Query["RenewToken"]}" : "")" class="btn btn-secondary float"><i class="fas fa-arrow-left"></i>&nbsp;Voltar</a>
+        }
+
+        @if (renewedInsurance == null || !Model.RenovacaoPagamentoBloqueado || ViewContext.RouteData.Values["Action"].ToString() == "RenewPaymentClient")
+        {
+            <button type="button" class="btn btn-primary float-right" id="Aderir">Transmitir&nbsp;<i class="fas fa-check"></i></button>
+        }
+
+        @if (renewedInsurance?.PagamentoTipoId == 2 && (!Model.RenovacaoPagamentoBloqueado || Model.PagamentoTipoId == 2) && ViewContext.RouteData.Values["Action"].ToString() != "RenewPaymentClient")
+        {
+            <button type="button" class="btn btn-primary float-right mr-2" id="send-credit-card-email-button" title="Enviar um e-mail para o cliente redefinir os dados de cartão de crédito e finalizar a adesão." data-toggle="tooltip">Redefinir Cartão de Crédito &nbsp;<i class="fas fa-credit-card"></i></button>
+        }
+    </div>
+</div>
+
+<script type="text/javascript">
+    function ValidacaoCartaoDeCredito() {
+        $('.text-danger').remove();
+        var ConfirmacaoErro = false;
+
+        if ($('#CC_Numero').val().length == 0) {
+            $('#CC_Numero').after('<div class="text-danger">Número de cartão de crédito inválido</div>');
+            ConfirmacaoErro = true;
+        }
+        if ($('#CC_Nome').val().length == 0) {
+            $('#CC_Nome').after('<div class="text-danger">Titular do cartão de crédito inválido</div>');
+            ConfirmacaoErro = true;
+        }
+        if ($('#CC_Mes').val().length == 0) {
+            $('#CC_Mes').after('<div class="text-danger">Inválido</div>');
+            ConfirmacaoErro = true;
+        }
+        if ($('#CC_Ano').val().length == 0) {
+            $('#CC_Ano').after('<div class="text-danger">Inválido</div>');
+            ConfirmacaoErro = true;
+        }
+        if ($('#CC_CVV').val().length < 3) {
+            $('#CC_CVV').after('<div class="text-danger">Inválido</div>');
+            ConfirmacaoErro = true;
+        }
+        return (!ConfirmacaoErro);
+    }
+    function GetTokenCartaoDeCredito(callback) {
+        var q = {
+              reference: '@Model.Referencia'
+            , numero: $('#CC_Numero').val()
+            , nome: $('#CC_Nome').val()
+            , mes: $('#CC_Mes').val()
+            , ano: $('#CC_Ano').val()
+            , cvv: $('#CC_CVV').val()
+        }
+        $.post('@Url.Action("TokenCartaoDeCredito", "SeguroProfissional")', q, function (d) {
+            callback(d);
+        });
+    }
+    function PagamentoBoletoBancario(callback) {
+         $('#loading').show();
+        var q = {
+            reference: '@Model.Referencia'
+        }
+        $.post('@Url.Action("PagamentoBoletoBancario", "SeguroProfissional")', q, function (d) {
+            if (d.hasError == true) {
+                alert('Erro: ' + d.message);
+                $('#loading').hide();
+                return false;
+            } else {
+                callback();
+            }
+        });
+    }
+    function PagamentoCartaoDeCredito(callback) {
+        if (!ValidacaoCartaoDeCredito()) return;
+
+            $('#loading').show();
+            GetTokenCartaoDeCredito(function (token) {
+                if (token.status == 200) {
+                    _PagamentoCartaoDeCredito(token.data.id, callback);
+                } else {
+                    $('#loading').hide();
+                    if (typeof token.data.errors === 'string' || token.data.errors instanceof String) {
+                        alert('Erro: ' + token.data.errors);
+                    } else {
+                        $.each(token.data.errors, function (i, e) {
+                            switch (i) {
+                                case 'number':
+                                    $.each(e, function (i2, e2) { $('#CC_Numero').after('<div class="text-danger">Número ' + e2 + '</div>'); });
+                                    break;
+                                case 'month':
+                                    $.each(e, function (i2, e2) { $('#CC_Mes').after('<div class="text-danger">Mês ' + e2 + '</div>'); });
+                                    break;
+                                case 'year':
+                                    $.each(e, function (i2, e2) { $('#CC_Ano').after('<div class="text-danger">Ano ' + e2 + '</div>'); });
+                                    break;
+                                case 'verification_value':
+                                    $.each(e, function (i2, e2) { $('#CC_CVV').after('<div class="text-danger">CVV ' + e2 + '</div>'); });
+                                    break;
+                            }
+                        });
+                    }
+                    return false;
+                }
+            });
+    }
+
+    function _PagamentoCartaoDeCredito(token, callback) {
+         $.post('@Url.Action("PagamentoCartaoDeCredito", "SeguroProfissional")', { reference: '@Model.Referencia', token }, function (d) {
+            if (d.hasError == true) {
+                alert('Erro: ' + d.message);
+                $('#loading').hide();
+                return false;
+            } else {
+                callback();
+            }
+        });
+    }
+
+    $('#PagamentoTipoId').change(function () {
+        if ($(this).val() == '1') {
+            $('#DivBoletoBancario').show();
+            $('#DivCartaoDeCredito').hide();
+        } else if ($(this).val() == '2') {
+            $('#DivBoletoBancario').hide();
+            $('#DivCartaoDeCredito').show();
+        }
+    });
+    $('#Aderir').click(function () {
+        if ($('#PagamentoTipoId').val() == '1') {
+            PagamentoBoletoBancario(function () { $('#form').submit(); });
+        } else if ($('#PagamentoTipoId').val() == '2') {
+            @if (renewedInsurance == null || Model.RenovacaoPagamentoBloqueado)
+            {
+                <text>PagamentoCartaoDeCredito(function () { $('#form').submit(); });</text>
+            }
+            else
+            {
+                <text>_PagamentoCartaoDeCredito(null, function () { $('#form').submit(); });</text>
+            }
+        }
+    });
+
+    function changePaymentMethod() {
+        if ('@renewedInsurance?.PagamentoTipoId' == '1') {
+            if ($(this).val() != 2) return;
+
+            bootboxConfirm('<b>Deseja realmente mudar a forma de pagamento para Cartão de Crédito?</b><br/><br/>Caso queira, clique em <b>SIM</b> para enviar o e-mail do cliente um link para que ele possa informar as informações referente ao cartão de crédito', function (d) {
+                if (!d) {
+                    $('#PagamentoTipoId').val('1').change();
+                    return;
+                }
+
+                sendCreditCardEmail(function (r) {
+                    if (r.hasError) {
+                        $('#PagamentoTipoId').val('1').change();
+                        return;
+                    }
+
+                    $('#Aderir').hide();
+                });
+            });
+        }
+        else if ('@renewedInsurance?.PagamentoTipoId' == '2') {
+            if ($(this).val() == 1)
+                $('#send-credit-card-email-button').hide();
+            else
+                $('#send-credit-card-email-button').show();
+        }
+    }
+
+    function sendCreditCardEmail(callback) {
+        $.post('@Url.Action("SendCreditCardEmail")', { reference: '@Model.Referencia'}, function (d) {
+            alert(d.message);
+
+            typeof callback == 'function' && callback(d);
+        });
+    }
+</script>
+
+@if (renewedInsurance != null)
+{
+    <script type="text/javascript">
+        $('#PagamentoTipoId').change(changePaymentMethod);
+
+        $('#send-credit-card-email-button').click(function () {
+            bootboxConfirm('Deseja realmente enviar um e-mail para o cliente redefinir os dados de cartão de crédito?<br/><small>Obs.: Ao enviar o e-mail o processo será finalizado no momento em que o cliente enviar os dados para a IUGU.</small>', function (d) {
+                if (!d) return;
+
+                sendCreditCardEmail(function (r) {
+                    if (r.hasError) return;
+
+                    $('#Aderir').hide();
+                    //$('#send-credit-card-email-button').hide();
+                    $('#PagamentoTipoId').attr('disabled', '');
+                });
+            });
+        });
+
+            //$(function () {
+            //    $('[data-toggle="tooltip"]').tooltip();
+            //});
+    </script>
+}

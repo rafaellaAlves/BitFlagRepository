@@ -1,0 +1,78 @@
+﻿@model DTO.Shared.EntityViewMode<DTO.Demand.DemandInfoViewModel>
+
+<style type="text/css">
+    #demand-info-tables-area table thead tr {
+        background-color: #a1a1a1;
+        color: white;
+    }
+
+    #demand-info-tables-area {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+        #demand-info-tables-area .card {
+            margin-bottom: 1em;
+        }
+
+        #demand-info-tables-area .card-body {
+            padding: 0;
+        }
+
+        #demand-info-tables-area table {
+            margin-bottom: 0;
+        }
+</style>
+
+<div class="row" id="demand-info-tables-area">
+    <div class="col-12">
+        @foreach (var item in Model.Model.Items)
+        {
+            <div class="card ">
+                <div class="card-header card-header-default tx-uppercase justify-content-between  bg-gray-400">
+                    <h6 class="mg-b-0 tx-14 tx-inverse"><i class="simple-icon-user"></i>&nbsp;GERADOR: @item.DemandClient.CompanyName</h6>
+                    <div class="card-option">
+                        <a href="" class="tx-gray-600 hover-white mg-l-10" data-toggle="collapse" aria-expanded="true" data-target="#client-@item.DemandClient.DemandClientId"><i class="simple-icon-arrow-up lh-0"></i></a>
+                    </div>
+                    @*<div class="row w-100">
+                        <div class="col">
+                            <i class="simple-icon-user"></i>&nbsp;GERADOR: @item.DemandClient.CompanyName
+                        </div>
+                        <div class="col text-right p-0">
+                            <i class="simple-icon-arrow-up float-right" data-toggle="collapse" aria-expanded="true" data-target="#client-@item.DemandClient.DemandClientId"></i>
+                        </div>
+                    </div>*@
+                </div>
+                <div class="card-body bd collapse show table-responsive" id="client-@item.DemandClient.DemandClientId">
+                    <table class="table table-bordered table-condensed table-striped">
+                        <thead>
+                            <tr>
+                                <td>Código IBAMA</td>
+                                <td>Nome do Resíduo</td>
+                                <td>Peso</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var residue in item.DemandClientResidues)
+                            {
+                                if (Model.Model.ResidueFamilyId != residue.ResidueFamilyId) continue;
+
+                                <tr>
+                                    <td>@residue.IBAMACode</td>
+                                    <td>@residue.ResidueName</td>
+                                    <td>@residue.Weight (@residue.UnitOfMeasurementName)</td>
+                                </tr>
+                            }
+                            @if (item.DemandClientResidues.Count(x => Model.Model.ResidueFamilyId == x.ResidueFamilyId) == 0)
+                            {
+                                <tr>
+                                    <td colspan="3" class="text-center"><i>Nenhum resíduo inserido.</i></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    </div>
+</div>

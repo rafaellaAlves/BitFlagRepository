@@ -1,0 +1,118 @@
+﻿
+@{
+    ViewData["Title"] = "Bem Estar";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form id="welfare-form" action="@Url.Action("SendWelfareSolicitation", "Home")" method="post">
+    <div class="card card-dark-theme">
+        <div class="card-header">
+            <i class="fas fa-heartbeat"></i> Bem Estar
+        </div>
+        <div class="card-body">
+            @if (Context.Request.Query.ContainsKey("sended"))
+            {
+                <div class="alert alert-success alert-dismissible fade show" id="welfare-success-alert" role="alert">
+                    Solicitação enviada com sucesso!
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <script type="text/javascript">
+                    setTimeout(function () { $('#welfare-success-alert').fadeOut(1000); }, 8000);
+                </script>
+            }
+            <div class="row">
+                <div class="col-md-7">
+                    <h5>Possuímos uma equipe gabaritada para atendimento psicológico à área médica.</h5>
+                    <hr />
+                    <p>Olá, bem-vindo ao serviço Bem-estar GuardMed.</p>
+                    <p style="margin-bottom: .3rem;">Visamos apoiar o profissional em situações de ansiedade, angústia, vulnerabilidade que tenham sua origem nas questões de cunho profissional.</p>
+                    <p style="margin-bottom: .3rem;">Este serviço conta com uma equipe de psicólogos que darão todo o suporte e apoio emocional necessário. O atendimento é realizado por videoconferência, cabendo apenas ao médico e ao psicólogo os assuntos discutidos na consulta.</p>
+                    <p style="margin-bottom: .3rem;">O cliente GuardMed terá disponível 2 (duas) intervenções de 1 hora cada renováveis a cada 12 meses.</p>
+                    <br/>
+                    <h5 style="font-weight:bold;">Qual será o foco dos atendimentos psicológicos?</h5>
+                    <p>O foco desse serviço são as questões profissionais do médico e os desdobramentos emocionais decorrentes dessas situações. O psicólogo é um profissional capacitado para identificar as causas e raízesdos anseios e dará o direcionamento e tratamento adequado ao paciente. Jamais será negado o atendimento, independente da situação.</p>
+                    <h5 style="font-weight:bold;">Duas consultas serão suficientes?</h5>
+                    <p>O médico poderá firmar uma agenda de consultas e atendimento diretamente com o psicólogo. A partir desse momento, todos os detalhes relativos à continuidade do tratamento serão tratados entre psicólogo e paciente, independentemente da GuardMed.</p>
+                </div>
+                <div class="col-md-5">
+                    <div class="row">
+                        <div class="col">
+                            <h5>Preencha os campos abaixo para solicitar uma consulta:</h5>
+                            <hr />
+                        </div>
+                    </div>
+                    <div class="row" style="margin-top:1em;">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <div class="input-group mb-2">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text" id="basic-addon1"><i class="fa fa-calendar"></i></span>
+                                    </div>
+                                    <input type="hidden" name="DateSolicitation" />
+                                    <input type="text" name="_DateSolicitation" class="form-control date" placeholder="Data" aria-label="Data" aria-describedby="basic-addon1" onchange="setDate(this)">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="form-group">
+                                <div class="input-group mb-2">
+                                    <div class="input-group-prepend">
+                                        <span style="font-size: 12px; font-weight: bold;" class="input-group-text" id="basic-addon2">Período</span>
+                                    </div>
+                                    <select class="form-control" name="Period" aria-describedby="basic-addon2">
+                                        <option value="1">Manhã - das 9h às 12h</option>
+                                        <option value="2">Tarde - das 14h às 17h</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+  
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <button class="btn btn-primary w-100" style="padding: 7px;"><i class="fas fa-check"></i>&nbsp;&nbsp;Solicitar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <hr />
+            <div class="row">
+                <div class="col-md-12">
+                    <small style="font-style:italic;">*Disclaimer: A equipe de psicólogos que presta serviço para a GuardMed segue rigidamente o Código de Ética do Conselho Regional de Psicologia e todas as consultas ficam restritas ao relacionamento do médico com o psicólogo.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script type="text/javascript">
+    function setDate(sel) {
+        try {
+            $('#welfare-form [name="DateSolicitation"]').val(moment($(sel).val(), 'DD/MM/YYYY')._d.toISOString());
+            if (moment().diff(moment($(sel).val(), 'DD/MM/YYYY')) > 0) {
+                $('#welfare-form [name="DateSolicitation"]').val('');
+                $('#welfare-form [name="_DateSolicitation"]').val('');
+                alert('Por favor, selecione uma data posterior a de hoje.');
+            }
+        } catch {
+            $('#welfare-form [name="DateSolicitation"]').val('');
+        }
+    }
+
+    $('#welfare-form').submit(function () {
+        $('.text-danger').remove();
+
+        if (IsNullOrWhiteSpace($('#welfare-form [name="DateSolicitation"]').val())) {
+            $('#welfare-form [name="DateSolicitation"]').parent().after('<span class="text-danger">Por favor, escolha um dia para ser atendido.</span>');
+            return false;
+        } else if (moment().diff(moment($(sel).val(), 'DD/MM/YYYY')) > 0) {
+            $('#welfare-form [name="DateSolicitation"]').val('');
+            $('#welfare-form [name="_DateSolicitation"]').val('');
+            alert('Por favor, selecione uma data posterior a de hoje.');
+        }
+
+        return true;
+    });
+</script>

@@ -1,0 +1,245 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Microsoft.Extensions.Configuration;
+
+@inject UserManager<AspNetIdentityDbContext.User> userManager
+@inject Services.Client.ClientServices clientServices
+@inject Microsoft.Extensions.Configuration.IConfiguration configuration
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>DestineJá :: @ViewData["Title"]</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <link href="~/assets/theme/starlight/lib/font-awesome/css/font-awesome.css" rel="stylesheet" />
+
+    <!-- vendor css -->
+    <link href="~/assets/theme/starlight/lib/Ionicons/css/ionicons.css" rel="stylesheet">
+    <link href="~/assets/theme/starlight/lib/perfect-scrollbar/css/perfect-scrollbar.css" rel="stylesheet">
+    <link href="~/assets/theme/starlight/lib/highlightjs/github.css" rel="stylesheet">
+
+    <link href="~/assets/plugins/simple-icons/css/iconsminds.css" rel="stylesheet" />
+    <link href="~/assets/plugins/simple-icons/css/iconsminds-embedded.css" rel="stylesheet" />
+    <link href="~/assets/plugins/simple-icons/css/iconsminds-codes.css" rel="stylesheet" />
+    <link href="~/assets/plugins/simple-line-icons/css/simple-line-icons.css" rel="stylesheet" />
+
+
+
+    <link href="https://cdn.datatables.net/rowreorder/1.2.7/css/rowReorder.dataTables.min.css" />
+    <link href="https://cdn.datatables.net/rowgroup/1.1.2/css/rowGroup.dataTables.min.css" />
+    <link href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css" rel="stylesheet">
+
+    <!--FilePound-->
+    <link href="https://unpkg.com/filepond/dist/filepond.css" rel="stylesheet">
+    <!---->
+    <!--Select2-->
+    <link href="~/assets/theme/starlight/lib/select2/css/select2.min.css" rel="stylesheet">
+    <link href="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/css/vendor/select2-bootstrap.min.css" rel="stylesheet" />
+
+    <!-- BOOTSTRAP DATEPICKER -->
+    <link rel="stylesheet" href="https://yhnavein.github.io/pure-bootstrap-datepicker/css/datepicker.css">
+
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600,300" rel="stylesheet" type="text/css">
+
+    <!-- Starlight CSS -->
+    <link rel="stylesheet" href="~/assets/theme/starlight/css/starlight.css">
+    <style type="text/css">
+        a {
+            color: #007bff;
+        }
+
+        .form-control {
+            font-size: 12px;
+        }
+    </style>
+
+    @if (User.IsClient())
+    {
+        <style type="text/css">
+            label, input, span, td, th, button, select, a, textarea, div {
+                font-size: @(configuration.GetValue<string>("ClientFontSize") ?? "10.5px") !important;
+            }
+
+            .tx-14 {
+                font-size: 14px !important;
+            }
+        </style>
+    }
+    else
+    {
+        <style type="text/css">
+            label, input, span, td, th, button, select, a, textarea, div {
+                font-size: @(configuration.GetValue<string>("AdminFontSize")??"10.5px");
+            }
+        </style>
+    }
+    <link href="@Url.Content("~/assets/css/custom.css")" rel="stylesheet" type="text/css" />
+
+    @RenderSection("Header", required: false)
+
+</head>
+
+<body>
+    <div id="loading" style="display: none; z-index: 1060; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6)">
+        <img src="~/assets/images/ajax-loading.svg" style="position: absolute; left: 50%; margin-left: -100px; top: 50%; margin-top: -100px;" />
+    </div>
+    <!-- ########## START: LEFT PANEL ########## -->
+    <div class="sl-logo"><img src="~/Imagens/logo3.png" style=" width: 160px;" class="img-fluid mx-auto"></div>
+    <div class="sl-sideleft">
+        <label class="sidebar-label">Menu</label>
+        <div class="sl-sideleft-menu">
+            @if (User.IsClient())
+            {
+                @(await Component.InvokeAsync<Web.ViewComponents.Menu.MenuClientViewComponent>())
+            }
+            else
+            {
+                @(await Component.InvokeAsync<Web.ViewComponents.Menu.MenuAdministratorViewComponent>())
+            }
+        </div><!-- sl-sideleft-menu -->
+
+        <br>
+    </div><!-- sl-sideleft -->
+    <!-- ########## END: LEFT PANEL ########## -->
+    <!-- ########## START: HEAD PANEL ########## -->
+    <div class="sl-header">
+        <div class="sl-header-left">
+            <div class="navicon-left hidden-md-down"><a id="btnLeftMenu" href=""><i class="icon ion-navicon-round"></i></a></div>
+            <div class="navicon-left hidden-lg-up"><a id="btnLeftMenuMobile" href=""><i class="icon ion-navicon-round"></i></a></div>
+        </div><!-- sl-header-left -->
+        <div class="sl-header-right">
+            <nav class="nav">
+                @if (User.Identity.IsAuthenticated)
+                {
+                    var user = await userManager.FindByNameAsync(User.Identity.Name);
+                    DTO.Client.ClientViewModel client = null;
+                    if (User.IsInRole("Cliente"))
+                    {
+                        client = await clientServices.GetViewModelByIdAsync(await clientServices.GetClientIdByLoggedUser(Context));
+                        <a href="https://api.whatsapp.com/send?1=pt_BR&phone=552730290907" target="_blank" class="nav-link nav-link-profile text-white d-none d-sm-block">
+                            <span class="tx-14">Precisa de ajuda? Entre em contato conosco pelo número (27) 3029-0907</span>
+                        </a>
+                    }
+                    <div class="dropdown">
+                        <a href="" class="nav-link nav-link-profile text-white" data-toggle="dropdown">
+                            <span class="logged-name tx-14">@user.FirstName @user.LastName @(client != null? $"- {client.Name}" : "")</span>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-header wd-200">
+                            <ul class="list-unstyled user-profile-nav">
+                                <li><a href="@Url.Action("Logout", "Account")"><i class="icon ion-power"></i> Sair</a></li>
+                            </ul>
+                        </div><!-- dropdown-menu -->
+                    </div><!-- dropdown -->
+                }
+            </nav>
+        </div><!-- sl-header-right -->
+    </div><!-- sl-header -->
+    <div class="sl-mainpanel">
+        <div class="sl-pagebody">
+            @if (Context.Request.Query.ContainsKey("error") || Context.Request.Query.ContainsKey("success"))
+            {
+                <div class="row">
+                    <div class="col-md-12 pt-5">
+                        @if (Context.Request.Query.ContainsKey("error"))
+                        {
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                                @if (TempData.ContainsKey("ErrorMessage"))
+                                {
+                                    <h6>@TempData["ErrorMessage"]</h6>
+                                }
+                                else
+                                {
+                                    <h6>Um erro inesperado aconteceu, tente novamente mais tarde.</h6>
+                                }
+                            </div>
+                        }
+                        @if (Context.Request.Query.ContainsKey("success"))
+                        {
+                            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                                @if (TempData.ContainsKey("SuccessMessage"))
+                                {
+                                    <h6>@TempData["SuccessMessage"]</h6>
+                                }
+                                else
+                                {
+                                    <h6>Suas informações foram salvas com <strong>sucesso</strong>.</h6>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            @RenderBody()
+        </div><!-- sl-pagebody -->
+        <footer>
+            <div class="no-print" style="position: fixed; bottom: 0; height: 24px; width: 100%; color: rgba(255,255,255,.5); background-color: #2b333e; text-align: center; line-height: 24px;vertical-align: middle; z-index:1000">
+                <small style="">Destine Já &copy; @DateTime.Now.Year :: Desenvolvido por Bit Flag</small>
+            </div>
+        </footer>
+    </div><!-- sl-mainpanel -->
+    <!-- ########## END: MAIN PANEL ########## -->
+
+    <script src="~/assets/theme/starlight/lib/jquery/jquery.js"></script>
+    <script src="~/assets/theme/starlight/lib/popper.js/popper.js"></script>
+    <script src="~/assets/theme/starlight/lib/bootstrap/bootstrap.js"></script>
+    <script src="~/assets/theme/starlight/lib/jquery-ui/jquery-ui.js"></script>
+    <script src="~/assets/theme/starlight/lib/perfect-scrollbar/js/perfect-scrollbar.jquery.js"></script>
+    <script src="~/assets/theme/starlight/lib/jquery.sparkline.bower/jquery.sparkline.min.js"></script>
+    <script src="~/assets/theme/starlight/lib/d3/d3.js"></script>
+    <script src="~/assets/theme/starlight/lib/chart.js/Chart.js"></script>
+    <script src="~/assets/theme/starlight/lib/Flot/jquery.flot.js"></script>
+    <script src="~/assets/theme/starlight/lib/Flot/jquery.flot.pie.js"></script>
+    <script src="~/assets/theme/starlight/lib/Flot/jquery.flot.resize.js"></script>
+    <script src="~/assets/theme/starlight/lib/flot-spline/jquery.flot.spline.js"></script>
+    <script src="~/assets/theme/starlight/js/starlight.js"></script>
+    <script src="~/assets/theme/starlight/js/ResizeSensor.js"></script>
+    <script src="~/assets/theme/starlight/lib/highlightjs/highlight.pack.js"></script>
+    <script src="~/assets/theme/starlight/lib/select2/js/select2.full.min.js"></script>
+    <script src="~/assets/plugins/moment/moment.min.js"></script>
+
+    <!-- BOOTSTRAP DATEPICKER -->
+    <script src="https://yhnavein.github.io/pure-bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+    <script src="https://yhnavein.github.io/pure-bootstrap-datepicker/js/locales/bootstrap-datepicker.pt-BR.js"></script>
+
+    <script type="text/javascript">
+        function imageNotFound(selector) {
+            setTimeout(function () {
+                $(selector).attr("src", "@Url.Content("~/assets/images/image-not-found.png")");
+            }, 1);
+        }
+    </script>
+
+    <!-- ******* -->
+    <!-- LIBRARY -->
+    <!-- ******* -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.15/jquery.mask.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/rowreorder/1.2.7/js/dataTables.rowReorder.min.js"></script>
+    <script src="https://cdn.datatables.net/rowgroup/1.1.2/js/dataTables.rowGroup.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.4.0/bootbox.min.js" integrity="sha256-sfG8c9ILUB8EXQ5muswfjZsKICbRIJUG/kBogvvV5sY=" crossorigin="anonymous"></script>
+    <script src="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/js/vendor/select2.full.js"></script>
+
+    <!--Globalize-->
+    <script src="https://cdn.es.gov.br/scripts/jquery/jquery-globalize/1.0.0/globalize.min.js"></script>
+    <script src="https://cdn.es.gov.br/scripts/jquery/jquery-globalize/1.0.0/cultures/globalize.culture.pt-BR.min.js"></script>
+    <!-- ******* -->
+    <!--Highcharts-->
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://code.highcharts.com/modules/export-data.js"></script>
+    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+    <!-- ******* -->
+
+    <script src="~/assets/js/custom.js?nocache=@Guid.NewGuid().ToString()"></script>
+
+    @RenderSection("Modals", required: false)
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

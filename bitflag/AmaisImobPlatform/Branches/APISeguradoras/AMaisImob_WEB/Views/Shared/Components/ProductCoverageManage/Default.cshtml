@@ -1,0 +1,174 @@
+﻿@model AMaisImob_WEB.Models.ProductCoverageViewModel
+
+<style type="text/css">
+    .margin-top-text-danger {
+        margin-top: -15px;
+    }
+</style>
+
+<script type="text/javascript">
+    _MaskData();
+</script>
+
+<script type="text/javascript">
+
+function _ProductCoverageManageValidate() {
+
+	var hasError = false;
+	$('#_ProductCoverageManageForm .text-danger').remove();
+
+    if (IsNullOrWhiteSpace($('#_ProductCoverageManageName').val())) {
+        $('#_ProductCoverageManageName').after('<div class="text-danger">Preencha o Nome.</div>');
+        hasError = true;
+    }
+
+    if (IsNullOrWhiteSpace($('#_ProductCoverageManageTaxes').val())) {
+        $('#_ProductCoverageManageTaxesArea').after('<div class="text-danger margin-top-text-danger">Preencha a taxa.</div>');
+        hasError = true;
+    }
+
+    if ($('#_ProductCoverageManageIsOptional').val() == 'false' && IsNullOrWhiteSpace($('#_ProductCoverageManageMinimum').val())) {
+        $('#_ProductCoverageManageMinimumArea').after('<div class="text-danger margin-top-text-danger">Preencha o valor mínimo.</div>');
+        hasError = true;
+    }
+
+    if (IsNullOrWhiteSpace($('#_ProductCoverageManageMaximum').val())) {
+        $('#_ProductCoverageManageMaximumArea').after('<div class="text-danger margin-top-text-danger">Preencha o valor máximo.</div>');
+        hasError = true;
+    }
+
+    if ($('#_ProductCoverageManageIsBasic').val() == 'false' && IsNullOrWhiteSpace($('#_ProductCoverageManageBasicLimit').val())) {
+        $('#_ProductCoverageManageBasicLimitArea').after('<div class="text-danger margin-top-text-danger">Preencha o limite básico.</div>');
+        hasError = true;
+    }
+
+    if (hasError) {
+        $('#_ProductCoverageManageAlertError').show();
+    }
+    else {
+        $('#_ProductCoverageManageForm .text-danger').remove();
+        $('#_ProductCoverageManageAlertError').hide();
+    }
+
+	return (!hasError);
+}
+
+    function _ProductCoverageManageSave() {
+	var d = $('#_ProductCoverageManageForm').serializeArray();
+        $.post('@Url.Action("Manage", "ProductCoverage")', d, function (data) {
+        $('#_ProductCoverageManageProductCoverageId').val(data);
+        _ProductCoverageManageCallBack(data);
+	});
+}
+</script>
+
+<form id="_ProductCoverageManageForm" method="post" enctype="multipart/form-data">
+    <div id="_ProductCoverageManageAlertError" class="alert alert-danger fade show text-center" role="alert" style="display: none;">
+        <strong>Atenção!</strong> O Formulário contém erros.
+    </div>
+    <input type="hidden" id="_ProductCoverageManageProductId" name="ProductId" value="@Model.ProductId" />
+    <input type="hidden" id="_ProductCoverageManageProductCoverageId" name="ProductCoverageId" value="@Model.ProductCoverageId" />
+    <div class="form-row">
+        <div class="form-group col-md-6">
+            <label class="control-label">Nome</label>
+            <input type="text" class="form-control" id="_ProductCoverageManageName" name="Name" value="@Model.Name" placeholder="Nome">
+        </div>
+
+        <div class="form-group col-md-3">
+            <label>Basico</label>
+            <select class="form-control" name="IsBasic" id="_ProductCoverageManageIsBasic">
+                <option value="true">Sim</option>
+                <option value="false" selected>Não</option>
+            </select>
+            @if (Model.ProductCoverageId.HasValue)
+            {
+                if (Model.IsBasic)
+                {
+                    <script type="text/javascript">
+                        $('#_ProductCoverageManageIsBasic').val('true');
+                        $('#_ProductCoverageManageBasicLimit').attr('disabled', 'disabled');
+                    </script>
+                }
+                else
+                {
+                    <script type="text/javascript">
+                        $('#_ProductCoverageManageIsBasic').val('false');
+                    </script>
+                    if (bool.Parse(ViewData["IsBasicUsed"].ToString()))
+                    {
+                        <script type="text/javascript">
+                            $('#_ProductCoverageManageIsBasic').attr('disabled', 'disabled');
+                        </script>
+                    }
+                }
+            }
+            else if (bool.Parse(ViewData["IsBasicUsed"].ToString()))
+            {
+                <script type="text/javascript">
+                    $('#_ProductCoverageManageIsBasic').val('false');
+                    $('#_ProductCoverageManageIsBasic').attr('disabled', 'disabled');
+                </script>
+            }
+        </div>
+        <div class="form-group col-md-3">
+            <label class="control-label">Opcional</label>
+            <select class="form-control" id="_ProductCoverageManageIsOptional" name="IsOptional">
+                <option value="true">Sim</option>
+                <option value="false" selected>Não</option>
+            </select>
+        </div>
+        <div class="form-group col-md-3">
+            <label class="control-label">Taxa</label>
+            <div class="input-group mb-3" id="_ProductCoverageManageTaxesArea">
+                <input type="text" class="form-control" id="_ProductCoverageManageTaxes" name="_Taxes" value="@Model._Taxes" placeholder="Taxa">
+                <div class="input-group-append">
+                    <span class="input-group-text">%</span>
+                </div>
+            </div>
+        </div>
+        <div class="form-group col-md-3">
+            <label>Valor mínimo</label>
+            <div class="input-group mb-3" id="_ProductCoverageManageMinimumArea">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">R$</span>
+                </div>
+                <input class="form-control money" value="@Model._Minimum" id="_ProductCoverageManageMinimum" name="_Minimum" type="text" placeholder="Valor mínimo" />
+            </div>
+        </div>
+        <div class="form-group col-md-3">
+            <label>Valor máximo</label>
+            <div class="input-group mb-3" id="_ProductCoverageManageMaximumArea">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">R$</span>
+                </div>
+                <input class="form-control money" value="@Model._Maximum" name="_Maximum" id="_ProductCoverageManageMaximum" type="text" placeholder="Valor máximo" />
+            </div>
+        </div>
+        <div class="form-group col-md-3">
+            <label class="control-label">Limite Básico</label>
+            <div class="input-group mb-3" id="_ProductCoverageManageBasicLimitArea">
+                <input type="text" class="form-control percent2" id="_ProductCoverageManageBasicLimit" name="_BasicLimit" value="@Model._BasicLimit" placeholder="Limite Básico">
+                <div class="input-group-append">
+                    <span class="input-group-text">%</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-12">
+            <label class="control-label">Franquias</label>
+            <input type="text" class="form-control" id="_ProductCoverageManageFranquias" name="Franquias" value="@Model.Franquias" placeholder="Franquias">
+        </div>
+        <div class="col-md-12">
+            <label class="control-label">Descrição</label>
+            <textarea class="form-control" id="_ProductCoverageManageDescription" name="Description" placeholder="Descrição">@Model.Description</textarea>
+        </div>
+    </div>
+</form>
+<script type="text/javascript">
+    $('#_ProductCoverageManageIsBasic').change(function () { 
+        if ($('#_ProductCoverageManageIsBasic').val() == 'true') {
+            $('#_ProductCoverageManageBasicLimit').attr('disabled', 'disabled');
+        } else {
+            $('#_ProductCoverageManageBasicLimit').removeAttr('disabled');
+        }
+    });
+</script>

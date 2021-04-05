@@ -1,0 +1,865 @@
+﻿@model int
+
+<style type="text/css">
+    .card-body {
+        width: 100%;
+        height: 500px !important;
+    }
+
+    .node-item {
+        position: absolute;
+        height: 50px;
+        width: 100px;
+        border: 1px solid black;
+        border-radius: 3px;
+        background-color: grey;
+        color: white;
+        font-size: 12px;
+        text-align: center;
+        line-height: 50px;
+    }
+
+    #tree {
+        width: 100%;
+        height: 500px !important;
+    }
+</style>
+<div class="card">
+    <div class="card-header">
+        <div class="row">
+            <div class="col-md-12">
+                <a href="@Url.Action("Index", "Client")" class="btn btn-secondary"><i class="simple-icon-arrow-left"></i> Voltar</a>
+                <button type="button" class="btn btn-primary float-right" id="zoom-out-button"><i class="fa fa-search-minus" style="font-size: 20px;"></i></button>
+                <button type="button" class="btn btn-primary float-right mr-2" id="zoom-in-button"><i class="fa fa-search-plus" style="font-size: 20px;"></i></button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-12">
+                <div id="tree"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var chart, lastItemAdded, data = [];
+    var familyGroupTag = {
+        group: true,
+        template: "group_grey",
+        groupState: OrgChart.EXPAND
+    };
+    OrgChart.templates.clientTemplate = Object.assign({}, OrgChart.templates.polina);
+
+    OrgChart.templates.clientTemplate.node = '<rect x="0" y="0" height="80" width="300" fill="#fac751" stroke-width="1" stroke="#686868" rx="40" ry="40"></rect>';
+    OrgChart.templates.clientTemplate.field_0 = '<text width="210" class="field_0" style="font-size: 18px;" fill="#303030" x="50" y="30" text-anchor="start">{val}</text>';
+    OrgChart.templates.clientTemplate.field_1 = '<text width="210" class="field_1" style="font-size: 14px;" fill="#303030" x="50" y="55" text-anchor="start">{val}</text>';
+    OrgChart.templates.clientTemplate.nodeMenuButton = '<g style="cursor:pointer;" transform="matrix(1,0,0,1,285,33)" control-node-menu-id="{id}"><rect x="-4" y="-10" fill="#000000" fill-opacity="0" width="22" height="22"></rect><circle cx="0" cy="0" r="2" fill="#000000"></circle><circle cx="0" cy="7" r="2" fill="#000000"></circle><circle cx="0" cy="14" r="2" fill="#000000"></circle></g>';
+
+    OrgChart.templates.polina.node = '<rect x="0" y="0" height="80" width="300" fill="#4c7cf3" stroke-width="1" stroke="#686868" rx="40" ry="40"></rect>';
+
+        function addForm(node) {
+            var d = GetNodeData(node);
+
+            $('.text-danger').remove();
+
+            $('#positionArea').show();
+            $('#selectedNode').val(d.id);
+            $('#FamilyTreeId').val('');
+            $('#Name').val('');
+            $('#Title').val('Pai');
+            $('#Position').val(0);
+
+            $('#CreateOrUpdateModal').modal('show');
+            $('#CreateOrUpdateModalTitle').text('Novo Registro em ' + d.name);
+        };
+        function editForm(node) {
+            var d = GetNodeData(node);
+            if (d.isClient) {
+                alert('Não é possível editar o próprio cliente.');
+                return;
+            }
+
+            $('.text-danger').remove();
+
+            $('#positionArea').hide();
+            $('#selectedNode').val('');
+            $('#FamilyTreeId').val(d.id);
+            $('#Name').val(d.name);
+            $('#Title').val(d.title);
+
+            $('#CreateOrUpdateModal').modal('show');
+            $('#CreateOrUpdateModalTitle').text('Registro - ' + d.name);
+        };
+        function removeItem(node) {
+            var d = GetNodeData(node);
+            console.log(d);
+            if (d.isClient) {
+                alert('Não é possível excluir o próprio cliente.');
+                return;
+            }
+            var childs = GetNodeDataByParentId(node);
+            if (childs.length > 0 && d.pid != null) {
+                var hasClient = false;
+                for (var i = 0; i < childs.length; i++) {
+                    if (childs[i].isClient) hasClient = true;
+                }
+
+                if (!hasClient || d.pid != null) {
+                    alert('Delete os filhos ou os pais primeiros.');
+                    return;
+                }
+            }
+
+            if (!confirm('Deseja realmente excluir este item?')) return;
+
+            $.post('@Url.Action("DeleteFamilyTree")', { familyTreeId: d.id }, function (_d) {
+                alert(_d.message);
+                if (!_d.hasError) {
+                    window.location.reload();
+                    //$.each(GetNodeDataByParentId(d.id), function (i, e) {
+                    //    var index = GetNodeIndex(e.id);
+                    //    data[index].pid = null;
+                    //    data[index].parentId = null;
+
+                    //    chart.update(data[index]);
+                    //});
+                    //var marriedWith = MarriedWith(node);
+                    //if (marriedWith != null && marriedWith.pid == null && marriedWith.secondParentId == null &&
+                    //    GetNodeDataByParentId(marriedWith.id).length == 0 && GetNodeDataBySecondParentId(marriedWith.id).length == 0) {
+                    //    chart.remove(marriedWith.id);
+                    //}
+
+                    //chart.remove(node);
+                    ////chart.removeNode(node);
+                    //chart.draw();
+                }
+            });
+        };
+
+        $(window).ready(function () {
+            $.post("@Url.Action("GetFamilyTree")", {clientId: '@Model'}, function (d) {
+                console.log(d);
+                data = d.nodes;
+                chart = new OrgChart(document.getElementById("tree"), {
+                    enableSearch: false,
+                    searchFields: ["name", "title"],
+                    nodeMouseClick: OrgChart.action.none,
+                    mouseScrool: OrgChart.action.none,
+                    //showXScroll: BALKANGraph.scroll.visible,
+                    //showYScroll: BALKANGraph.scroll.visible,
+                    template: "polina",
+                    nodeMenu: {
+                        edit: {
+                            text: "Editar",
+                            onClick: editForm
+                        },
+                        add: {
+                            text: "Adicionar",
+                            onClick: addForm
+                        },
+                        remove: {
+                            text: "Remover",
+                            onClick: removeItem
+                        }
+                    },
+                    nodeBinding: {
+                        field_0: "name",
+                        field_1: "title",
+                    },
+                    tags: d.tags,
+                    nodes: d.nodes,
+                    onRedraw: function (sender) {
+                        $('div[data-id="search"]').find('input').attr('placeholder', 'Pesquisar...');
+
+                        if (lastItemAdded != null) {
+                            var d = lastItemAdded;
+                            if (d.marriedWith != null) {
+                                chart.group(d.marriedWith, d.id);
+                            } else if ($('#Position').val() == 0) {
+                                chart.linkNode($('#selectedNode').val(), d.id);
+                            } else if ($('#Position').val() == 1) {
+                                chart.linkNode(d.id, $('#selectedNode').val());
+                            }
+                            chart.draw();
+                            lastItemAdded = null;
+                        }
+                    },
+                });
+            });
+        });
+</script>
+
+<div class="modal fade" id="CreateOrUpdateModal" tabindex="-1" role="dialog" aria-labelledby="CreateOrUpdateModalTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="CreateOrUpdateModalTitle"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="FamilyTreeForm">
+                    <input type="hidden" id="selectedNode" name="selectedNode" />
+                    <input type="hidden" id="FamilyTreeId" name="FamilyTreeId" />
+                    <input type="hidden" id="ClientId" name="ClientId" value="@Model" />
+                    <div class="row" id="name-and-title-area">
+                        <div class="col-md-12">
+                            <label>Nome:</label>
+                            <input class="form-control" id="Name" name="Name" placeholder="Nome" />
+                        </div>
+                        <input type="hidden" class="form-control" id="Title" name="Title" value="Pai" placeholder="Título" />
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-12" id="positionArea">
+                            <label>Posição:</label>
+                            <select class="form-control" id="Position" name="Position">
+                                <option value="0" data-title="Pai">Pai</option>
+                                <option value="0" data-title="Mãe">Mãe</option>
+                                <option value="1" data-title="Filho">Filho</option>
+                                <option value="1" data-title="Filha">Filha</option>
+                                <option value="2" data-title="Marido" data-paret-title="Pai">Marido</option>
+                                <option value="2" data-title="Esposa" data-paret-title="Mãe">Esposa</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <div class="row" style="width: 100%; margin: 0;">
+                    <div class="col-md-6">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-times"></i>&nbsp;Fechar</button>
+                    </div>
+                    <div class="col-md-6">
+                        <button type="button" id="FamilyTreeButton" class="btn btn-primary float-right"><i class="fa fa-cloud-download"></i>&nbsp;Salvar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+        $('#Position').change(function () {
+            $('#Title').val($('#Position option:selected').data('title'));
+        });
+
+        $('#FamilyTreeButton').click(function () {
+            if (Validar()) {
+                SaveFamilyTree();
+            }
+        });
+
+        function Validar() {
+
+            var hasError = false;
+            $('.text-danger').remove();
+
+            if (IsNullOrWhiteSpace($('#Name').val())) {
+                $('#Name').after($('<div>', { class: 'text-danger' }).append('Preencha o Nome'));
+                hasError = true;
+            }
+
+            //if (IsNullOrWhiteSpace($('#Title').val())) {
+            //    $('#Title').after($('<div>', { class: 'text-danger' }).append('Preencha o Título.'));
+            //    hasError = true;
+            //}
+
+            if (!IsNullOrWhiteSpace($('#selectedNode').val())) {
+                var n = GetNodeData($('#selectedNode').val());
+                var marriedWith = MarriedWith(n.id);
+                marriedWith = marriedWith == null ? n.marriedWith == null ? null : GetNodeData(n.marriedWith) : marriedWith;
+                if ((n.marriedWith != null || marriedWith != null) && $('#Position').val() == 2) {
+                    $('#Position').after($('<div>', { class: 'text-danger' }).append('Esta pessoa já esta casada.'));
+                    hasError = true;
+                }
+
+                if ($('#Position').val() == 0 &&
+                    (
+                        (n.pid != null && (MarriedWith(n.pid) != null || GetNodeData(n.pid).marriedWith != null)) || //possui dois pais
+                        (marriedWith != null && marriedWith.pid != null && (MarriedWith(marriedWith.pid) != null || GetNodeData(marriedWith.pid).marriedWith != null)) // marido/esposa possui dois pais
+                    )) {
+                    $('#Position').after($('<div>', { class: 'text-danger' }).append('Esta pessoa já possuí dois pais.'));
+                    hasError = true;
+                }
+            }
+
+            return !hasError;
+        }
+
+        function GetLastParent(node) {
+            var d = GetNodeData(node);
+            if (d.pid != null) {
+                return GetLastParent(d.pid);
+            }
+            return d;
+        }
+
+        function CountChildrens(node, count) {
+
+            if (GetNodeDataBySecondParentId(node).length > 0) {
+                return CountChildrens(GetNodeDataBySecondParentId(node)[0].id, ++count);
+            }
+            if (chart.nodes[node].childrenIds.length > 0) {
+                return CountChildrens(chart.nodes[node].childrenIds[0], ++count);
+            }
+
+            return count;
+        }
+
+
+
+        function SaveFamilyTree() {
+            if (!IsNullOrWhiteSpace($('#selectedNode').val())) {
+                var d = GetNodeData($('#selectedNode').val());
+                var marriedWith = null;
+                if (d.marriedWith != null) marriedWith = GetNodeData(d.marriedWith);
+
+                if ($('#Position').val() == 0 && marriedWith != null) // caso esteja criando novo pai/mãe e possui marido/esposa, os pais serão criados no nome do marido/esposa
+                {
+                    $('#selectedNode').val(marriedWith.id);
+                }
+            }
+            var d = $('#FamilyTreeForm').serializeArray();
+
+            $.post('@Url.Action("SaveFamilyTree")', d, function (d) {
+                alert(d.message);
+                if (!d.hasError) {
+                    //window.location.reload();
+                    CreateOrUpdateNode(d.data);
+                }
+
+                $('#CreateOrUpdateModal').modal('hide');
+            });
+        }
+
+        function GetNodeData(id) {
+            var index;
+            for (var i = 0; i < data.length; i++) {
+                if (data[i].id == id) {
+                    return data[i];
+                }
+            }
+        }
+        function GetClientIndex() {
+            for (var i = 0; i < data.length; i++) {
+                if (data[i].isClient == true) {
+                    return i;
+                }
+            }
+        }
+        function GetClientid() {
+            for (var i = 0; i < data.length; i++) {
+                if (data[i].isClient == true) {
+                    return data[i].id;
+                }
+            }
+        }
+        function GetNodeDataByParentId(id) {
+            var d = [];
+            for (var i = 0; i < data.length; i++) {
+                if (data[i].pid == id) {
+                    d.push(data[i]);
+                }
+            }
+            return d;
+        }
+        function GetNodeDataBySecondParentId(id) {
+            var d = [];
+            for (var i = 0; i < data.length; i++) {
+                if (data[i].secondParentId == id) {
+                    d.push(data[i]);
+                }
+            }
+            return d;
+        }
+        function MarriedWith(id) {
+            for (var i = 0; i < data.length; i++) {
+                if (data[i].marriedWith == id) {
+                    return data[i];
+                }
+            }
+        }
+
+        function CreateOrUpdateNode(d) {
+            var index = GetNodeIndex(d.id);
+
+            if (index == null) {
+                lastItemAdded = d;
+
+                if (d.marriedWith != null) {
+                    chart.addTag(d.marriedWith, familyGroupTag);
+                }
+                chart.add(d);
+                chart.draw();
+            } else {
+                data[index] = d;
+                chart.updateNode(d);
+            }
+        }
+
+        function GetNodeIndex(id) {
+            var index = null;
+            for (var i = 0; i < data.length; i++) {
+                if (data[i].id == id) {
+                    index = i;
+                    break;
+                }
+            }
+            return index;
+        }
+
+        $('#zoom-in-button').click(function(){
+            chart.zoom(1.3, [50, 50]);
+        });
+
+        $('#zoom-out-button').click(function () {
+            chart.zoom(0.7, [50, 50]);
+        });
+</script>
+
+@*<script type="text/javascript">
+        var chart, lastItemAdded, data = [];
+        var familyGroupTag = {
+            group: true,
+            template: "group_grey",
+            groupState: OrgChart.EXPAND
+        };
+        OrgChart.templates.clientTemplateMarried = Object.assign({}, OrgChart.templates.polina);
+        OrgChart.templates.clientTemplateMarried.node = '<rect x="0" y="0" height="130" width="300" fill="#efcd34" stroke-width="1" stroke="#686868" rx="40" ry="40"></rect><rect x="0" y="65" height="5" width="300" fill="#f1f1f1" stroke-width="1"></rect>';
+        OrgChart.templates.clientTemplateMarried.field_0 = '<text width="250" class="field_0" style="font-size: 18px;" fill="#ffffff" x="40" y="30" text-anchor="start">{val}</text>';
+        OrgChart.templates.clientTemplateMarried.field_1 = '<text width="250" class="field_1" style="font-size: 14px;" fill="#ffffff" x="40" y="55" text-anchor="start">{val}</text>';
+        OrgChart.templates.clientTemplateMarried.field_2 = '<text width="250" class="field_2" style="font-size: 18px;" fill="#ffffff" x="40" y="95" text-anchor="start">{val}</text>';
+        OrgChart.templates.clientTemplateMarried.field_3 = '<text width="250" class="field_3" style="font-size: 14px;" fill="#ffffff" x="40" y="120" text-anchor="start">{val}</text>';
+        OrgChart.templates.clientTemplateMarried.size = [300, 130];
+
+        OrgChart.templates.clientTemplate = Object.assign({}, OrgChart.templates.polina);
+        OrgChart.templates.clientTemplate.node = '<rect x="0" y="0" height="80" width="300" fill="#efcd34" stroke-width="1" stroke="#686868" rx="40" ry="40"></rect>';
+        OrgChart.templates.clientTemplate.field_0 = '<text width="250" class="field_0" style="font-size: 18px;" fill="#ffffff" x="40" y="30" text-anchor="start">{val}</text>';
+        OrgChart.templates.clientTemplate.field_1 = '<text width="250" class="field_1" style="font-size: 14px;" fill="#ffffff" x="40" y="55" text-anchor="start">{val}</text>';
+
+
+        OrgChart.templates.married = Object.assign({}, OrgChart.templates.polina);
+        OrgChart.templates.married.node = '<rect x="0" y="0" height="130" width="300" fill="#039BE5" stroke-width="1" stroke="#686868" rx="40" ry="40"></rect><rect x="0" y="65" height="5" width="300" fill="#f1f1f1" stroke-width="1"></rect>';
+        OrgChart.templates.married.field_0 = '<text width="250" class="field_0" style="font-size: 18px;" fill="#ffffff" x="40" y="30" text-anchor="start">{val}</text>';
+        OrgChart.templates.married.field_1 = '<text width="250" class="field_1" style="font-size: 14px;" fill="#ffffff" x="40" y="55" text-anchor="start">{val}</text>';
+        OrgChart.templates.married.field_2 = '<text width="250" class="field_2" style="font-size: 18px;" fill="#ffffff" x="40" y="95" text-anchor="start">{val}</text>';
+        OrgChart.templates.married.field_3 = '<text width="250" class="field_3" style="font-size: 14px;" fill="#ffffff" x="40" y="120" text-anchor="start">{val}</text>';
+        OrgChart.templates.married.size = [300, 130];
+
+        OrgChart.templates.normal = Object.assign({}, OrgChart.templates.polina);
+
+
+        function addForm(node) {
+            $('#name-and-title-area').show();
+
+            var d = GetNodeData(node);
+
+            $('.text-danger').remove();
+
+            $('#positionArea').show();
+            $('#selectedNode').val(d.id);
+            $('#FamilyTreeId').val('');
+            $('#Name').val('');
+            $('#Title').val('');
+            $('#Position').val(0);
+            $('#MarriedWithTitle').val('');
+            $('#MarriedWithName').val('');
+
+            $('#CreateOrUpdateModal').modal('show');
+            $('#CreateOrUpdateModalTitle').text('Novo Registro');
+        };
+
+        function editForm(node) {
+            $('#name-and-title-area').show();
+
+            var d = GetNodeData(node);
+            if (d.isClient) {
+                $('#name-and-title-area').hide();
+                //alert('Não é possível editar o próprio cliente.');
+                //return;
+            }
+
+            $('.text-danger').remove();
+
+            $('#positionArea').hide();
+            $('#selectedNode').val('');
+            $('#FamilyTreeId').val(d.id);
+            $('#Name').val(d.name);
+            $('#Title').val(d.title);
+            $('#MarriedWithTitle').val(d.marriedWithTitle);
+            $('#MarriedWithName').val(d.marriedWithName);
+
+            $('#CreateOrUpdateModal').modal('show');
+            $('#CreateOrUpdateModalTitle').text('Registro');
+        };
+        function removeItem(node) {
+            var d = GetNodeData(node);
+            if (d.isClient) {
+                alert('Não é possível excluir o próprio cliente.');
+                return;
+            }
+            var childs = $.merge(GetNodeDataByParentId(node), GetNodeDataBySecondParentId(node));
+
+            var isClient = false;
+            for (var i = 0; i < childs.length; i++) {
+                if (childs[i].isClient) isClient = true;
+            }
+
+            if (childs.length > 0 && d.pid != null && !isClient) {
+                alert('Delete os filhos ou os pais primeiros.');
+                return;
+            }
+            else if (d.marriedWith != null && d.pid != null) {
+                alert('Delete os pais ou o marido/esposa primeiro.');
+                return;
+            }
+
+            if (!confirm('Deseja realmente excluir este item?')) return;
+
+            $.post('@Url.Action("DeleteFamilyTree")', { familyTreeId: d.id }, function (_d) {
+                alert(_d.message);
+                if (!_d.hasError) {
+
+                    $.each(GetNodeDataByParentId(d.id), function (i, e) {
+                        var index = GetNodeIndex(e.id);
+                        data[index].pid = null;
+                        data[index].parentId = null;
+
+                        if (data[index].secondParentId != null) {
+                            data[index].pid = data[index].secondParentId;
+                            data[index].parentId = data[index].secondParentId;
+                            data[index].spids = [];
+                            data[index].secondParentId = null;
+                        }
+
+                        chart.update(data[index]);
+                    });
+
+                    console.log(GetNodeDataBySecondParentId(d.id));
+
+                    $.each(GetNodeDataBySecondParentId(d.id), function (i, e) {
+
+                        var index = GetNodeIndex(e.id);
+                        data[index].spids = [];
+                        data[index].secondParentId = null;
+
+                        chart.update(data[index]);
+                    });
+
+                    chart.remove(node);
+                    //chart.removeNode(node);
+                    chart.draw();
+                }
+            });
+        };
+
+        $(window).ready(function () {
+            $.post("@Url.Action("GetFamilyTree")", {clientId: '@Model'}, function (d) {
+                console.log(d);
+                data = d.nodes;
+                chart = new OrgChart(document.getElementById("tree"), {
+                    layout: OrgChart.mixed,
+                    searchFields: ["name", "title"],
+                    nodeMouseClick: OrgChart.action.none,
+                    showXScroll: BALKANGraph.scroll.visible,
+                    showYScroll: BALKANGraph.scroll.visible,
+                    template: "polina",
+                    nodeMenu: {
+                        edit: {
+                            text: "Editar",
+                            onClick: editForm
+                        },
+                        add: {
+                            text: "Adicionar",
+                            onClick: addForm
+                        },
+                        remove: {
+                            text: "Remover",
+                            onClick: removeItem
+                        }
+                    },
+                    nodeBinding: {
+                        field_0: "name",
+                        field_1: "title",
+                        field_2: "marriedWithName",
+                        field_3: "marriedWithTitle",
+                    },
+                    tags: d.tags,
+                    nodes: d.nodes,
+                    onRedraw: function (sender) {
+                        $('div[data-id="search"]').find('input').attr('placeholder', 'Pesquisar...');
+
+                        if (lastItemAdded != null) {
+                            var d = lastItemAdded;
+
+                            if (d.marriedWith != null) {
+                                console.log('asd');
+                                chart.group(d.marriedWith, d.id);
+                                chart.addTag(d.marriedWith, familyGroupTag);
+                            } else if ($('#Position').val() == 0 && GetNodeDataBySecondParentId(d.id).length == 0) {
+                                console.log('qwe');
+                                chart.linkNode($('#selectedNode').val(), d.id);
+                            } else if ($('#Position').val() == 1) {
+                                console.log('rty');
+                                chart.linkNode(d.id, $('#selectedNode').val());
+                            }
+                            chart.draw();
+                            lastItemAdded = null;
+                        }
+                    },
+                });
+            });
+        });
+    </script>
+
+    <div class="modal fade" id="CreateOrUpdateModal" tabindex="-1" role="dialog" aria-labelledby="CreateOrUpdateModalTitle" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="CreateOrUpdateModalTitle"></h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="FamilyTreeForm">
+                        <input type="hidden" id="selectedNode" name="selectedNode" />
+                        <input type="hidden" id="FamilyTreeId" name="FamilyTreeId" />
+                        <input type="hidden" id="ClientId" name="ClientId" value="@Model" />
+                        <div class="row" id="name-and-title-area">
+                            <div class="col-md-12">
+                                <label>Nome:</label>
+                                <input class="form-control" id="Name" name="Name" placeholder="Nome" />
+                            </div>
+                            <div class="col-md-12">
+                                <label>Título:</label>
+                                <input class="form-control" id="Title" name="Title" placeholder="Título" />
+                            </div>
+                            <hr />
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label>Casado(a) com:</label>
+                                <input class="form-control" id="MarriedWithName" name="MarriedWithName" placeholder="Marido/Esposa" />
+                            </div>
+                            <div class="col-md-12">
+                                <label>Título do marido/esposa:</label>
+                                <input class="form-control" id="MarriedWithTitle" name="MarriedWithTitle" placeholder="Título do marido/esposa" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12" id="positionArea">
+                                <hr />
+                                <label>Posição:</label>
+                                <select class="form-control" id="Position" name="Position">
+                                    <option value="0">Pai/Mãe</option>
+                                    <option value="1">Filho/Filha</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <div class="row" style="width: 100%; margin: 0;">
+                        <div class="col-md-6">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-times"></i>&nbsp;Fechar</button>
+                        </div>
+                        <div class="col-md-6">
+                            <button type="button" id="FamilyTreeButton" class="btn btn-primary float-right"><i class="fa fa-cloud-download"></i>&nbsp;Salvar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        $('#FamilyTreeButton').click(function () {
+            if (Validar()) {
+                SaveFamilyTree();
+            }
+        });
+
+        function Validar() {
+
+            var hasError = false;
+            $('.text-danger').remove();
+
+            if (IsNullOrWhiteSpace($('#Name').val())) {
+                $('#Name').after($('<div>', { class: 'text-danger' }).append('Preencha o Nome'));
+                hasError = true;
+            }
+
+            if (IsNullOrWhiteSpace($('#Title').val())) {
+                $('#Title').after($('<div>', { class: 'text-danger' }).append('Preencha o Título.'));
+                hasError = true;
+            }
+
+            if (IsNullOrWhiteSpace($('#MarriedWithName').val()) && !IsNullOrWhiteSpace($('#MarriedWithTitle').val())) {
+                $('#MarriedWithName').after($('<div>', { class: 'text-danger' }).append('Preencha o Nome do Marido/Esposa.'));
+                hasError = true;
+            }
+
+            if (IsNullOrWhiteSpace($('#MarriedWithTitle').val()) && !IsNullOrWhiteSpace($('#MarriedWithName').val())) {
+                $('#MarriedWithTitle').after($('<div>', { class: 'text-danger' }).append('Preencha o Título do Marido/Esposa.'));
+                hasError = true;
+            }
+
+            if (!IsNullOrWhiteSpace($('#selectedNode').val())) {
+                var n = GetNodeData($('#selectedNode').val());
+                var marriedWith = MarriedWith(n.id);
+                marriedWith = marriedWith == null ? n.marriedWith != null ? GetNodeData(n.marriedWith) : null : null;
+
+                marriedWith = marriedWith == null ? n.marriedWith == null ? null : GetNodeData(n.marriedWith) : marriedWith;
+                if ((n.marriedWith != null || marriedWith != null) && $('#Position').val() == 2) {
+                    $('#Position').after($('<div>', { class: 'text-danger' }).append('Esta pessoa já esta casada.'));
+                    hasError = true;
+                }
+
+                if ($('#Position').val() == 0 && n.pid != null && n.spids.length > 0) {
+                    $('#Position').after($('<div>', { class: 'text-danger' }).append('Não é possível inserir mais pais.'));
+                    hasError = true;
+                }
+
+                if (GetLastParent($('#selectedNode').val()).id == $('#selectedNode').val() && GetLastParent(GetClientid()).id != $('#selectedNode').val() &&
+                    CountChildrens($('#selectedNode').val(), 0) >= CountChildrens(GetLastParent(GetClientid()).id, 0)) {
+                    $('#Position').after($('<div>', { class: 'text-danger' }).append('É preciso inserir itens na ramificação principal.'));
+                    hasError = true;
+                }
+            }
+
+
+
+            return !hasError;
+        }
+
+        function GetLastParent(node) {
+            var d = GetNodeData(node);
+            if (d.pid != null) {
+                return GetLastParent(d.pid);
+            }
+            return d;
+        }
+
+        function CountChildrens(node, count) {
+
+            if (GetNodeDataBySecondParentId(node).length > 0) {
+                return CountChildrens(GetNodeDataBySecondParentId(node)[0].id, ++count);
+            }
+            if (chart.nodes[node].childrenIds.length > 0) {
+                return CountChildrens(chart.nodes[node].childrenIds[0], ++count);
+            }
+
+            return count;
+        }
+
+
+
+        function SaveFamilyTree() {
+            if (!IsNullOrWhiteSpace($('#selectedNode').val())) {
+                var d = GetNodeData($('#selectedNode').val());
+                var marriedWith = null;
+                if (d.marriedWith != null) marriedWith = GetNodeData(d.marriedWith);
+
+                //if ($('#Position').val() == 0 && marriedWith != null) // caso esteja criando novo pai/mãe e possui marido/esposa, os pais serão criados no nome do marido/esposa
+                //{
+                //    $('#selectedNode').val(marriedWith.id);
+                //}
+            }
+            var d = $('#FamilyTreeForm').serializeArray();
+
+            $.post('@Url.Action("SaveFamilyTree")', d, function (d) {
+                alert(d.message);
+                if (!d.hasError) {
+                    //window.location.reload();
+                    CreateOrUpdateNode(d.data);
+                }
+
+                $('#CreateOrUpdateModal').modal('hide');
+            });
+        }
+
+        function GetNodeData(id) {
+            var index;
+            for (var i = 0; i < data.length; i++) {
+                if (data[i].id == id) {
+                    return data[i];
+                }
+            }
+        }
+        function GetClientIndex() {
+            for (var i = 0; i < data.length; i++) {
+                if (data[i].isClient == true) {
+                    return i;
+                }
+            }
+        }
+        function GetClientid() {
+            for (var i = 0; i < data.length; i++) {
+                if (data[i].isClient == true) {
+                    return data[i].id;
+                }
+            }
+        }
+        function GetNodeDataByParentId(id) {
+            var d = [];
+            for (var i = 0; i < data.length; i++) {
+                if (data[i].pid == id) {
+                    d.push(data[i]);
+                }
+            }
+            return d;
+        }
+        function GetNodeDataBySecondParentId(id) {
+            var d = [];
+            for (var i = 0; i < data.length; i++) {
+                if (data[i].secondParentId == id) {
+                    d.push(data[i]);
+                }
+            }
+            return d;
+        }
+        function MarriedWith(id) {
+            var index;
+            for (var i = 0; i < data.length; i++) {
+                if (data[i].marriedWith == id) {
+                    return data[i];
+                }
+            }
+        }
+        function GetNodeIndex(id) {
+            var index = null;
+            for (var i = 0; i < data.length; i++) {
+                if (data[i].id == id) {
+                    index = i;
+                    break;
+                }
+            }
+            return index;
+        }
+
+        function CreateOrUpdateNode(d) {
+            var index = GetNodeIndex(d.id);
+
+            if (index == null) {
+                var selectedNodeIndex = GetNodeIndex($('#selectedNode').val());
+
+                if ($('#Position').val() == 0 && data[selectedNodeIndex].pid != null) {
+                    data[selectedNodeIndex].spids = [d.id.toString()];
+                    data[selectedNodeIndex].secondParentId = d.id;
+                    chart.update(data[selectedNodeIndex]);
+                }
+
+                lastItemAdded = d;
+                chart.add(d);
+                chart.draw();
+            } else {
+                data[index] = d;
+                chart.updateNode(d);
+            }
+        }
+    </script>*@

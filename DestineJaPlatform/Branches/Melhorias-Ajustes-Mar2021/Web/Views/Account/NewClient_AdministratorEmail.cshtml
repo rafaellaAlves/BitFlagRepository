@@ -1,0 +1,19 @@
+﻿@model DTO.Client.NewClientEmailViewModel
+
+<div style="max-width: 500px; margin-left: auto; margin-right: auto; padding: 15px; border: 1px solid #bbbbbb; background-color: #f1f1f152;">
+    <div style="width:100%; text-align: center; margin-bottom: 3em;">
+        <img style="width:400px;" src="cid:Logo" />
+    </div>
+    <div>
+        <label style="font-size: 16px;">Um novo cadastro foi realizado em <a style="font-size: 16px;" href="@Url.Action("Manage", "User", new { Model.User.UserId }, Context.Request.Scheme)">@Url.Action("", "", null, Context.Request.Scheme)</a>.</label>
+        <br />
+        <label style="font-size: 14px;">Veja o resumo abaixo:</label>
+        <ul>
+            <li><b>Nome da empresa:</b> @Model.Client.CompanyName</li>
+            <li><b>Nome da pessoa:</b> @Model.User.FirstName @Model.User.LastName</li>
+            <li><b>Telefone:</b> @Model.Client.Phone</li>
+            <li><b>Cidade/Estado:</b> @Model.Client.City</li>
+            <li><b>Email:</b> @Model.User.Email</li>
+        </ul>
+    </div>
+</div>

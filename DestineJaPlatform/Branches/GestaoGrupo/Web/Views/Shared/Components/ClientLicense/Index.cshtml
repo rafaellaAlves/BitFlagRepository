@@ -1,0 +1,161 @@
+﻿<div class="row">
+    <div class="col-md form-group">
+        <input type="text" class="form-control" placeholder="Pesquisar..." data-toggle="search-datatable" data-target="#client-license-table" />
+    </div>
+    <div class="col-md-auto form-group" style="min-width: 150px;">
+        <a href="javascript:openListPrint()" class="btn btn-primary w-100"><i class="simple-icon-printer"></i>&nbsp;Imprimir</a>
+    </div>
+    <div class="col-md-auto form-group" style="min-width: 150px;">
+        <a href="javascript:openClientLicenseManageModal()" class="btn btn-destineja-orange w-100"><i class="simple-icon-plus"></i>&nbsp;Novo</a>
+    </div>
+</div>
+<hr />
+<div class="row">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col table-responsive">
+                <table id="client-license-table" class="display table table-striped table-bordered table-condensed w-100" style="border-collapse: collapse !important;">
+                    <thead>
+                        <tr>
+                            <th>Nome do Documento</th>
+                            <th>Órgão Emissor</th>
+                            <th>Data de Emissão</th>
+                            <th>Data de Vencimento</th>
+                            <th>Dias para Vencimento</th>
+                            <th width="110px">&nbsp;</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="client-license-manage-modal" tabindex="-1" role="dialog" aria-labelledby="client-license-manage-modal-title" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="client-license-manage-modal-title">Documento</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="client-license-manage-view-component"></div>
+            </div>
+            <div class="modal-footer">
+                <div class="col-md-6">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="simple-icon-close"></i>&nbsp;Fechar</button>
+                </div>
+                <div class="col-md-6">
+                    <button type="button" class="btn btn-success float-right" id="client-license-manage-modal-save-button"><i class="simple-icon-cloud-upload"></i>&nbsp;Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script asp-cut-key="client-license-index">
+    var clientLicenseDatatables;
+    $(document).ready(function () {
+        clientLicenseDatatables = $('#client-license-table').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            dom: 'tip',
+            ajax: {
+                url: '@Url.Action("List", "ClientLicense")',
+                type: 'POST'
+            },
+            columns: [
+                { render: function (data, type, row) { return row.name; } },
+                { render: function (data, type, row) { return row.issuer; } },
+                { render: function (data, type, row) { return row._IssueDate; } },
+                { render: function (data, type, row) { return row._DueDate; } },
+                { render: function (data, type, row) { return row.dueDateDays; } },
+                {
+                    render: function (data, type, row)
+                    {
+
+                        var r = "<div style='display:flex; margin: auto; width: 50px;'>";
+                        r += "<a href='javascript:license(" + row.clientLicenseId + ")\' title='Condicionantes'><i class='simple-icon-doc'></i></a>&nbsp;&nbsp;";
+
+                        r += getListActionsLink([
+                            { link: '@Url.Action("GetArchive", "ClientLicense")?id=' + row.clientLicenseId, text: '<i class="simple-icon-cloud-download"></i> Download' }
+                            , { link: 'javascript:openClientLicenseManageModal(' + row.clientLicenseId + ')', text: '<i class="simple-icon-note"></i> Editar' }
+                            , { link: 'javascript:removeClientLicense(' + row.clientLicenseId + ', \'' + row.name + '\')', text: '<i class="simple-icon-trash"></i> Excluir' }
+                        ]);
+
+                        r += "</div>";
+
+                        return r;
+                    }
+                }
+            ]
+        });
+    });
+    function license(id) {
+        var sis = false;
+        while (sis == false) {
+            showLoading();
+            sis = window.location.href = '@Url.Action("Index", "ClientLicenseConditioning")?clientLicenseId=' + id ;
+        }
+    }
+    function removeClientLicense(id, name) {
+        bootboxConfirm("Deseja realmente excluir o item \"" + name + "\"?", function(result){
+            if (!result) return;
+
+            $.post('@Url.Action("DeleteDefinitively", "ClientLicense")', { id}, function (d) {
+                if (d.hasError) {
+                    bootboxConfirm(d.message, function (d) {
+                        if (d) window.location.href = '@Url.Action("Manage", "ClientLicense")?id=' + id;
+                    });
+                    return;
+                }
+
+                bootbox.alert("Item \"" + name + "\" excluído com sucesso!");
+                clientLicenseDatatables.ajax.reload();
+            });
+        });
+    }
+
+    function openClientLicenseManageModal(clientLicenseId) {
+        $('#client-license-manage-view-component').load('@Url.Action("LoadClientLicenseManageViewComponent", "ClientLicense")', { clientLicenseId }, function () {
+            $('#client-license-manage-modal').modal('show');
+        });
+    }
+
+    $('#client-license-manage-modal-save-button').click(function () {
+        $(document).ajaxStart(function () {
+            showLoadingProcess();
+        });
+        $(document).ajaxStop(function () {
+            $("#loadingProcess").hide();
+        });
+        saveClientLicense(function () {
+            clientLicenseDatatables.ajax.reload();
+            $('#client-license-manage-modal').modal('hide');
+        });
+    });
+
+    function openListPrint() {
+        var form = $('<form>', { target: "_blank", method: "post", action: '@Url.Action("ListPrint", "ClientLicense")'});
+
+        var i = 0;
+        clientLicenseDatatables.rows({ filter: 'applied' }).data().each(function (e) {
+            form.append($('<input>', { type: 'hidden', value: i, name: 'model.Index' }));
+            $.each(e, function (key, d) {
+                form.append($('<input>', { type: 'hidden', value: d, name: 'model[' + i + '].' + key }));
+            });
+
+            i++;
+        });
+
+        $('body').append(form);
+
+        form.submit();
+        form.remove();
+    }
+</script>

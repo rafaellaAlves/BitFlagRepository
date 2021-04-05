@@ -1,0 +1,481 @@
+﻿@model GuardMedWeb.Models.SeguradoClinicaVeterinariaViewModel
+@inject GuardMedWeb.DAL.GuardMedWebContext context
+@{
+    ViewData["Title"] = "Seguro para Clínica, PetShop e Hospital Veterinário AmaisVet";
+    var seguroProfissionalPrecoFunctions = new GuardMedWeb.BLL.SeguradoProfissional.SeguroProfissionalPrecoFunctions(context);
+    var planoSeguroProfissionalFunctions = new GuardMedWeb.BLL.SeguradoProfissional.PlanoSeguroProfissionalFunctions(context);
+
+    double precoMV = 0;
+    precoMV += Convert.ToDouble(Model.PlanoExtensaoCobertura20PrecoTotal) + Convert.ToDouble(Model.PlanoExtensaoCobertura30PrecoTotal) + Convert.ToDouble(Model.PlanoExtensaoCobertura40PrecoTotal) + Convert.ToDouble(Model.PlanoExtensaoCobertura50PrecoTotal);
+
+    int tecnicoIdade = 0;
+    if (Model.DataNascimentoTecnico.HasValue)
+    {
+        tecnicoIdade = new DateTime(DateTime.Now.Subtract(Model.DataNascimentoTecnico.Value).Ticks).Year - 1;
+    }
+}
+
+<style type="text/css">
+    .padding-left {
+        padding-left: 15px;
+        padding-top: 3px;
+    }
+
+    @@media screen and (max-width: 400px) {
+        #tabelaClinica div, #tabelaTecnico div, #tabelaProfissional div {
+            font-size: 11px;
+        }
+    }
+</style>
+
+<div id="loading" style="position: fixed; top: 0; left: 0; height: 100%; width: 100%; background-color: rgba(0, 0, 0, 0.6); z-index: 1000; display: none;">
+    <div style="position: fixed; height: 300px; width: 100%; top: 50%; margin-top: -150px; text-align: center;">
+        <img src="@Url.Content("~/assets/images/Rolling-1s-200px.svg")" style="position: relative; height: 200px; width: 200px;" />
+        <br />
+        <b style="color: white; background-color: #000000; padding: 0.5em;">Processando seu pagamento, por favor, continue conectado.</b>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    function ConfirmacaoSave() {
+
+        var model = $('#ConfirmacaoForm').serializeArray();
+        var references = new Array();
+        @foreach(var item in Model.Funcionarios)
+        {
+            <text>
+                var data = { reference: '@item.Referencia' };
+                references.push('@item.Referencia');
+            </text>
+        }
+        model.push({ name: 'MvReferences', value: references });
+
+
+        $('#loading').show();
+        $.post('@Url.Action("SalvarConfirmacao", "SeguroClinicaVeterinaria")', model, function (data) {
+            $('#loading').hide();
+            if (data.hasError == false) {
+                window.location.href = '@Url.Action("Conclusao", "SeguroClinicaVeterinaria")?reference=' + data.message;
+            } else if (data.hasError == true) {
+                alert('Erro: ' + data.message);
+            }
+        });
+    }
+    
+    function ValidacaoConfirmacao() {
+        $('.text-danger').remove();
+        var ConfirmacaoErro = false;
+
+        if (!$('#termo')[0].checked) {
+            $('#termoBox').after('<div class="text-danger">Para continuar é preciso aceitar o termo acima.</div>');
+            ConfirmacaoErro = true;
+        }
+
+        return (!ConfirmacaoErro);
+    }
+    
+</script>
+
+<div class="row">
+    <div class="col-sm-12 mx-auto">
+        <div class="row">
+            <div class="rectangle" id="retangle1" style="height: 10px; width:17%; margin-left:16%; background:lightgrey;"></div>
+            <div class="rectangle" id="retangle2" style="height: 10px; width:17%; background:lightgrey;"></div>
+            <div class="rectangle" id="retangle3" style="height: 10px; width:17%; background-color:lightgrey;"></div>
+            <div class="rectangle" id="retangle4" style="height: 10px; width:17%; background-color:lightgrey;"></div>
+        </div>
+        <div class="row">
+            <div class="col-md-1 col-1"></div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="circle1" style="background-color: lightgrey; ">
+                    <div style="padding-top:25px;">
+                        <div class="mx-auto smallcircle" id="smallCircle1" style="background: white; display:none;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="circle2" style="background-color: lightgrey;">
+                    <div style="padding-top:25px;">
+                        <div class="mx-auto smallcircle" id="smallCircle2" style="background: white; display:none;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="circle3" style="background-color: lightgrey;">
+                    <div style="padding-top:25px;">
+                        <div class="mx-auto smallcircle" id="smallCircle3" style="background: white; display:none;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle shadow" id="circle4" style=" background-color: lightgrey;">
+                    <div style="padding-top:25px;">
+                        <div class="mx-auto smallcircle" id="smallCircle4" style="background: white; display:none;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="circle5" style=" background-color: lightgrey;"></div>
+                <div class="mx-auto smallcircle" id="smallCircle5" style=" background: white; display:none;"></div>
+            </div>
+        </div>
+        <div class="row" style="margin-top:1em;">
+            <div class="col-md-1"></div>
+            <div class="col-sm-2 text-center"><label>Simulação</label></div>
+            <div class="col-sm-2 text-center"><label>Monte seu Plano</label></div>
+            <div class="col-sm-2 text-center"><label>Proposta</label></div>
+            <div class="col-sm-2 text-center"><strong style="color:#40615f">Contratar</strong></div>
+            <div class="col-sm-2 text-center"><label>Impressão</label></div>
+        </div>
+    </div>
+</div>
+<br />
+<script type="text/javascript">
+    $('#circle1').css("background", "#0a754e");
+    $('#circle2').css("background", "#0a754e");
+    $('#circle3').css("background", "#0a754e");
+    $('#circle4').css("background", "#0a754e");
+    $('#retangle1').css("background", "#13D68F");
+    $('#retangle2').css("background", "#13D68F");
+    $('#retangle3').css("background", "#13D68F");
+    $('#smallCircle4').show();
+</script>
+<br />
+<form id="ConfirmacaoForm" method="post" action="@Url.Action("SalvarConfirmacao","SeguroClinicaVeterinaria")" enctype="multipart/form-data">
+    <input type="hidden" id="PrecoTotal" name="PrecoTotal" value="@Model.PrecoTotal" />
+    <input type="hidden" id="PagamentoTipoId" name="PagamentoTipoId" value="@Model.PagamentoTipoId" />
+    <input type="hidden" id="SeguradoClinicaVeterinariaId" name="SeguradoClinicaVeterinariaId" value="@Model.SeguradoClinicaVeterinariaId" />
+    <input type="hidden" id="PlanoExtensaoCobertura20Preco" name="PlanoExtensaoCobertura20Preco" value="@Model.PlanoExtensaoCobertura20Preco" />
+    <input type="hidden" id="PlanoExtensaoCobertura30Preco" name="PlanoExtensaoCobertura30Preco" value="@Model.PlanoExtensaoCobertura30Preco" />
+    <input type="hidden" id="PlanoExtensaoCobertura40Preco" name="PlanoExtensaoCobertura40Preco" value="@Model.PlanoExtensaoCobertura40Preco" />
+    <input type="hidden" id="PlanoExtensaoCobertura50Preco" name="PlanoExtensaoCobertura50Preco" value="@Model.PlanoExtensaoCobertura50Preco" />
+    <input type="hidden" id="PlanoClinicaVeterinariaPreco" name="PlanoClinicaVeterinariaPreco" value="@Model.PlanoClinicaVeterinariaPreco" />
+    <input type="hidden" id="PlanoResponsavelTecnicoPreco" name="PlanoResponsavelTecnicoPreco" value="@Model.PlanoResponsavelTecnicoPreco" />
+    <input type="hidden" id="VezesPagamento" name="VezesPagamento" value="@Model.VezesPagamento" />
+</form>
+
+@{ Html.RenderPartial("~/Views/Shared/_ProdutoSelecionadoClinica.cshtml"); }
+
+<div class="col-md-12" style="border:1px solid; border-radius: 5px 5px 5px 5px;">
+    <div class="row">
+        <div class="col-md-12 padding-left bgamaisvet-darkgreen" style="border-bottom:1px solid; color:white; border-radius: 5px 5px 0px 0px;">
+            SEGURO CORPORATIVO
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12 padding-left"><strong>RISCO:</strong> @Model.RazaoSocial</div>
+    </div>
+    <div class="row">
+        <div class="col-md-12 padding-left"><strong>CNPJ/CPF:</strong> @if (!string.IsNullOrWhiteSpace(Model.CNPJ))
+        {<text>@Model.CNPJ</text>}
+    else
+    {<text>@Model.CPF</text>}</div>
+    </div>
+    <div class="row">
+        <div class="col-md-8 padding-left"><strong>ENDEREÇO:</strong> @Model.Endereco, @Model.EnderecoNumero</div>
+        <div class="col-md-4 padding-left"><strong>BAIRRO:</strong> @Model.Bairro</div>
+    </div>
+    <div class="row">
+        <div class="col-md-8 padding-left"><strong>CIDADE:</strong> @Model.Cidade</div>
+        <div class="col-md-4 padding-left"><strong>CEP:</strong> @Model.CEP</div>
+    </div>
+</div>
+<br />
+<div id="tabelaClinica" class="col-12" style="border:1px solid; border-radius: 5px 5px 5px 5px;">
+    <div class="row bgamaisvet-darkgreen" style="border-radius: 5px 5px 0px 0px; color:white;">
+        <div class="col-9 padding-left"><strong>1. Proteção para a Empresa</strong></div>
+        <div class="col-3 padding-left text-center"><strong>@Model.PlanoClinicaVeterinariaNome</strong></div>
+    </div>
+    <div class="row bgamaisvet-green" style="color:white;">
+        <div class="col-9 text-left"><strong>COBERTURA</strong></div>
+        <div class="col-3 padding-left text-center"><strong>VALOR</strong></div>
+    </div>
+    <div class="row">
+        <div class="col-9 padding-left"><strong>Incêndio | Raio | Explosão</strong></div>
+        <div class="col-3 padding-left text-center">
+            @if (Model.PlanoClinicaVeterinariaId == 1)
+            {<text>-</text>}
+            @if (Model.PlanoClinicaVeterinariaId == 2)
+            {<text>-</text>}
+            @if (Model.PlanoClinicaVeterinariaId == 3)
+            {<text>R$ 100.000,00</text>}
+            @if (Model.PlanoClinicaVeterinariaId == 4)
+            {<text>R$ 250.000,00</text>}
+            @if (Model.PlanoClinicaVeterinariaId == 5)
+            {<text>R$ 400.000,00</text>}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-9 padding-left"><strong>Danos Elétricos</strong></div>
+        <div class="col-3 padding-left text-center">
+            @if (Model.PlanoClinicaVeterinariaId == 1)
+            {<text>-</text>}
+            @if (Model.PlanoClinicaVeterinariaId == 2)
+            {<text>-</text>}
+            @if (Model.PlanoClinicaVeterinariaId == 3)
+            {<text>R$ 5.000,00</text>}
+            @if (Model.PlanoClinicaVeterinariaId == 4)
+            {<text>R$ 10.000,00</text>}
+            @if (Model.PlanoClinicaVeterinariaId == 5)
+            {<text>R$ 10.000,00</text>}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-9 padding-left"><strong>Perda Pagamento Aluguel</strong></div>
+        <div class="col-3 padding-left text-center">
+            @if (Model.PlanoClinicaVeterinariaId == 1)
+            {<text>-</text>}
+            @if (Model.PlanoClinicaVeterinariaId == 2)
+            {<text>-</text>}
+            @if (Model.PlanoClinicaVeterinariaId == 3)
+            {<text>R$ 5.000,00</text>}
+            @if (Model.PlanoClinicaVeterinariaId == 4)
+            {<text>R$ 10.000,00</text>}
+            @if (Model.PlanoClinicaVeterinariaId == 5)
+            {<text>R$ 10.000,00</text>}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-9 padding-left"><strong>Resp Operações</strong></div>
+        <div class="col-3 padding-left text-center">
+            @if (Model.PlanoClinicaVeterinariaId == 1)
+            {<text>-</text>}
+            @if (Model.PlanoClinicaVeterinariaId == 2)
+            {<text>-</text>}
+            @if (Model.PlanoClinicaVeterinariaId == 3)
+            {<text>R$ 5.000,00</text>}
+            @if (Model.PlanoClinicaVeterinariaId == 4)
+            {<text>R$ 10.000,00</text>}
+            @if (Model.PlanoClinicaVeterinariaId == 5)
+            {<text>R$ 10.000,00</text>}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-9 padding-left"><strong>Roubo e Furto Qualificado</strong></div>
+        <div class="col-3 padding-left text-center">
+            @if (Model.PlanoClinicaVeterinariaId == 1)
+            {<text>-</text>}
+            @if (Model.PlanoClinicaVeterinariaId == 2)
+            {<text>-</text>}
+            @if (Model.PlanoClinicaVeterinariaId == 3)
+            {<text>R$ 5.000,00</text>}
+            @if (Model.PlanoClinicaVeterinariaId == 4)
+            {<text>R$ 10.000,00</text>}
+            @if (Model.PlanoClinicaVeterinariaId == 5)
+            {<text>R$ 10.000,00</text>}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-9 padding-left"><strong>Vendaval</strong></div>
+        <div class="col-3 padding-left text-center">
+            @if (Model.PlanoClinicaVeterinariaId == 1)
+            {<text>-</text>}
+            @if (Model.PlanoClinicaVeterinariaId == 2)
+            {<text>-</text>}
+            @if (Model.PlanoClinicaVeterinariaId == 3)
+            {<text>R$ 5.000,00</text>}
+            @if (Model.PlanoClinicaVeterinariaId == 4)
+            {<text>R$ 10.000,00</text>}
+            @if (Model.PlanoClinicaVeterinariaId == 5)
+            {<text>R$ 10.000,00</text>}
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-9 padding-left"><strong>RESPONSABILIDADE CIVIL PROFISSIONAL | CLÍNICA VETERINÁRIA</strong></div>
+        <div class="col-3 padding-left text-center">
+            <strong>
+                @if (Model.PlanoClinicaVeterinariaId == 1)
+                {<text>R$ 50.000,00</text>}
+                @if (Model.PlanoClinicaVeterinariaId == 2)
+                {<text>R$ 100.000,00</text>}
+                @if (Model.PlanoClinicaVeterinariaId == 3)
+                {<text>R$ 50.000,00</text>}
+                @if (Model.PlanoClinicaVeterinariaId == 4)
+                {<text>R$ 50.000,00</text>}
+                @if (Model.PlanoClinicaVeterinariaId == 5)
+                {<text>R$ 100.000,00</text>}
+            </strong>
+        </div>
+    </div>
+    <div class="row" style="border-bottom:1px solid;">
+        <div class="col-9 padding-left"><strong>RESPONSABILIDADE CIVIL PROFISSIONAL | RESPONSÁVEL TÉCNICO</strong></div>
+        <div class="col-3 padding-left text-center">
+            <strong>R$ 50.000,00</strong>
+        </div>
+    </div>
+    <div class="row amaisvet-green">
+        <div class="col-9 padding-left"><strong>VALOR DO SEGURO MENSAL</strong></div>
+        <div class="col-3 padding-left text-center"><strong>R$ <span class="money">@Model.PlanoClinicaVeterinariaPreco</span></strong></div>
+    </div>
+</div>
+<br />
+<div id="tabelaTecnico" class="col-12" style="border:1px solid; border-radius: 5px 5px 5px 5px; margin-bottom: 1em;">
+    <div class="row bgamaisvet-darkgreen" style="color:white; border-radius: 5px 5px 0px 0px;">
+        <div class="col-12 padding-left"><strong>2. Proteção de Renda para o RT</strong></div>
+    </div>
+    <div class="row bgamaisvet-green" style="color:white;">
+        <div class="col-3 padding-left text-center"><strong>Nome</strong></div>
+        <div class="col-3 padding-left text-center"><strong>Faixa Etaria</strong></div>
+        <div class="col-3 padding-left text-center"><strong>Plano</strong></div>
+        <div class="col-3 padding-left text-center"><strong>Valor</strong></div>
+    </div>
+    <div class="row">
+        <div class="col-3 padding-left text-center">
+            <strong>
+                @if (Model.PlanoResponsavelTecnicoId.HasValue)
+                {<text>@Model.NomeResponsavelTecnico</text>}
+            else
+            {<text>Não Contratado</text>}
+            </strong>
+        </div>
+        <div class="col-3 padding-left text-center">
+            <strong>
+                @if (Model.PlanoResponsavelTecnicoId.HasValue)
+                {
+                    if (tecnicoIdade >= 20 && tecnicoIdade <= 29)
+                    {<text>20 ~ 29</text>}
+                else if (tecnicoIdade >= 30 && tecnicoIdade <= 39)
+                {<text>30 ~ 39</text>}
+            else if (tecnicoIdade >= 40 && tecnicoIdade <= 49)
+            {<text>40 ~ 49</text>}
+        else if (tecnicoIdade >= 50 && tecnicoIdade <= 59)
+        {<text>50 ~ 59</text>}
+}
+else
+{<text>-</text>}
+            </strong>
+        </div>
+        <div class="col-3 padding-left text-center">
+            <strong>
+                @if (!Model.PlanoResponsavelTecnicoId.HasValue)
+                {<text>-</text>}
+            else
+            {<text>@Model.PlanoResponsavelTecnicoNome</text>}
+            </strong>
+        </div>
+        <div class="col-3 padding-left text-center">
+            <strong>
+                @if (!Model.PlanoResponsavelTecnicoId.HasValue)
+                {<text>-</text>}
+            else
+            {<text>R$ <span class="money">@Model.PlanoResponsavelTecnicoPreco</span></text>}
+            </strong>
+        </div>
+    </div>
+</div>
+
+<div id="tabelaProfissional" class="col-12" style="border:1px solid; border-radius: 5px 5px 5px 5px;">
+    <div class="row bgamaisvet-darkgreen" style="color:white;">
+        <div class="col-12 padding-left"><strong>3. Proteção Profissional aos MV's Colaboradores</strong></div>
+    </div>
+    <div class="row bgamaisvet-green" style="color:white;">
+        <div class="col-3 padding-left text-center"><strong>Nome</strong></div>
+        <div class="col-3 padding-left text-center"><strong>Faixa Etaria</strong></div>
+        <div class="col-3 padding-left text-center"><strong>Plano</strong></div>
+        <div class="col-3 padding-left text-center"><strong>Valor</strong></div>
+    </div>
+    @if (Model.Funcionarios.Count == 0)
+    {
+        <div class="row">
+            <div class="col-3 padding-left text-center"><strong>Não Contratado</strong></div>
+            <div class="col-3 padding-left text-center"><strong>-</strong></div>
+            <div class="col-3 padding-left text-center"><strong>-</strong></div>
+            <div class="col-3 padding-left text-center"><strong>-</strong></div>
+        </div>
+    }
+    else
+    {
+        foreach (var func in Model.Funcionarios)
+        {
+            <div class="row">
+                <div class="col-3 padding-left text-center"><strong>@func.Nome</strong></div>
+                <div class="col-3 padding-left text-center">
+                    <strong>
+                        @if (func.Idade >= 20 && func.Idade <= 29)
+                        {<text>20 ~ 29</text>}
+                    else if (func.Idade >= 30 && func.Idade <= 39)
+                    {<text>30 ~ 39</text>}
+                else if (func.Idade >= 40 && func.Idade <= 49)
+                {<text>40 ~ 49</text>}
+            else if (func.Idade >= 50 && func.Idade <= 59)
+            {<text>50 ~ 59</text>}
+                    </strong>
+                </div>
+                <div class="col-3 padding-left text-center"><strong>@planoSeguroProfissionalFunctions.GetDataByID(func.PlanoSeguroProfissionalId).Nome</strong></div>
+                <div class="col-3 padding-left text-center"><strong>R$ <span class="money">@seguroProfissionalPrecoFunctions.GetData().SingleOrDefault(x => x.PlanoSeguroProfissionalId == func.PlanoSeguroProfissionalId && x.IdadeMin <= func.Idade && x.IdadeMax >= func.Idade).CustoAssociadoMensal</span></strong></div>
+            </div>
+        }
+    }
+</div>
+@if ((Model.PlanoResponsavelTecnicoId.HasValue && tecnicoIdade >= 40 &&
+ (!string.IsNullOrWhiteSpace(Model.TecnicoMedicamentos) ||
+ !string.IsNullOrWhiteSpace(Model.TecnicoDoencasAtuais) ||
+ !string.IsNullOrWhiteSpace(Model.TecnicoDoencas) ||
+ Model.TecnicoFumante.HasValue && Model.TecnicoFumante.Value)) ||
+ Model.Funcionarios.Any(x => x.Idade >= 40 &&
+ (!string.IsNullOrWhiteSpace(x.Medicamentos) ||
+ !string.IsNullOrWhiteSpace(x.DoencasAtuais) ||
+ !string.IsNullOrWhiteSpace(x.Doencas) ||
+ x.Fumante.HasValue && x.Fumante.Value)))
+{
+    <hr />
+    <div class="row">
+        <div class="col-md-12">
+            <label>
+                <strong>Comunicado Importante!</strong> Mediante as resposta no questionário de risco, informamos que os profissionais abaixo listados passarão por análise de aceitação pela seguradora para a adesão à proteção de renda. Sendo assim neste momento está sendo liberado apenas a proteção de Responsabilidade Civil profissional está sendo liberado. Em breve um analista da AmaisVet entrará em contato para auxiliá-los nos documentos necessários para análise de aceitação.<br />
+                Profissionais a serem analisados para aceitação da cobertura de proteção de renda:
+            </label>
+            <ul>
+                @if (Model.PlanoResponsavelTecnicoId.HasValue && tecnicoIdade >= 40)
+                {
+                    if (!string.IsNullOrWhiteSpace(Model.TecnicoMedicamentos) ||
+                        !string.IsNullOrWhiteSpace(Model.TecnicoDoencasAtuais) ||
+                        !string.IsNullOrWhiteSpace(Model.TecnicoDoencas) ||
+                        Model.TecnicoFumante.HasValue && Model.TecnicoFumante.Value)
+                    {
+                        <li><strong>@Model.NomeResponsavelTecnico</strong> (@Model.CPFTecnico);</li>
+                    }
+                }
+                @foreach (var func in Model.Funcionarios)
+                {
+                    if (func.Idade >= 40 &&
+                        (!string.IsNullOrWhiteSpace(func.Medicamentos) ||
+                        !string.IsNullOrWhiteSpace(func.DoencasAtuais) ||
+                        !string.IsNullOrWhiteSpace(func.Doencas) ||
+                        func.Fumante.HasValue && func.Fumante.Value)
+                        )
+                    {
+                        <li><strong>@func.Nome</strong> (@func.CPF);</li>
+                    }
+                }
+            </ul>
+        </div>
+    </div>
+    <hr />
+}
+else
+{
+    <br /><br />
+}
+<div class="row" id="termoBox">
+    <div class="col-md-12">
+        <div class="checkbox">
+            <label><input type="checkbox" id="termo">&nbsp;Ao clicar aqui você aceita que será responsável pelo pagamento da fatura mensal através de boleto bancário.</label>
+        </div>
+    </div>
+</div>
+
+<br />
+<div class="form-group">
+    <a href="@Url.Action("Formulario","SeguroClinicaVeterinaria")?reference=@Model.Referencia" class="btn btn-secondary"><i class="fas fa-arrow-left"></i>&nbsp;Voltar</a>
+    <a href="javascript:void(0)" id="ConfirmacaoButton" class="btn btn-primary float-right">Concluir&nbsp;<i class="fas fa-check"></i></a>
+</div>
+
+<script type="text/javascript">
+    $('#ConfirmacaoButton').click(function () {
+        if (ValidacaoConfirmacao()) {
+            ConfirmacaoSave();
+        }
+    });
+</script>

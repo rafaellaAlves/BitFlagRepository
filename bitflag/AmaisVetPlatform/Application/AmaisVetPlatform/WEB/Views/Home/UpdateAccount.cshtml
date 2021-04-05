@@ -1,0 +1,241 @@
+﻿@model WEB.Models.Subscription.Plan.ChoosePlanViewModel
+@inject Services.OccupationArea.OccupationAreaService occupationAreaService
+@inject Services.ProfessionalSpecialty.ProfessionalSpecialtyService professionalSpecialtyService
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Atualizar Dados Assinatura";
+}
+@section Styles {
+    <style type="text/css">
+        #menu {
+            background-image: url('@Url.Content("~/assets/image/home-background-cover.jpeg")');
+            background-repeat: no-repeat;
+            background-size: cover;
+            min-height: 100%;
+        }
+
+    </style>
+}
+<div class="row">
+    <div class="col-md-6">
+        <div id="menu" class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12 text-center">
+                        @*@{
+            if (Model.Type == 1)
+            {
+                @await Html.PartialAsync("../Shared/_LayoutMenuAdmin.cshtml");
+            }
+            else if (Model.Type == 2)
+            {
+                @await Html.PartialAsync("../Shared/_LayoutMenuSaller.cshtml");
+            }
+            else
+            {
+                @await Html.PartialAsync("../Shared/_LayoutMenuHome.cshtml");
+            }
+        }*@
+                        @await Html.PartialAsync("../Shared/_LayoutMenuHome.cshtml");
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="row">
+            <div class="col-12">
+                <div class="mb-2">
+                    <h2>
+                        Olá Dr(a), Informe abaixo o que deseja atualizar ou corrigir.
+                    </h2>
+                </div>
+                <hr />
+            </div>
+        </div>
+        <div id="not-found" style="display: none;" class="row">
+            <div class="col-md-12">
+                <div class="alert alert-danger">
+                    <p>Seu CPF não foi encontrado!</p>
+                </div>
+            </div>
+        </div>
+
+        <form id="UpdateAccount">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="row pt-1">
+                                <div class="col-sm-6">
+                                    <label class="control-label">CPF</label>
+                                    <input name="Cpf" type="text" class="form-control " />
+                                </div>
+                                <div class="col-sm-6">
+                                    <label style="visibility:hidden" class="control-label ">botão</label><br />
+                                    <button type="submit" id="valid" class="btn btn-primary">Validar</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="separator mt-3"></div>
+                        <div class="card-body" id="Update" style="display:none;">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label ">Nome</label>
+                                        <input name="FullName" @*value="@Model.Subscription.FullName"*@ type="text" class="form-control " />
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label">E-mail</label>
+                                        <input name="Email" id="Email" @*value="@Model.Subscription.Email"*@ type="email" class="form-control" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label">Telefone</label>
+                                        <input name="PhoneNumber" id="PhoneNumber" @*value="@Model.Subscription.PhoneNumber"*@ type="tel" class="form-control" />
+
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label">Celular</label>
+                                        <input name="MobileNumber" id="MobileNumber" @*value="@Model.Subscription.MobileNumber"*@ type="tel" class="form-control" />
+
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label class="control-label">Especialidade</label>
+                                        <select name="ProfessionalSpecialtyId" id="ProfessionalSpecialtyId" class="form-control">
+                                            <option value="">Selecione</option>
+                                            @*@foreach (var item in await professionalSpecialtyService.GetActiveAsync())
+                                                {
+                                                    <option @(Model.Subscription.ProfessionalSpecialtyId == item.ProfessionalSpecialtyId ? "selected=\"selected\"" : "") value="@item.ProfessionalSpecialtyId">@item.Name</option>
+                                                }*@
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label class="control-label">CRMV</label>
+                                        <input @*value="@Model.Subscription.Crmv"*@ id="Crmv" type="text" disabled="disabled" class="form-control" />
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label class="control-label">Ano de Formação</label>
+                                        <select class="form-control" id="GraduationYear" name="GraduationYear">
+                                            <option value="">Selecione</option>
+                                            @*@for (int i = DateTime.Now.Year; i >= 1940; i--)
+                                                {
+                                                    <option @(Model.Subscription.GraduationYear == i ? "selected=\"selected\"" : "") value="@i">@i</option>
+                                                }*@
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label class="control-label">CEP</label>
+                                        <input name="ZipCode" id="ZipCode" @*value="@Model.Subscription.ZipCode"*@ type="text" class="form-control" />
+
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label class="control-label">Endereço</label>
+                                        <input name="Address" id="Address" @*value="@Model.Subscription.Address"*@ type="text" class="form-control" />
+
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label class="control-label">Número</label>
+                                        <input name="AddressNumber" id="AddressNumber" @*value="@Model.Subscription.AddressNumber"*@ type="text" class="form-control" />
+
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label">Bairro</label>
+                                        <input name="Neighborhood" id="Neighborhood" @*value="@Model.Subscription.Neighborhood"*@ type="text" class="form-control" />
+
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label">Complemento</label>
+                                        <input name="AddressAdditionalInfo" id="AddressAdditionalInfo" @*value="@Model.Subscription.AddressAdditionalInfo"*@ type="text" class="form-control" />
+
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label class="control-label">Cidade</label>
+                                        <input name="City" id="City" @*value="@Model.Subscription.City"*@ type="text" class="form-control" />
+
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label class="control-label">Estado</label>
+                                        <select name="State" id="State" class="form-control">
+                                            <option value="">Selecione</option>
+                                            @*@foreach (var item in Services.Utils.UtilsService.GetStates())
+                                                {
+                                                    <option @(Model.Subscription.State == item.Code ? "selected=\"selected\"" : "") value="@item.Code">@item.Description</option>
+                                                }*@
+                                        </select>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script type="text/javascript">
+    $(document).ready(function () {
+    $('input[name = Cpf]').mask('999.999.999-99');
+    
+
+    //VALIDA CPF CHAMA  A FUNCTION
+    $('button#valid').click(function () {
+    $('#not-found').hide();
+    $('#Update').hide();
+    Validate({
+    "Cpf": $('input[name="Cpf"]').val()
+    }, function (d) {
+    /* *** APOS A REQUISICAO AJAX *** */
+    if (d) {
+
+    $('#Update').show();
+    } else {
+    $('#not-found').show();
+    }
+    });
+
+    });
+
+    });
+    </script>
+}

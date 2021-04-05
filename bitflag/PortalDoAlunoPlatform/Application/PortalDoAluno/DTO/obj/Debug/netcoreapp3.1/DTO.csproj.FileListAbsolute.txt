@@ -1,0 +1,9 @@
+C:\repositorios\bitflag\PortalDoAlunoPlatform\Application\PortalDoAluno\DTO\bin\Debug\netcoreapp3.1\DTO.deps.json
+C:\repositorios\bitflag\PortalDoAlunoPlatform\Application\PortalDoAluno\DTO\bin\Debug\netcoreapp3.1\DTO.dll
+C:\repositorios\bitflag\PortalDoAlunoPlatform\Application\PortalDoAluno\DTO\bin\Debug\netcoreapp3.1\DTO.pdb
+C:\repositorios\bitflag\PortalDoAlunoPlatform\Application\PortalDoAluno\DTO\obj\Debug\netcoreapp3.1\DTO.csprojAssemblyReference.cache
+C:\repositorios\bitflag\PortalDoAlunoPlatform\Application\PortalDoAluno\DTO\obj\Debug\netcoreapp3.1\DTO.AssemblyInfoInputs.cache
+C:\repositorios\bitflag\PortalDoAlunoPlatform\Application\PortalDoAluno\DTO\obj\Debug\netcoreapp3.1\DTO.AssemblyInfo.cs
+C:\repositorios\bitflag\PortalDoAlunoPlatform\Application\PortalDoAluno\DTO\obj\Debug\netcoreapp3.1\DTO.csproj.CoreCompileInputs.cache
+C:\repositorios\bitflag\PortalDoAlunoPlatform\Application\PortalDoAluno\DTO\obj\Debug\netcoreapp3.1\DTO.dll
+C:\repositorios\bitflag\PortalDoAlunoPlatform\Application\PortalDoAluno\DTO\obj\Debug\netcoreapp3.1\DTO.pdb

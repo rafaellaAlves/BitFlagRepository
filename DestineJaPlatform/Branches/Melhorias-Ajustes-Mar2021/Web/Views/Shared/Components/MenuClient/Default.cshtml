@@ -1,0 +1,87 @@
+﻿@inject Services.Contract.ContractServices contractServices
+@inject Services.Client.ClientServices clientServices
+
+@{
+    var controller = this.ViewContext.RouteData.Values["controller"].ToString();
+    var action = this.ViewContext.RouteData.Values["action"].ToString();
+
+    var clientId = await clientServices.GetClientIdByLoggedUser(Context);
+}
+
+<a href="@Url.Action("Index", "Home")" class="sl-menu-link menu-destineja @(controller.Equals("Home")? "active" : "")">
+    <div class="sl-menu-item">
+        <i class="menu-item-icon icon simple-icon-home tx-16"></i>
+        <span class="menu-item-label">Home</span>
+    </div>
+</a>
+@if (User.IsInRole("Cliente"))
+{
+    <a href="@Url.Action("CollectionRequest", "Client")" class="sl-menu-link menu-destineja @(controller.Equals("CollectionRequest") ? "active" : "")">
+        <div class="sl-menu-item">
+            <i class="menu-item-icon icon iconsminds-box-close tx-16"></i>
+            <span class="menu-item-label">Solicitar Coleta</span>
+        </div>
+    </a>
+}
+@if (await contractServices.ClientHasAnyContractOrService(clientId))
+{
+    <a href="@Url.Action("CollectionHistory", "Report")" class="sl-menu-link menu-destineja @(controller.Equals("Report") && action.Equals("CollectionHistory")? "active" : "")">
+        <div class="sl-menu-item">
+            <i class="menu-item-icon simple-icon-calendar tx-16"></i>
+            <span class="menu-item-label">Histórico de Coleta</span>
+        </div>
+    </a>
+    <a href="@Url.Action("CollectionMap", "Report")" class="sl-menu-link menu-destineja @(controller.Equals("Report") && action.Equals("CollectionMap")? "active" : "")">
+        <div class="sl-menu-item">
+            <i class="menu-item-icon icon simple-icon-map tx-16"></i>
+            <span class="menu-item-label">Mapa de Coleta - Resíduos</span>
+        </div>
+    </a>
+    <a href="@Url.Action("CollectionYearMap", "Report")" class="sl-menu-link menu-destineja @(controller.Equals("Report") && action.Equals("CollectionYearMap")? "active" : "")">
+        <div class="sl-menu-item">
+            <i class="menu-item-icon icon simple-icon-map tx-16"></i>
+            <span class="menu-item-label">Mapa de Coleta por Ano</span>
+        </div>
+    </a>
+    <a href="@Url.Action("CollectionMovement", "Report")" class="sl-menu-link menu-destineja @(controller.Equals("Report") && action.Equals("CollectionMovement")? "active" : "")">
+        <div class="sl-menu-item">
+            <i class="menu-item-icon icon simple-icon-directions tx-16"></i>
+            <span class="menu-item-label">Movimentação da Coleta</span>
+        </div>
+    </a>
+    <a href="@Url.Action("PGRS", "Report")" class="sl-menu-link menu-destineja @(controller.Equals("Report") && action.Equals("PGRS")? "active" : "")">
+        <div class="sl-menu-item">
+            <i class="menu-item-icon icon simple-icon-basket-loaded tx-16"></i>
+            <span class="menu-item-label">PGRS</span>
+        </div>
+    </a>
+    <a href="@Url.Action("ReportDownload", "Client")" class="sl-menu-link menu-destineja @(controller.Equals("Client") && action.Equals("ReportDownload")? "active" : "")">
+        <div class="sl-menu-item">
+            <i class="menu-item-icon icon iconsminds-download-1 tx-16"></i>
+            <span class="menu-item-label">Baixar Certificados</span>
+        </div>
+    </a>
+}
+
+<a href="@Url.Action("Index", "ClientLicense")" class="sl-menu-link menu-destineja @(controller.Equals("ClientLicense") && action.Equals("Index")? "active" : "")">
+    <div class="sl-menu-item">
+        <i class="menu-item-icon icon iconsminds-files tx-16"></i>
+        <span class="menu-item-label">Controle de Licenças</span>
+    </div>
+</a>
+
+@if (User.IsInRole("Cliente"))
+{
+    <a href="@Url.Action("Index", "User")" class="sl-menu-link menu-destineja @(controller.Equals("User") && action.Equals("Index") ? "active" : "")">
+        <div class="sl-menu-item">
+            <i class="menu-item-icon icon simple-icon-people tx-16"></i>
+            <span class="menu-item-label">Login e Senha</span>
+        </div>
+    </a>
+}
+<a href="https://api.whatsapp.com/send?1=pt_BR&phone=552730290907" target="_blank" class="sl-menu-link">
+    <div class="sl-menu-item" style="background: linear-gradient(to right, transparent 8%, #f0f9f0 40%, #b1e4b1);">
+        <i class="menu-item-icon fa fa-whatsapp tx-16" style="color: darkgreen;"></i>
+        <span class="menu-item-label" style="color: darkgreen;">Ajuda</span>
+    </div>
+</a>

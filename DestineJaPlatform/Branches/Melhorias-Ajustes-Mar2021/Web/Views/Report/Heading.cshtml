@@ -1,0 +1,37 @@
+﻿@inject Services.Client.ClientServices clientServices
+@inject Services.Client.ClientContactServices ContactServices
+@{ DTO.Client.ClientViewModel userClient = null;
+    DTO.Client.ClientContactViewModel clientContact = null;
+}
+@if (User.IsClient())
+{
+    userClient = await clientServices.GetViewModelByIdAsync(await clientServices.GetClientIdByLoggedUser(Context));
+    int? idClient = userClient.ClientId; 
+    clientContact = await ContactServices.GetViewModelByIdAsyncMainContact(await ContactServices.GetClientIdByMainContact(idClient));
+}
+
+<div class="col-12 text-left" style="font-size: 11px !important; color:black;">
+    @if (userClient.IsCompany)
+    {
+        <b>
+            CNPJ: @userClient.DocumentFormated - Razão Social: @userClient.CompanyName - Nome Fantasia: @userClient.AlternativeName -
+
+        </b> 
+    }
+    else
+    {
+        <b>CPF: @userClient.CPF - Nome: @userClient.Name -</b>
+    }
+    <b>
+        Endereço: @userClient.Address , N° @userClient.Number - Bairro: @userClient.Neighborhood - Cidade: @userClient.City - UF: @userClient.State -
+    </b>
+    @if (clientContact.MainContact)
+    {
+<b>Contato Principal: @clientContact.Name - Telefone: @clientContact.Phone - Celular: @clientContact.MobilePhone - Email: @clientContact.Email</b> }
+else
+{
+<b>.</b>}
+    <br />
+    <hr />
+</div> 
+<hr />

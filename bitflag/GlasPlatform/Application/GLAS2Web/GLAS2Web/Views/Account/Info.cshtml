@@ -1,0 +1,134 @@
+﻿@using Microsoft.AspNetCore.Identity
+
+@inject DAL.GLAS2Context context
+@inject UserManager<DAL.Identity.User> UserManager
+@model DTO.User.UserModel
+@{
+	Layout = "~/Views/Shared/_Layout.cshtml";
+	ViewData["Title"] = translationFunctions.GetTranslation("Informações do Usuário", User.FindFirstValue("CultureInfo"));
+
+	string FullName = @Model.FirstName + " " + @Model.LastName;
+
+	var user = await UserManager.GetUserAsync(User);
+
+	var companyUserRoleFunctions = new BLL.Permission.CompanyUserRoleFunctions(context);
+	var userRole = companyUserRoleFunctions.GetUserRole(user.Id);
+}
+@{ Html.RenderPartial("~/Views/Shared/_TopMessages.cshtml"); }
+<form id="form" action="@Url.Action("Info","Account")" method="post">
+	<div class="card shadow">
+        <div class="card-header">
+            @translationFunctions.GetTranslation("Informações do Usuário", User.FindFirstValue("CultureInfo"))
+        </div>
+		<div class="card-body">
+			<input type="hidden" id="UserId" name="UserId" value="@Model.UserId" />
+			<div class="col-md-4 float-left form-control offset-md-1 jumbotron">
+				<h5 class="control-label text-center"><strong>@translationFunctions.GetTranslation("Redefinição da Senha", User.FindFirstValue("CultureInfo"))</strong></h5>
+				<br />
+				<div class="form-group col-md-12">
+                    <label class="control-label" for="CurrentPassword">@translationFunctions.GetTranslation("Senha Atual", User.FindFirstValue("CultureInfo"))</label>
+					<input type="password" class="form-control" id="CurrentPassword" name="CurrentPassword" placeholder="@translationFunctions.GetTranslation("Senha Atual", User.FindFirstValue("CultureInfo"))">
+				</div>
+				<div class="form-group col-md-12">
+                    <label class="control-label" for="NewPassword">@translationFunctions.GetTranslation("Nova Senha", User.FindFirstValue("CultureInfo"))</label>
+					<input type="password" class="form-control" id="NewPassword" name="NewPassword" placeholder="@translationFunctions.GetTranslation("Nova Senha", User.FindFirstValue("CultureInfo"))">
+				</div>
+				<div class="form-group col-md-12">
+                    <label class="control-label" for="NewPasswordConfirmation">@translationFunctions.GetTranslation("Confirmação da Nova Senha", User.FindFirstValue("CultureInfo"))</label>
+					<input type="password" class="form-control" id="NewPasswordConfirmation" value="" placeholder="@translationFunctions.GetTranslation("Confirmação da Nova Senha", User.FindFirstValue("CultureInfo"))">
+				</div><div style="width: 100%; text-align: center">
+                          <button type="button" id="buttonSubmit" class="btn btn-primary"><i class="fa fa-key"></i>&nbsp;@translationFunctions.GetTranslation("Alterar Senha", User.FindFirstValue("CultureInfo"))</button>
+				</div>
+				<script type="text/javascript">
+					$('#buttonSubmit').click(function () {
+
+						var hasError = false;
+						$('#form .invalid-feedback').remove();
+						$('#alertForm').hide();
+
+						if ($('#CurrentPassword').val() == $('#NewPassword').val()) {
+							$('#NewPassword').after('<div class="invalid-feedback">Nova senha precisa ser diferente da senha atual.</div>');
+							hasError = true;
+						}
+
+						if (!IsNullOrWhiteSpace($('#NewPassword').val())) {
+
+							if (IsNullOrWhiteSpace($('#CurrentPassword').val())) {
+								$('#CurrentPassword').after('<div class="invalid-feedback">Preencha a senha atual.</div>');
+								hasError = true;
+							}
+							// Password Confirmation
+							else if (IsNullOrWhiteSpace($('#NewPasswordConfirmation').val())) {
+								$('#NewPasswordConfirmation').after('<div class="invalid-feedback">Preencha a confirmação de senha.</div>');
+								hasError = true;
+							}
+
+							// Wrong Passwords Confirmation
+							else if ($('#NewPasswordConfirmation').val() != $('#NewPassword').val()) {
+								$('#NewPasswordConfirmation').after('<div class="invalid-feedback">Senha de Confirmação errada.</div>');
+								hasError = true;
+							}
+						}
+
+						else {
+							$('#NewPassword').after('<div class="invalid-feedback">Preencha a nova senha.</div>');
+							hasError = true;
+						}
+
+						if (hasError) {
+							$('#alertForm').show();
+							$("html, body").animate({ scrollTop: 0 }, "slow");
+							$('#form .invalid-feedback').show();
+						}
+						else {
+							$('#form').submit();
+						}
+					});
+
+					@if (ViewData["ErrorMessage"] != null) {
+						<text>
+							$('#CurrentPassword').after('<div class="invalid-feedback">@ViewData["ErrorMessage"]</div>');
+							$('#alertForm').show();
+							$("html, body").animate({ scrollTop: 0 }, "slow");
+							$('#form .invalid-feedback').show();
+						</text>
+					}
+				</script>
+			</div>
+			<div class="col-md-6 float-right">
+				<div class="form-row">
+					<div class="form-group col-md-12">
+                        <label class="control-label" for="FirstName">@translationFunctions.GetTranslation("Nome Completo", User.FindFirstValue("CultureInfo"))</label>
+						<input type="text" class="form-control" id="FullName" name="FullName" value="@FullName" placeholder="@translationFunctions.GetTranslation("Nome Completo", User.FindFirstValue("CultureInfo"))" disabled>
+					</div>
+				</div>
+				<div class="form-row">
+					<div class="form-group col-md-12">
+                        <label class="control-label" for="Email">@translationFunctions.GetTranslation("E-mail", User.FindFirstValue("CultureInfo"))</label>
+						<input type="email" class="form-control" id="Email" name="Email" value="@Model.Email" placeholder="@translationFunctions.GetTranslation("E-mail", User.FindFirstValue("CultureInfo"))" disabled>
+					</div>
+				</div>
+				<div class="form-row">
+					<div class="form-group col-md-6">
+						<label class="control-label">Skype</label>
+						<input type="text" class="form-control" id="Skype" name="Skype" value="@Model.Skype" placeholder="Skype" disabled>
+					</div>
+					<div class="form-group col-md-6">
+                        <label class="control-label">@translationFunctions.GetTranslation("Perfil", User.FindFirstValue("CultureInfo"))</label>
+						<input type="text" class="form-control" id="Role" name="Role" value="@userRole.Name" placeholder="@translationFunctions.GetTranslation("Perfil", User.FindFirstValue("CultureInfo"))" disabled>
+					</div>
+				</div>
+				<div class="form-row">
+					<div class="form-group col-md-6">
+                        <label class="control-label" for="MobileNumber">@translationFunctions.GetTranslation("Celular", User.FindFirstValue("CultureInfo"))</label>
+						<input type="text" class="form-control mobile" id="MobileNumber" name="MobileNumber" value="@Model.MobileNumber" placeholder="@translationFunctions.GetTranslation("Celular", User.FindFirstValue("CultureInfo"))" disabled>
+					</div>
+					<div class="form-group col-md-6">
+                        <label class="control-label" for="PhoneNumber">@translationFunctions.GetTranslation("Telefone", User.FindFirstValue("CultureInfo"))</label>
+						<input type="text" class="form-control phone" id="PhoneNumber" name="PhoneNumber" value="@Model.PhoneNumber" placeholder="@translationFunctions.GetTranslation("Telefone", User.FindFirstValue("CultureInfo"))" disabled>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</form>

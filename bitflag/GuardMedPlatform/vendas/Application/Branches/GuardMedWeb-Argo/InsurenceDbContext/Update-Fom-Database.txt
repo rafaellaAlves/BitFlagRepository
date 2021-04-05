@@ -1,0 +1,1 @@
+﻿Scaffold-DbContext "Server=69.162.77.150;Database=GuardMedInsurance_DEV;User Id=GuardMed;Password=YCnnb3Bk5pUg9Sgg;MultipleActiveResultSets=true;" Microsoft.EntityFrameworkCore.SqlServer -Context InsurenceContext -OutputDir Models -force

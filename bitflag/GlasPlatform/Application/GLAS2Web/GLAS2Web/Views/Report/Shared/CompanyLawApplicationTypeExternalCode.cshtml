@@ -1,0 +1,15 @@
+﻿@{
+    var lawApplicationTypes = (ViewData["LawApplicationTypes"] as List<DAL.LawApplicationType>);
+}
+<div class="form-group">
+    <label class="control-label">@translationFunctions.GetTranslation("Aplicabilidade do Requisito Legal", User.FindFirstValue("CultureInfo"))</label>
+    <select multiple="multiple" class="form-control ReportParameter" style="width: 100%;" data-hidden-parameter="CompanyLawApplicationTypeExternalCode">
+        @if (lawApplicationTypes != null)
+        {
+            @foreach (var item in lawApplicationTypes)
+            {
+                <option value="@item.ExternalCode">@translationFunctions.GetTranslation(item.Name, User.FindFirstValue("CultureInfo"))</option>
+            }
+        }
+    </select>
+</div>

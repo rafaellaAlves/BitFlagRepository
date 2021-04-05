@@ -1,0 +1,30 @@
+﻿@model DTO.Question.QuestionThemeViewModel
+
+    <form id="question-theme-manage-form" method="post">
+        <input type="hidden" name="QuestionThemeId" value="@Model.QuestionThemeId" />
+        <div class="row">
+            <div class="col">
+                <label class="required">Nome do Tema</label>
+                <input type="text" class="form-control uppercase" name="Name" placeholder="Nome do Tema" value="@Model.Name" />
+            </div>
+        </div>
+    </form>
+
+<script type="text/javascript">
+    function questionThemeSave(callback) {
+        if (!validateInputs('#question-theme-manage-form')) return;
+
+        $.post('@Url.Action("Manage", "QuestionTheme")', $('#question-theme-manage-form').serializeArray(), function (d) {
+            if (!d.success) {
+                alert(d.message);
+                return;
+            }
+
+            typeof callback == 'function' && callback();
+        });
+    }
+
+    $('#question-theme-manage-form [name="Name"]').keydown(function (e) {
+        if (e.keyCode == 13) e.preventDefault();
+    });
+</script>

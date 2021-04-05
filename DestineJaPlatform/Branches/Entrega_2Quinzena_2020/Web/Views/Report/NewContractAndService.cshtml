@@ -1,0 +1,42 @@
+﻿@inject Web.Helpers.DropDownListHelper dropDownListHelper
+@inject Services.Client.ClientCollectionAddressServices clientCollectionAddressServices
+
+@{
+    var startDate = new DateTime(DateTime.Now.AddMonths(-12).Year, DateTime.Now.AddMonths(-12).Month, 1);
+    var endDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month));
+
+    ViewData["Title"] = "Relatório - Evolução de Novos Clientes";
+}
+
+<div class="card">
+    <div class="card-header">
+        <div class="row">
+            <div class="col text-center" style="font-size: 20px; color: black;">
+                Relatório - Evolução de Novos Clientes
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <form id="new-contract-service-filter-form">
+            @(await Component.InvokeAsync<Web.ViewComponents.Report.Filter.FilterViewComponent>(new List<ReportFilterModel> { ReportFilterModel.StateAndCityFilter(), ReportFilterModel.StartAndEndDateFilter(new { startDate, endDate }, 4) }))
+        </form>
+        <hr />
+        <div id="new-contract-service-view-component">
+            @(await Component.InvokeAsync<Web.ViewComponents.Report.NewContractAndService.IndexViewComponent>(new { startDate, endDate  } ))
+        </div>
+    </div>
+</div>
+@section Scripts{
+    <script src="@Url.Content("~/assets/js/report.js")"></script>
+    <script type="text/javascript" asp-paste-key="new-contract-service-index"></script>
+
+    <script type="text/javascript">
+        function reloadByFilter() {
+            if (!validateInputs('new-contract-service-filter-form') || !validateStartAndEndDate()) return;
+
+            $('#new-contract-service-view-component').load('@Url.Action("LoadNewContractAndServiceViewComponent", "Report")', $('#new-contract-service-filter-form').serializeArray());
+        }
+
+        $(document).ready(updateCitySelect);
+    </script>
+}

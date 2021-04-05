@@ -1,0 +1,466 @@
+﻿@model DTO.Invoice.InvoicePrintViewModel
+@inject FUNCTIONS.Family.FreezedFamilyFunctions freezedFamilyFunctions
+@inject FUNCTIONS.SystemVariable.SystemVariableFunctions systemVariableFunctions
+@inject FUNCTIONS.Invoice.InvoicePaymentTypeFunctions invoicePaymentTypeFunctions
+@inject FUNCTIONS.Invoice.InvoiceFunctions invoiceFunctions
+
+@using DTO.Utils;
+@{
+    Layout = "~/Views/Shared/_LayoutPrint.cshtml";
+    ViewData["Title"] = "Print";
+
+    var _tax = systemVariableFunctions.Get("IMPOSTO");
+    double tax = Model.Invoice.Tax.HasValue ? Model.Invoice.Tax.Value : (string.IsNullOrEmpty(_tax) ? 0.0 : float.Parse(_tax, System.Globalization.CultureInfo.InvariantCulture));
+
+    int applicantTypeId = 1, qtdApplicants = 0;
+
+    var paymentType = invoicePaymentTypeFunctions.GetInvoicePaymentTypeViewModel(invoicePaymentTypeFunctions.GetInvoicePaymentTypeById(Model.Invoice.InvoicePaymentTypeId.Value));
+
+    var servicesTotal = Model.InvoiceItems.Sum(x => x.InvoiceItemServiceTypeIsCredit ? x.Value : -x.Value);
+}
+
+<style type="text/css">
+    @@media print {
+        .no-print, .no-print * {
+            display: none !important;
+        }
+    }
+</style>
+
+<a href="@Url.Action("Manage", "Invoice", new { invoiceId = Model.Invoice.InvoiceId })" class="btn btn-secondary float-left no-print" style="margin-bottom:1em;"><i class="simple-icon-action-undo"></i>&nbsp;Voltar</a>
+<button class="btn btn-primary float-right no-print" style="margin-bottom:1em;" id="button-print"><i class="simple-icon-printer"></i>&nbsp;Imprimir</button>
+
+<table border="1" style="width:100%;">
+    <tr>
+        <td>
+            <p style="text-align:center; color:red">
+                <b>@Model.Invoice.InvoiceTerraNostraId</b>
+            </p>
+        </td>
+        <td colspan="6">
+            <img src="~/images/logo.png" style="width: 200px; padding:1rem;" class="float-right" />
+            <div class="Orçamento">
+                <br />
+                <p style="text-align:center; padding-top:1rem;">
+                    <span style="font-weight:bold; font-size: 22.4px;">ORÇAMENTO - @invoiceFunctions.GetInvoiceServiceTypeById(Model.Invoice.InvoiceServiceTypeId).Name </span>
+                </p>
+                <br />
+            </div>
+        </td>
+        <td colspan="6">
+            <div class="Representante">
+                <p style="text-align:center">
+                    <b>REPRESENTANTE</b>
+                </p>
+                <br />
+                @if (Model.Client.ResponsibleId.HasValue)
+                {
+                    var haveAnyPhone = !string.IsNullOrWhiteSpace(Model.Client.ResponsiblePhone) || !string.IsNullOrWhiteSpace(Model.Client.ResponsibleMobilePhone);
+
+                    var phones = Model.Client.ResponsiblePhone + (!string.IsNullOrWhiteSpace(Model.Client.ResponsiblePhone) && !string.IsNullOrWhiteSpace(Model.Client.ResponsibleMobilePhone) ? " / " : "") + Model.Client.ResponsibleMobilePhone;
+                <p style="text-align:center"> @Model.Client.ResponsibleName @(haveAnyPhone ? "(" + phones + ")" : "") </p>
+                }
+                else
+                {
+                <p style="text-align:center">-</p>
+                }
+                @*<p style="text-align:center">
+                        <b>Vagner (11)94032-2693</b>
+                    </p>
+                    <p style="text-align:center"> Rafael (11)99366-2796</p>
+                    <p style="text-align:center"> Paulo (11)99352-9885</p>
+                    <p style="text-align:center"> Leandro (11)96635-5519</p>
+                    <p style="text-align:center"> Edilene (11) 99421-6977</p>*@
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <th colspan="9">&nbsp;</th>
+    </tr>
+    <tr>
+        <th style="text-align:center">FAMÍLIA:</th>
+        <td colspan="8">@Model.Client.Family</td>
+    </tr>
+    <tr>
+        <th style="text-align:center">NOME:</th>
+        <td colspan="5"> @Model.Client.FirstName @Model.Client.LastName</td>
+        <th style="text-align:center">CPF:</th>
+        <td colspan="3">@Model.Client.Cpf.CPFMask()</td>
+    </tr>
+    <tr>
+        <th style="text-align:center">ENDEREÇO:</th>
+        <td colspan="5">@Model.Client.Endereco, @Model.Client.Numero </td>
+        <th style="text-align:center">RG:</th>
+        <td colspan="3">@Model.Client.Rg.RGMask()</td>
+    </tr>
+    <tr>
+        <th style="text-align:center">BAIRRO:</th>
+        <td width="400" colspan="3">@Model.Client.Bairro </td>
+        <th colspan="2" style="text-align:center">CEP:</th>
+        <td>@Model.Client.Cep.CEPMask()</td>
+        <th colspan="2" style="text-align:center;">TELEFONE</th>
+    </tr>
+    <tr>
+        <th style="text-align:center">CIDADE:</th>
+        <td width="400" colspan="3">@Model.Client.Cidade</td>
+        <th colspan="2" style="text-align:center">ESTADO:</th>
+        <td>@Model.Client.Uf</td>
+        <td style="text-align:center;"><b>FIXO:</b></td>
+        <td>@Model.Client.Telefone</td>
+    </tr>
+    <tr>
+        <th style="text-align:center">E-MAIL:</th>
+        <td colspan="6">@Model.Client.Email</td>
+        <td style="text-align:center;"><b>CELULAR:</b></td>
+        <td>@Model.Client.Celular</td>
+    </tr>
+    <tr>
+        <th style="text-align:center">PROFISSÃO:</th>
+        <td colspan="5">@Model.Client.Occupation</td>
+        <th colspan="1" style="text-align:center">ESTADO CIVIL</th>
+        <td colspan="2">@Model.Client.CivilStatusName</td>
+    </tr>
+    <tr>
+        <th colspan="9">&nbsp;</th>
+    </tr>
+    <tr>
+        <th style="text-align:center">PARENTESCO:</th>
+        <th colspan="3" style="text-align:center">NOME</th>
+        <th colspan="2" style="text-align:center">CERTIDÃO</th>
+        <th style="text-align:center">DATA</th>
+        <th style="text-align:center">LOCAL</th>
+        <th style="text-align:center; width:auto">QTD</th>
+    </tr>
+    @foreach (var item in Model.InvoiceFreezedFamilyItems)
+    {
+        var freezedFamilyItem = freezedFamilyFunctions.GetFreezedFamilyItemViewModel(freezedFamilyFunctions.GetFreezedFamilyItemById(item.FreezedFamilyItemId));
+        var isApplicant = freezedFamilyItem.FamilyMemberTypeId == applicantTypeId;
+        var rowspan = isApplicant ? "2" : "3";
+        qtdApplicants += isApplicant ? 1 : 0;
+
+    <tr>
+        <th style="text-align:center" rowspan="@(rowspan)">@freezedFamilyItem.FamilyMemberTypeName</th>
+        <td colspan="3" rowspan="@(rowspan)" style="text-align:center">@freezedFamilyItem.FullName</td>
+        <th colspan="2" style="text-align:center">NASCIMENTO</th>
+        <td style="text-align:center">@freezedFamilyItem._BirthDate</td>
+        <td style="text-align:center">@freezedFamilyItem.BirthPlace</td>
+        <td style="text-align:center">@(item.QtdBirthItems > 0 ? "1" : "0")</td>
+    </tr>
+    <tr>
+        <th colspan="2" style="text-align:center">CASAMENTO</th>
+        <td style="text-align:center">@freezedFamilyItem._MarriageDate</td>
+        <td style="text-align:center">@freezedFamilyItem.MarriagePlace</td>
+        <td style="text-align:center">@(item.QtdMarriageItems > 0 ? "1" : "0")</td>
+    </tr>
+        if (!isApplicant)
+        {
+    <tr>
+        <th colspan="2" style="text-align:center">ÓBITO</th>
+        <td style="text-align:center">@freezedFamilyItem._DeathDate</td>
+        <td style="text-align:center">@freezedFamilyItem.DeathPlace</td>
+        <td style="text-align:center">@(item.QtdDeathItems > 0 ? "1" : "0")</td>
+    </tr>
+        }
+    }
+    <tr>
+        <th colspan="9">&nbsp;</th>
+    </tr>
+    <tr>
+        <th colspan="8">CERTIDÃO NEGATIVA DE NATURALIZAÇÃO DO ITALIANO</th>
+        <td style="text-align:center">@Model.InvoiceFreezedFamilyItems.Sum(x => x.Cnn ? 1 : 0)</td>
+    </tr>
+    <tr>
+        <th colspan="8">QUANTIDADE DE CERTIDÕES BRASIL</th>
+        <td style="text-align:center">@Model.InvoiceFreezedFamilyItems.Sum(x => x.QtdCertBRA)</td>
+    </tr>
+    <tr>
+        <th colspan="8">QUANTIDADE DE CERTIDÕES ITÁLIA</th>
+        <td style="text-align:center">@Model.InvoiceFreezedFamilyItems.Sum(x => x.QtdCertITA)</td>
+    </tr>
+    <tr>
+        <th colspan="9">&nbsp;</th>
+    </tr>
+    <tr>
+        <th style="text-align:center" colspan="7">COTAÇÃO DO EURO (câmbio flutuante do dia)</th>
+        <th colspan="2" style="text-align:justify">R$ <span class="money">@Model.Invoice._EuroExchange</span></th>
+    </tr>
+    <tr>
+        <th colspan="9">&nbsp;</th>
+    </tr>
+    <tr>
+        <th style="text-align:center" colspan="9">MONTAGEM DO PROCESSO</th>
+    </tr>
+    <tr>
+        <th colspan="9">&nbsp;</th>
+    </tr>
+    <tr>
+        <th style="text-align:left; color:red" colspan="9">CUSTO BRASIL</th>
+    </tr>
+    @{
+        var totalCostBRA = Model.InvoiceFreezedFamilyItems.Sum(x => x.QtdCertBRA * Model.Invoice.BrazilianCertificateCost) +
+            Model.InvoiceFreezedFamilyItems.Sum(x => x.QtdTranslation * Model.Invoice.TranslationCost) +
+            Model.InvoiceFreezedFamilyItems.Sum(x => x.QtdHaiaHandout * Model.Invoice.HaiaHandoutCost) +
+            Model.InvoiceFreezedFamilyItems.Sum(x => (x.Cnn ? 1 : 0) * Model.Invoice.CNNCost);
+        var totalCostITA = Model.InvoiceFreezedFamilyItems.Sum(x => x.QtdCertITA * Model.Invoice.ItalianCertificateCost * Model.Invoice.EuroExchange);
+    }
+    <tr>
+        <th colspan="7">CERTIDÕES + EXPEDIÇÕES / ITÁLIA </th>
+        <td style="text-align:center">@Model.InvoiceFreezedFamilyItems.Sum(x => x.QtdCertITA)</td>
+        <td style="text-align:justify">R$ <span class="money">@totalCostITA.ToPtBR()</span></td>
+    </tr>
+    <tr>
+        <th colspan="7">CERTIDÕES + EXPEDIÇÕES + TRADUÇÕES + APOSTILAMENTO / BRASIL </th>
+        <td style="text-align:center">@Model.InvoiceFreezedFamilyItems.Sum(x => x.QtdCertBRA)</td>
+        <td style="text-align:justify">R$ <span class="money">@totalCostBRA.ToPtBR()</span></td>
+    </tr>
+    @{
+        var totalLetterOfAttorneyCost = qtdApplicants * Model.Invoice.LetterOfAttorneyCost;
+    }
+    <tr>
+        <th colspan="7">PROCURAÇÃO ITALIANA EXPEDIÇÕES + TRADUÇÕES + APOSTILAMENTO / ITÁLIA </th>
+        <td style="text-align:center">@qtdApplicants</td>
+        <td style="text-align:justify">R$ <span class="money">@totalLetterOfAttorneyCost.ToPtBR()</span></td>
+    </tr>
+    @{
+        var totalCert = totalCostITA + totalCostBRA + totalLetterOfAttorneyCost;
+    }
+    <tr>
+        <th style="text-align:right" colspan="7">DOCUMENTAÇÃO</th>
+        <th style="border-right:none;"></th>
+        <th style="border-left:none; text-align:justify">R$ @(totalCert.ToPtBR())</th>
+    </tr>
+    <tr>
+        <th colspan="9">&nbsp;</th>
+    </tr>
+    <tr>
+        <th style="text-align:left; color:red" colspan="9">CUSTO ITÁLIA</th>
+    </tr>
+    <tr>
+        <th colspan="5">ABERTURA DO PROCESSO</th>
+        <th style="text-align:justify"><span class="money">@Model.Invoice._ProcessCost</span> Euros</th>
+        <td colspan="3"></td>
+    </tr>
+    @{
+        var totalItalia = (Model.Invoice.ProcessCost * Model.Invoice.EuroExchange) + (Model.Invoice.ApplicantCost * qtdApplicants * Model.Invoice.EuroExchange);
+    }
+    <tr>
+        <th colspan="5">CUSTAS POR REQUERENTE (14 ANOS MÍNIMOS) </th>
+        <th style="text-align:justify"><span class="money">@Model.Invoice._ApplicantCost</span> Euros</th>
+        <th style="text-align:center">REQUERENTES</th>
+        <th style="text-align:center">@qtdApplicants</th>
+        <th style="text-align:justify">R$ @totalItalia.ToPtBR()</th>
+    </tr>
+    <tr>
+        <th colspan="9">&nbsp;</th>
+    </tr>
+    <tr>
+        <th colspan="9" style="color:red">IMPOSTO</th>
+    </tr>
+    @{
+        var totalTax = (totalCert + totalItalia + servicesTotal) * (tax / 100);
+    }
+    <tr>
+        <th colspan="5">IMPOSTO DE SERVIÇOS SIMPLES NACIONAL</th>
+        <th style="text-align:center">ALÍQUOTA</th>
+        <th style="text-align:center">IMPOSTO</th>
+        <th style="text-align:center">@tax.ToPtBR()%</th>
+        <th style="text-align:justify">R$ @totalTax.ToPtBR()</th>
+    </tr>
+    <tr>
+        <th colspan="9" style="border-bottom:none">&nbsp;</th>
+    </tr>
+    <tr>
+        <th rowspan="2" colspan="6" style="border-top:none;">&nbsp;</th>
+        <th style="text-align:center">DESCRITIVO</th>
+        <th style="text-align:center">QUANTIDADE</th>
+        <th style="text-align:center">VALOR(R$)</th>
+    </tr>
+    @{
+        var totalCost = totalCert + totalItalia + totalTax + servicesTotal;
+    }
+    <tr>
+        <th style="text-align:center">VALOR POR REQUERENTE</th>
+        <th style="text-align:center">@qtdApplicants</th>
+        <th style="text-align:justify; color:red">R$ @((totalCost / qtdApplicants).ToPtBR())</th>
+    </tr>
+    <tr>
+        <th colspan="9">&nbsp;</th>
+    </tr>
+    <tr>
+        <th colspan="7">&nbsp;</th>
+        <th style="text-align:center; color:red">TOTAL</th>
+        <th style="text-align:justify; color:red">R$ @totalCost.ToPtBR()</th>
+    </tr>
+    <tr>
+        <th colspan="9">&nbsp;</th>
+    </tr>
+    <tr>
+        <th colspan="9" style="text-align: center; color:red">ORÇAMENTO BASEADO NAS INFORMAÇÕES FORNECIDAS PELO CLIENTE SUJEITO ANÁLISE DOS DOCUMENTOS PARA O FECHAMENTO DO CONTRATO</th>
+    </tr>
+    <tr>
+        <th colspan="9">&nbsp;</th>
+    </tr>
+    <tr>
+        <th colspan="9" style="text-align:center">FORMAS DE PAGAMENTOS</th>
+    </tr>
+    <tr>
+        <th colspan="9">&nbsp;</th>
+    </tr>
+    <tr>
+        <th colspan="9" style="text-align:center"> @paymentType.Name </th>
+    </tr>
+    @if (paymentType.PaymentTimes >= 4)
+    {
+    <tr>
+        <td colspan="7">FORMA DE PAGAMENTO (Câmbio Flutuante conforme cotação do dia)</td>
+        <td>&nbsp;</td>
+        <td style="text-align:center">Câmbio: R$ @Model.Invoice._EuroExchange</td>
+    </tr>
+    }
+    @for (int i = 1; i <= (paymentType.PaymentTimes == 0 ? 1 : paymentType.PaymentTimes); i++)
+    {
+        var parcelaDescription = "ASSINATURA DO CONTRATO";
+        var price = Model.Installments.Count > 0 ? Model.Installments[i - 1].Price : totalCost;
+
+        if (paymentType.PaymentTimes == 3)
+        {
+            switch (i)
+            {
+                case 2: parcelaDescription = "INGRESSO DO PROCESSO JUNTO AO ORGÃO COMPETENTE ITALIANO"; break;
+                case 3: parcelaDescription = "COM A PUBLICAÇÃO DA SENTENÇA TRANSITADA EM JULGADA NO DIÁRIO OFICIAL ITALIANO"; break;
+            }
+        }
+         else if (paymentType.PaymentTimes == 6  && paymentType.InvoicePaymentTypeId == 1004)
+        {
+             if (i == 1)
+            {
+                parcelaDescription = $"ASSINATURA DO CONTRATO";
+            }
+            else if (i == 5)
+            {
+                parcelaDescription = $"COM A PUBLICAÇÃO DA SENTENÇA TRANSITADA EM JULGADO COM EXTINÇÃO DA AÇÃO";
+            }
+            else if (i == 6)
+            {
+                parcelaDescription = $"INSCRIÇÃO DO AIRE (CONSULADO DE RESIDÊNCIA)";
+            }
+             else
+            {
+                parcelaDescription = $"{(i - 1) * 30} DIAS DA ASSINATURA DO CONTRATO";
+            }
+        }
+         else if (paymentType.PaymentTimes == 7 && paymentType.InvoicePaymentTypeId == 1002)
+        {
+             if (i == 1)
+            {
+                parcelaDescription = $"ASSINATURA DO CONTRATO";
+            }
+            else if (i == 6)
+            {
+                parcelaDescription = $"COM A PUBLICAÇÃO DA SENTENÇA TRANSITADA EM JULGADO COM EXITO DA AÇÃO";
+            }
+            else if (i == 7)
+            {
+                parcelaDescription = $"INSCRIÇÃO NO AIRE (CONSULADO DE RESIDÊNCIA)";
+            }
+             else
+            {
+                parcelaDescription = $"{(i - 1) * 30} DIAS DA ASSINATURA DO CONTRATO";
+            }
+        }
+
+        else if (paymentType.PaymentTimes >= 4)
+        {
+            if (i == 1)
+            {
+                parcelaDescription = $"ASSINATURA DO CONTRATO";
+            }
+            else
+            {
+                parcelaDescription = $"{(i - 1) * 30} DIAS DA ASSINATURA DO CONTRATO";
+            }
+        }
+
+    <tr>
+        <td colspan="7">@parcelaDescription</td>
+        <td>@(i)ª PARCELA</td>
+        <td style="text-align:justify">R$ @price.ToPtBR()</td>
+    </tr>
+    }
+    @{
+        var paymentTax = ((totalCost ?? 0) * (paymentType.Taxes ?? 0) / 100);
+    }
+    @if (paymentType.Taxes < 0)
+    {
+
+    <tr>
+        <td colspan="8">DESCONTO PARA O PAGAMENTO À VISTA (@paymentType._Taxes% DE DESCONTO)</td>
+        <td style="text-align:justify">-R$ @Math.Abs(paymentTax).ToPtBR()</td>
+    </tr>
+    }
+    <tr>
+        <th colspan="7">&nbsp;</th>
+        <th style="text-align:center; color:red">TOTAL</th>
+        <th style="text-align:justify; color:red">R$ @((totalCost + paymentTax).ToPtBR())</th>
+    </tr>
+    <tr>
+        <th colspan="9">&nbsp;</th>
+    </tr>
+    <tr>
+        <td colspan="9">
+            <div class="rodape">
+                <br />
+                <span style="float:left"> São Caetano do Sul,&nbsp;</span>
+                <span> @DateTime.Now.ToString("dddd", System.Globalization.CultureInfo.InvariantCulture), @DateTime.Now.ToString("MMMM", System.Globalization.CultureInfo.InvariantCulture) @DateTime.Now.Day, @DateTime.Now.Year</span>
+                <br />
+                <p style="text-align:left">
+                    <b>ORÇAMENTO VÁLIDO ATÉ @DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month) DE @DateTime.Now.ToString("MMMM", System.Globalization.CultureInfo.GetCultureInfo("pt-BR")).ToUpper() DE @DateTime.Now.Year</b>
+                </p>
+                <br />
+                <p style="text-align:center">
+                    <b>TERRA NOSTRA CIDADANIA ITALIANA</b>
+                </p>
+                <p style="float:right">
+                    <b>APROVADO EM: <span style="margin-left:20px"></span>/<span style="margin-left:20px"></span>/<span style="margin-left:40px"></span></b>
+                </p>
+            </div>
+        </td>
+    </tr>
+    @if (Model.InvoiceItems.Count > 0)
+    {
+    <tr>
+        <th colspan="9" style="text-align:center; color:red; background-color: yellow">NO CASO DE NECESSIDADE DE PESQUISA DE CERTIDÕES, SERÁ UTILIZADA A TABELA ABAIXO</th>
+    </tr>
+        foreach (var item in Model.InvoiceItems)
+        {
+    <tr>
+        <th colspan="8">@item.InvoiceItemServiceTypeName</th>
+        <th style="text-align:justify">R$ <span class="money">@item._Value</span></th>
+    </tr>
+        }
+    }
+    @*<tr>
+            <th colspan="8">PESQUISA DE DOCUMENTOS NO BRASIL</th>
+            <th style="text-align:right">R$ 700,00</th>
+        </tr>
+        <tr>
+            <th colspan="8">PESQUISA DE DOCUMENTOS NA ITÁLIA (COM CERTIDÃO INCLUÍDA)</th>
+            <th style="text-align:right">R$ 2.000,00</th>
+        </tr>*@
+    <tr>
+        <th colspan="9">&nbsp;</th>
+    </tr>
+    <tr>
+        <th colspan="9" style="text-align:center">ALAMEDA TERRACOTA, 250 TORRE WAY SALA 708 - CEP: 09531-190, SÃO CAETANO DO SUL - SÃO PAULO  FONE: 55 11 2988-7668</th>
+    </tr>
+</table>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        _MaskData();
+    });
+
+    $('#button-print').click(function () {
+        window.print();
+    });
+</script>

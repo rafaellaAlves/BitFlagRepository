@@ -1,0 +1,156 @@
+﻿@model int?
+@inject BLL.Audit.AuditItemStatusFunctions auditItemStatusFunctions
+<div class="card shadow">
+    <div class="card-header">
+        <div class="input-group">
+            <span class="input-group-addon"><i class="fa fa-search"></i></span>
+            <input id="auditListSearch" type="text" class="form-control" placeholder="Procurar..." />
+            <span class="input-group-btn">
+                <button id="createAudit" class="btn btn-success pull-right"><i class="fa fa-plus"></i>&nbsp;@translationFunctions.GetTranslation("Nova Auditoria", User.FindFirstValue("CultureInfo"))</button>
+            </span>
+        </div>
+        <script type="text/javascript">
+			$('#createAudit').click(function () {
+                if (typeof (AuditNewCallback) === 'undefined') {
+                    alert('Implement "AuditNewCallback"!');
+                    return;
+                }
+			    AuditNewCallback(@Model);
+            });
+        </script>
+    </div>
+    <div class="card-body">
+        <table id="auditListTable" class="datatable table table-sm table-bordered table-striped" style="border-collapse: collapse !important; width: 100%;">
+            <thead>
+                <tr>
+                    <th>@translationFunctions.GetTranslation("Objetivo", User.FindFirstValue("CultureInfo"))</th>
+                    <th>@translationFunctions.GetTranslation("Tipo", User.FindFirstValue("CultureInfo"))</th>
+                    <th>@translationFunctions.GetTranslation("Segmento", User.FindFirstValue("CultureInfo"))</th>
+                    <th>@translationFunctions.GetTranslation("Líder", User.FindFirstValue("CultureInfo"))</th>
+                    <th>@translationFunctions.GetTranslation("Status", User.FindFirstValue("CultureInfo"))</th>
+                    <th>@translationFunctions.GetTranslation("Realização", User.FindFirstValue("CultureInfo"))</th>
+                    <th>@translationFunctions.GetTranslation("Conclusão", User.FindFirstValue("CultureInfo"))</th>
+                    <th>@translationFunctions.GetTranslation("Agendamento", User.FindFirstValue("CultureInfo"))</th>
+                    <th>&nbsp;</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+<div class="modal" tabindex="-1" role="dialog" id="report-modal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Filtros</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label class="control-label">Status:</label><br />
+                            <select id="AuditItemStatusId" class="form-control" style="width: 100%;" multiple="multiple">
+                                @foreach(var item in auditItemStatusFunctions.GetData())
+                                {
+                                    <option value="@item.AuditItemStatusId">@item.Name</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="report-modal-export-button" type="button" class="btn btn-primary"><i class="fas fa-file-pdf"></i>&nbsp;@translationFunctions.GetTranslation("Impressão", User.FindFirstValue("CultureInfo"))</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">@translationFunctions.GetTranslation("Fechar", User.FindFirstValue("CultureInfo"))</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#AuditItemStatusId').select2();
+    var auditId;
+    var auditListTypingTimer;
+    var auditListDoneTypingInterval = 500;
+    var auditListDatatable = $('#auditListTable').DataTable({
+        proccessing: true
+        , serverSide: true
+        , searching: true
+        , lengthChange: false
+        , dom: 'tip'
+        , bInfo: false
+        , pagingType: 'simple'
+        , ajax: {
+            url: '@Url.Action("List", "AuditManagement")'
+            , type: 'POST'
+            , data: {
+                companyId: @Model,
+            }
+        }, columns: [
+            { data: 'Objective' },
+            { data: 'AuditTypeName' },
+            {
+                data: null,
+                render: function (data, type, row, meta) {
+                    return row.SegmentoId == null ? 'Todos' : row.SegmentoName;
+                }
+            },
+            { data: 'LeaderAuditor' },
+            { data: 'AuditStatusName' },
+            { data: 'StartDate' },
+            { data: 'ConclusionDate' },
+            { data: 'ScheduleDate' },
+            {
+                data: null
+                , sortable: false
+                , searchable: false
+                , render: function (data, type, row, meta) {
+                    return '<div class="text-center"><a title="@Html.Raw(translationFunctions.GetTranslation("Conduzir", User.FindFirstValue("CultureInfo")))" href="@Url.Action("Manage", "AuditManagement")?companyId=' + row.CompanyId + '&auditId=' + row.AuditId + '">@Html.Raw(translationFunctions.GetTranslation("Conduzir", User.FindFirstValue("CultureInfo")))</a>&nbsp;|&nbsp;<a title="@Html.Raw(translationFunctions.GetTranslation("Relatório", User.FindFirstValue("CultureInfo")))" href="javascript:void(0)" onclick="Report(' + row.AuditId + ')">@Html.Raw(translationFunctions.GetTranslation("Relatório", User.FindFirstValue("CultureInfo")))</a>&nbsp;|&nbsp;<a title="@Html.Raw(translationFunctions.GetTranslation("Excluir", User.FindFirstValue("CultureInfo")))" href="javascript:void(0)" onclick="RemoveAudit(' + row.AuditId + ')">@Html.Raw(translationFunctions.GetTranslation("Excluir", User.FindFirstValue("CultureInfo")))</a></div>';
+                }
+            }
+        ]
+    });
+    function auditListDoneTyping() {
+        if ($.fn.DataTable.isDataTable('#auditListTable')) {
+            auditListDatatable.search($('#auditListSearch').val()).draw();
+        }
+    }
+    $('#auditListSearch').keyup(function () {
+        clearTimeout(auditListTypingTimer);
+        auditListTypingTimer = setTimeout(auditListDoneTyping, auditListDoneTypingInterval);
+    });
+    $('#auditListSearch').keydown(function () {
+        clearTimeout(auditListTypingTimer);
+    });
+    function RemoveAudit(_auditId) {
+        if (confirm('Deseja realmente remover essa auditoria?')) {
+            _RemoveAudit(_auditId, function () {
+                $('#auditListTable').DataTable().ajax.reload();
+                alert('Auditoria removida com sucesso!');
+            });
+        }
+    }
+    function _RemoveAudit(_auditId, callback) {
+        var d = { auditId: _auditId };
+        $.ajax({
+            url: '@Url.Action("Remove", "AuditManagement")',
+            type: 'POST',
+            data: d,
+            dataType: 'json',
+            success: callback
+        });
+    }
+    function Report(_auditId) {
+        auditId = _auditId;
+        $('#AuditItemStatusId').val('').trigger('change');
+        $('#report-modal').modal('show');
+    }
+    $('#report-modal-export-button').click(function () {
+        $('#report-modal').modal('hide');
+        document.location.href = '@Url.Action("ExportReport", "Report")?reportPath=/GLAS2/AUDITORIAS&format=pdf&CompanyId=@Model.Value&AuditId=' + auditId + '&AuditItemStatusId=' + $('#AuditItemStatusId').val().join(';');
+    });
+
+</script>

@@ -1,0 +1,98 @@
+﻿<div class="row">
+    <div class="col-md-10">
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text"><i class="fa fa-search"></i></span>
+            </div>
+            <input id="_ProductFamilyIndexSearch" type="text" class="form-control" placeholder="Procurar..." />
+        </div>
+    </div>
+    <div class="col-md-2">
+        <a href="@Url.Action("Manage", "ProductFamily")" class="btn btn-success pull-right w-100"><i class="fas fa-plus-circle"></i>&nbsp;Novo</a>
+    </div>
+</div>
+<hr />
+<div class="table-wrapper">
+    <table id="_ProductFamilyIndexTable" class="table display responsive nowrap" style="border-collapse: collapse !important;">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Descrição</th>
+                <th>&nbsp;</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+<script type="text/javascript">
+
+    var _ProductFamilyIndexTypingTimer;
+    var _ProductFamilyIndexDoneTypingInterval = 500;
+    var datatables = $('#_ProductFamilyIndexTable').DataTable({
+		proccessing: true,
+		serverSide: false,
+		searching: true,
+		lengthChange: false,
+		dom: 'tip',
+		ajax: {
+			url: '@Url.Action("List", "ProductFamily")',
+			type: 'POST'
+		},
+		columns: [
+            {
+                data: 'Name',
+                render: function (data, type, row) {
+                    return '<a href="@Url.Action("Manage", "ProductFamily")?id=' + row.productFamilyId + '">' + row.name + '</a>';
+                }
+            },
+            {
+                data: 'Description',
+                render: function (data, type, row) {
+                    return row.description;
+                }
+            },
+			{
+				data: null,
+				render: function (data, type, row) {
+                    return '<div class="text-center"><a href="javascript:void(0)" onclick="RemoveProductFamily(' + row.productFamilyId + ')" title="Excluir" ><i class="far fa-trash-alt"></i></a></div>';
+				}
+			}
+		]
+	});
+
+    function _ProductFamilyIndexDoneTyping() {
+        if ($.fn.DataTable.isDataTable('#_ProductFamilyIndexTable')) {
+            datatables.search($('#_ProductFamilyIndexSearch').val()).draw();
+        }
+    }
+    $('#_ProductFamilyIndexSearch').keyup(function () {
+        clearTimeout(_ProductFamilyIndexDoneTypingInterval);
+        _ProductFamilyIndexTypingTimer = setTimeout(_ProductFamilyIndexDoneTyping, _ProductFamilyIndexDoneTypingInterval);
+    });
+    $('#_ProductFamilyIndexSearch').keydown(function () {
+        clearTimeout(_ProductFamilyIndexDoneTyping);
+    });
+
+    function RemoveProductFamily(productFamilyId) {
+		if (confirm("Deseja realmente excluir esta família?")) {
+            _RemoveProductFamily(productFamilyId, function (data) {
+                if(!data.hasError)
+                    $('#_ProductFamilyIndexTable').DataTable().ajax.reload();
+                alert(data.message);
+			});
+		}
+	}
+
+	function _RemoveProductFamily(_productFamilyId, callback) {
+        var d = { id: _productFamilyId };
+		$.ajax({
+			url: '@Url.Action("RemoveProductFamily", "ProductFamily")',
+			type: 'POST',
+			data: d,
+			dataType: 'Json',
+			success: function(data){
+                callback(data);
+            }
+		});
+	}
+</script>

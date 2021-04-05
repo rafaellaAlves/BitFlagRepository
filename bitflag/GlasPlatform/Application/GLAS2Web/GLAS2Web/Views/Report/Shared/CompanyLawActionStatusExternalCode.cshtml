@@ -1,0 +1,15 @@
+﻿@{
+    var companyLawActionStatus = (ViewData["CompanyLawActionStatus"] as List<DAL.CompanyLawActionStatus>);
+}
+<div class="form-group">
+    <label class="control-label">@translationFunctions.GetTranslation("Status da Ação", User.FindFirstValue("CultureInfo"))</label>
+    <select multiple="multiple" class="form-control ReportParameter" style="width: 100%;" data-hidden-parameter="CompanyLawActionStatusExternalCode">
+        @if (companyLawActionStatus != null)
+        {
+            @foreach (var item in companyLawActionStatus)
+            {
+                <option value="@item.ExternalCode">@translationFunctions.GetTranslation(item.Name, User.FindFirstValue("CultureInfo"))</option>
+            }
+        }
+    </select>
+</div>

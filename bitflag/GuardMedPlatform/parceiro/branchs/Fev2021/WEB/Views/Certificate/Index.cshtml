@@ -1,0 +1,31 @@
+﻿@model int
+@{
+    string title = "";
+    if (Model == (int)WEB.Utils.CertificateTypes.Deletados)
+    {
+        title = "Certificados Inativos";
+    }
+    if (Model == (int)WEB.Utils.CertificateTypes.Emitidos)
+    {
+        title = "Certificados Ativos";
+    }
+    if (Model == (int)WEB.Utils.CertificateTypes.Renovacao)
+    {
+        title = "Certificados à Renovar";
+    }
+    if (Model == (int)WEB.Utils.CertificateTypes.Simulacao)
+    {
+        title = "Novo/Notificação";
+    }
+
+    ViewData["Title"] = title;
+}
+<div class="card shadow bg-light">
+    <div class="card-body">
+        <div id="_CertificateIndexViewComponent"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#_CertificateIndexViewComponent').load('@Url.Action("CertificateIndexComponent", "Certificate")', {"certificateType": "@Model" });
+</script>

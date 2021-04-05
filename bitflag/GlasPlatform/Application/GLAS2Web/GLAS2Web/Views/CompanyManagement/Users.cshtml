@@ -1,0 +1,234 @@
+﻿@using Microsoft.AspNetCore.Identity
+
+@model DTO.Company.CompanyViewModel
+
+@inject DAL.GLAS2Context context
+@inject UserManager<DAL.Identity.User> UserManager
+@{
+	ViewData["Title"] = "Users";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+
+	var user = await UserManager.GetUserAsync(User);
+
+	var companyUserRoleFunctions = new BLL.Permission.CompanyUserRoleFunctions(context);
+	var userRole = companyUserRoleFunctions.GetUserRole(user.Id);
+
+	var companyUserRole = companyUserRoleFunctions.GetCompanyRoleDescriptionByCompanyUser(Model.CompanyId.Value, user.Id);
+}
+<div class="card shadow">
+	<div class="card-body">
+		<div class="row">
+			<div class="col-md-6">
+				<img class="rounded-circle" src="@Url.Action("GetCompanyLogo", "CompanyManagement", new { companyId = Model.CompanyId })" data-holder-rendered="true" style="width: 75px; height: 75px;">
+			</div>
+			<div class="col-md-6 text-right">
+				<h5><b>@Model.NomeFantasia</b><br /><small>Atuando como: <b>@userRole.Name @companyUserRole</b></small></h5>
+			</div>
+		</div>
+	</div>
+</div>
+<hr />
+<div class="card shadow">
+	<div class="card-header">
+		Usuários da Unidade de Negócio
+	</div>
+	<div class="card-body">
+		<div id="companyUsersListGroup" class="list-group">
+		</div>
+	</div>
+	<div class="card-footer">
+		@if (Context.Request.Query.ContainsKey("fromDashboard"))
+		{
+			<a href="@Url.Action("Dashboard", "Home", new { companyId = Model.CompanyId })" class="btn btn-secondary float-left"><i class="fa fa-arrow-left"></i>&nbsp;Voltar</a>
+		}
+		else
+		{
+			<a href="@Url.Action("Index", "CompanyManagement", new { useFilter = true })" class="btn btn-secondary float-left"><i class="fa fa-arrow-left"></i>&nbsp;Voltar</a>
+		}
+
+		<button type="button" class="btn btn-success float-right" data-toggle="modal" data-target="#userModal"><i class="fa fa-plus"></i>&nbsp;Adicionar Usuário</button>
+	</div>
+</div>
+<script type="text/javascript">
+	function AddUserToListGroup(data) {
+		//data.Profile = "Perfil";
+		var divListGroupItem = $('<div id="listGroupItem' + data.CompanyUserRoleId + '" class="list-group-item list-group-item-action flex-column" />');
+		var divHeader = $('<div class="d-flex w-100 justify-content-between" />');
+		var divHeaderH5 = $('<h5 class="mb-1">' + data.FirstName + ' ' + data.LastName + '</h5>');
+		var divHeaderSmall = $('<small><a href="javascript:void(0);" onclick="RemoveUserFromCompany(' + data.CompanyUserRoleId + ')">Desassociar</a></small>');
+		var pEmail = $(' <p class="mb-1">' + data.Email + '</p>');
+		var smallProfile = $('<small>' + data.CompanyRoleDescription + '</small>');
+
+		$(divHeader).append(divHeaderH5);
+		$(divHeader).append(divHeaderSmall);
+		$(divListGroupItem).append(divHeader);
+		$(divListGroupItem).append(pEmail);
+		$(divListGroupItem).append(smallProfile);
+
+		$('#companyUsersListGroup').prepend(divListGroupItem);
+	}
+</script>
+
+<!-- Modal -->
+<div class="modal fade" id="userModal" tabindex="-1" role="dialog" aria-labelledby="userModalLabel" aria-hidden="true">
+	<div class="modal-dialog modal-lg" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<span class="modal-title">Selecionar Usuário</span>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				@{ Html.RenderPartial("~/Views/Shared/_UserSearch.cshtml"); }
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-times"></i>&nbsp;Fechar</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="modalRole" tabindex="-1" role="dialog">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+			<div class="modal-header">
+				<span class="modal-title">Selecionar Usuário</span>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<div class="row">
+					<div class="form-group col-md-12">
+						<label class="control-label">Selecione um papel na unidade de negócio.</label>
+						<input type="hidden" id="companyId" />
+						<input type="hidden" id="userId" />
+						<select id="companyRole" class="form-control"></select>
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-success" onclick="AddUser()"><i class="fa fa-check"></i>&nbsp;Associar</button>
+				<button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-times"></i>&nbsp;Fechar</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+    $('#userModal').on('shown.bs.modal', function () {
+        _UserSearchClearSearch();
+    });
+
+    $('#modalRole').on('hidden.bs.modal', function () {
+        $('#companyId').val('');
+        $('#userId').val('');
+        $('#companyRole').empty();
+    });
+    function _UserSearchSelectCallBack(data) {
+        $('#companyId').val('@Model.CompanyId');
+        $('#userId').val(data.UserId);
+        $('#userModal').modal('hide');
+        $('#companyRole').empty();
+        switch (data.MainRole) {
+            default:
+                alert('Não é necessário associar usuários master às unidades de negócio.');
+                return false;
+            case '@BLL.User.ProfileNames.Biotera':
+                $('#companyRole').append('<option value="@BLL.User.ProfileNames.BioteraConsultor">Consultor</option>');
+                $('#companyRole').append('<option value="@BLL.User.ProfileNames.BioteraAuditor">Auditor</option>');
+                break;
+            case '@BLL.User.ProfileNames.Cliente':
+                $('#companyRole').append('<option value="@BLL.User.ProfileNames.ClienteAdministrador">Administrador</option>');
+                $('#companyRole').append('<option value="@BLL.User.ProfileNames.ClienteSupervisor">Supervisor</option>');
+                $('#companyRole').append('<option value="@BLL.User.ProfileNames.ClienteOperador">Operador</option>');
+                break;
+        }
+        $('#modalRole').modal('show');
+    }
+
+    function AddUser() {
+
+        UserIsInCompany($('#userId').val(), $('#companyId').val(), function (data) {
+            if (data == true) {
+                alert('Usuário já está cadastrado na empresa.');
+                $('#modalRole').modal('hide');
+                return;
+            }
+            AddUserToCompany($('#userId').val(), $('#companyId').val(), $('#companyRole').val(), function (data2) {
+                UsersInCompany($('#companyId').val());
+                alert('Usuário adicionado com sucesso!');
+                $('#modalRole').modal('hide');
+            });
+        });
+
+    }
+
+    function UsersInCompany(_companyId) {
+        _UsersInCompany(_companyId, function (data) {
+            $('#companyUsersListGroup').empty();
+            if (data.length == 0) {
+                $('#companyUsersListGroup').html('<i class="text-center">Nenhum registro encontrado.</i>');
+            }
+            $.each(data, function (i, e) {
+                $('#companyUsersListGroup').append(AddUserToListGroup(e));
+            });
+        });
+    }
+    function _UsersInCompany(_companyId, callback) {
+        var d = { companyId: _companyId };
+        $.ajax({
+            url: '@Url.Action("UsersInCompany", "CompanyManagement")',
+            type: 'POST',
+            data: d,
+            dataType: 'json',
+            success: callback
+        });
+    }
+
+    function UserIsInCompany(_userId, _companyId, callback) {
+        var d = { userId: _userId, companyId: _companyId };
+        $.ajax({
+            url: '@Url.Action("UserIsInCompany", "CompanyManagement")',
+            type: 'POST',
+            data: d,
+            dataType: 'json',
+            success: callback
+        });
+    }
+
+    function AddUserToCompany(_userId, _companyId, _role, callback) {
+        var d = { userId: _userId, companyId: _companyId, role: _role };
+        $.ajax({
+            url: '@Url.Action("AddUserToCompany", "CompanyManagement")',
+            type: 'POST',
+            data: d,
+            dataType: 'json',
+            success: callback
+        });
+    }
+
+    function RemoveUserFromCompany(_companyUserRoleId) {
+        if (confirm('Deseja realmente remover este usuário?')) {
+            _RemoveUserFromCompany(_companyUserRoleId, function () {
+                UsersInCompany(@Model.CompanyId);
+                alert('Usuário removido com sucesso!');
+            });
+        }
+    }
+    function _RemoveUserFromCompany(_companyUserRoleId, callback) {
+        var d = { companyUserRoleId: _companyUserRoleId };
+        $.ajax({
+            url: '@Url.Action("RemoveUserFromCompany", "CompanyManagement")',
+            type: 'POST',
+            data: d,
+            dataType: 'json',
+            success: callback
+        });
+    }
+</script>
+<script type="text/javascript">
+    UsersInCompany(@Model.CompanyId);
+</script>

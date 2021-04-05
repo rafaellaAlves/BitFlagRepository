@@ -1,0 +1,38 @@
+﻿@model DTO.EmailLog.EmailLogViewModel
+
+    <style type="text/css">
+    @Html.Raw(BLL.Mail.MailFunctions.GetEmailStyles())
+
+    p {
+        display: block;
+        margin-block-start: 1em;
+        margin-block-end: 1em;
+        margin-inline-start: 0px;
+        margin-inline-end: 0px;
+    }
+
+        @@media (min-width: 1100px) {
+            .modal-lg {
+                max-width: 1000px;
+            }
+        }
+        @@media (min-width: 1300px) {
+            .modal-lg {
+                max-width: 1100px;
+            }
+        }
+    </style>
+
+<div class="form-group">
+    <label>Destinatários</label>
+    <input type="text" class="form-control" disabled value="@Model.Emails" />
+</div>
+<div class="form-group">
+    <label>Assunto</label>
+    <input type="text" class="form-control" disabled value="@Model.Subject" />
+</div>
+<hr />
+<label>Mensagem:</label>
+<div style="padding: 15px; border-radius: 10px;border: 1px solid #868686; background: #fbfbfb; height: 400px; overflow-y: auto; text-align:center">
+    @Html.Raw(Model.Message.Replace("\n", "<br/>"))
+</div>

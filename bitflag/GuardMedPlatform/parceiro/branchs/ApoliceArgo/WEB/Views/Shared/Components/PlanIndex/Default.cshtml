@@ -1,0 +1,150 @@
+﻿@model int?
+<div class="row">
+    <div class="col-md-@if (Model.HasValue) {<text>10</text>}else {<text>12</text>}">
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text"><i class="fa fa-search"></i></span>
+            </div>
+            <input id="PlanIndexSearch" type="text" class="form-control" placeholder="Procurar..." />
+        </div>
+    </div>
+    @if (Model.HasValue)
+    {
+        <div class="col-md-2">
+            <a href="@Url.Action("Manage", "Plan")?ProductId=@Model" class="btn btn-success pull-right w-100" style="color:white;"><i class="fas fa-plus-circle"></i>&nbsp;Novo</a>
+        </div>
+    }
+</div>
+<hr />
+
+<div class="table-wrapper">
+    <table id="PlanIndexTable" class="table display responsive nowrap" style="border-collapse: collapse !important;">
+        <thead>
+            <tr>
+                <td>Nome</td>
+                <td>Descrição</td>
+                <td>Gerenciar</td>
+                <td style="min-width: 80px;">&nbsp;</td>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<script type="text/javascript">
+    var PlanIndexTypingTimer;
+    var PlanIndexDoneTypingInterval = 500;
+    var PlanDatatables = $('#PlanIndexTable').DataTable({
+	    proccessing: true,
+        serverSide: true,
+	    searching: true,
+	    lengthChange: false,
+	    dom: 'tip',
+	    ajax: {
+            url: '@Url.Action("List", "Plan")',
+            data: function (d) {
+                d.productId = '@Model'
+            },
+		    type: 'POST'
+        },
+	    columns: [
+            {
+                data: 'planId',
+                render: function (data, type, row) {
+                    return "<a href='@Url.Action("Manage","Plan")?id=" + row.planId + "')'>" + row.name + "</a>";
+                    return ;
+                }
+            },
+            {
+                data: 'Description',
+                render: function (data, type, row) {
+                    return row.description;
+                }
+            },
+            {
+                data: '',
+                orderable: false,
+                render: function (data, type, row) {
+                    return "<div class='text-center'><a href='@Url.Action("PlanCoverage","Plan")?planId=" + row.planId + "'><span class='badge badge-primary'>Coberturas</span></a>&nbsp;<a href='javascript:void(0)' onclick='OpenAssitanceModel(" + row.planId + ")'><span class='badge badge-primary'>Assistência</span></a></div>";
+                }
+            },
+            {
+                data: '',
+                orderable: false,
+                render: function (data, type, row) {
+                    return "<div class='text-center'><a href='javascript:void(0)' class='fas fa-trash ' onclick='RemoveGrupo(" + JSON.stringify({ planId: row.planId, name: row.name }) + ")'></a></div>";
+                }
+            }
+	    ]
+    });
+
+    function PlanIndexDoneTyping() {
+        if ($.fn.DataTable.isDataTable('#PlanIndexTable')) {
+            PlanDatatables.search($('#PlanIndexSearch').val()).draw();
+        }
+    }
+    $('#PlanIndexSearch').keyup(function () {
+        clearTimeout(PlanIndexTypingTimer);
+        PlanIndexTypingTimer = setTimeout(PlanIndexDoneTyping, PlanIndexDoneTypingInterval);
+    });
+    $('#PlanIndexSearch').keydown(function () {
+        clearTimeout(PlanIndexTypingTimer);
+    });
+
+
+    function RemoveGrupo(data) {
+        if (confirm("Deseja remover o plano?")) {
+            $.ajax({
+                url: '@Url.Action("RemovePlan", "Plan")',
+                type: 'POST',
+                datatype: 'JSON',
+                data: { id: data.planId },
+                success: function (data) {
+                    if(!data.hasError){
+                        $('#PlanIndexTable').DataTable().ajax.reload();
+                    }
+                    alert(data.message);
+                }
+            });
+        }
+    }
+</script>
+
+<div class="modal fade" id="PlanAssistanceModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" style="width:100%;" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold">Associação de Assistência</h6>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="_PlanAssistanceManageViewComponent"></div>
+            </div>
+            <div class="modal-footer">
+                <div class="col-md-6">
+                    <button type="submit" aria-label="Close" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-times"></i>&nbsp;Fechar</button>
+                </div>
+                <div class="col-md-6">
+                    <a href="javacsropt:void(0)" id="_PlanAssistanceManageButtonSubmit" class="btn btn-success float-right"><i class="fas fa-cloud-upload-alt"></i>&nbsp;Salvar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function OpenAssitanceModel(planId) {
+        $('#_PlanAssistanceManageViewComponent').load('@Url.Action("PlanAssistanceComponent", "Plan")', { "planId": planId });
+        $('#PlanAssistanceModal').modal('show');
+    }
+
+    $('#_PlanAssistanceManageButtonSubmit').click(function () {
+        _PlanAssistanceManageSave();
+    });
+
+    function _PlanAssistanceManageCallBack(data) {
+        $('#PlanAssistanceModal').modal('hide');
+    }
+</script>

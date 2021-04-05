@@ -1,0 +1,147 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Area do Administrador";
+}
+@section Styles {
+    <style type="text/css">
+        #menu {
+            background-image: url('@Url.Content("~/assets/image/home-background-cover.jpeg")');
+            background-repeat: no-repeat;
+            background-size: cover;
+            min-height: 100%;
+        }
+        .form_error{
+            color: red;
+            display: none;
+        }
+    </style>
+}
+<div class="row">
+    <div class="col-md-6">
+        <div id="menu" class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12 text-center">
+                        @*@{
+                                if (Model.Type == 1)
+                                {
+                                    @await Html.PartialAsync("../Shared/_LayoutMenuAdmin.cshtml");
+                                }
+                                else if (Model.Type == 2)
+                                {
+                                    @await Html.PartialAsync("../Shared/_LayoutMenuSaller.cshtml");
+                                }
+                                else
+                                {
+                                    @await Html.PartialAsync("../Shared/_LayoutMenuHome.cshtml");
+                                }
+                            }*@
+                        @await Html.PartialAsync("../Shared/_LayoutMenuHome.cshtml");
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="row">
+            <div class="col-12">
+                <div class="mb-2">
+                    <h2>
+                        Confirmação de Acesso
+                    </h2>
+                </div>
+                <hr />
+            </div>
+        </div>
+        <form id="FormLogin" method="post" action="">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="form-group">
+                                        <label class="control-label ">Login</label>
+                                        <input name="Username" id="Username" type="text" class="form-control " />
+                                        <span class="form_error">Campo obrigatório</span>
+                                        <span class="form_error" id="invalid-user">Digite um nome entre 5 e 20 caracteres</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label">Senha</label>
+                                        <input name="Password" id="Password" type="password" class="form-control" />
+                                        <span class="form_error">Campo obrigatório</span>
+                                        <span class="form_error" id="invalid-pass">A senha deve ter 8 caracteres</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="btn-group">
+                                        <button type="submit" onclick="return validateLogin()" class="btn btn-success">Acessar</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+@section Scripts{
+    <script type="text/javascript" src="~/assets/js/Utils.js"></script>
+    <script type="text/javascript">
+        function validateLogin() {
+            var user = $('#Username').val();
+            var senha = $('#Password').val();
+            var cont = 0;
+
+            //USER
+            if (user == '') {
+                $('#Username').next().show();
+                $('#invalid-user').hide();
+                focus('#Username');
+                cont = cont + 1;
+            } else if (user.length < 5 || user.length > 20) {
+                $('#invalid-user').show();
+                $('#Username').next().hide();
+                focus('#Username');
+                cont = cont + 1;
+            } else {
+                forceFocus('#Username');
+                $('#Username').next().hide();
+                $('#invalid-user').hide();
+            }
+
+            //SENHA
+            if (senha == '') {
+                $('#Password').next().show();
+                $('#invalid-pass').hide();
+                focus('#Password');
+                cont = cont + 1;
+            } else if (!senha.length == 8) {
+                $('#invalid-pass').show();
+                $('#Password').next().hide();
+                focus('#Password');
+                cont = cont + 1;
+            } else {
+                forceFocus('#Password');
+                $('#Password').next().hide();
+                $('#invalid-pass').hide();
+            }
+
+            if (cont = 0) {
+                $("#FormLogin").submit();
+            } else {
+                return false;
+            }
+        }
+    </script>
+}

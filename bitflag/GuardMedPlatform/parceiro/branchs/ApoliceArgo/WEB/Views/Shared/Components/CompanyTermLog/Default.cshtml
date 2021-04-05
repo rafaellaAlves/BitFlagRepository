@@ -1,0 +1,77 @@
+﻿@model int
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text"><i class="fa fa-search"></i></span>
+            </div>
+            <input id="_CompanyTermLogSearch" type="text" class="form-control" placeholder="Procurar..." />
+        </div>
+    </div>
+</div>
+<hr />
+<div class="table-wrapper">
+    <table id="_CompanyTermLogTable" class="table display responsive nowrap" style="border-collapse: collapse !important; width:100%;">
+        <thead>
+            <tr>
+                <th>E-mail do responsável</th>
+                <th>Data de Envio</th>
+                <th>PDF</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+<script type="text/javascript">
+
+    var _CompanyTermLogTypingTimer;
+    var _CompanyTermLogDoneTypingInterval = 500;
+    var datatables = $('#_CompanyTermLogTable').DataTable({
+		proccessing: true,
+		serverSide: false,
+		searching: true,
+		lengthChange: false,
+		dom: 'tip',
+		ajax: {
+            url: '@Url.Action("ListTermLogs", "Company")',
+            data: function (d) {
+                d.companyId = '@Model'
+            },
+			type: 'POST'
+		},
+		columns: [
+            {
+                data: 'Email',
+                render: function (data, type, row) {
+                    return row.email;
+                }
+            },
+            {
+                data: '_CreatedDate',
+                render: function (data, type, row) {
+                    return row._CreatedDate;
+                }
+            },
+			{
+				data: null,
+				render: function (data, type, row) {
+                    return '<div class="text-center"><a href="@Url.Action("GetCompanyTerm", "Company")?companyTermLogId=' + row.companyAcceptTermsId + '" target="_blank"><i class="far fa-file-pdf"></i></a></div>';
+				}
+			}
+		]
+	});
+
+    function _CompanyTermLogDoneTyping() {
+        if ($.fn.DataTable.isDataTable('#_CompanyTermLogTable')) {
+            datatables.search($('#_CompanyTermLogSearch').val()).draw();
+        }
+    }
+    $('#_CompanyTermLogSearch').keyup(function () {
+        clearTimeout(_CompanyTermLogDoneTypingInterval);
+        _CompanyTermLogTypingTimer = setTimeout(_CompanyTermLogDoneTyping, _CompanyTermLogDoneTypingInterval);
+    });
+    $('#_CompanyTermLogSearch').keydown(function () {
+        clearTimeout(_CompanyTermLogDoneTyping);
+    });
+</script>

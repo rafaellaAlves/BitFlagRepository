@@ -1,0 +1,242 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Area do Vendedor";
+}
+@section Styles {
+    <style type="text/css">
+        #menu {
+            background-image: url('@Url.Content("~/assets/image/home-background-cover.jpeg")');
+            background-repeat: no-repeat;
+            background-size: cover;
+            min-height: 100%;
+        }
+        .form_error{
+            color: red;
+            display: none;
+        }
+    </style>
+}
+
+<div class="row">
+    <div class="col-md-6">
+        <div id="menu" class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12 text-center">
+                        @await Html.PartialAsync("../Shared/_LayoutMenuSaller.cshtml");
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="row">
+            <div class="col-12">
+                <div class="mb-2">
+                    <h2>
+                        Atenção, os dados dos clientes em fase de captação ficarão vinculados ao seu cadastro por 60 dias.
+                    </h2>
+                </div>
+                <hr />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="row pt-2">
+                            <div class="col-sm-4">
+                                <label style="visibility:hidden" class="control-label ">procura</label>
+                                <input name="Search" placeholder="Procurar..." type="text" class="form-control" />
+                            </div>
+                            <div class="col-sm-4">
+                                <label class="control-label ">Situação</label>
+                                <select name="Situation" id="situation" class="custom-select">
+                                    <option>Selecione</option>
+                                    <option value="1">Em negociação</option>
+                                    <option value="2">Concluído</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-4">
+                                <label style="visibility:hidden" class="control-label ">botão</label>
+                                <button type="button" href="#" data-toggle="modal" data-target="#modal-fundclient" class="btn btn-success">Nova Captação</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped table-responsive-sm table-bordered">
+                            <thead>
+
+                            </thead>
+                            <tbody>
+                            </tbody>
+                            <tfoot>
+
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+@*//MODAL NOVA CAPTAÇÃO*@
+<div class="modal fade" id="modal-fundclient">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="exampleModalLabel">Nova Captação</h4>
+            </div>
+            <div class="modal-body">
+                <form id="FormNewFundclient">
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <label class="control-label ">Nome</label>
+                            <input name="Name" id="Name" type="text" class="form-control" />
+                            <span class="form_error">Campo obrigatório</span>
+                            <span class="form_error" id="invalid-name">Digite um nome entre 5 e 30 caracteres</span>
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="control-label ">Celular</label>
+                            <input name="MobilephoneSeller" id="MobilephoneSeller" type="text" class="form-control " />
+                            <span class="form_error">Campo obrigatório</span>
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="control-label ">Perfil</label>
+                            <select name="Situation" id="Situation" class="custom-select">
+                                <option>Selecione</option>
+                                <option value="1">Em negociação</option>
+                                <option value="2">Concluído</option>
+                            </select>
+                            <span class="form_error">Campo obrigatório</span>
+                        </div>
+
+                    </div>
+                    <br />
+                    <div class="row">
+                        <div class="col-6">
+                            <button class="btn btn-danger" data-dismiss="modal" type="reset">Cancelar</button>
+                        </div>
+                        <div class="col-6 text-right">
+                            <button class="btn btn-success" onclick="return validateFormModal()" name="submitModal" type="submit">Salvar</button>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@*//MODAL ATUALIZAR CAPTAÇÃO*@
+<div class="modal fade" id="modal-update-fundclient">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="exampleModalLabel">Nova Captação</h4>
+            </div>
+            <div class="modal-body">
+                <form id="form-update-fundclient">
+                    <div class="row">
+                        <div class="col-sm-4">
+                            <label class="control-label ">Nome</label>
+                            <input name="Name" type="text" class="form-control " />
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="control-label ">Celular</label>
+                            <input name="MobilephoneSeller" type="text" class="form-control" />
+                        </div>
+                        <div class="col-sm-4">
+                            <label class="control-label col-form-label-sm">Perfil</label>
+                            <select name="Situation" id="situation" class="custom-select" required title="Selecione uma opção.">
+                                <option>Selecione</option>
+                                <option value="1">Em negociação</option>
+                                <option value="2">Concluído</option>
+                            </select>
+                        </div>
+
+                    </div>
+                    <br />
+                    <div class="row">
+                        <div class="col-6">
+                            <button class="btn btn-danger" data-dismiss="modal" type="reset">Cancelar</button>
+                        </div>
+                        <div class="col-6 text-right">
+                            <button class="btn btn-success" name="submitModal" type="submit">Salvar</button>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script type="text/javascript" src="~/assets/js/Utils.js"></script>
+<script type="text/javascript">
+    function validateFormModal() {
+        var nome = $('#Name').val();
+        var telefone = $('#MobilephoneSaller').val();
+        var situcao = $('#Situation').val();
+        var cont = 0;
+
+        //NOME
+        if (nome == '') {
+            $('#UserName').next().show();
+            $('#invalid-name').hide();
+            focus('#UserName');
+            cont = cont + 1;
+        } else if (nome.length < 5 || nome.length > 30) {
+            $('#invalid-name').show();
+            $('#UserName').next().hide();
+            focus('#UserName');
+            cont = cont + 1;
+        } else {
+            forceFocus('#UserName');
+            $('#Username').next().hide();
+            $('#invalid-name').hide();
+        }
+
+        //TELEFONE
+        if (telefone == '') {
+            $('#MobilephoneSaller').next().show();
+            focus('#MobilephoneSaller');
+            cont = cont + 1;
+        } else {
+            forceFocus('#MobilephoneSaller');
+            $('#MobilephoneSaller').next().hide();
+        }
+
+        if (cont = 0) {
+            $('#formModalResgitration').submit();
+        } else {
+            return false;
+        }
+
+        //SITUAÇÃO
+        if (situcao == '') {
+            $('#Situation').next().show();
+            focus('#Situation');
+            cont = cont + 1;
+        } else {
+            forceFocus('#Situation');
+            $('#Situation').next().hide();
+        }
+
+        if (cont = 0) {
+            $('#formModalResgitration').submit();
+        } else {
+            return false;
+        }
+
+        if (cont = 0) {
+            $('#FormNewFundclient').submit();
+        } else {
+            return false;
+        }
+    }
+</script>
+}

@@ -1,0 +1,288 @@
+﻿@model DTO.Service.ServiceViewModel
+
+@inject Services.Service.ServiceClientCollectionAddressServices serviceClientCollectionAddressServices
+@inject Services.Service.ServiceFreightPaymentTermServices serviceFreightPaymentTermServices
+@inject Services.Service.ServiceResidualPaymentTermServices serviceResidualPaymentTermServices
+@inject Services.Service.ServiceSituationServices serviceSituationServices
+@inject Services.Service.ServiceStatusServices serviceStatusServices
+@inject Services.Service.ServiceServices serviceServices
+
+@inject Web.Helpers.DropDownListHelper dropDownListHelper
+
+@using Web.Helpers
+
+@{
+    var totalPrice = await serviceServices.GetServiceResidueTotalPrice(Model.ServiceId);
+
+    var assinedStatusId = (await serviceStatusServices.GetDataByExternalCode("OSASSINADA")).ServiceStatusId;
+}
+
+<style type="text/css">
+    .card-body-darker {
+        background-color: #F2F2F2;
+        border-color: #BFBFBF
+    }
+</style>
+
+<form id="form-service-manage" action="@Url.Action("_ManageForm", "Service")" method="post">
+    <input type="hidden" name="ServiceId" data-disabled="false" value="@Model.ServiceId" />
+    <div class="row" style="text-align:center">
+        <h2 class="p-3 mg-b-0 tx-uppercase tx-inverse tx-bold" style="font-size:18px; text-align:center"><i class="simple-icon-doc"></i>Serviço Nº <span id="service-manage-service-number" style="font-size:18px">@(Model.ServiceId.HasValue? "OS-" + Model.Code : "-")</span></h2>
+    </div>
+    <div class="card shadow ">
+        <div class="card-header card-header-default tx-uppercase justify-content-between  bg-gray-400">
+            <h6 class="mg-b-0 tx-14 tx-inverse"><i class="simple-icon-people"></i>&nbsp;Gerador</h6>
+            <div class="card-option">
+                <a href="" class="tx-gray-600 hover-white mg-l-10" data-toggle="collapse" aria-expanded="true" data-target="#service-manage-client-area"><i class="simple-icon-arrow-up lh-0"></i></a>
+            </div>
+            @*<div class="row w-100">
+                <div class="col">
+                    <i class="simple-icon-people"></i>&nbsp;Gerador
+                </div>
+                <div class="col text-right p-0">
+                    <i class="simple-icon-arrow-up float-right" data-toggle="collapse" aria-expanded="true" data-target="#service-manage-client-area"></i>
+                </div>
+            </div>*@
+        </div>
+        <div class="card-body bd collapse show" id="service-manage-client-area">
+            @(await Component.InvokeAsync<Web.ViewComponents.Contract.ContractClientViewComponent>(new { Model.ClientId, Model.ContactName, Model.ContactCpf, Model.ContactRole, Model.ContactPhone, Model.ContactMobilePhone, Model.ContactEmail, addressesId = (await serviceClientCollectionAddressServices.GetDataByServiceIdAsync(Model.ServiceId)).Select(x => x.ClientCollectionAddressId) } ))
+        </div>
+    </div>
+    <br />
+    <div class="card shadow ">
+        <div class="card-header card-header-default tx-uppercase justify-content-between  bg-gray-400">
+            <h6 class="mg-b-0 tx-14 tx-inverse"><i class="simple-icon-docs"></i>&nbsp;Serviço</h6>
+            <div class="card-option">
+                <a href="" class="tx-gray-600 hover-white mg-l-10" data-toggle="collapse" aria-expanded="true" data-target="#service-manage-service-area"><i class="simple-icon-arrow-up lh-0"></i></a>
+            </div>
+            @*<div class="row w-100">
+                <div class="col">
+                    <i class="simple-icon-docs"></i>&nbsp;Serviço
+                </div>
+                <div class="col text-right p-0">
+                    <i class="simple-icon-arrow-up float-right" data-toggle="collapse" aria-expanded="true" data-target="#service-manage-service-area"></i>
+                </div>
+            </div>*@
+        </div>
+        <div class="card-body bd collapse show" id="service-manage-service-area">
+            @{
+                var lastDemandClientServiceInfo = await serviceServices.GetLastDemandClientServiceInfo(Model.ClientId);
+            }
+            <div class="row mb-3">
+                <div class="col-md-4 form-group">
+                    <label>Peso da Última Coleta</label>
+                    <input class="form-control" disabled name="LastCollectWeight" value="@(lastDemandClientServiceInfo == null? "-" : (object)lastDemandClientServiceInfo._Weight)" />
+                </div>
+                <div class="col-md-4 form-group">
+                    <label>MTR e Data da Última Coleta</label>
+                    <input class="form-control" disabled name="LastCollectMTR" value="@(lastDemandClientServiceInfo == null? "-" : $"{lastDemandClientServiceInfo.DestineJaDemandId} - {lastDemandClientServiceInfo._VisitedDate}")" />
+                </div>
+                <div class="col-md-4 form-group">
+                    <label>Valor (R$) total da Última Coleta</label>
+                    <input class="form-control" disabled name="LastCollectPrice" value="@(lastDemandClientServiceInfo == null? "-" : lastDemandClientServiceInfo._Price)" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4 form-group">
+                    <label class="required">Valor do Frete</label>
+                    <input class="form-control money" value="@Model._FreightPrice" placeholder="Valor do Frete" name="_FreightPrice" onchange="calculateTotalPrice();" />
+                </div>
+                <div class="col-md-4 form-group">
+                    <label class="required">Prazo de Pagamento do Frete</label>
+                    @Html.DropDownList("ServiceFreightPaymentTermId", dropDownListHelper.ToSelectListItem<ApplicationDbContext.Models.ServiceFreightPaymentTerm, int, string>((await serviceFreightPaymentTermServices.GetDataAsNoTrackingAsync()).OrderBy(x => x.Order), x => x.ServiceFreightPaymentTermId, x => x.Name, Model.ServiceFreightPaymentTermId.ToString()), "Selecione", new { Class = "form-control w-100" })
+                </div>
+                <div class="col-md-4 form-group">
+                    <label class="required">Prazo de Pagamento do Resíduo</label>
+                    @Html.DropDownList("ServiceResidualPaymentTermId", dropDownListHelper.ToSelectListItem<ApplicationDbContext.Models.ServiceResidualPaymentTerm, int, string>((await serviceResidualPaymentTermServices.GetDataAsNoTrackingAsync()).OrderBy(x => x.Order), x => x.ServiceResidualPaymentTermId, x => x.Name, Model.ServiceResidualPaymentTermId.ToString()), "Selecione", new { Class = "form-control w-100" })
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md form-group">
+                    @{
+                        var situationId = (await serviceSituationServices.GetDataByExternalCode("ADIMPLENTE")).ServiceSituationId;
+                    }
+                    <label class="required">Situação </label>
+                    <select name="ServiceSituationId" Class="form-control w-100" disabled>
+                        @foreach (var item in await serviceSituationServices.GetDataAsNoTrackingAsync())
+                        {
+                            <option value="@item.ServiceSituationId">@item.Name</option>
+                        }
+                    </select>
+                </div>
+                @if (Model.ServiceId.HasValue)
+                {
+                    <div class="col-md form-group">
+                        <label class="required">Status</label>
+                        @Html.DropDownList("ServiceStatusId", dropDownListHelper.ToSelectListItem<ApplicationDbContext.Models.ServiceStatus, int, string>((await serviceStatusServices.GetDataAsNoTrackingAsync()).OrderBy(x => x.Order), x => x.ServiceStatusId, x => x.Name, Model.ServiceStatusId.ToString()), "Selecione", new { Class = "form-control w-100", data_disabled = "false" })
+                    </div>
+                }
+                <div class="col-md form-group">
+                    <label>Valor (R$) Total da Coleta</label>
+                    <input class="form-control money _TotalPrice" value="@((totalPrice + Model.FreightPrice).ToPtBR())" placeholder="Valor (R$) Total da Coleta" disabled />
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12 form-group">
+                    <label>Observações</label>
+                    <textarea class="form-control" placeholder="Observações" data-disabled="false" name="Observation">@Model.Observation</textarea>
+                </div>
+            </div>
+            @if (Model.ClientId.HasValue)
+            {
+                <div class="row">
+                    <div class="col">
+                        <button data-disabledAll="false" data-disabled="false" type="button" id="service-manage-historic-button" data-toggle="modal" data-target="#service-manage-historic-modal" class="btn btn-primary"><i class="simple-icon-calendar"></i>&nbsp;Visualizar Histórico</button>
+                    </div>
+                    <div class="col text-right">
+                        <button data-disabled="false" type="button" data-toggle="modal" data-target="#service-manage-upload-os-modal" class="btn btn-primary"><i class="simple-icon-cloud-upload"></i>&nbsp;Upload da Ordem de Serviço</button>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</form>
+<br />
+<div class="card shadow ">
+    <div class="card-header card-header-default tx-uppercase justify-content-between  bg-gray-400">
+        <h6 class="mg-b-0 tx-14 tx-inverse"><i class="simple-icon-basket-loaded"></i>&nbsp;Resíduos</h6>
+        <div class="card-option">
+            <a href="" class="tx-gray-600 hover-white mg-l-10" data-toggle="collapse" aria-expanded="true" data-target="#service-manage-residue-area"><i class="simple-icon-arrow-up lh-0"></i></a>
+        </div>
+        @*<div class="row w-100">
+            <div class="col">
+                <i class="simple-icon-basket-loaded"></i>&nbsp;Resíduos
+            </div>
+            <div class="col text-right p-0">
+                <i class="simple-icon-arrow-up float-right" data-toggle="collapse" aria-expanded="true" data-target="#service-manage-residue-area"></i>
+            </div>
+        </div>*@
+    </div>
+    <div class="card-body bd collapse show" id="service-manage-residue-area">
+        @(await Component.InvokeAsync<Web.ViewComponents.Service.ServiceResidueFamilyPriceViewComponent>(Model.ServiceId))
+    </div>
+</div>
+
+<modal id="service-manage-historic-modal" title-id="service-manage-historic-modal-title" title="Histórico de Serviços Avulsos" modal-lg="true">
+    @(Model.ClientId.HasValue? await Component.InvokeAsync<Web.ViewComponents.Service.ServiceHistoricViewComponent>(new { ClientId = Model.ClientId } ) : (object)"")
+</modal>
+
+<modal id="service-manage-upload-os-modal" title-id="service-manage-upload-s.o-modal-title" title="Upload da Ordem de Serviço" modal-lg="true" hide-footer="true">
+    <div class="row">
+        <div class="col-md-12 form-group">
+            <input class="required form-control" type="file" name="SOArchive">
+            <label id="service-manage-file-name" style="margin-top:.5em; @(!string.IsNullOrWhiteSpace(Model.ServiceOrderFileGuidName)? "" : "display:none;")">@Model.ServiceOrderFileName</label>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <hr />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4 form-group" id="service-manage-remove-file-area" style="@(!string.IsNullOrWhiteSpace(Model.ServiceOrderFileGuidName)? "" : "display:none;")">
+            <button class="btn btn-danger" id="service-manage-upload-os-modal-remove-button" onclick="removeServiceOrder()"><i class="simple-icon-close"></i>&nbsp;Remover Ordem de Serviço Existente</button>
+        </div>
+        <div class="col text-right form-group">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal" aria-label="Close"><i class="simple-icon-close"></i>&nbsp;Fechar</button>
+            <a href="@Url.Action("GetServiceOrder", "Service", new { id = Model.ServiceId })" target="_blank" class="btn btn-primary" id="service-manage-get-file-button" style="@(!string.IsNullOrWhiteSpace(Model.ServiceOrderFileGuidName)? "" : "display:none;")"><i class="simple-icon-magnifier"></i>&nbsp;Visualizar</a>
+            <a href="@Url.Action("DownloadServiceOrder", "Service", new { id = Model.ServiceId })" class="btn btn-primary" id="service-manage-download-file-button" style="@(!string.IsNullOrWhiteSpace(Model.ServiceOrderFileGuidName)? "" : "display:none;")"><i class="simple-icon-cloud-download"></i>&nbsp;Download</a>
+            <button class="btn btn-success" onclick="uploadServiceOrder()"><i class="simple-icon-cloud-upload"></i>&nbsp;Salvar</button>
+        </div>
+    </div>
+</modal>
+
+
+<script type="text/javascript" asp-cut-key="service-manage">
+    function changeServiceResidueFamilyCallback() {
+        calculateTotalPrice();
+    }
+
+    function calculateTotalPrice() {
+        var freightPrice =  Globalize.parseFloat(Globalize.format(isNull($('#form-service-manage [name="_FreightPrice"]').val(), 0)));
+
+        var residueFamilyPrice = 0;
+        $.each($('#form-service-manage [name="serviceResidueFamilies.Index"]'), function (i, e) {
+            residueFamilyPrice += Globalize.parseFloat(Globalize.format($('#form-service-manage [name="serviceResidueFamilies[' + $(e).val() + ']._Price"]').val()));
+        });
+
+        $('._TotalPrice').val($('.money').masked((freightPrice + @totalPrice).toFixed(2)));
+    }
+
+    $(document).ready(function () {
+        @*@(Model.ServiceId.HasValue? Html.Raw("disableFields('#form-service-manage')") : (object)"")*@
+        @(Model.ServiceId.HasValue && !Model.TermAccepted? Html.Raw("$('#contract-client-area [name=\"ClientId\"]').attr('disabled', 'disabled')") : (object)"")
+        @(Model.ServiceId.HasValue && Model.TermAccepted? Html.Raw("disableFields('#contract-client-area')") : (object)"")
+    });
+
+    function loadClientCallback(clientId) {
+        $("#service-manage-historic-button").show();
+
+        $('#service-manage-historic-modal .modal-body').empty().load('@Url.Action("LoadServiceHistoricComponent", "Service")', { clientId });
+    }
+
+    function uploadServiceOrder() {
+        if ($('#service-manage-upload-os-modal [name=\'SOArchive\']')[0].files.length == 0) {
+            bootbox.alert('Insira um arquivo.');
+            return;
+        }
+
+        var _d = new FormData();
+        _d.append('SOArchive', $('#service-manage-upload-os-modal [name=\'SOArchive\']')[0].files[0]);
+        _d.append('ServiceId', @Model.ServiceId);
+
+        $.ajax({
+            url: '@Url.Action("UploadServiceOrder", "Service")',
+			type: 'POST',
+			contentType: false,
+			processData: false,
+			data: _d,
+            success: function (d) {
+                bootbox.alert(d.message);
+
+                if (!d.hasError) {
+                    $('#service-manage-upload-os-modal [name=\'SOArchive\']').val('');
+                    $('#service-manage-remove-file-area').show();
+                    $('#service-manage-download-file-button').show();
+                    $('#service-manage-get-file-button').show();
+                    $('#service-manage-file-name').show();
+                    $('#service-manage-file-name').text(d.fileName);
+                    $('#ServiceStatusId').val('@assinedStatusId');
+                }
+
+            }
+        });
+    }
+
+    function removeServiceOrder() {
+        bootboxConfirm('Deseja realmente remover a order de serviço existente?', function (d) {
+            if (!d) return;
+
+            $.post('@Url.Action("RemoveServiceOrder", "Service")', { serviceId: '@Model.ServiceId' }, function (d) {
+                bootbox.alert(d.message);
+
+                if (d.success) {
+                    $('#service-manage-remove-file-area').hide();
+                    $('#service-manage-download-file-button').hide();
+                    $('#service-manage-get-file-button').hide();
+                    $('#service-manage-file-name').hide();
+                }
+            });
+        });
+    }
+
+    function setLastDemandClientServiceInfo() {
+        $.post('@Url.Action("GetLastDemandClientServiceInfo", "Service")', { clientId: $('#service-manage-client-area [name="ClientId"]').val() }, function (d) {
+            $('#service-manage-service-area [name="LastCollectWeight"]').val(d == null? '-' : d.weight);
+            $('#service-manage-service-area [name="LastCollectMTR"]').val(d == null ? '-' : d.destineJaDemandId + ' - ' + d._VisitedDate);
+            $('#service-manage-service-area [name="LastCollectPrice"]').val(d == null ? '-' : d._Price);
+        });
+    }
+
+    @if (Model.TermAccepted)
+    {
+        <text>
+    $('#contract-manage-people-table tr').removeAttr('onclick');
+        </text>
+    }
+</script>
+

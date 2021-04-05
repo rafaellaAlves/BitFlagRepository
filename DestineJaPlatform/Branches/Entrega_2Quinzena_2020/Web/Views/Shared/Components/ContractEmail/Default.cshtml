@@ -1,0 +1,50 @@
+﻿@model DTO.Contract.ContractViewModel
+
+<form id="contract-email" action="" method="post">
+    <input type="hidden" name="ContractId" value="@Model.ContractId" />
+    <div class="alert alert-warning alert-dismissible fade show" id="contract-email-sended-alert" role="alert" @(!Model.AcceptTermEmailSended ? Html.Raw("style=\"display:none\"") : (object)"")>
+        Este <b>Contrato</b> já foi enviado por e-mail.
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="row mb-2">
+        <div class="col">
+            <label class="text-warning">No caso de envio para múltiplos e-mails utilize <b>; (ponto e vírgula)</b> para separar um e-mail de outro.</label>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <label class="required">Destinatário</label>
+            <input class="form-control" placeholder="Destinatário" name="To" value="@Model.ContactEmail" />
+        </div>
+        <div class="col">
+            <label>Cópia</label>
+            <input class="form-control" placeholder="Cópia" name="ReplyTo" />
+        </div>
+        <div class="col">
+            <label>Cópia Oculta</label>
+            <input class="form-control" placeholder="Cópia Oculta" name="BCC" />
+        </div>
+        <div class="col-2">
+            <label>&nbsp;</label>
+            <button class="btn btn-success" type="button" onclick="sendOSEmail()"><i class="simple-icon-envelope-letter"></i>&nbsp;Enviar</button>
+        </div>
+    </div>
+</form>
+
+<script type="text/javascript" asp-cut-key="contract-email">
+    function sendOSEmail() {
+        if (!validateInputs('contract-email')) return;
+
+        $.post('@Url.Action("SendContractEmail", "Contract")', $('#contract-email').serializeArray(), function (d) {
+            bootbox.alert(d.message);
+
+            if (d.success) {
+                $('#contract-email-sended-alert').show();
+
+                if (typeof emailSendedCallback == 'function') emailSendedCallback();
+            }
+        });
+    }
+</script>

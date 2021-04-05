@@ -1,0 +1,41 @@
+﻿@model DTO.Law.SegmentoViewModel
+
+<form id="SegmentoForm">
+    <input type="hidden" id="SegmentoId" name="SegmentoId" value="@Model.SegmentoId" />
+    <div class="row">
+        <div class="col-md-12">
+            <input type="text" class="form-control" id="SegmentoName" name="Name" value="@Model.Name" placeholder="Nome" />
+        </div>
+    </div>
+</form>
+<script type="text/javascript">
+    function SegmentoValidate() {
+        $('.text-danger').remove();
+        var hasError = false;
+
+        if (IsNullOrWhiteSpace($('#SegmentoName').val())) {
+            $('#SegmentoName').after($('<div>', { class: 'text-danger' }).append('Insira um nome!'));
+            hasError = true;
+        }
+
+        if (hasError)
+            $('#alertErrorSegmento').show();
+
+        return !hasError;
+    }
+
+    function SegmentoSave() {
+        var d = $('#SegmentoForm').serializeArray();
+        $.ajax({
+            url: '@Url.Action("Manage", "Segmento")',
+            type: 'POST',
+            datatype: 'JSON',
+            data: d,
+            success: function (data) {
+                SegmentoSaveCallBack(data);
+            }
+
+        });
+
+    }
+</script>

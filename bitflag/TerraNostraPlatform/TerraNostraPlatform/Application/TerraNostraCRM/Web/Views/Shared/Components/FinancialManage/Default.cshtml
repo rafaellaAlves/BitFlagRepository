@@ -1,0 +1,118 @@
+﻿@model int
+@{
+    ViewData["Title"] = "Default";
+}
+<style type="text/css">
+    thead th {
+        width: 16.666%
+    }
+</style>
+<div class="row">
+    <div class="col-md-7">
+        <div class="input-group mb-3">
+        </div>
+    </div>
+</div>
+<div class="table-wrapper">
+    <table id="_BaixasTable" class="display table table-striped table-bordered table-condensed" style="border-collapse: collapse !important; width:100%;">
+        <thead>
+            <tr>
+                <th>Parcela</th>
+                <th>Vencimento</th>
+                <th>Valor</th>
+                <th>Data Baixa</th>
+                <th>Pago?</th>
+                <th style="width: 70px !important;">Ação</th>
+                @*<th class="text-center"><input type="checkbox" id="SelecionarTodos" /></th>*@
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <hr />
+        <a href="@Url.Action("Index", "Financial")" class="btn btn-secondary"><i class="simple-icon-action-undo"></i>&nbsp;Voltar</a>
+        <button id="invoice-save-button" style="display:none;" class="btn btn-success float-right"><i class="iconsminds-money-bag"></i>&nbsp;Efetuar Baixa</button>
+    </div>
+</div>
+<script type="text/javascript">
+
+    var _FinancialIndexTypingTimer;
+    var _FinancialIndexDoneTypingInterval = 500;
+    var _InvoiceIndexDatatables = $('#_BaixasTable').DataTable({
+        proccessing: true,
+        serverSide: true,
+        searching: true,
+        lengthChange: false,
+        dom: 'tip',
+        ajax: {
+            url: '@Url.Action("ListarParcelas", "Financial")',
+            type: 'POST',
+            data: function (d) {
+                d.invoiceId = '@Model';
+            }
+
+        },
+        order: [[0, 'desc']],
+        columns: [
+
+            {
+                data: 'Parcela',
+                render: function (data, type, row) {
+                    return '<div class="text-center">' + row.paymentNumber + '</div>';
+                }
+            },
+            {
+                data: 'Vencimento',
+                render: function (data, type, row) {
+                    return '<div class="text-center">' + row._InstallmentDate + '</div>';
+                }
+            },
+            {
+                data: 'Valor',
+                render: function (data, type, row) {
+                    return'<div class="text-center">'+ "R$ " + row._Price + '</div>';
+                }
+            },
+            {
+                data: '_PaymentDate',
+                render: function (data, type, row) {
+                    console.log(row);
+                    return '<div class="text-center">' + (IsNullOrWhiteSpace(row._PaymentDate) ? '-' : row._PaymentDate)  + '</div>';
+                }
+            },
+            {
+                data: 'Paid',
+                render: function (data, type, row) {
+
+                    return '<div class="text-center">' + (row.paid ? '<b class="iconsminds-yes text-success" style="font-size: 20px;"></b>' : '<b class="iconsminds-close text-danger" style="font-size: 20px;"></b>') + '</div>';
+                }
+            },
+            {
+                data: 'botao',
+                render: function (data, type, row) {
+                    return '<div class="text-center">' + '<a href="javascript:UpdateParcela('+ row.invoicePaymentId +')" type="button" id="_ClientManageButtonSubmit" title="Efetuar Baixa" style="white-space: nowrap" class="btn btn-sm btn-success"><i class="iconsminds-money-bag"></i>&nbsp;Baixar Parcela</a>' + '</div>';
+                }
+            }
+
+
+        ]
+    });
+
+    function UpdateParcela(id) {
+        $.post('@Url.Action("UpdateParcela", "Financial")', { parcelaId: id },
+            function (d) {
+                if (d == false) {
+                    alert('A baixa já foi realizada!');
+                    return false;
+                }
+                else {
+                    alert('Baixa realizada com sucesso!');
+                    $('#_BaixasTable').DataTable().ajax.reload();
+                    return true;
+                }
+            });
+    }
+</script>

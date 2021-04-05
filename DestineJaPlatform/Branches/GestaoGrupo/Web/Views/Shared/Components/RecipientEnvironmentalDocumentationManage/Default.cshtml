@@ -1,0 +1,89 @@
+﻿@model int
+
+<form id="form-recipient-environmental-documentation">
+    <input type="hidden" name="RecipientId" value="@Model" />
+    <input type="hidden" name="RecipientEnvironmentalDocumentationId" />
+    <div class="row">
+        <div class="col-md-12 form-group">
+            <label class="required">Nome do Documento</label>
+            <input class="form-control" placeholder="Nome do Documento" name="DocumentName" maxlength="200" />
+        </div>
+        <div class="col-md-12 form-group">
+            <label class="required">Nome ou Atividade</label>
+            <input class="form-control" placeholder="Nome ou Atividade" name="ActivityName" maxlength="500" />
+        </div>
+        <div class="col-md-6 form-group">
+            <label class="required">Órgão Emissor</label>
+            <input class="form-control" placeholder="Órgão Emissor" name="Issuer" />
+        </div>
+        <div class="col-md-6 form-group">
+            <label>Data de Emissão</label>
+            <input class="form-control date" placeholder="Data de Emissão" name="_IssuerDate" />
+        </div>
+        <div class="col-md-6 form-group">
+            <label class="required">Data de Vencimento</label>
+            <input class="form-control date" placeholder="Data de Vencimento" name="_DueDate" />
+        </div>
+        <div class="col-md-6 form-group">
+            <label class="required">Dias para o Vencimento</label>
+            <input class="form-control number" placeholder="Dias para o Vencimento" id="daysForDueDate" />
+        </div>
+        <div class="col-md-6 form-group">
+            <label class="required">Notificar o vencimento em quantos dias</label>
+            <input class="form-control" name="DaysToNotify" placeholder="Notificar o vencimento em quantos dias" />
+        </div>
+        <div class="col-md-6 form-group">
+            <label class="required">E-mail para notificar (Separar os e-mails por <b>;</b>)</label>
+            <input class="form-control" name="Email" placeholder="E-mail" />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12 form-group">
+            <label class="control-label">Upload</label>
+            <input class="form-control" type="file" name="Archive">
+        </div>
+    </div>
+</form>
+
+
+<script asp-cut-key="recipient-environmental-documentation-manage">
+    $('#form-recipient-environmental-documentation [name=\'_DueDate\'], #daysForDueDate').on('change', function () {
+
+        if ($(this).is($('#form-recipient-environmental-documentation input[name=\'_DueDate\']'))) {
+            if (isNullOrWhiteSpace($('#form-recipient-environmental-documentation input[name=\'_DueDate\']').val())) {
+                $('#daysForDueDate').val('');
+                return;
+            }
+            var r = getDaysToDueDate(moment($('#form-recipient-environmental-documentation [name=\'_DueDate\']').val(), 'DD/MM/YYYY')._d, true);
+            if (r == null) {
+                $(this).val('');
+                $('#daysForDueDate').val('');
+            }
+
+            $('#daysForDueDate').val(parseInt(r));
+        }
+        else {
+            var now = new Date();
+            now.setHours(0, 0, 0, 0);
+
+            $('#form-recipient-environmental-documentation [name=\'_DueDate\']').val(moment(now).add($(this).val(), 'days').format('DD/MM/YYYY'));
+        }
+    });
+
+    function getDaysToDueDate(dueDate, validate) {
+        if (isNaN(dueDate.getTime())) {
+            return 0;
+        }
+        var now = new Date();
+        now.setHours(0, 0, 0, 0);
+
+        //if (validate && dueDate < now) {
+        //    bootbox.alert("A data de vencimento deve ser posterior ao dia de hoje.");
+        //    return 0;
+        //}
+
+        var difference_In_Time = dueDate.getTime() - now.getTime();
+
+        return difference_In_Time / (1000 * 3600 * 24);
+    }
+</script>

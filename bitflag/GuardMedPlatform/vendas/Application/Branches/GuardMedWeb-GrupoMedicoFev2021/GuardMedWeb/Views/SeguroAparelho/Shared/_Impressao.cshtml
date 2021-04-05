@@ -1,0 +1,296 @@
+﻿@model GuardMedWeb.Models.SeguradoEquipamentoViewModel
+@inject GuardMedWeb.DAL.GuardMedWebContext context
+@{
+    ViewData["Title"] = "Seguro Aparelho Veterinario AmaisVet";
+    var tiposEquipamento = (List<GuardMedWeb.DAL.TipoEquipamento>)ViewData["TipoEquipamento"];
+
+    var pagamentoTipoFunctions = new GuardMedWeb.BLL.Pagamento.PagamentoTipoFunctions(context);
+
+    int i = 1;
+    double duasVezes, tresVezes, quatroVezes;
+
+    duasVezes = Convert.ToDouble(Model.PrecoSeguro) / 2;
+    tresVezes = Convert.ToDouble(Model.PrecoSeguro) / 3;
+    quatroVezes = Convert.ToDouble(Model.PrecoSeguro) / 4;
+
+
+    double precoLiquido, mensalIOF, iof;
+    mensalIOF = Convert.ToDouble(Model.PrecoSeguro) / 12;
+    iof = Convert.ToDouble(Model.PrecoSeguro) * 0.0738;
+    precoLiquido = Convert.ToDouble(Model.PrecoSeguro) - iof;
+}
+<style type="text/css">
+    table {
+        border-collapse: collapse;
+        page-break-after: auto;
+    }
+
+        table td {
+            padding-left: 6px;
+        }
+</style>
+<div style="font-family: Verdana;">
+    <div style="width: 100%; text-align: center;">
+        <h5><strong class="amaisvet-grey">PROPOSTA - SEGURO APARELHOS VETERINÁRIOS Nº @Model.Referencia</strong></h5>
+        <b class="control-label">ESTA PROPOSTA DE ADESÃO SUBMETIDA À ANÁLISE DA AXA SEGUROS S.A.</b>
+    </div>
+    <br />
+    <div style="width: 100%;">
+        <small style="float: left">
+            <strong>
+                UTILIZAÇÃO: @if (Model.PlanoSeguroEquipamentoId == 1)
+                {<text>Uso Interno</text>}
+            else if (Model.PlanoSeguroEquipamentoId == 2)
+            { <text>Uso Externo</text>}
+            </strong>
+        </small>
+        <small style="float: right;">
+            <small>
+                <i>DATA DE EMISSÃO:&nbsp;@Model.DataCriacao</i>
+            </small>
+        </small>
+    </div>
+    <br />
+    <table style="width: 100%;">
+        <tr>
+            <td colspan="4" class="bgamaisvet-darkpurple" style="border-radius: 15px 15px 0px 0px;">
+                <small style="color:white">DADOS DO CORRETOR</small>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2"><small class="smallFont"><strong>NOME:</strong> A MAIS ADM. E CORRETORA DE SEGUROS LTDA ME</small></td>
+            <td colspan="2"><small class="smallFont"><strong>CNPJ:</strong> 12.939.904/0001-66</small></td>
+        </tr>
+        <tr>
+            <td><small class="smallFont"><strong>ENDEREÇO:</strong> RUA MANUEL DA NÓBREGA</small></td>
+            <td><small class="smallFont"><strong>Nº:</strong> 354</small></td>
+            <td colspan="2"><small class="smallFont"><strong>COMP:</strong> 8º ANDAR</small></td>
+        </tr>
+        <tr>
+            <td><small class="smallFont"><strong>BAIRRO:</strong> PARAÍSO</small></td>
+            <td><small class="smallFont"><strong>CEP:</strong> 04.001-001</small></td>
+            <td><small class="smallFont"><strong>CIDADE:</strong> SÃO PAULO</small></td>
+            <td><small class="smallFont"><strong>UF:</strong> SP</small></td>
+        </tr>
+        <tr>
+            <td colspan="2"><small class="smallFont"><strong>E-MAIL:</strong><a href="mailto:contato@amaisvet.com.br"> contato@amaisvet.com.br</a></small></td>
+            <td colspan="2"><small class="smallFont"><strong>TELEFONE:</strong> (11) 3253-3678</small></td>
+        </tr>
+    </table>
+    <br />
+    <table style="width: 100%;">
+        <tr>
+            <td colspan="3" class="bgamaisvet-darkpurple" style="border-radius: 15px 15px 0px 0px;">
+                <small style="color:white">DADOS DO SEGURADO</small>
+            </td>
+        </tr>
+        <tr>
+            <td class="bgamaisvet-purple"><small class="smallFont" style="color:white">NOME: @Model.Nome</small></td>
+            <td class="bgamaisvet-purple"><small class="smallFont" style="color:white">DATA DE NASCIMENTO/CONSTITUIÇÃO: @(Model.DataNascimento.HasValue ? Model.DataNascimento.Value.ToString("dd/MM/yyyy") : "-")</small></td>
+            <td class="bgamaisvet-purple"><small class="smallFont" style="color:white">CPF/CNPJ: @Model.CPF</small></td>
+        </tr>
+        <tr>
+            <td class="bgamaisvet-purple"><small class="smallFont" style="color:white">CRMV Nº: @Model.CRMV</small></td>
+            <td class="bgamaisvet-purple"><small class="smallFont" style="color:white">E-MAIL: @Model.Email</small></td>
+            <td class="bgamaisvet-purple">
+                <small class="smallFont" style="color:white">
+                    TELEFONE: @if (string.IsNullOrWhiteSpace(Model.Telefone))
+                    {<text>-</text> }
+                else
+                { <text>@Model.Telefone</text>}
+                </small>
+            </td>
+        </tr>
+        <tr>
+            <td class="bgamaisvet-purple"><small class="smallFont" style="color:white">CELULAR: @Model.Celular</small></td>
+            <td class="bgamaisvet-purple"><small class="smallFont" style="color:white">CEP: @Model.CEP</small></td>
+            <td class="bgamaisvet-purple"><small class="smallFont" style="color:white">CIDADE - UF: @Model.Cidade -  @Model.Estado</small></td>
+        </tr>
+        <tr>
+            <td colspan="2" class="bgamaisvet-purple">
+                <small class="smallFont" style="color:white">ENDEREÇO: @Model.Endereco,  @Model.EnderecoNumero</small>
+            </td>
+            <td class="bgamaisvet-purple">
+                <small class="smallFont" style="color:white">BAIRRO: @Model.Bairro</small>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3" class="bgamaisvet-darkpurple" style="border-radius: 0px 0px 15px 15px;">
+                &nbsp;
+            </td>
+        </tr>
+    </table>
+    <br />
+    <table style="width: 100%;">
+        <tr>
+            <td class="bgamaisvet-darkpurple" style="border-top-left-radius: 15px; padding: 8px; width: 50%;"><small style="color:white">AXA Seguros S.A. | CNPJ 19.323.190/0001-06<br />Processo SUSEP nº 15414.901605/2014-39</small></td>
+            <td class="bgamaisvet-darkpurple" style="width: 15%; text-align: center; border-left: 1px solid black;"><small style="color:white;">Franquias</small></td>
+            <td class="bgamaisvet-darkpurple" style="width: 15%; text-align: center; border-left: 1px solid black;"><small style="color:white;">Valor Maximo de Indenização</small></td>
+            <td class="bgamaisvet-darkpurple" style="border-top-right-radius: 15px; border-left: 1px solid black; padding: 8px; width: 15%; text-align: center;"><small style="color:white">Prêmio Cobertura</small></td>
+        </tr>
+        <tr>
+            <td style="background-color:lightgrey;"><small class="smallFont"><strong class="amaisvet-grey">COBERTURAS</strong></small></td>
+            <td style="background-color:lightgrey; border-left: 1px solid black;">&nbsp;</td>
+            <td style="background-color:lightgrey; border-left: 1px solid black;">&nbsp;</td>
+            <td style="background-color:lightgrey; border-left: 1px solid black;">&nbsp;</td>
+        </tr>
+        <tr>
+            <td style="background-color:lightgrey;">
+                <small class="smallFont"><strong class="amaisvet-grey">Danos Causa Externa</strong> - Esta cobertura indenizará, até o Limite Máximo de Indenização,as perdas e/ou danos materiais, causados aos equipamentos, por quaisquer acidentes decorrentes de causa externa (inclusive incêndio e explosão de qualquer natureza, queda de raio)</small>
+            </td>
+            <td style="background-color:lightgrey; text-align: center; border-left: 1px solid black;"><small class="smallFont amaisvet-grey">10%  com o mínimo de R$ 1.500,00</small></td>
+            <td style="background-color:lightgrey; border-left: 1px solid black;">&nbsp;</td>
+            <td style="background-color:lightgrey; border-left: 1px solid black;">&nbsp;</td>
+        </tr>
+        <tr>
+            <td style="background-color:lightgrey;">
+                <small class="smallFont"><strong class="amaisvet-grey">Danos Elétricos</strong> - Esta cobertura indenizará, pelas perdas e/ou danos materiais, causados aos equipamentos devidos a variações anormais de tensão, curto-circuito, arco voltaico, calor gerado acidentalmente por eletricidade, descargas elétricas, eletricidade estática ou qualquer efeito ou fenômeno de natureza elétrica, salvo se em consequência de raio.</small>
+            </td>
+            <td style="background-color:lightgrey; text-align: center; border-left: 1px solid black;"><small class="smallFont amaisvet-grey">10%  com o mínimo de R$ 1000,00</small></td>
+            <td style="background-color:lightgrey; text-align: center; border-left: 1px solid black;"><small class="smallFont amaisvet-grey">100% - Limite Máximo de Indenização</small></td>
+            <td style="background-color:lightgrey; text-align: center; border-left: 1px solid black;"><small class="smallFont amaisvet-grey">Não se aplica</small></td>
+        </tr>
+        <tr>
+            <td style="background-color:lightgrey;">
+                <small class="smallFont"><strong class="amaisvet-grey">Roubo e Furto Qualificado</strong> - Esta cobertura indenizará, até o Limite Máximo de Indenização, as perdas, causados aos equipamentos decorrentes de roubo e ou subtração mediante arrombamento.</small>
+            </td>
+            <td style="background-color:lightgrey; text-align: center; border-left: 1px solid black;"> <small class="smallFont amaisvet-grey">10% com o mínimo de R$ 1.500,00</small></td>
+            <td style="background-color:lightgrey; border-left: 1px solid black;">&nbsp;</td>
+            <td style="background-color:lightgrey; border-left: 1px solid black;">&nbsp;</td>
+        </tr>
+        <tr>
+            <td colspan="4" class="bgamaisvet-darkpurple" style="border-radius: 0px 0px 15px 15px;">&nbsp;</td>
+        </tr>
+    </table>
+    <br />
+    <table style="width: 100%">
+        <tr>
+            <td colspan="8" class="bgamaisvet-purple" style="border-radius: 15px 15px 0px 0px;">
+                <small style="color:white;">RELAÇÃO DE APARELHOS</small>
+            </td>
+        </tr>
+        <tr>
+            <td class="bgamaisvet-darkpurple" style="text-align: center;"><small class="smallFont" style="color:white;">#</small></td>
+            <td class="bgamaisvet-darkpurple" style="border-left: 1px solid black; text-align:center"><small class="smallFont" style="color:white;">MARCA</small></td>
+            <td class="bgamaisvet-darkpurple" style="border-left: 1px solid black; text-align:center"><small class="smallFont" style="color:white;">MODELO</small></td>
+            <td class="bgamaisvet-darkpurple" style="border-left: 1px solid black; text-align:center"><small class="smallFont" style="color:white;">TIPO</small></td>
+            <td class="bgamaisvet-darkpurple" style="border-left: 1px solid black; text-align:center"><small class="smallFont" style="color:white;">ANO</small></td>
+            <td class="bgamaisvet-darkpurple" style="border-left: 1px solid black; text-align:center"><small class="smallFont" style="color:white;">SERIE</small></td>
+            <td class="bgamaisvet-darkpurple" style="border-left: 1px solid black; text-align:center"><small class="smallFont" style="color:white;">PREÇO</small></td>
+            <td class="bgamaisvet-darkpurple" style="border-left: 1px solid black; text-align:center"><small class="smallFont" style="color:white;">NF</small></td>
+        </tr>
+        @foreach (var item in Model.Equipamentos)
+        {
+            <tr>
+                <td style="background-color:lightgrey; text-align:center"><small class="smallFont amaisvet-grey">@i</small></td>
+                <td style="background-color:lightgrey;border-left: 1px solid black; text-align:center"><small class="smallFont amaisvet-grey">@item.Marca</small></td>
+                <td style="background-color:lightgrey;border-left: 1px solid black; text-align:center"><small class="smallFont amaisvet-grey">@item.Modelo</small></td>
+                <td style="background-color:lightgrey;border-left: 1px solid black; text-align:center">
+                    <small class="smallFont amaisvet-grey">
+                        @item.TipoEquipamentoNome
+                        @*@tiposEquipamento.Where(x => x.TipoEquipamentoId == item.TipoEquipamentoId).First().Nome*@
+                    </small>
+                </td>
+                <td style="background-color:lightgrey;border-left: 1px solid black; text-align:center"><small class="smallFont amaisvet-grey">@item.Ano</small></td>
+                <td style="background-color:lightgrey;border-left: 1px solid black; text-align:center"><small class="smallFont amaisvet-grey">@item.Serie</small></td>
+                <td style="background-color:lightgrey;border-left: 1px solid black; text-align:center"><small class="smallFont amaisvet-grey">R$&nbsp;@string.Format("{0:#,##0.00}", Convert.ToDouble(item.Preco))</small></td>
+                <td style="background-color:lightgrey;border-left: 1px solid black; text-align:center">
+                    <small class="smallFont amaisvet-grey">
+                        @if (item.NF.Value)
+                        {<text>Sim</text>}
+                    else
+                    {<text>Não</text>}
+                    </small>
+                </td>
+            </tr>
+            i++;
+        }
+        <tr>
+            <td colspan="8" class="bgamaisvet-darkpurple" style="border-radius: 0px 0px 15px 15px;">
+                &nbsp;
+            </td>
+        </tr>
+    </table>
+    <br />
+    <table style="width: 100%; page-break-after: always !important;">
+        <tr>
+            <td colspan="6" class="bgamaisvet-purple" style="border-radius: 15px 15px 0px 0px;"> <small style="color:white">&nbsp;DADOS PAGAMENTO</small></td>
+        </tr>
+        <tr>
+            <td class="bgamaisvet-darkpurple" style=" text-align:center"><small class="smallFont" style="color:white;">TOTAL DE ITENS</small></td>
+            <td class="bgamaisvet-darkpurple" style="border-left: 1px solid black; text-align:center"><small class="smallFont" style="color:white;">TOTAL DA IMPORTANCIA SEGURADA</small></td>
+            <td class="bgamaisvet-darkpurple" style="border-left: 1px solid black; text-align:center"><small class="smallFont" style="color:white;">PREÇO LÍQUIDO</small></td>
+            <td class="bgamaisvet-darkpurple" style="border-left: 1px solid black; text-align:center"><small class="smallFont" style="color:white;">VALOR DE IOF</small></td>
+            <td class="bgamaisvet-darkpurple" style="border-left: 1px solid black; text-align:center"><small class="smallFont" style="color:white;">TOTAL DO PRÊMIO DE SEGURO COM IOF</small></td>
+            <td class="bgamaisvet-darkpurple" style="border-left: 1px solid black; text-align:center">
+                <small class="smallFont" style="color:white;">
+                    PARCELAMENTO 1 @if (Model.VezesPagamento > 1)
+                    {<text>+ @(Model.VezesPagamento - 1)</text>}
+                </small>
+            </td>
+        </tr>
+        <tr>
+            <td style="background-color:lightgrey; text-align:center"><small class="smallFont amaisvet-grey">@Model.QtdEquipamento</small></td>
+            <td style="background-color:lightgrey;border-left: 1px solid black; text-align:center"><small class="smallFont amaisvet-grey">R$&nbsp;@string.Format("{0:#,##0.00}", Convert.ToDouble(Model.PrecoEquipamento))</small></td>
+            <td style="background-color:lightgrey;border-left: 1px solid black; text-align:center"><small class="smallFont amaisvet-grey">R$&nbsp;@string.Format("{0:#,##0.00}", precoLiquido)</small></td>
+            <td style="background-color:lightgrey;border-left: 1px solid black; text-align:center"><small class="smallFont amaisvet-grey">R$&nbsp;@string.Format("{0:#,##0.00}", iof)</small></td>
+            <td style="background-color:lightgrey;border-left: 1px solid black; text-align:center"><small class="smallFont amaisvet-grey">R$&nbsp;@string.Format("{0:#,##0.00}", Convert.ToDouble(Model.PrecoSeguro))</small></td>
+            <td style="background-color:lightgrey;border-left: 1px solid black; text-align:center">
+                <small class="smallFont amaisvet-grey">
+                    R$&nbsp;
+                    @if (Model.VezesPagamento == 1)
+                    {<text>@string.Format("{0:#,##0.00}", Convert.ToDouble(Model.PrecoSeguro))</text>}
+                else if (Model.VezesPagamento == 2)
+                {<text>@string.Format("{0:#,##0.00}", duasVezes)</text>}
+            else if (Model.VezesPagamento == 3)
+            {<text>@string.Format("{0:#,##0.00}", tresVezes)</text>}
+        else if (Model.VezesPagamento == 4)
+        {<text>@string.Format("{0:#,##0.00}", quatroVezes)</text>}
+                </small>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="6" class="bgamaisvet-darkpurple" style="border-radius: 0px 0px 15px 15px;">&nbsp;</td>
+        </tr>
+    </table>
+    <br />
+    <table style="width: 100%;">
+        <tr>
+            <td class="bgamaisvet-darkpurple" style="border-radius: 15px 15px 0px 0px;"><small style="color:white;">INFORMAÇÃO IMPORTANTE</small></td>
+        </tr>
+        <tr>
+            <td style="background-color:lightgrey; text-align: center;">
+                <small>A vigência deste seguro se dará em até 2 úteis após a data da transmissão. O seguro será garantido pela Axa Seguros Brasil S.A, CNPJ 19.329.190/0001-06, SUSEP 0285-2, sendo a seguradora responsável pela emissão da apólice e boletos.</small>
+            </td>
+        </tr>
+    </table>
+    <br />
+    <table style="width: 100%;">
+        <tr>
+            <td class="bgamaisvet-darkpurple" style="border-radius: 15px 15px 0px 0px;"><small style="color:white;">SEGURADORAS E CONDIÇÕES GERAIS DOS SEGUROS</small></td>
+        </tr>
+        <tr>
+            <td style="text-align: center;">
+                <div class="col-md-12 align-middle bgamaisvet-darkpurple" style="width:100%;">
+                    <small style="color:white;"></small>
+                </div>
+                <small class="amaisvet-darkorange">
+                    <strong class="amaisvet-grey">
+                        AXA Seguros S.A. | CNPJ 19.323.190/0001-06 | Processo SUSEP nº 15414.901605/2014-39<br />
+                        ATENDIMENTO SUSEP: 0800-021-8484 - Os segurados poderão consultar informações sobre os produtos através do site:  www.susep.gov.br
+                    </strong>
+                </small>
+                <br />
+                <small class="control-label" style="text-align:center">
+                    “SUSEP – Superintendência de Seguros Privados – Autarquia Federal responsável pela fiscalização, normatização e controle dos mercados de seguro, previdência complementar aberta, capitalização, resseguro e corretagem de seguros.”. Parágrafo único. Para fins do disposto no inciso VII, caso o segurado seja estrangeiro, poderá ser utilizado o número do passaporte, com a identificação do País de expedição.<br />
+                    Art. 4º As sociedades seguradoras poderão emitir uma única apólice vinculada a vários produtos de seguro, com diferentes coberturas, desde que destinada a garantir um mesmo segurado, grupo segurado ou objeto segurável, contra diversos riscos.<br />
+                    Art. 5º Poderão ser estabelecidos requisitos complementares para apólices e certificados individuais em função de critérios específicos inerentes a determinados ramos de seguro.<br />
+                    Art. 6º Os documentos contratuais de que trata esta Circular deverão ser entregues ao segurado por ocasião da efetivação da contratação do plano de seguro, juntamente com as condições gerais, refletindo de forma clara todas as coberturas contratadas. Parágrafo único. O disposto no caput poderá ser realizado com a utilização de meios remotos.<br />
+                    Art.7º As sociedades seguradoras terão o prazo de 180 dias para se adequarem ao disposto nesta Circular.<br />
+                    Art. 8º Esta Circular entra em vigor na data de sua publicação, ficando revogadas a Circular Susep nº 5, de 11 de março 1969, a Circular Susep nº 34, de 22 de junho de 1972, a Circular Susep nº 39, de 3 de novembro de 1975, a Circular Susep nº 8, de 9 de fevereiro de 1976, a Circular Susep nº 176, de 11 de dezembro de 2001, a Circular Susep nº 401, de 25 de fevereiro de 2010, a Circular Susep nº 432, de 13 de abril de 2012, e a Circular Susep nº 434, de 19 de abril de 2012.<br />
+                    <strong>Agora você faz parte de um grupo seleto de médicos-veterinários que escolheu a AmaisVet para fazer a gestão da sua apólice de Seguro.</strong>
+                </small>
+            </td>
+        </tr>
+    </table>
+</div>

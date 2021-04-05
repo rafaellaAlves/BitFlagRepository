@@ -1,0 +1,30 @@
+﻿@model AMaisImob_WEB.Models.CertificateContractualViewModel
+
+@inject AMaisImob_WEB.BLL.StatusTypeFunctions statusTypeFunctions
+@{
+    var status = statusTypeFunctions.GetDataByID(Model.StatusTypeId);
+}
+<div style="font-size: 15px !important; max-width: 750px; margin-left: auto !important; margin-right: auto !important;">
+    <label>Olá,</label>
+    <br />
+    <br />
+    <label>Seu pedido foi analisado e o status é de "@status.StatusName.ToUpper()".</label>
+    <br />
+    <label>Informamos que a carta encontra-se disponível no sistema para impressão.</label>
+    <br />
+    @if (status.ExternalCode == "APROVADO")
+    {
+        <label>No prazo de até 30 dias a partir da data de hoje o contrato de locação devidamente assinado e com firma reconhecida em cartório deverá ser encaminhado através de upload no sistema, para isto basta clicar sobre a palavra “aprovado” e incluir o documento.</label>
+        <br />
+        <br />
+        <div style="text-align:center">
+            <b style="font-size: 20px; text-decoration: underline;">**BENEFÍCIO**</b>
+        </div>
+        <label>Oferecemos um super benefício às imobiliárias parceiras para utilização da plataforma de assinatura digital DocuSign. A assinatura eletrônica é uma realidade e otimiza o processo e o tempo de todos os envolvidos sem a necessidade do registro em cartório. Entre em contato com o seu gestor comercial e peça informações de como utilizar.</label>
+        <br />
+    }
+    <label>Agradecemos sua consulta e nos colocamos à disposição ao que for necessário.</label>
+    <br />
+    <br />
+    <label>Equipe A+Imob.</label>
+</div>

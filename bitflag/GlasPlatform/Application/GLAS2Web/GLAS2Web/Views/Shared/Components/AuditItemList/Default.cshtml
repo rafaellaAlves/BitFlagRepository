@@ -1,0 +1,276 @@
+﻿@model List<DTO.Audit.AuditItemViewModel>
+@inject DAL.GLAS2Context context;
+
+@{
+    var companyLawFunctions = new BLL.Company.CompanyLawFunctions(context);
+}
+<ul class="list-group">
+    @{ int i = 1; }
+    @foreach (var item in Model.OrderBy(x => x.AuditItemId))
+    {
+        <li class="list-group-item list-group-item-action @if (Model.IndexOf(item) % 2 == 0) {<text>list-group-item-secondary</text>} AuditItemListViewComponentContainer">
+            <input type="hidden" class="AuditItemListViewComponentAuditItemId" value="@item.AuditItemId" />
+            <table class="table" style="background-color: white;">
+                <thead class="thead-light">
+                    <tr>
+                        <th>@translationFunctions.GetTranslation("Item", User.FindFirstValue("CultureInfo"))</th>
+                        <th>@translationFunctions.GetTranslation("Número", User.FindFirstValue("CultureInfo"))</th>
+                        <th>@translationFunctions.GetTranslation("Esfera", User.FindFirstValue("CultureInfo"))</th>
+                        <th>@translationFunctions.GetTranslation("Órgão", User.FindFirstValue("CultureInfo"))</th>
+                        <th>@translationFunctions.GetTranslation("Tipo", User.FindFirstValue("CultureInfo"))</th>
+                        <th>@translationFunctions.GetTranslation("Segmento", User.FindFirstValue("CultureInfo"))</th>
+                        <th>@translationFunctions.GetTranslation("Status", User.FindFirstValue("CultureInfo"))</th>
+                        <th>@translationFunctions.GetTranslation("Data de Renovação", User.FindFirstValue("CultureInfo"))</th>
+                        <th>@translationFunctions.GetTranslation("Data de Aviso", User.FindFirstValue("CultureInfo"))</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>@i</td>
+                        <td>@item.CompanyLawView.LawNumber</td>
+                        <td>@item.CompanyLawView.LawEsferaName</td>
+                        <td>@item.CompanyLawView.LawOrgaoName</td>
+                        <td>@item.CompanyLawView.LawTypeName</td>
+                        <td>@item.CompanyLawView.LawSegmentoName</td>
+                        <td style="white-space: nowrap;">@item.CompanyLawView.CompanyLawConclusionStatusName</td>
+                        <td>
+                            <div class="form-group">
+                                <input type="hidden" class="AuditItemListViewComponentCompanyId" value="@item.CompanyLawView.CompanyId" />
+                                <input type="hidden" class="AuditItemListViewComponentCompanyLawId" value="@item.CompanyLawView.CompanyLawId" />
+                                @{
+                                    var renewDate = @companyLawFunctions.GetRenewDateById(item.CompanyLawView.CompanyLawId);
+                                    var warningDate = @companyLawFunctions.GetWarningDateById(item.CompanyLawView.CompanyLawId);
+                                }
+                                <input type="text" class="form-control date AuditItemListViewComponentCompanyLawRenewDate" value="@renewDate" />
+                            </div>
+                        </td>
+                        <td>
+                            <div class="form-group">
+                                <input type="text" class="form-control date AuditItemListViewComponentCompanyLawWarningDate" value="@warningDate" />
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="9">
+                            @item.CompanyLawView.LawTitle
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="9" style="text-align:right;">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-secondary lawLinkModal" data-id="@item.CompanyLawView.LawId"><i class="fas fa-file-pdf"></i>&nbsp;@translationFunctions.GetTranslation("Anexos do Requisito Legal", User.FindFirstValue("CultureInfo"))</button>
+                                <button type="button" class="btn btn-secondary companyLawLinkModal" data-id="@item.CompanyLawId"><i class="fas fa-paperclip"></i>&nbsp;@translationFunctions.GetTranslation("Anexos", User.FindFirstValue("CultureInfo"))</button>
+                                <button type="button" class="btn btn-secondary companyLawVerificationItemListResponseModal" data-id="@item.CompanyLawId"><i class="fas fa-list-alt"></i>&nbsp;@translationFunctions.GetTranslation("Obrigações", User.FindFirstValue("CultureInfo"))</button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <table class="table" style="background-color: white;">
+                <thead class="thead-light">
+                    <tr>
+                        <th><b>@translationFunctions.GetTranslation("Evidência Objetiva", User.FindFirstValue("CultureInfo"))</b></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><p>@item.CompanyLawView.CompanyLawEvidence</p></td></tr>
+                </tbody>
+            </table>
+            <table class="table" style="background-color: white;">
+                <thead class="thead-light">
+                    <tr>
+                        <th>
+                            <b>@translationFunctions.GetTranslation("Observações / Descrição da não conformidade", User.FindFirstValue("CultureInfo"))</b>
+                        </th>
+                        <th>
+                            <b>@translationFunctions.GetTranslation("Situação", User.FindFirstValue("CultureInfo"))</b>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <div class="form-group">
+                                <textarea class="form-control AuditItemListViewComponentComments">@item.Comments</textarea>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="form-group">
+                                <select class="form-control AuditItemListViewComponentAuditItemStatusId">
+                                    <option @if (!item.AuditItemStatusId.HasValue) { <text> selected="selected" </text> } value="">Selecione</option>
+                                    @foreach (var auditItemStatus in (List<DAL.AuditItemStatus>)ViewData["AuditItemStatus"])
+                                    {
+                                        <option @if (item.AuditItemStatusId.HasValue && item.AuditItemStatusId == auditItemStatus.AuditItemStatusId) { <text> selected="selected" </text> } value="@auditItemStatus.AuditItemStatusId">@auditItemStatus.Name</option>
+                                    }
+                                </select>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </li>
+        i++;
+    }
+</ul>
+<script type="text/javascript">
+    function AuditItemListViewComponentSaveAll() {
+        var auditItems = [];
+
+        $.each($('.AuditItemListViewComponentContainer'), function () {
+            auditItems.push(
+                {
+                    AuditItemId: $(this).find('.AuditItemListViewComponentAuditItemId').val(),
+                    AuditItemStatusId: $(this).find('.AuditItemListViewComponentAuditItemStatusId').val(),
+                    Comments: $(this).find('.AuditItemListViewComponentComments').val(),
+                    CompanyId: $(this).find('.AuditItemListViewComponentCompanyId').val(),
+                    CompanyLawId: $(this).find('.AuditItemListViewComponentCompanyLawId').val(),
+                    CompanyLawRenewDate: $(this).find('.AuditItemListViewComponentCompanyLawRenewDate').val(),
+                    CompanyLawWarningDate: $(this).find('.AuditItemListViewComponentCompanyLawWarningDate').val(),
+                }
+            );
+        });
+        console.log(auditItems);
+        $.post('@Url.Action("ManageAjax", "AuditItemManagement")', { model: auditItems }, function (data) {
+            if (typeof (AuditItemListViewComponentSaveAllCallback) === 'undefined') {
+                alert('Implement "AuditItemListViewComponentSaveAllCallback"!');
+                return;
+            }
+            AuditItemListViewComponentSaveAllCallback(data);
+        });
+    }
+
+    function Validate() {
+		var hasError = false;
+		$('.invalid-feedback').remove();
+
+        $.each($('.AuditItemListViewComponentContainer'), function () {
+            if (moment($(this).find('.AuditItemListViewComponentCompanyLawWarningDate').val(), 'DD/MM/YYYY').isAfter(moment($(this).find('.AuditItemListViewComponentCompanyLawRenewDate').val(), 'DD/MM/YYYY'))) {
+                $(this).find('.AuditItemListViewComponentCompanyLawWarningDate').after('<div class="invalid-feedback">Data de aviso deve ser anterior a data de renovação.</div>');
+                hasError = true;
+            }
+
+            var date = moment($(this).find('.AuditItemListViewComponentCompanyLawRenewDate').val(), 'DD/MM/YYYY')._d;
+            date.setDate(date.getDate() + 1);
+            if (date < new Date()) {
+                $(this).find('.AuditItemListViewComponentCompanyLawRenewDate').after('<div class="invalid-feedback">Data de renovação não pode ser anterior a data atual.</div>');
+                hasError = true;
+            }
+
+            var _date = moment($(this).find('.AuditItemListViewComponentCompanyLawWarningDate').val(), 'DD/MM/YYYY')._d;
+            _date.setDate(_date.getDate() + 1);
+            if (_date < new Date()) {
+                $(this).find('.AuditItemListViewComponentCompanyLawWarningDate').after('<div class="invalid-feedback">Data de aviso não pode ser anterior a data atual.</div>');
+                hasError = true;
+            }
+        });
+        if (hasError) {
+            $('.invalid-feedback').show();
+            alert('Há erro(s) no formulário!');
+        }
+        return !hasError;
+    }
+</script>
+
+<div id="LawAttachmentmodalAuditItemListViewComponent" class="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document" style="overflow-y: initial !important">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title">Anexos do requisito legal</span>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @{ Html.RenderPartial("~/Views/Shared/_LawAttachment.cshtml", new ViewDataDictionary(this.Vi‌​ewData) { { "canRemove", false } }); }
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('.lawLinkModal').click(function () {
+        _ListLawAttachments($(this).data('id'));
+        $('#LawAttachmentmodalAuditItemListViewComponent').modal('show');
+    });
+</script>
+
+
+<div id="CompannyLawAttachmentmodalAuditItemListViewComponent" class="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document" style="overflow-y: initial !important">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title">Anexos</span>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @{ Html.RenderPartial("~/Views/Shared/_CompanyLawAttachment.cshtml", new ViewDataDictionary(this.Vi‌​ewData) { { "canRemove", false } }); }
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('.companyLawLinkModal').click(function () {
+        _ListCompanyLawAttachments($(this).data('id'));
+        $('#CompannyLawAttachmentmodalAuditItemListViewComponent').modal('show');
+    });
+</script>
+
+
+<div id="CompanyLawVerificationItemListResponseModal" class="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document" style="overflow-y: initial !important">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title">Obrigações</span>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="CompanyLawVerificationItemListResponseContainter">
+                    <i>Nenhuma obrigação encontrada.</i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function _ListCompanyLawVerificationItemListResponse(companyLawId) {
+            _companyLawId = companyLawId;
+				var formData = new FormData();
+				formData.append('companyLawId', companyLawId);
+            $.ajax({
+					url: '@Url.Action("List", "CompanyLawVerificationListItemResponseManagement")',
+                type: 'POST',
+                processData: false,
+                contentType: false,
+                data: formData,
+                success: function (d) {
+                    console.log(d);
+					if (d.length == 0) {
+                        $('#CompanyLawVerificationItemListResponseContainter').empty();
+                        $('#CompanyLawVerificationItemListResponseContainter').append('<i>Nenhuma obrigação encontrada.</i>');
+						return;
+					}
+					$('#CompanyLawVerificationItemListResponseContainter').empty();
+                    $.each(d, function (i, e) {
+                        var comments = e.Comments == null ? "-" : e.Comments;
+                        var _createCompanyLawAction = e.CreateCompanyLawAction != null && e.CreateCompanyLawAction ? "Sim" : "Não";
+                        var implementacao = '';
+                        if (e.ImplementationTypeId == 0) implementacao = 'Não Aplicável';
+                        if (e.ImplementationTypeId == 1) implementacao = 'Sim';
+                        if (e.ImplementationTypeId == 2) implementacao = 'Não';
+                        $('#CompanyLawVerificationItemListResponseContainter').append('<div class="card p-3 list-group-item list-group-item-action flex-column" style= "margin-bottom: 5px;" ><div class="d-flex w-100 justify-content-between" ><small><strong>Referência:</strong> ' + e.Reference + '</small></div><div class="d-flex w-100 justify-content-between"><small class="float-left"><strong>Descrição:</strong> ' + e.Description + '</small></div><div class="d-flex w-100 justify-content-between"><small class="float-left"><strong>Implementação:</strong> ' + implementacao + ' | <strong>Ação Necessaria?:</strong> ' + _createCompanyLawAction + ' | <strong>Tipo Ação:</strong> ' + e.CompanyLawActionTypeName + '</small></div><div class="d-flex w-100 justify-content-between"><small><strong>Observações: Tratativas/Evidências: </strong>' + comments + '</small></div></div>');
+						});
+					}
+				});
+        }
+
+    $('.companyLawVerificationItemListResponseModal').click(function () {
+        _ListCompanyLawVerificationItemListResponse($(this).data('id'));
+        $('#CompanyLawVerificationItemListResponseModal').modal('show');
+    });
+</script>

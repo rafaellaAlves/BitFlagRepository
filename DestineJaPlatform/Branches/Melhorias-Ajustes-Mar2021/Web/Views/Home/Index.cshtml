@@ -1,0 +1,30 @@
+﻿@{
+    ViewData["Title"] = "Home";
+}
+
+@if (User.IsClient())
+{
+    @(await Component.InvokeAsync<Web.ViewComponents.Home.HomeClientViewComponent>())
+}
+else
+{
+    <link href="@Url.Content("~/assets/css/home-administrator.css")" rel="stylesheet" />
+
+    @(await Component.InvokeAsync<Web.ViewComponents.Home.HomeAdministratorViewComponent>())
+}
+
+@section Scripts
+{
+    <script asp-paste-key="home-demand-client"></script>
+    <script asp-paste-key="home-client-residue-family"></script>
+    <script asp-paste-key="home-demand-residue"></script>
+    <script asp-paste-key="home-client-last-monthly-collections"></script>
+    <script asp-paste-key="home-client-collections"></script>
+
+    @if (Context.Request.Query.ContainsKey("collectionRequestDone") && User.IsClient())
+    {
+        <script type="text/javascript">
+            bootbox.alert('Solicitação de coleta realizada com sucesso!');
+        </script>
+    }
+}

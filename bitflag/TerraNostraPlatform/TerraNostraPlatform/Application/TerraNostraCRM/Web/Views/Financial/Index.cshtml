@@ -1,0 +1,17 @@
+﻿
+@{
+    ViewData["Title"] = "Financeiro";
+}
+
+<div class="mb-2">
+    <h2 class="mb-2" style="font-size:22.4px;">Financeiro<br /><small>Orçamentos Aprovados</small></h2>
+</div>
+<div class="card">
+    <div class="card-body">
+        <div id="_FinancialIndexViewComponent"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#_FinancialIndexViewComponent').load('@Url.Action("FinancialIndexViewComponent", "Financial")');
+</script>

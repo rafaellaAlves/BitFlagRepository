@@ -1,0 +1,98 @@
+﻿@model int
+<div class="row">
+    <div class="col-md-10">
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text"><i class="fa fa-search"></i></span>
+            </div>
+            <input id="_UserCompanyIndexSearch" type="text" class="form-control" placeholder="Procurar..." />
+        </div>
+    </div>
+    <div class="col-md-2">
+        <a href="@Url.Action("Manage", "UserCompany")?companyId=@Model" class="btn btn-success pull-right w-100"><i class="fas fa-plus-circle"></i>&nbsp;Novo</a>
+    </div>
+</div>
+<hr />
+
+<div class="table-wrapper">
+    <table id="_UserCompanyIndexTable" class="table display responsive nowrap" style="border-collapse: collapse !important;">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>E-mail</th>
+                <th>Celular</th>
+                <th>Telefone</th>
+                <th>&nbsp;</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+<script type="text/javascript">
+
+    var _UserCompanyIndexTypingTimer;
+    var _UserCompanyIndexDoneTypingInterval = 500;
+    var datatables = $('#_UserCompanyIndexTable').DataTable({
+		proccessing: true,
+		serverSide: false,
+		searching: true,
+		lengthChange: false,
+		dom: 'tip',
+		ajax: {
+            url: '@Url.Action("List", "UserCompany")',
+            data: function (d) {
+                d.companyId = '@Model'
+            },
+			type: 'POST'
+		},
+		columns: [
+			{ data: 'FirstName',
+            render: function (data, type, row) {
+                return '<a href="@Url.Action("Manage", "UserCompany")?id=' + row.companyId  + '">' + row.firstName + ' ' + row.lastName + '</a>';
+                }
+            },
+			{ data: 'Email' },
+			{ data: 'MobileNumber' },
+			{ data: 'PhoneNumber' },
+			{
+				data: null,
+				render: function (data, type, row) {
+                    return '<div class="text-center"><a href="javascript:void(0)" onclick="RemoveUserCompany(' + row.userCompanyId + ')" title="Excluir" ><i class="far fa-trash-alt"></i></a></div>';
+				}
+			}
+		]
+	});
+
+    function _UserCompanyIndexDoneTyping() {
+        if ($.fn.DataTable.isDataTable('#_UserCompanyIndexTable')) {
+            datatables.search($('#_UserCompanyIndexSearch').val()).draw();
+        }
+    }
+    $('#_UserCompanyIndexSearch').keyup(function () {
+        clearTimeout(_UserCompanyIndexDoneTypingInterval);
+        _UserCompanyIndexTypingTimer = setTimeout(_UserCompanyIndexDoneTyping, _UserCompanyIndexDoneTypingInterval);
+    });
+    $('#_UserCompanyIndexSearch').keydown(function () {
+        clearTimeout(_UserCompanyIndexDoneTyping);
+    });
+
+    function RemoveUserCompany(userCompanyId) {
+        if (confirm("Deseja realmente desassociar este usuário?")) {
+            _RemoveUserCompany(userCompanyId, function () {
+                $('#_UserCompanyIndexTable').DataTable().ajax.reload();
+                alert("Usuário foi desassociado com sucesso!");
+			});
+		}
+	}
+
+	function _RemoveUserCompany(_userCompanyId, callback) {
+		var d = { id: _userCompanyId };
+		$.ajax({
+			url: '@Url.Action("RemoveUserCompany", "UserCompany")',
+			type: 'POST',
+			data: d,
+			dataType: 'Json',
+			success: callback
+		});
+	}
+</script>

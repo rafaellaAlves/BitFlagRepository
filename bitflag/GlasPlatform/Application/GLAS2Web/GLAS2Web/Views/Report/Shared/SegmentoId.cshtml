@@ -1,0 +1,15 @@
+﻿@{
+    var segmentos = (ViewData["Segmentos"] as List<DAL.Segmento>);
+}
+<div class="form-group">
+    <label class="control-label" for="LawSegmentoId">@translationFunctions.GetTranslation("Segmento do Requisito Legal", User.FindFirstValue("CultureInfo"))</label>
+    <select multiple="multiple" class="form-control ReportParameter" style="width: 100%;" data-hidden-parameter="LawSegmentoId">
+        @if (segmentos != null)
+        {
+            @foreach (var item in segmentos)
+            {
+        <option value="@item.SegmentoId">@translationFunctions.GetTranslation(item.Name, User.FindFirstValue("CultureInfo"))</option>
+            }
+        }
+    </select>
+</div>

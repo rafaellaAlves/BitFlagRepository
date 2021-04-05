@@ -1,0 +1,9 @@
+C:\repositorios\bitflag\AmaisImobPlatform\Branches\Fev2021\AMaisImob_DB\bin\Debug\netcoreapp2.2\AMaisImob_DB.deps.json
+C:\repositorios\bitflag\AmaisImobPlatform\Branches\Fev2021\AMaisImob_DB\bin\Debug\netcoreapp2.2\AMaisImob_DB.dll
+C:\repositorios\bitflag\AmaisImobPlatform\Branches\Fev2021\AMaisImob_DB\bin\Debug\netcoreapp2.2\AMaisImob_DB.pdb
+C:\repositorios\bitflag\AmaisImobPlatform\Branches\Fev2021\AMaisImob_DB\obj\Debug\netcoreapp2.2\AMaisImob_DB.csprojAssemblyReference.cache
+C:\repositorios\bitflag\AmaisImobPlatform\Branches\Fev2021\AMaisImob_DB\obj\Debug\netcoreapp2.2\AMaisImob_DB.AssemblyInfoInputs.cache
+C:\repositorios\bitflag\AmaisImobPlatform\Branches\Fev2021\AMaisImob_DB\obj\Debug\netcoreapp2.2\AMaisImob_DB.AssemblyInfo.cs
+C:\repositorios\bitflag\AmaisImobPlatform\Branches\Fev2021\AMaisImob_DB\obj\Debug\netcoreapp2.2\AMaisImob_DB.csproj.CoreCompileInputs.cache
+C:\repositorios\bitflag\AmaisImobPlatform\Branches\Fev2021\AMaisImob_DB\obj\Debug\netcoreapp2.2\AMaisImob_DB.dll
+C:\repositorios\bitflag\AmaisImobPlatform\Branches\Fev2021\AMaisImob_DB\obj\Debug\netcoreapp2.2\AMaisImob_DB.pdb

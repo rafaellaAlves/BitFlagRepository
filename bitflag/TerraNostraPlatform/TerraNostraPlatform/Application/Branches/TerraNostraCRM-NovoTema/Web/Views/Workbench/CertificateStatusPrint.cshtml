@@ -1,0 +1,41 @@
+﻿@inject FUNCTIONS.Job.JobFunctions jobFunctions
+@model int
+@{
+    Layout = "~/Views/Shared/_LayoutPrint.cshtml";
+    var date = jobFunctions.ItalyProtocolModuleGetSentDate(Model);
+}
+
+<style type="text/css">
+    @@media print {
+        .no-print, .no-print * {
+            display: none !important;
+        }
+    }
+
+    body {
+        background-color: white;
+    }
+
+    main {
+        margin: 0;
+        padding: 1em;
+    }
+</style>
+
+<button class="btn btn-primary float-right no-print" style="margin-bottom:1em;" id="button-print"><i class="simple-icon-printer"></i>&nbsp;Imprimir</button>
+@(await Component.InvokeAsync<Web.ViewComponents.Job.JobFreezedFamilyItemInfoManageViewComponent>(new { id = Model, title = "Status das Certidões", columns = new List<string>() { "RegistryOfficeId", "RegistryOfficeRequirementSentDate", "RegistryOfficeCertificateShippingArrivalDate", "TranslationSentDate", "TranslationReceiveDate", "HaiaHandoutSentDate", "HaiaHandoutReceiveDate" }, block = true, isPrintMode = true }))
+@if (date.HasValue)
+{
+    int day = date.Value.Day;
+    string month = System.Globalization.CultureInfo.GetCultureInfo("pt-br").DateTimeFormat.GetMonthName(date.Value.Month);
+    int year = date.Value.Year;
+
+    <div class="text-center">
+        <div style="border: 1px solid #f3f3f3 !important; padding: 1em;">
+            <h5>
+                As certidões foram enviadas para a Itália no dia @string.Format("{0} de {1} de {2}", day, month, year)
+            </h5>
+        </div>
+    </div>
+    <hr />
+}

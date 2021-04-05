@@ -1,0 +1,122 @@
+﻿@model int
+@{ 
+    int? clientApplicantId = null;
+
+    if (ViewBag.clientApplicantId != null)
+    {
+        clientApplicantId = (int)ViewBag.clientApplicantId;
+    }
+}
+<form id="_AttachmentManagementForm" method="post" action="">
+    <div id="_AttachmentManagementAlertErrorAttachment" class="alert alert-danger fade show text-center" role="alert" style="display: none;">
+        <strong>Atenção!</strong> O Formulário contém erros.
+    </div>
+    <div class="row uppercase">
+        <div class="col-md-12">
+            <div class="form-group" id="">
+                <label for="_AttachmentManagementAnexo">Nome</label>
+                <input type="text" class="form-control" id="_AttachmentManagementAttachmentName" placeholder="Nome" />
+            </div>
+        </div>
+    </div>
+    <div class="row uppercase">
+        <div class="col-md-12">
+            <div class="form-group">
+                <label>Arquivo</label>
+                <input type="file" class="form-control" name="Anexo" id="_AttachmentManagementAnexo" />
+            </div>
+        </div>
+    </div>
+</form>
+<script type="text/javascript">
+
+    var files = null;
+    var datafile = new FormData();
+
+</script>
+
+<script type="text/javascript">
+
+    $('#_AttachmentManagementAnexo').on('change', function (e) {
+        datafile = new FormData();
+        files = null;
+        files = e.target.files;
+        datafile.append("file", files[0]);
+    });
+
+    function _AttachmentManagementValidate() {
+
+        var _AttachmentManagementHasError = false;
+        $('#_AttachmentManagementForm .text-danger').remove();
+
+        if (IsNullOrWhiteSpace($('#_AttachmentManagementAttachmentName').val())) {
+            $('#_AttachmentManagementAttachmentName').after('<div class="text-danger">Digite o nome.</div>');
+            _AttachmentManagementHasError = true;
+        }
+
+        if (files == null || IsNullOrWhiteSpace($('#_AttachmentManagementAnexo').val())) {
+            $('#_AttachmentManagementAnexo').after('<div class="text-danger">Insira um arquivo.</div>');
+            _AttachmentManagementHasError = true;
+        }
+
+        if (_AttachmentManagementHasError) {
+            $('#_AttachmentManagementAlertErrorAttachment').show();
+        }
+
+        return (!_AttachmentManagementHasError);
+    }
+
+    function _AttachmentManagementSave() {
+
+        datafile.append('Name', $('#_AttachmentManagementAttachmentName').val());
+        datafile.append('ClientId', '@Model');
+        
+        @if (clientApplicantId.HasValue)
+        {
+            <text>
+        datafile.append('ClientApplicantId', '@clientApplicantId');
+            </text>
+        }
+        
+			$('.invalid-feedback').remove();
+			$('#_AttachmentManagementAlertErrorAttachment').hide();
+			$('.text-danger').remove();
+
+			$.ajax({
+            url: '@Url.Action("ManageArchive", "Client")',
+				type: 'POST',
+				contentType: false,
+				processData: false,
+				data: datafile,
+				success: function (data) {
+					$('#_AttachmentManagementAnexo').val("");
+                    $('#_AttachmentManagementAttachmentName').val("");
+                    $('#_AttachmentManagementType').val("");
+                if (data == -1) {
+						$('#_AttachmentManagementAlertErrorAttachment').show();
+						$('#_AttachmentManagementAnexo').after('<div class="text-danger">Tamanho do arquivo excede 2 Mb.</div>');
+                } else if (data == -2) {
+                    $('#_AttachmentManagementAlertErrorAttachment').show();
+                    $('#_AttachmentManagementAnexo').after('<div class="text-danger">Nome do arquivo incorreto.</div>');
+                }
+                else {
+						$('#_AttachmentManagementAlertErrorAttachment').hide();
+                    $('.text-danger').remove();
+                    $('#_AttachmentListTable').DataTable().ajax.reload();
+                    CloseAttachmentModal();
+                }
+            }
+        });
+}
+</script>
+<script type="text/javascript">
+
+    $('#_AttachmentManagementForm').ready(function () {
+        files = null;
+        $('#_AttachmentManagementAnexo').val("");
+        $('#_AttachmentManagementType').val("");
+        $('#_AttachmentManagementAlertErrorAttachment').hide();
+        $('.text-danger').remove();
+    });
+</script>
+

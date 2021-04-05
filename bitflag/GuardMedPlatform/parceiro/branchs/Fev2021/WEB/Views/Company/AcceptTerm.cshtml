@@ -1,0 +1,115 @@
+﻿@model WEB.Models.CompanyAcceptTermViewModel
+@using WEB.Utils
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutLogin.cshtml";
+    ViewData["Title"] = "TERMO DE PARCERIA E ANGARIAÇÃO";
+
+    
+
+}
+<style type="text/css">
+    .margin-top {
+        margin-top: .4em;
+    }
+
+    .half-margin-top {
+        margin-top: .2em;
+    }
+
+    .font-normal-size, .font-normal-size * {
+        font-size: 18px !important;
+    }
+
+    .title {
+        font-size: 18px !important;
+    }
+
+    body {
+        background-color: #f1f1f1;
+        padding: 20px;
+    }
+</style>
+<div class="container-fluid BackgorundColorHeader shadow no-print" style="padding-top:1em;">
+    <div class="row">
+        <div class="card-body">
+            <div class="col-md-12 text-center" style=" margin-bottom:1em;">
+                <img src="@Url.Content("~/image/logo.png")" class="img-circle" width="240" height="80">
+            </div>
+        </div>
+    </div>
+</div>
+<div id="card-error" class="text-warning" style="text-align:center; display:none;">
+    <i class="fas fa-exclamation-triangle" style="font-size: 5em;"></i>
+    <br /><br />
+    <h5 class="control-label text-center"><strong>Página expirada!</strong></h5>
+</div>
+<div id="page-content" style="display:none">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card bg-light">
+                <div class="font-normal-size card-header" style="text-align: center;">
+                    <b class="title" style="font-family: Calibri; font-size: 14px">TERMO DE PARCERIA E ANGARIAÇÃO</b>
+                </div>
+                <div class="card-body" style="overflow: auto; height: 500px">
+                    @*@{ Html.RenderPartial("ContractToSendByEmail", Model.Company, new ViewDataDictionary(this.ViewData) { { "acceptTerm", true } });}*@
+                    @if (Model.Company.ParentCompanyId.HasValue)
+                    {
+                         Html.RenderPartial("ContractEscritorioToSendByEmail", Model.Company);
+                    }
+                    else
+                    {
+                        Html.RenderPartial("ContractToSendByEmail", Model.Company);
+                    }
+                </div>
+            </div>
+            <hr />
+            <div class="card bg-light" style="width: auto;">
+                <div class="card-header"><b>Dados do Responsável</b></div>
+                <div style="font-size:small" class="card-body col-md-12 row">
+                    <div class="col-md-6">
+                        <p> <b>PARCEIRO:</b> @Model.Company.CompanyName</p>
+                        <p> <b>CPF/CNPJ:</b> @((Model.Company.Cnpj != null)? Model.Company.Cnpj : Model.Company.Cpf ) </p>
+                        <p> <b>ACEITO EM:</b>@DateTime.Now </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p> <b>RESPONSÁVEL:</b> @(Model.Company.Responsavel != null ? Model.Company.Responsavel : Model.Company.CompanyName) </p>
+                        <p> <b>CPF:</b> @(Model.Company.CpfResponsavel != null ? Model.Company.CpfResponsavel : Model.Company.cpf ) </p>
+                        <p> <b>IP:</b> @Context.Request.HttpContext.Connection.RemoteIpAddress.ToString()</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <hr />
+    <div class="row" style="margin-top:1em;">
+        <div class="col-md-3 text-left"><a href="@Url.Action("Download","Company", new { companyId = Model.CompanyId})" type="button" class="btn btn-secondary">Download PDF</a></div>
+        <div class="col-md-9 text-right">
+            <a class="btn btn-success" href="@Url.Action("Accept", "Company")?companyId=@Model.CompanyId&token=@Model.Token" id="acceptButton"><i class="fa fa-check"></i>&nbsp;Aceitar Termos</a>
+        </div>
+    </div>
+</div>
+
+@if (Model.HasError)
+{
+    <script type="text/javascript">
+        $('#card-error').show();
+        $('#page-content').hide();
+    </script>
+}
+else
+{
+    <script type="text/javascript">
+        $('#card-error').hide();
+        $('#page-content').show();
+    </script>
+}
+
+@if (!string.IsNullOrWhiteSpace(Model.Message))
+{
+    <script type="text/javascript">
+        alert('@Model.Message');
+    </script>
+}
+

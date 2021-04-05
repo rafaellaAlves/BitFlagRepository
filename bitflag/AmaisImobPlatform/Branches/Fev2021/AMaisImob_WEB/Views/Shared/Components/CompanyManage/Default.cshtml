@@ -1,0 +1,511 @@
+﻿@using AMaisImob_WEB.Utils;
+
+@model AMaisImob_WEB.Models.CompanyViewModel
+@inject AMaisImob_WEB.BLL.CompanyTypeFunctions companyTypeFunctions
+@inject AMaisImob_WEB.BLL.CompanyOwnerTypeFunctions companyOwnerTypeFunctions
+@inject AMaisImob_WEB.BLL.UserFunctions userFunctions
+
+@{
+    var companyOwnerTypes = companyOwnerTypeFunctions.GetData();
+    var companyTypes = companyTypeFunctions.GetData();
+
+    var companyId = companyOwnerTypes.Single(x => x.ExternalCode == "COMPANY").CompanyOwnerTypeId;
+    var personId = companyOwnerTypes.Single(x => x.ExternalCode == "PERSON").CompanyOwnerTypeId;
+
+    var imobiliariaId = companyTypes.Single(x => x.ExternalCode == "IMOBILIARIA").CompanyTypeId;
+
+    AMaisImob_DB.Models.User userPartner = null;
+    if (Model.UserPartnerId.HasValue)
+    {
+        userPartner = userFunctions.GetDataByID(Model.UserPartnerId);
+    }
+
+}
+
+<script type="text/javascript">
+
+    _MaskData();
+    function _CompanyManageMoreInfo() {
+        $('#_CompanyManageMoreInfo').hide();
+        $('#_CompanyManageDivMoreInfo').show();
+    }
+    function _CompanyManageLessInfo() {
+        $('#_CompanyManageMoreInfo').show();
+        $('#_CompanyManageDivMoreInfo').hide();
+    }
+    _CompanyManageMoreInfo();
+</script>
+
+<script type="text/javascript">
+function _CompanyManageValidate() {
+
+	var hasError = false;
+	$('#_CompanyManageForm .text-danger').remove();
+
+    var companyOwnerTypeId = $('#CompanyOwnerTypeId').val();
+    if (companyOwnerTypeId == "@companyId") {
+
+        // CNPJ
+        if (IsNullOrWhiteSpace($('#_CompanyManageCnpj').val())) {
+            $('#_CompanyManageCnpj').after('<div class="text-danger">Preencha o Cnpj.</div>');
+            hasError = true;
+        }
+        // IE
+        if (IsNullOrWhiteSpace($('#_CompanyManageIe').val())) {
+            $('#_CompanyManageIe').after('<div class="text-danger">Preencha o @(Model.CompanyTypeId == imobiliariaId? "CRECI" : "SUSEP").</div>');
+            hasError = true;
+        }
+
+        // Razao Social
+        if (IsNullOrWhiteSpace($('#_CompanyManageRazaoSocial').val())) {
+            $('#_CompanyManageRazaoSocial').after('<div class="text-danger">Preencha a Razão Social.</div>');
+            hasError = true;
+        }
+
+    } else if (companyOwnerTypeId == "@personId") {
+        // CPF
+        if (IsNullOrWhiteSpace($('#_CompanyManageCPF').val())) {
+            $('#_CompanyManageCPF').after('<div class="text-danger">Preencha o CPF.</div>');
+            hasError = true;
+        }
+
+        // FirstName
+        if (IsNullOrWhiteSpace($('#_CompanyManageFirstName').val())) {
+            $('#_CompanyManageFirstName').after('<div class="text-danger">Preencha o Nome.</div>');
+            hasError = true;
+        }
+
+        // LastName
+        if (IsNullOrWhiteSpace($('#_CompanyManageLastName').val())) {
+            $('#_CompanyManageLastName').after('<div class="text-danger">Preencha o Sobrenome.</div>');
+            hasError = true;
+        }
+    }
+    //if (IsNullOrWhiteSpace($('#_CompanyManageEmail').val())) {
+    //    $('#_CompanyManageEmail').after('<div class="text-danger">Preencha o e-mail.</div>');
+    //    hasError = true;
+    //}
+
+    if (hasError) {
+        $('#_CompanyManageAlertErrorCompany').show();
+    }
+    else {
+        $('#_CompanyManageForm .text-danger').remove();
+        $('#_CompanyManageAlertErrorCompany').hide();
+    }
+
+	return (!hasError);
+}
+
+    function _CompanyManageSave() {
+        var d = $('#_CompanyManageForm').serializeArray();
+
+        $('#_AccountManageForm').serializeArray().forEach(function (e) {
+            d.push({ name: 'user.' + e.name, value: e.value });
+        });
+
+        $.post('@Url.Action("Manage", "Company")', d, function (data) {
+            if (data.hasError) {
+            $('#_CompanyManageCnpj').after('<div class="text-danger">' + data.message + '</div>');
+            $('#_CompanyManageForm .text-danger').show();
+            $('#_CompanyManageAlertErrorCompany').show();
+        } else {
+            $('#_CompanyManageCompanyId').val(data.code);
+                _CompanyManageCallBack(data.code);
+        }
+	});
+}
+</script>
+
+<form id="_CompanyManageForm" method="post" enctype="multipart/form-data">
+    <div id="_CompanyManageAlertErrorCompany" class="alert alert-danger fade show text-center" role="alert" style="display: none;">
+        <strong>Atenção!</strong> O Formulário contém erros.
+    </div>
+    <input type="hidden" id="_CompanyManageCompanyTypeId" name="model.CompanyTypeId" value="@Model.CompanyTypeId" />
+    <input type="hidden" id="_CompanyManageCompanyId" name="model.CompanyId" value="@Model.CompanyId" />
+    <div id="_CompanyManageDivRequiredInfo">
+        @if (User.IsInRole("Administrator") && Model.CompanyTypeId == imobiliariaId && !Context.Request.Query.ContainsKey("Reference"))
+        {
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    <label>Corretora:</label>
+                    <select class="form-control" id="ParentCompanyId" name="model.ParentCompanyId">
+                        @foreach (var corretora in (List<AMaisImob_DB.Models.Company>)ViewData["Corretoras"])
+                        {
+                            var companyName = string.IsNullOrWhiteSpace(corretora.RazaoSocial) ? corretora.FirstName + " " + corretora.LastName : corretora.RazaoSocial;
+                            if (Model.ParentCompanyId == corretora.CompanyId)
+                            {
+                                <option value="@(corretora.CompanyId)" selected>@(companyName)</option>
+                                continue;
+                            }
+                            <option value="@(corretora.CompanyId)">@(companyName)</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group col-md-4">
+                    <label>Categoria da imobiliária:</label>
+                    <select class="form-control" id="CategoryId" name="model.CategoryId">
+                        <option value="">Selecionar</option>
+                        @foreach (var category in (List<AMaisImob_DB.Models.Category>)ViewData["Categorias"])
+                        {
+                            if (Model.CategoryId == category.CategoryId)
+                            {
+                                <option value="@(category.CategoryId)" selected>@(category.Description)</option>
+                                continue;
+                            }
+                            <option value="@(category.CategoryId)">@(category.Description)</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <hr />
+        }
+        else
+        {
+            <input type="hidden" id="ParentCompanyId" name="model.ParentCompanyId" value="@Model.ParentCompanyId" />
+        }
+        <div class="form-row">
+            <div class="form-group col-md-4" id="CompanyOwnerTypeArea">
+                <label>Pessoa Física/Jurídica:</label>
+                <select class="form-control" id="CompanyOwnerTypeId" name="model.CompanyOwnerTypeId" onchange="CompanyOwnerTypeChange()">
+                    @foreach (var companyOwnerType in companyOwnerTypes)
+                    {
+                        if (Model.CompanyOwnerTypeId == companyOwnerType.CompanyOwnerTypeId)
+                        {
+                            <option value="@(companyOwnerType.CompanyOwnerTypeId)" selected>@(companyOwnerType.Name)</option>
+                            continue;
+                        }
+                        <option value="@(companyOwnerType.CompanyOwnerTypeId)">@(companyOwnerType.Name)</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group col-md-4 PessoaJuridicaArea">
+                <label class="control-label" for="CNPJ">CNPJ*</label>
+                <input type="text" class="form-control cnpj" id="_CompanyManageCnpj" name="model.Cnpj" value="@Model.Cnpj" placeholder="CNPJ">
+            </div>
+            <div class="form-group col-md-4 PessoaJuridicaArea">
+                <label class="control-label" for="IE">@(Model.CompanyTypeId == imobiliariaId? "CRECI" : "SUSEP")*</label>
+                <input type="text" class="form-control" id="_CompanyManageIe" name="model.Ie" value="@Model.Ie" placeholder="@(Model.CompanyTypeId == imobiliariaId? "CRECI" : "SUSEP")">
+            </div>
+            <div class="form-group col-md-2 PessoaFisicaArea">
+                <label>CPF*</label>
+                <input class="form-control cpf" value="@Model.Cpf" id="_CompanyManageCPF" name="model.CPF" type="text" placeholder="CPF" />
+            </div>
+            <div class="form-group col-md-4 PessoaFisicaArea">
+                <label>Nome*</label>
+                <input class="form-control" name="model.FirstName" value="@Model.FirstName" id="_CompanyManageFirstName" type="text" placeholder="Nome" />
+            </div>
+            <div class="form-group col-md-4 PessoaFisicaArea">
+                <label>Sobrenome*</label>
+                <input class="form-control" name="model.LastName" value="@Model.LastName" id="_CompanyManageLastName" type="text" placeholder="Sobrenome" />
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-6 PessoaJuridicaArea">
+                <label class="control-label" for="RazaoSocial">Razão Social*</label>
+                <input type="text" class="form-control" id="_CompanyManageRazaoSocial" name="model.RazaoSocial" value="@Model.RazaoSocial" placeholder="Razão Social">
+            </div>
+            <div class="form-group col-md-6 PessoaJuridicaArea">
+                <label class="control-label" for="NomeFantasia">Nome Fantasia</label>
+                <input type="text" class="form-control" id="_CompanyManageFirstNameFantasia" name="model.NomeFantasia" value="@Model.NomeFantasia" placeholder="Nome Fantasia">
+            </div>
+        </div>
+        <a id="_CompanyManageMoreInfo" href="javascript: _CompanyManageMoreInfo();">Mais Informações...</a>
+    </div>
+    <div id="_CompanyManageDivMoreInfo" style="display: none;">
+        <div class="form-row">
+            <input type="hidden" id="_CompanyManageEmail" name="model.Email" value="@Model.Email">
+            @*<div class="form-group col-md-6">
+                    <label class="control-label" for="Email">E-mail</label>
+                    <input type="text" class="form-control" id="_CompanyManageEmail" name="Email" value="@Model.Email" placeholder="E-mail">
+                </div>*@
+            <div class="form-group col-md-2">
+                <label class="control-label" for="PhoneNumber">Telefone</label>
+                <input type="text" class="form-control phone" id="_CompanyManageTelefone" name="model.Telefone" value="@Model.Telefone" placeholder="Telefone">
+            </div>
+            @if (Model.CompanyTypeId == imobiliariaId)
+            {
+                <div class="form-group col-md-auto">
+                    <label class="control-label" for="PhoneNumber">Imobiliária - Sócio</label>
+                    <br />
+                    <button type="button" class="btn btn-primary w-100" data-toggle="modal" data-target="#company-manage-user-manage-modal" id="user-parter-button">@(userPartner == null? "Cadastrar Usuário / Sócio" : $"{userPartner.FirstName} {userPartner.LastName}")</button>
+                    <input type="hidden" value="@Model.UserPartnerId" name="model.UserPartnerId" />
+                </div>
+            }
+        </div>
+        <div style="@(userPartner == null? "display:none;" : "")" id="compay-manage-user-partner-info-area">
+            <hr />
+            <div class="row">
+                <div class="col-lg">
+                    <label>Sócio - Nome</label>
+                    <input disabled class="form-control" placeholder="Sócio - Nome" id="compay-manage-user-partner-first-name" value="@(userPartner == null? "" : userPartner.FirstName)" />
+                </div>
+                <div class="col-lg">
+                    <label>Sócio - Sobrenome</label>
+                    <input disabled class="form-control" placeholder="Sócio - Sobrenome" id="compay-manage-user-partner-last-name" value="@(userPartner == null? "" : userPartner.LastName)" />
+                </div>
+                <div class="col-lg">
+                    <label style=" white-space: nowrap;">Sócio - Data de Nacimento</label>
+                    <input disabled class="form-control" placeholder="Sócio - Data de Nacimento" id="compay-manage-user-partner-born-date" value="@(userPartner == null? "" : userPartner.BornDate.ToDatePtBR())" />
+                </div>
+                <div class="col-lg">
+                    <label>Sócio - E-mail</label>
+                    <input disabled class="form-control" placeholder="Sócio - E-mail" id="compay-manage-user-partner-email" value="@(userPartner == null? "" : userPartner.Email)" />
+                </div>
+                <div class="col-lg">
+                    <label>Sócio - Celular</label>
+                    <input disabled class="form-control mobile" placeholder="Sócio - Celular" id="compay-manage-user-partner-phone-number" value="@(userPartner == null? "" : userPartner.MobileNumber)" />
+                </div>
+            </div>
+        </div>
+        <hr />
+        <div class="form-row">
+            <div class="form-group col-md-2">
+                <label class="control-label" for="CEP">CEP</label>
+                <input type="text" class="form-control cep" id="_CompanyManageCep" name="model.Cep" value="@Model.Cep" placeholder="CEP" maxlength="9">
+            </div>
+            <div class="form-group col-md-4">
+                <label class="control-label" for="Endereco">Endereço</label>
+                <input type="text" class="form-control" id="_CompanyManageEndereco" name="model.Endereco" value="@Model.Endereco" placeholder="Endereço">
+            </div>
+            <div class="form-group col-md-2">
+                <label class="control-label" for="Numero">Número</label>
+                <input type="text" class="form-control number" id="_CompanyManageNumero" name="model.Numero" value="@Model.Numero" placeholder="Número">
+            </div>
+            <div class="form-group col-md-4">
+                <label class="control-label" for="Complemento">Complemento</label>
+                <input type="text" class="form-control" id="_CompanyManageComplemento" name="model.Complemento" value="@Model.Complemento" placeholder="Complemento">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-3">
+                <label class="control-label" for="Bairro">Bairro</label>
+                <input type="text" class="form-control" id="_CompanyManageBairro" name="model.Bairro" value="@Model.Bairro" placeholder="Bairro">
+            </div>
+            <div class="form-group col-md-3">
+                <label class="control-label" for="_CompanyManageStateId">Estado</label>
+                <select id="_CompanyManageEstado" name="model.UF" class="form-control">
+                    <option value="">Selecione</option>
+                    @foreach (var item in AMaisImob_WEB.Utils.StatesUtils.GetEstados())
+                    {
+                        if (item.EstadoId == Model.Uf)
+                        {
+                            <option selected="selected" value="@item.EstadoId">@item.Description</option>
+                        }
+                        else
+                        {
+                            <option value="@item.EstadoId">@item.Description</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="form-group col-md-3">
+                <label class="control-label" for="_CompanyManageCidade">Cidade</label>
+                <input id="_CompanyManageCidade" name="model.Cidade" value="@Model.Cidade" class="form-control" placeholder="Cidade" />
+            </div>
+            <div class="form-group col-md-3">
+                <label class="control-label">Ativo?</label>
+                <div class="col-xs-3 selectContainer">
+                    <select class="form-control" id="_CompanyManageIsActive" name="model.IsActive">
+                        <option id="True" value="true">Sim</option>
+                        <option id="False" value="false">Não</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        @if (Model.CompanyTypeId == imobiliariaId && !Context.Request.Query.ContainsKey("Reference"))
+        {
+            <hr />
+            <label style="margin-bottom: 2em;">Fatura</label>
+            <div class="form-row">
+                <div class="col">
+                    <label>Incêndio</label>
+                    <select class="form-control" name="model.ChargeCertificate">
+                        <option value="false">Não</option>
+                        <option value="true">Sim</option>
+                    </select>
+                    <script type="text/javascript">
+                        $('[name="model.ChargeCertificate"] option[value="@Model.ChargeCertificate?.ToString().ToLower()"]').attr('selected', 'selected');
+                    </script>
+                </div>
+                <div class="col">
+                    <label>DocuSign</label>
+                    <select class="form-control" name="model.ChargeDocuSign">
+                        <option value="false">Não</option>
+                        <option value="true">Sim</option>
+                    </select>
+                    <script type="text/javascript">
+                        $('[name="model.ChargeDocuSign"] option[value="@Model.ChargeDocuSign?.ToString().ToLower()"]').attr('selected', 'selected');
+                    </script>
+                </div>
+                <div class="col">
+                    <label>Garantia Contratual</label>
+                    <select class="form-control" name="model.ChargeContractualGuarantee">
+                        <option value="false">Não</option>
+                        <option value="true">Sim</option>
+                    </select>
+                    <script type="text/javascript">
+                        $('[name="model.ChargeContractualGuarantee"] option[value="@Model.ChargeContractualGuarantee?.ToString().ToLower()"]').attr('selected', 'selected');
+                    </script>
+                </div>
+                <div class="col">
+                    <label>Proteção Financeira</label>
+                    <select class="form-control" name="model.ChargeFinancialProtection">
+                        <option value="false">Não</option>
+                        <option value="true">Sim</option>
+                    </select>
+                    <script type="text/javascript">
+                        $('[name="model.ChargeFinancialProtection"] option[value="@Model.ChargeFinancialProtection?.ToString().ToLower()"]').attr('selected', 'selected');
+                    </script>
+                </div>
+            </div>
+        }
+        <hr />
+        <div class="form-row">
+            <div class="col-md-12">
+                <label class="control-label">Observações</label>
+                <textarea class="form-control" id="_CompanyManageObservation" name="model.Observation" placeholder="Observações">@Html.Raw(Model.Observation)</textarea>
+            </div>
+        </div>
+        @if (Model.IsActive.HasValue)
+        {
+            <script type="text/javascript">
+						$('#_CompanyManageIsActive').find('[id=' + "@Model.IsActive" + ']').attr('selected', true);
+            </script>
+        }
+        <br />
+        <a id="_CompanyManageLessInfo" href="javascript: _CompanyManageLessInfo();">Menos Informações...</a>
+    </div>
+</form>
+
+<div class="modal fade" id="company-manage-user-manage-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Usuário - Sócio</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="company-manage-user-manage-view-component"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary ml-0 mr-auto" data-dismiss="modal"><i class="fas fa-times"></i> Fechar</button>
+                <button type="button" class="btn btn-primary" id="company-manage-user-manage-modal-confirm-button"><i class="fas fa-check"></i> Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $("#_CompanyManageCep").blur(function () {
+
+        var cep = $(this).val().replace(/\D/g, '');
+
+        $('.CEPError').remove();
+        if (cep != "") {
+            var validacep = /^[0-9]{8}$/;
+
+            if (validacep.test(cep)) {
+
+                LimparCamposEndereco();
+
+                $.getJSON("https://viacep.com.br/ws/" + cep + "/json/?callback=?", function (dados) {
+                    if (!("erro" in dados)) {
+                        $("#_CompanyManageEndereco").val(dados.logradouro);
+                        $("#_CompanyManageBairro").val(dados.bairro);
+                        $("#_CompanyManageCidade").val(dados.localidade);
+                        $("#_CompanyManageEstado").val(dados.uf);
+                    } else {
+                        LimparCamposEndereco();
+                        $('#_CompanyManageCep').after('<div class="text-danger CEPError">CEP não encontrado.</div>');
+                    }
+                });
+            }
+            else {
+                LimparCamposEndereco();
+                $('#_CompanyManageCep').after('<div class="text-danger CEPError">Formato de CEP inválido.</div>');
+            }
+        }
+        else {
+            limpa_formulário_cep();
+        }
+    });
+
+    function LimparCamposEndereco() {
+        $("#_CompanyManageEndereco").val("");
+        $("#_CompanyManageBairro").val("");
+        $("#_CompanyManageCidade").val("");
+        $("#_CompanyManageEstado").val("");
+    }
+
+    $(window).ready(function () {
+        var companyOwnerTypeId = $('#CompanyOwnerTypeId').val();
+        if (companyOwnerTypeId == "@companyId") {
+            $('.PessoaFisicaArea').hide();
+            $('.PessoaJuridicaArea').show();
+            $('#CompanyOwnerTypeArea').removeClass('col-md-2').addClass('col-md-4');
+        } else if (companyOwnerTypeId == "@personId") {
+            $('.PessoaFisicaArea').show();
+            $('.PessoaJuridicaArea').hide();
+            $('#CompanyOwnerTypeArea').removeClass('col-md-4').addClass('col-md-2');
+        }
+
+    });
+
+    function CompanyOwnerTypeChange() {
+        var companyOwnerTypeId = $('#CompanyOwnerTypeId').val();
+        if (companyOwnerTypeId == "@companyId") {
+            $('.PessoaFisicaArea').hide();
+            $('.PessoaJuridicaArea').show();
+            $('#CompanyOwnerTypeArea').removeClass('col-md-2').addClass('col-md-4');
+        } else if (companyOwnerTypeId == "@personId") {
+            $('.PessoaFisicaArea').show();
+            $('.PessoaJuridicaArea').hide();
+            $('#CompanyOwnerTypeArea').removeClass('col-md-4').addClass('col-md-2');
+        }
+
+
+
+        //Limpar os campos
+        $('#_CompanyManageCnpj').val('');
+        $('#_CompanyManageIe').val('');
+        $('#_CompanyManageCPF').val('');
+        $('#_CompanyManageFirstName').val('');
+        $('#_CompanyManageLastName').val('');
+        $('#_CompanyManageRazaoSocial').val('');
+        $('#_CompanyManageFirstNameFantasia').val('');
+
+        //remover erros
+        $('#_CompanyManageForm .text-danger').remove();
+        $('#_CompanyManageAlertErrorCompany').hide();
+    }
+
+    $(document).ready(function () {
+        $('#company-manage-user-manage-view-component').load('@Url.Action("AccountManageComponent", "Account")', { id: '@Model.UserPartnerId', fromRealEstateAgency: true });
+    });
+
+    $('#company-manage-user-manage-modal-confirm-button').click(function () {
+        if (!_AccountManageValidate()) return;
+
+        $.post('@Url.Action("CheckEmail", "Account")', { userId: $('#_AccountManageForm [name="UserId"]').val(), email: $('#_AccountManageForm [name="Email"]').val()}, function (d) {
+            if (!d) {
+                alert('Um usuário com este e-mail já foi criado.')
+                return;
+            }
+
+            $('#user-parter-button').text($('#_AccountManageForm [name="FirstName"]').val() + ' ' + $('#_AccountManageForm [name="LastName"]').val());
+
+            $('#compay-manage-user-partner-first-name').val($('#_AccountManageForm [name="FirstName"]').val());
+            $('#compay-manage-user-partner-last-name').val($('#_AccountManageForm [name="LastName"]').val());
+            $('#compay-manage-user-partner-born-date').val($('#_AccountManageForm [name="_BornDate"]').val());
+            $('#compay-manage-user-partner-email').val($('#_AccountManageForm [name="Email"]').val());
+            $('#compay-manage-user-partner-phone-number').val($('#_AccountManageForm [name="MobileNumber"]').val());
+
+            $('#compay-manage-user-partner-info-area').show();
+
+            $('#company-manage-user-manage-modal').modal('hide');
+        });
+    });
+</script>

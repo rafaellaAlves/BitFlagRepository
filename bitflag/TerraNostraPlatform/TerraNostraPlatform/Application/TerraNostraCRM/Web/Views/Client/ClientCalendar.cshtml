@@ -1,0 +1,31 @@
+﻿@model DTO.Client.ClientViewModel
+@{
+    ViewData["Title"] = "ClientCalendar";
+
+    string clientTaskId = null;
+    if (Context.Request.Query.TryGetValue("clientTaskId", out Microsoft.Extensions.Primitives.StringValues _clientTaskId))
+    {
+        clientTaskId = _clientTaskId.ToString();
+    }
+}
+<div class="mb-2">
+    @if (Model != null)
+    {
+        <h2 style="font-size:25px;"><b>@Model.ClientName</b><br /><small>Tarefas Agendadas</small></h2>
+    }
+</div>
+<div class="card">
+    <div class="card-body">
+        <div id="calendarViewComponent"></div>
+    </div>
+</div>
+<br />
+<div class="row">
+    <div class="col-md-12">
+        <a href="@Url.Action("Index", "Client")" class="btn btn-secondary"><i class="simple-icon-arrow-left"></i> Voltar</a>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#calendarViewComponent').load('@Url.Action("ClientCalendarViewComponent", "Client")', { clientId: @if(Model != null){<text>@Model.ClientId</text>}else{<text>null</text>}, clientTaskId: @if(!string.IsNullOrWhiteSpace(clientTaskId)) {<text>@clientTaskId</text>}else{<text>null</text>} });
+</script>

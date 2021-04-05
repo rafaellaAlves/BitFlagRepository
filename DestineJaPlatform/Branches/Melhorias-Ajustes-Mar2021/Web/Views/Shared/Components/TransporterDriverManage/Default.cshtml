@@ -1,0 +1,76 @@
+﻿@model int
+
+@inject Web.Helpers.DropDownListHelper dropDownListHelper
+
+<form id="form-transporter-driver">
+    <input type="hidden" name="TransporterId" value="@Model" />
+    <input type="hidden" name="TransporterDriverId" />
+    <div class="row">
+        <div class="col-md-8 form-group">
+            <label>Nome do Motorista</label>
+            <input class="form-control" placeholder="Nome do Motorista" name="DriverName" />
+        </div>
+        <div class="col-md-4 form-group">
+            <label>RG</label>
+            <div class="input-group">
+                <input class="form-control" placeholder="RG" name="RG" />
+                @Html.DropDownList("RGState", dropDownListHelper.GetUfs(null), new { Class = "form-control", style = "max-width: 70px;" })
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4 form-group">
+            <label>CPF</label>
+            <input class="form-control cpf" placeholder="CPF" name="_CPF" />
+        </div>
+        <div class="col-md-4 form-group">
+            <label>Data de Nascimento</label>
+            <input class="form-control date" placeholder="Data de Nascimento" name="_BirthDate" />
+        </div>
+        <div class="col-md-4 form-group">
+            <label>Telefone Motorista</label>
+            <input class="form-control" placeholder="Telefone Motorista" name="CompanyPhone" />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-3 form-group">
+            <label>Número CNH</label>
+            <input class="form-control" placeholder="Número CNH" name="CNH" />
+        </div>
+        <div class="col-md-3 form-group">
+            <label>Categoria</label>
+            <input class="form-control" placeholder="Categoria" name="Category" />
+        </div>
+        <div class="col-md-6 form-group">
+            <label>Arquivo CNH</label>
+            <input class="form-control" type="file" name="CNHArchive">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6 form-group">
+            <label>ASO</label>
+            <input class="form-control" placeholder="ASO" name="ASO" />
+        </div>
+        <div class="col-md-6 form-group">
+            <label>Arquivo ASO</label>
+            <input class="form-control" type="file" name="ASOArchive">
+        </div>
+    </div>
+    <hr />
+    <div class="row">
+        <div class="col-md-6 form-group">
+            <label>Número MOPP</label>
+            <input class="form-control" placeholder="Número MOPP" name="MOPP" />
+        </div>
+        <div class="col-md-6 form-group">
+            <label>Arquivo MOPP</label>
+            <input class="form-control" type="file" name="MOPPArchive">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6 form-group">
+            <label>Data de Vencimento</label>
+            <input class="form-control date" placeholder="Data de Vencimento" name="_MOPPDueDate" />
+        </div>
+    </div>
+</form>

@@ -1,0 +1,44 @@
+﻿@model DTO.Client.CollectionRequestEmailViewModel
+
+@inject Services.Residue.ResidueFamilyServices residueFamilyServices
+@inject Services.Residue.PackagingServices packagingServices
+@inject Services.Residue.PhysicalStateServices physicalStateServices
+
+<div style="max-width: 500px; margin-left: auto; margin-right: auto; padding: 15px; border: 1px solid #bbbbbb; background-color: #f1f1f152;">
+    <div style="width:100%; text-align: center; margin-bottom: 3em;">
+        <img style="width:400px;" src="cid:Logo" />
+    </div>
+    <div style="margin-bottom: 2em;">
+        <label style="font-size: 14px;">Olá, <b>@Model.User.FirstName @Model.User.LastName</b>.</label>
+    </div>
+    <div style="margin-bottom: 2em;">
+        <label style="font-size: 14px;">A coleta de resíduos para a empresa <b>@Model.Client.Name</b> foi solicitada com sucesso.</label>
+    </div>
+    <div style="margin-bottom: 2em;">
+        <label style="font-size: 14px;"><b>Veja o resumo:</b></label>
+        <ul>
+            <li><b>Tipo de Resíduo:</b> @Model.CollectionRequest.Residue</li>
+            <li><b>Estado:</b> @((await physicalStateServices.GetDataByIdAsync(Model.CollectionRequest.PhysicalStateId)).Name)</li>
+            <li><b>Familía:</b> @((await residueFamilyServices.GetDataByIdAsync(Model.CollectionRequest.ResidueFamilyId)).Name)</li>
+            <li><b>Quantidade aproximada (Kg):</b> @Model.CollectionRequest._Weight.IfNullChange("-")</li>
+            <li><b>Acondicionamento:</b> @((await packagingServices.GetDataByIdAsync(Model.CollectionRequest.PackagingId)).Name)</li>
+            <li><b>Observação:</b> @Html.Raw(Model.CollectionRequest.Observation.IfNullChange("-").Replace("\n", "<br />"))</li>
+        </ul>
+    </div>
+    <div style="margin-bottom: 2em;">
+        <label style="font-size: 14px;">Já recebemos a solicitação e responderemos o mais rápido possível.</label>
+    </div>
+    <div style="margin-bottom: 2em;">
+        <label style="font-size: 14px;">Se for urgente, entre em contato pelos canais abaixo:</label>
+        <ul>
+            <li style="font-size: 14px;">Telefone e Whatsapp: <a href="https://api.whatsapp.com/send?1=pt_BR&phone=552730290907" style="font-size: 14px;">(27) 3029-0907</a></li>
+            <li><a href="mailto:contato@destineja.com.br" style="font-size: 14px;">contato@destineja.com.br</a></li>
+            <li><a href="www.destineja.com.br" style="font-size: 14px;">www.destineja.com.br</a></li>
+        </ul>
+    </div>
+    <div style="font-size: 14px;">
+        Atenciosamente,
+        <br />
+        Equipe Destine Já.
+    </div>
+</div>

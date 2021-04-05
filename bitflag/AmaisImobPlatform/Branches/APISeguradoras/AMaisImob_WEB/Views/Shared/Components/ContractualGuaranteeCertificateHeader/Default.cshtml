@@ -1,0 +1,164 @@
+﻿@model AMaisImob_WEB.Models.ContractualGuaranteeCertificateHeaderViewModel
+@using AMaisImob_WEB.Utils;
+
+@inject AMaisImob_WEB.BLL.KinshipFunctions kinshipFunctions
+@inject AMaisImob_WEB.BLL.CertificateContractualIncomeTypeFunctions certificateContractualIncomeTypeFunctions
+
+
+<style type="text/css">
+        @@font-face {
+            font-family: 'Avenir';
+            src: url('@Url.Content("~/assets/fonts/0078f486-8e52-42c0-ad81-3c8d3d43f48e.woff2")'), url('@Url.Content("~/assets/fonts/bc176270-17fa-4c78-a343-9fe52824e501.woff")'), url('@Url.Content("~/assets/fonts/d513e15e-8f35-4129-ad05-481815e52625.woff2")');
+        }
+</style>
+
+
+<style type="text/css">
+    .bgamaisimob-green {
+        background-color: #5d817a !important;
+        font-family: Avenir;
+        padding: 3px;
+        padding-left: 8px;
+    }
+
+    .amaisimob-grey {
+        color: #333333 !important;
+    }
+
+    .amaisimob-white {
+        color: white !important;
+    }
+</style>
+<table style="width: 100%;">
+    <tr class="amaisimob-white">
+        <td colspan="4" class="bgamaisimob-green" style="border-radius: 15px 15px 0px 0px;">
+            <small class="amaisimob-white">DADOS DO CORRETOR</small>
+        </td>
+    </tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding" style="width:70%;"><small class="smallFont"><strong>NOME DA IMOBILIÁRIA:</strong> @Model.CertificateContractual.RealEstateAgencyName</small></td>
+        <td class="td-padding"><small class="smallFont"><strong>CPF/CNPJ:</strong> <span class="@(Model.CertificateContractual.RealEstateAgencyDocument.NumbersOnly().Length <= 11 ? "cnpj" : "cpf")">@Model.CertificateContractual._RealEstateAgencyDocument</span></small></td>
+    </tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding" style="width:70%;"><small class="smallFont"><strong>EMAIL:</strong> @Model.CertificateContractual.RealEstateAgencyEmail</small></td>
+        <td class="td-padding"><small class="smallFont"><strong>TELEFONE:</strong> @Model.CertificateContractual.RealEstateAgencyPhone</small></td>
+    </tr>
+</table>
+
+<table style="width: 100%;">
+    <tr class="amaisimob-white">
+        <td colspan="4" class="bgamaisimob-green" style="border-radius: 15px 15px 0px 0px;">
+            <small class="amaisimob-white">DADOS DA IMOBILIÁRIA</small>
+        </td>
+    </tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding" style="width:70%;"><small class="smallFont"><strong>NOME DA IMOBILIÁRIA:</strong> @Model.CertificateContractual.RealEstateName</small></td>
+        <td class="td-padding"><small class="smallFont"><strong>CPF/CNPJ:</strong> <span class="@(Model.CertificateContractual.RealEstateDocument.NumbersOnly().Length <= 11 ? "cnpj" : "cpf")">@Model.CertificateContractual._RealEstateDocument</span></small></td>
+    </tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding" style="width:70%;"><small class="smallFont"><strong>EMAIL:</strong> @Model.CertificateContractual.RealEstateEmail</small></td>
+        <td class="td-padding"><small class="smallFont"><strong>TELEFONE:</strong> @Model.CertificateContractual.RealEstatePhone</small></td>
+    </tr>
+</table>
+
+<table style="width: 100%;">
+    <tr class="amaisimob-white">
+        <td colspan="3" class="bgamaisimob-green" style="border-radius: 15px 15px 0px 0px;">
+            <small class="amaisimob-white">DADOS DO(S) PRETENDENTE(S):</small>
+        </td>
+    </tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding" style="width:50%;" colspan="2"><small class="smallFont"><strong>PRETENDENTE 1:</strong> @Model.CertificateContractual.ClientFullName</small></td>
+        <td class="td-padding"><small class="smallFont"><strong>CPF/CNPJ DO PRETENDENTE:</strong> <span class="@(Model.CertificateContractual.CPFCNPJ.NumbersOnly().Length <= 11 ? "cnpj" : "cpf")">@Model.CertificateContractual._CPFCNPJ</span></small></td>
+    </tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding"><small class="smallFont"><strong>DATA DE NASCIMENTO:</strong> @Model.CertificateContractual._BirthDate</small></td>
+        <td class="td-padding"><small class="smallFont"><strong>ESTADO CIVIL:</strong> @Model.CertificateContractual.MartialStatusName </small></td>
+        <td class="td-padding"><small class="smallFont"><strong>CEP ATUAL:</strong> @Model.CertificateContractual.OldZipCode</small></td>
+    </tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding"><small class="smallFont"><strong>TIPO DE RENDA:</strong> @Model.CertificateContractual.CertificateContractualIncomeTypeName </small></td>
+
+        @if (Model.CertificateContractual.CertificateContractualIncomeTypeName != null)
+        {
+            @if (Model.CertificateContractual.CertificateContractualIncomeTypeName.Equals("Empresário"))
+            {
+                <td class="td-padding"><small class="smallFont"><strong>CNPJ:</strong> @Model.CertificateContractual._CertificateContratualDocument</small></td>
+            }
+        }
+
+        <td class="td-padding"><small class="smallFont"><strong>PROFISSÃO:</strong> @Model.CertificateContractual.Occupation </small></td>
+    </tr>
+</table>
+
+<table style="width: 100%;">
+    @for (int i = 0; i < Model.Members.Count; i++)
+    {
+        var item = Model.Members[i];
+
+        <tr class="amaisimob-grey">
+            <td class="td-padding" style="width:50%;" colspan="2"><small class="smallFont"><strong>PRETENDENTE @(i + 2):</strong> @item.Name</small></td>
+            <td class="td-padding"><small class="smallFont"><strong>CPF/CNPJ DO PRETENDENTE:</strong> <span class="cpf">@item.CPF.CPFMask()</span></small></td>
+        </tr>
+        if (Model.CertificateContractual.ClientStatusId == 1)
+        {
+            var kinship = item.KinshipId.HasValue ? kinshipFunctions.GetDataByID(item.KinshipId) : null;
+            var certificateContractualIncomeType = item.CertificateContractualIncomeTypeId.HasValue ? certificateContractualIncomeTypeFunctions.GetDataByID(item.CertificateContractualIncomeTypeId) : null;
+
+            <tr class="amaisimob-grey">
+                <td class="td-padding" colspan="2"><small class="smallFont"><strong>DATA DE NASCIMENTO:</strong> @item._BirthDate </small></td>
+                <td class="td-padding"><small class="smallFont"><strong>PARENTESCO:</strong> @kinship?.Name</small></td>
+            </tr>
+            <tr class="amaisimob-grey">
+                <td class="td-padding"><small class="smallFont"><strong>TIPO DE RENDA:</strong> @certificateContractualIncomeType?.Name</small></td>
+                <td class="td-padding"><small class="smallFont"><strong>PROFISSÃO:</strong> @item.Occupation</small></td>
+
+            </tr>
+        }
+    }
+</table>
+
+<table style="width: 100%;">
+    <tr class="amaisimob-white">
+        <td colspan="4" class="bgamaisimob-green" style="border-radius: 15px 15px 0px 0px;">
+            <small class="amaisimob-white">DADOS DO IMÓVEL PRETENDIDO:</small>
+        </td>
+    </tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding" style="width:50%;" colspan="2"><small class="smallFont"><strong>TIPO DE RESIDÊNCIA: @Model.CertificateContractual.ResidenceTypeName</strong> </small></td>
+        <td class="td-padding"><small class="smallFont"><strong>UTILIZAÇÃO: @Model.CertificateContractual.UtilizacaoName</strong> </small></td>
+    </tr>
+
+    <tr class="amaisimob-grey">
+        <td class="td-padding" colspan="2"><small class="smallFont"><strong>ENDEREÇO:</strong> @Model.CertificateContractual.Endereco &nbsp; <strong>Nº</strong> @Model.CertificateContractual.Numero</small></td>
+        <td class="td-padding"><small class="smallFont"><strong>COMP:</strong> @Model.CertificateContractual.Complemento</small></td>
+        <td class="td-padding"><small class="smallFont"><strong>CEP:</strong> <span class="cep">@Model.CertificateContractual._CEP</span></small></td>
+    </tr>
+
+    <tr class="amaisimob-grey">
+        <td class="td-padding"><small class="smallFont"><strong>BAIRRO:</strong> @Model.CertificateContractual.Bairro</small></td>
+        <td class="td-padding"><small class="smallFont"><strong>CIDADE:</strong> @Model.CertificateContractual.Cidade </small></td>
+        <td class="td-padding"><small class="smallFont"><strong>UF:</strong> @Model.CertificateContractual.Estado</small></td>
+    </tr>
+
+</table>
+
+<table style="width: 100%;">
+    <tr class="amaisimob-white">
+        <td colspan="4" class="bgamaisimob-green" style="border-radius: 15px 15px 0px 0px;">
+            <small class="amaisimob-white">VALORES DAS GARANTIAS:</small>
+        </td>
+    </tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding"><small class="smallFont"><strong>VALOR DO ALUGUEL:</strong> @Model.CertificateContractual._Aluguel</small></td>
+        <td class="td-padding"><small class="smallFont"><strong>VALOR DO CONDOMÍNIO:</strong> @Model.CertificateContractual._CondominiumPrice</small></td>
+        <td class="td-padding"><small class="smallFont"><strong>VALOR DO IPTU:</strong> @Model.CertificateContractual._IPTU</small></td>
+    </tr>
+
+    <tr class="amaisimob-grey">
+        <td class="td-padding"><small class="smallFont"><strong>ÁGUA:</strong> @Model.CertificateContractual._WaterPrice</small></td>
+        <td class="td-padding"><small class="smallFont"><strong>LUZ:</strong> @Model.CertificateContractual._LightPrice</small></td>
+        <td class="td-padding"><small class="smallFont"><strong>TOTAL:</strong> @Model.CertificateContractual._Total</small></td>
+    </tr>
+
+</table>

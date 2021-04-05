@@ -1,0 +1,162 @@
+﻿@model AMaisImob_WEB.Models.Charge.FinancialFilterViewModel
+
+@inject AMaisImob_WEB.BLL.CompanyFunctions companyFunctions
+@inject AMaisImob_WEB.BLL.CompanyTypeFunctions companyTypeFunctions
+@inject AMaisImob_WEB.BLL.UserCompanyFunctions userCompanyFunctions
+@inject Microsoft.AspNetCore.Identity.UserManager<AMaisImob_DB.Models.User> userManager
+
+@using AMaisImob_WEB.Utils;
+
+@{
+    var realEstateTypeId = companyTypeFunctions.GetDataByExternalCode("IMOBILIARIA").CompanyTypeId;
+    var realEstateAgencyTypeId = companyTypeFunctions.GetDataByExternalCode("CORRETORA").CompanyTypeId;
+    var user = await userManager.GetUserAsync(User);
+
+    int? realEstateId = null, realEstateAgencyId = null;
+    if (User.IsInRealEstate())
+    {
+        var realEstate = companyFunctions.GetDataByID(userCompanyFunctions.GetDataByUserId(user.Id).First().CompanyId);
+        realEstateId = realEstate.CompanyId;
+        realEstateAgencyId = realEstate.ParentCompanyId;
+    }
+    else if (User.IsInRole("Corretor"))
+    {
+        realEstateAgencyId = companyFunctions.GetDataByID(userCompanyFunctions.GetDataByUserId(user.Id).First().CompanyId).CompanyId;
+    }
+}
+
+<form id="charge-filter-form">
+    <div class="row">
+        @if (User.IsInRole("Administrator"))
+        {
+            <div class="col">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">Corretora</span>
+                    </div>
+                    <select class="form-control" name="RealEstateAgencyId" onchange="hideRealEstateOptionsByRealEstateAgency();">
+                        <option value="">Selecione</option>
+                        @foreach (var item in companyFunctions.GetDataAsNoTracking(x => x.CompanyTypeId == realEstateAgencyTypeId && !x.IsDeleted && x.IsActive))
+                        {
+                            if (Model.RealEstateAgencyId == item.CompanyId)
+                            {
+                                <option value="@item.CompanyId" selected>@(item.NomeFantasia ?? $"{item.FirstName} {item.LastName}")</option>
+                                continue;
+                            }
+
+                            <option value="@item.CompanyId">@(item.NomeFantasia ?? $"{item.FirstName} {item.LastName}")</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        }
+        else
+        {
+            <input type="hidden" name="RealEstateAgencyId" value="@realEstateAgencyId" />
+        }
+        @if (!User.IsInRealEstate())
+        {
+            <div class="col">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">Imobiliária</span>
+                    </div>
+                    <select class="form-control" name="RealEstateId">
+                        <option value="">Selecione</option>
+                        @foreach (var item in companyFunctions.GetDataAsNoTracking(x => x.CompanyTypeId == realEstateTypeId && x.ParentCompanyId.HasValue && !x.IsDeleted && x.IsActive))
+                        {
+                            if (realEstateAgencyId == item.CompanyId || Model.RealEstateId == item.CompanyId)
+                            {
+                                <option selected value="@item.CompanyId" data-parent-id="@item.ParentCompanyId">@(item.NomeFantasia ?? $"{item.FirstName} {item.LastName}")</option>
+                                continue;
+                            }
+
+                            <option value="@item.CompanyId" data-parent-id="@item.ParentCompanyId">@(item.NomeFantasia ?? $"{item.FirstName} {item.LastName}")</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        }
+        else
+        {
+            <input type="hidden" name="RealEstateId" value="@realEstateId" />
+        }
+        <div class="col">
+            <div class="input-group" id="finacial-filter-date-area">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">Mês de Referencia</span>
+                </div>
+                <input type="hidden" name="ReferenceDate" />
+                <input class="form-control monthYear required" data-target="#finacial-filter-date-area" name="_ReferenceDate" placeholder="Data" value="@($"{Model.ReferenceDate:MM/yyyy}")" />
+            </div>
+        </div>
+        @if (User.IsInRole("Administrator"))
+        {
+            <div class="col">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">Garantia Contratual</span>
+                    </div>
+                    <select class="form-control" name="ChargeContractualGuarantee">
+                        @if (Model.ChargeContractualGuarantee == true)
+                        {
+                            <option value="true" selected>Sim</option>
+                        }
+                        else
+                        {
+                            <option value="true">Sim</option>
+                        }
+                        @if (Model.ChargeContractualGuarantee == false)
+                        {
+                            <option value="false" selected>Não</option>
+                        }
+                        else
+                        {
+                            <option value="false">Não</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        }
+        <div class="col-auto" style="min-width: 100px;">
+            <button class="btn btn-primary w-100" type="button" id="charge-filter-button"><i class="fa fa-filter"></i>&nbsp;Filtrar</button>
+        </div>
+    </div>
+</form>
+
+<script type="text/javascript" asp-cut-key="charge-filter">
+    function hideRealEstateOptionsByRealEstateAgency(notClear) {
+        $.each($('[name="RealEstateId"] option'), function (i, e) {
+            $(e).hide();
+            if ($(e).data('parent-id') != $('[name="RealEstateAgencyId"]').val() && !IsNullOrWhiteSpace($(e).val())) return;
+
+            $(e).show();
+        });
+
+        if (notClear != true) $('[name="RealEstateId"]').val('');
+    }
+
+    $(document).ready(function () { hideRealEstateOptionsByRealEstateAgency(true); });
+
+    $('#charge-filter-button').click(tryReloadChargeList);
+
+    function tryReloadChargeList(callback) {
+        if (!validateInputs('charge-filter-form')) return;
+
+        if (!IsNullOrWhiteSpace($('[name="_ReferenceDate"]').val())) {
+            var date = moment($('[name="_ReferenceDate"]').val(), 'MM/YYYY')._d;
+            var now = new Date();
+
+            if (date.getYear() > now.getYear() || (date.getYear() == now.getYear() && date.getMonth() >= now.getMonth())) {
+                $('#finacial-filter-date-area').after('<div class="text-danger">Mês não fechado</div>')
+                return;
+                @*$('[name="_ReferenceDate"]').val('@($"{DateTime.Now.AddMonths(-1):MM/yyyy}")');
+                date = moment($('[name="_ReferenceDate"]').val(), 'MM/YYYY')._d;*@
+            }
+
+            $('[name="ReferenceDate"]').val(date.toISOString());
+        }
+
+        typeof reloadChargeList == 'function' && reloadChargeList(callback);
+    }
+</script>

@@ -1,0 +1,77 @@
+﻿@model List<DTO.Client.ClientLicenseViewModel>
+
+@{ Layout = "~/Views/Shared/_LayoutClean.cshtml"; }
+
+<style type="text/css">
+    main, main * {
+        -webkit-print-color-adjust: exact;
+    }
+
+    body, body * {
+        -webkit-print-color-adjust: exact;
+    }
+
+    table {
+        border: 1px solid #f1f1f1 !important;
+    }
+
+    th {
+        background-color: #989898 !important;
+        color: white !important;
+        border: 1px solid #f1f1f1 !important;
+    }
+
+    td {
+        background-color: white !important;
+        border: 1px solid #f1f1f1 !important;
+    }
+</style>
+
+@if (!ViewData.ContainsKey("PDF"))
+{
+<div style="margin-bottom:5em; margin-top:3em;" class="no-print">
+    <a class="no-print btn btn-primary" style="padding: 10px 30px 10px 30px;" href="@Url.Action("Index", "ClientLicense")"><i class="simple-icon-arrow-left"></i>&nbsp;Voltar</a>
+    <a class="no-print btn btn-success float-right" style="padding: 10px 30px 10px 30px;" href="javascript:window.print();"><i class="simple-icon-printer"></i>&nbsp;Imprimir</a>
+</div>}
+
+<div style="width:100%; text-align:center;">
+    @{ var bytes = System.IO.File.ReadAllBytes(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "wwwroot", "Imagens", "logo2.png"));
+                    var base64 = Convert.ToBase64String(bytes);
+
+        <img src="@($"data:image/png;base64, {base64}")" width="500" /> }
+</div>
+<div class="row">
+    @await Html.PartialAsync("../Report/Heading.cshtml");
+</div>
+<hr />
+<div class="w-100 text-center" style="font-weight: bold; font-weight: bold; font-size: 20px; margin-bottom: 1em;">
+    LISTAGEM DE LICENÇAS
+</div>
+<div style="width:100%; text-align: right;">@Model.Count Registros</div>
+<table class="table table-bordered table-condensed">
+    <thead>
+        <tr>
+            <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;">Nome do Documento</th>
+            <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;">Órgão Emissor</th>
+            <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;">Data de Emissão</th>
+            <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;">Data de Vencimento</th>
+            <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;">Dias para Vencimento</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+<tr>
+    <td>@item.Name</td>
+    <td>@item.Issuer</td>
+    <td>@item._IssueDate</td>
+    <td>@item._DueDate</td>
+    <td>@item.DueDateDays</td>
+</tr>}
+        @if (Model.Count == 0)
+        {
+<tr>
+    <td class="text-center" colspan="5">Nenhum dado encontrado.</td>
+</tr>}
+    </tbody>
+</table>

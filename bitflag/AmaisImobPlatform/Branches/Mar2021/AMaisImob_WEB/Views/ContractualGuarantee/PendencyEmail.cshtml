@@ -1,0 +1,23 @@
+﻿@model AMaisImob_WEB.Models.CertificateContractualViewModel
+
+<div style="font-size: 15px !important; max-width: 750px; margin-left: auto !important; margin-right: auto !important;padding: 15px; border-radius: 5px; background: #e4e4e4;">
+    <label>Olá,</label>
+    <br />
+    <br />
+    <label>A garantia contratual número <b>@Model.Reference</b> foi definida com Status Pendência, sendo solicitado os seguintes documentos:</label>
+    <br />
+    <br />
+    <div style="background: #ffffff; padding: 15px; border-radius: 12px;">
+        @if (!string.IsNullOrWhiteSpace(Model.PendencyDescription))
+        {
+            @Html.Raw(Model.PendencyDescription?.Replace("\n", "<br/>"))
+        }
+        else
+        {
+            <i>Nenhum documento informado.</i>
+        }
+    </div>
+    <br />
+    <br />
+    <label>Equipe A+Imob.</label>
+</div>

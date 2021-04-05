@@ -1,0 +1,9 @@
+C:\repositorios\bitflag\Nova pasta\TerraNostraPlatform\Application\Branches\TerraNostraCRM-NovoTema\Helpers\bin\Debug\netcoreapp2.2\Helpers.deps.json
+C:\repositorios\bitflag\Nova pasta\TerraNostraPlatform\Application\Branches\TerraNostraCRM-NovoTema\Helpers\bin\Debug\netcoreapp2.2\Helpers.dll
+C:\repositorios\bitflag\Nova pasta\TerraNostraPlatform\Application\Branches\TerraNostraCRM-NovoTema\Helpers\bin\Debug\netcoreapp2.2\Helpers.pdb
+C:\repositorios\bitflag\Nova pasta\TerraNostraPlatform\Application\Branches\TerraNostraCRM-NovoTema\Helpers\obj\Debug\netcoreapp2.2\Helpers.csprojAssemblyReference.cache
+C:\repositorios\bitflag\Nova pasta\TerraNostraPlatform\Application\Branches\TerraNostraCRM-NovoTema\Helpers\obj\Debug\netcoreapp2.2\Helpers.AssemblyInfoInputs.cache
+C:\repositorios\bitflag\Nova pasta\TerraNostraPlatform\Application\Branches\TerraNostraCRM-NovoTema\Helpers\obj\Debug\netcoreapp2.2\Helpers.AssemblyInfo.cs
+C:\repositorios\bitflag\Nova pasta\TerraNostraPlatform\Application\Branches\TerraNostraCRM-NovoTema\Helpers\obj\Debug\netcoreapp2.2\Helpers.csproj.CoreCompileInputs.cache
+C:\repositorios\bitflag\Nova pasta\TerraNostraPlatform\Application\Branches\TerraNostraCRM-NovoTema\Helpers\obj\Debug\netcoreapp2.2\Helpers.dll
+C:\repositorios\bitflag\Nova pasta\TerraNostraPlatform\Application\Branches\TerraNostraCRM-NovoTema\Helpers\obj\Debug\netcoreapp2.2\Helpers.pdb

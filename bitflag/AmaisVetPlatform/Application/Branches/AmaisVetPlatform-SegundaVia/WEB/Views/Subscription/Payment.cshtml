@@ -1,0 +1,218 @@
+﻿@model DTO.Subscription.SubscriptionViewModel
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["title"] = "Pagamento";
+}
+
+<form id="payment-form" action="@Url.Action(nameof(WEB.Controllers.PaymentController.Pay), "Payment", new { reference = Model.Reference })" method="post">
+    <input type="hidden" name="Reference" value="@Model.Reference" />
+    <input type="hidden" name="RedirectUrl" value="@Url.Action(nameof(WEB.Controllers.Subscription.Confirmation), "Subscription", new { Model.Reference })" />
+    <input type="hidden" name="FallbackUrl" value="@Url.Action(nameof(WEB.Controllers.Subscription.Payment), "Subscription", new { Model.Reference })" />
+    <input type="hidden" id="Token" name="Token" />
+    <div class="row">
+        <div class="col-md-12">
+            <div class="mb-2">
+                <h2>
+                    Pagamento
+                </h2>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card card-blue">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        Você escolheu o plano: <b>@Model.PlanName - @Model.MonthlyTotalFormatted por mês</b>
+                        <br />
+                        <small>
+                            Parabéns pelo sua decisão em se proteger!
+                        </small>
+                    </h5>
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="alert alert-danger">
+                                    @TempData["Error"]
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="control-label">Forma de Pagamento</label>
+                                <select id="PaymentMethodId" name="PaymentMethodId" class="form-control">
+                                    <option selected="selected" value="2">Cartão de Crédito</option>
+                                    <option value="1">Boleto</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card" style="color: black;">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-12" id="bank-slip" style="display: none;">
+                                            <div class="text-center">
+                                                <h6>BOLETO BANCÁRIO</h6>
+                                                <i class="fa fa-barcode fa-5x" aria-hidden="true"></i>
+                                                <hr />
+                                                <p><b>Mensalmente, 7 dias antes do vencimento você receberá o boleto em seu e-mail.</b></p>
+                                            </div>
+                                        </div>
+                                        <div class="col-12" id="credit-card">
+                                            <div class="row">
+                                                <div class="col-md-6" style="display: flex; align-items: center;">
+                                                    <div class="text-center">
+                                                        <h6>CARTÃO DE CRÉDITO</h6>
+                                                        <i class="fa fa-credit-card fa-5x" aria-hidden="true"></i>
+                                                        <hr />
+                                                        <i class="fab fa-cc-visa fa-2x" aria-hidden="true"></i>
+                                                        <i class="fab fa-cc-mastercard fa-2x" aria-hidden="true"></i>
+                                                        <i class="fab fa-cc-amex fa-2x" aria-hidden="true"></i>
+                                                        <i class="fab fa-cc-diners-club fa-2x" aria-hidden="true"></i><br />
+                                                        <p><b>Essa opção é por débito recorrente, não utilizando seu limite.</b></p>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div>
+                                                        <div class="row">
+                                                            <div class="col-sm-12">
+                                                                <div class="form-group">
+                                                                    <label class="control-label">Número do Cartão de Crédito</label>
+                                                                    <input id="Number" name="Number" type="text" maxlength="16" class="form-control" />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-sm-6">
+                                                                <div class="form-group">
+                                                                    <label class="control-label">Nome</label>
+                                                                    <input id="FirstName" name="FirstName" type="text" class="form-control" />
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-sm-6">
+                                                                <div class="form-group">
+                                                                    <label class="control-label">Sobrenome</label>
+                                                                    <input id="LastName" name="LastName" type="text" class="form-control" />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="row">
+                                                            <div class="col-sm-4">
+                                                                <div class="form-group">
+                                                                    <label class="control-label">Mês</label>
+                                                                    <input id="Month" name="Month" type="text" maxlength="2" class="form-control" />
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-sm-4">
+                                                                <div class="form-group">
+                                                                    <label class="control-label">Ano</label>
+                                                                    <input id="Year" name="Year" type="text" maxlength="4" class="form-control" />
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-sm-4">
+                                                                <div class="form-group">
+                                                                    <label class="control-label">CVV</label>
+                                                                    <input id="VerificationValue" name="VerificationValue" maxlength="3" type="text" class="form-control" />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <hr />
+    <div class="row">
+        <div class="col-6">
+            <a class="btn btn-secondary" href="@Url.Action("Questionnaire", new { Model.Reference })">Voltar</a>
+        </div>
+        <div class="col-6 text-right">
+            <button id="button-pay" class="btn btn-primary" type="submit">Transmitir</button>
+        </div>
+    </div>
+</form>
+@section Scripts {
+    <script type="text/javascript">
+        function creditCardIsValid() {
+            $('#credit-card .text-danger').remove();
+            var hasError = false;
+
+            if (!$('#credit-card #Number').val() || $('#credit-card #Number').val().length != 16) {
+                $('#credit-card #Number').after('<div class="text-danger">Número de cartão de crédito inválido</div>');
+                hasError = true;
+            }
+            if (!$('#credit-card #FirstName').val() || $('#credit-card #FirstName').val().length < 3) {
+                $('#credit-card #FirstName').after('<div class="text-danger">Inválido</div>');
+                hasError = true;
+            }
+            if (!$('#credit-card #LastName').val() || $('#credit-card #LastName').val().length < 3) {
+                $('#credit-card #LastName').after('<div class="text-danger">Inválido</div>');
+                hasError = true;
+            }
+            if (!$('#credit-card #Month').val() || $('#credit-card #Month').val().length != 2) {
+                $('#credit-card #Month').after('<div class="text-danger">Inválido</div>');
+                hasError = true;
+            }
+            if (!$('#credit-card #Year').val() || ($('#credit-card #Year').val().length < 2 && $('#credit-card #Year').val().length > 4)) {
+                $('#credit-card #Year').after('<div class="text-danger">Inválido</div>');
+                hasError = true;
+            }
+            if ($('#credit-card #VerificationValue').val().length < 3) {
+                $('#credit-card #VerificationValue').after('<div class="text-danger">Inválido</div>');
+                hasError = true;
+            }
+            return !hasError;
+        }
+        function creditCardToken(callback) {
+            $.get('@Url.Action(nameof(WEB.Controllers.PaymentController.CreditCardToken), "Payment")?' + $('#payment-form').serialize(), function (d) { callback(d); });
+        }
+    </script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#PaymentMethodId').change(function () {
+                if ($(this).val() == '1') {
+                    $('#credit-card').hide();
+                    $('#bank-slip').show();
+                } else {
+                    $('#credit-card').show();
+                    $('#bank-slip').hide();
+                }
+            }).change();
+            $('#payment-form').on('submit', function (e) {
+                $('#button-pay').prop('disabled', true);
+                if ($('#PaymentMethodId').val() == '1') {
+                    return true;
+                } else {
+                    if (!$('#Token').val()) {
+                        e.preventDefault();
+
+                        if (!creditCardIsValid()) {
+                            alert('Por favor, preencha corretamente os dados de seu cartão de crédito.');
+                            return false;
+                        }
+                        creditCardToken(function (d) {
+                            if (d.hasError || (d.data == null || d.data == '')) {
+                                alert('Atenção, houve um erro ao processar pagamento:\n\n' + d.message);
+                                $('#button-pay').prop('disabled', false);
+                            } else {
+                                $('#Token').val(d.data);
+                                $('#payment-form').submit();
+                            }
+                        });
+                    }
+                }
+            });
+        });
+    </script>
+}

@@ -1,0 +1,253 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Authorization
+@inject DAL.GLAS2Context context
+@inject SignInManager<DAL.Identity.User> SignInManager
+@inject UserManager<DAL.Identity.User> UserManager
+@inject IAuthorizationService AuthorizationService
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var company = (DTO.Company.CompanyViewModel)ViewData["Company"];
+    ViewData["Title"] = "Painel de Controle";
+
+    var user = await UserManager.GetUserAsync(User);
+    var userManagesAnyCompany = await AuthorizationService.AuthorizeAsync(User, "UserManagesAnyCompany");
+
+    int companyLawUserViewCount = (int)ViewData["CompanyLawUserViewCount"];
+    var companyUserRoleFunctions = new BLL.Permission.CompanyUserRoleFunctions(context);
+    var userRole = companyUserRoleFunctions.GetUserRole(user.Id);
+
+    var companyUserRole = companyUserRoleFunctions.GetCompanyRoleDescriptionByCompanyUser(company.CompanyId.Value, user.Id);
+}
+<div class="card shadow">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <img class="rounded-circle" src="@Url.Action("GetCompanyLogo", "CompanyManagement", new { companyId = company.CompanyId })" data-holder-rendered="true" style="width: 75px; height: 75px;">
+            </div>
+            <div class="col-md-6 text-right">
+                <h5>
+                    <b>@company.NomeFantasia</b>
+                    <br />
+                    <small>@translationFunctions.GetTranslation("Atuando como", User.FindFirstValue("CultureInfo")) <b> @userRole.Name @companyUserRole</b></small>
+                    <br />
+                    <small>
+                        @if (companyUserRoleFunctions.UserCompanyHasRole(user.Id, company.CompanyId.Value, BLL.User.ProfileNames.ClienteAdministrador))
+                        {
+                        <a href="@Url.Action("Users", "CompanyManagement", new { id = company.CompanyId, fromDashboard = true })">@translationFunctions.GetTranslation("Gerenciar Usuários", User.FindFirstValue("CultureInfo"))</a>
+                        }
+                    </small>
+                </h5>
+            </div>
+        </div>
+    </div>
+</div>
+<hr />
+<div id="accordion" role="tablist" class="shadow">
+    <div class="card">
+        <div class="card-header" role="tab" id="headingZero">
+            <p class="mb-0">
+                <i class="fa fa-tachometer-alt" aria-hidden="true" style="color: purple;"></i>&nbsp;
+                <a data-toggle="collapse" href="#collapseZero" aria-expanded="true" aria-controls="collapseZero">
+                    @translationFunctions.GetTranslation("Indicadores", User.FindFirstValue("CultureInfo"))
+                </a>
+            </p>
+        </div>
+        <div id="collapseZero" class="collapse show" role="tabpanel" aria-labelledby="headingZero" data-parent="#accordion">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            @{ Html.RenderPartial("~/Views/Home/Shared/Dashboard/_KPI1.cshtml"); }
+                            <script type="text/javascript">
+                                ShowKPI1(@company.CompanyId);
+                            </script>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            @{ Html.RenderPartial("~/Views/Home/Shared/Dashboard/_KPI3.cshtml"); }
+                            <script type="text/javascript">
+                                ShowKPI3(@company.CompanyId);
+                            </script>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            @{ Html.RenderPartial("~/Views/Home/Shared/Dashboard/_KPI4.cshtml"); }
+                            <script type="text/javascript">
+                                ShowKPI4(@company.CompanyId);
+                            </script>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            @{ Html.RenderPartial("~/Views/Home/Shared/Dashboard/_KPI2.cshtml"); }
+                            <script type="text/javascript">
+                                ShowKPI2(@company.CompanyId);
+                            </script>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header" role="tab" id="headingOne">
+            <p class="mb-0">
+                <i class="fa fa-gavel" aria-hidden="true" style="color: red;"></i>&nbsp;
+                <a data-toggle="collapse" id="ModuloLei" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                    @translationFunctions.GetTranslation("Requisitos Legais Associados à Unidade de Negócio", User.FindFirstValue("CultureInfo")) @if (companyLawUserViewCount > 0)
+                    {<span id="spanNotSeenLaw" class="badge badge-pill badge-primary">@companyLawUserViewCount</span>}
+                </a>
+                <script type="text/javascript">
+					$('#ModuloLei').click(function () {
+                        if ($('#spanNotSeenLaw').length > 0) {
+						    $.ajax({
+							    url: '@Url.Action("UpdateLastView", "CompanyLawManagement")',
+							    type: 'POST',
+							    data: { CompanyId: @company.CompanyId },
+							    dataType: 'json'
+                            });
+                        }
+                        $('#spanNotSeenLaw').remove();
+					});
+                </script>
+            </p>
+        </div>
+        <div id="collapseOne" class="collapse" role="tabpanel" aria-labelledby="headingOne" data-parent="#accordion">
+            <div class="card-body">
+                <div id="CompanyLawList"></div>
+                <script type="text/javascript">
+                    $('#CompanyLawList').load('@Url.Action("CompanyLawList", "CompanyLawManagement")', { companyId: @if (Context.Request.Query.ContainsKey("companyId")) { <text> @Context.Request.Query["companyId"]</text> } else { <text>null</text> } });
+
+                </script>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header" role="tab" id="headingTwo">
+            <p class="mb-0">
+                <i class="fa fa-search" aria-hidden="true" style="color: #E9B000;"></i>&nbsp;
+                <a class="collapsed" data-toggle="collapse" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                    @translationFunctions.GetTranslation("Detalhes do Requisito Legal", User.FindFirstValue("CultureInfo"))<span id="requisitoLegal"></span>
+                </a>
+            </p>
+        </div>
+        <div id="collapseTwo" class="collapse" role="tabpanel" aria-labelledby="headingTwo" data-parent="#accordion">
+            <div class="card-body">
+                <div id="CompanyLawManagement">
+                    <div class="jumbotron jumbotron-fluid">
+                        <div class="container">
+                            <h1>Por favor, selecione um requisito legal acima.</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header" role="tab" id="headingThree">
+            <p class="mb-0">
+                <i class="fa fa-bolt" aria-hidden="true" style="color: green;"></i>&nbsp;
+                <a class="collapsed" data-toggle="collapse" href="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                    @translationFunctions.GetTranslation("Plano de Ação do Requisito Legal", User.FindFirstValue("CultureInfo"))
+                </a>
+            </p>
+        </div>
+        <div id="collapseThree" class="collapse" role="tabpanel" aria-labelledby="headingThree" data-parent="#accordion">
+            <div class="card-body">
+                <div id="CompanyLawActionList">
+                    <div class="jumbotron jumbotron-fluid">
+                        <div class="container">
+                            <h1>Por favor, selecione um requisito legal aplicável acima.</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-header" role="tab" id="headingFour">
+            <p class="mb-0">
+                <i class="fa fa-search" aria-hidden="true" style="color: blue;"></i>&nbsp;
+                <a class="collapsed" data-toggle="collapse" href="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                    @translationFunctions.GetTranslation("Detalhes da Ação", User.FindFirstValue("CultureInfo"))<span id="acao"></span>
+                </a>
+            </p>
+        </div>
+        <div id="collapseFour" class="collapse" role="tabpanel" aria-labelledby="collapseFour" data-parent="#accordion">
+            <div class="card-body">
+                <div id="CompanyLawActionManage">
+                    <div class="jumbotron jumbotron-fluid">
+                        <div class="container">
+                            <h1>Por favor, selecione uma ação.</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+	function CompanyLawSelectCallback(data) {
+		$('#collapseTwo').collapse('show');
+		$('#requisitoLegal').html(': <b>' + data.LawSegmentoName  + " - " + data.LawOrgaoName + " - " + data._LawNumber + " - " + data._LawForceDate + '</b>');
+		$('#CompanyLawManagement').load('@Url.Action("ManageViewComponent", "CompanyLawManagement")', { id: data.CompanyLawId }, function () { MaskData(); });
+		$('#CompanyLawActionList').load('@Url.Action("CompanyLawActionListViewComponent", "CompanyLawManagement")', { id: data.CompanyLawId }, function () { MaskData(); });
+        $.post('@Url.Action("SetCompanyLawVisualization", "CompanyLawManagement")', { CompanyLawId: data.CompanyLawId })
+
+		$('#acao').html('');
+		$('#CompanyLawActionManage').html('<div class="jumbotron jumbotron-fluid"><div class="container"><h1>Por favor, selecione uma ação.</h1></div></div>');
+    }
+    function CompanyLawManagementSaveCallback(data) {
+        if (data.Saved == true) {
+            $('#companyLawTable').DataTable().ajax.reload();
+			alert('Detalhes do requisito legal salvo com sucesso!');
+            CompanyLawSelectCallback(data);
+            ShowKPI1(@company.CompanyId);
+            ShowKPI3(@company.CompanyId);
+            ShowKPI4(@company.CompanyId);
+        }
+    }
+    function CompanyLawActionSelectCallback(data) {
+		$('#collapseFour').collapse('show');
+		if (data.Name == null) { $('#acao').html(': <b>' + data.CompanyLawActionName + '</b>'); }
+		else { $('#acao').html(': <b>' + data.Name + '</b>'); }
+        $('#CompanyLawActionManage').load('@Url.Action("ManageViewComponent", "CompanyLawActionManagement")', { id: data.CompanyLawActionId }, function () { MaskData(); });
+    }
+	function CompanyLawActionNewCallback(data) {
+        //if (data.saved == true) {
+        //    $('#companyLawActionListTable').DataTable().ajax.reload();
+            //CompanyLawActionSelectCallback(data.CompanyLawAction);
+            @*ShowKPI2(@company.CompanyId);*@
+        //} else {
+        //    alert('Erro ao criar ação!');
+        //}
+			@*ShowKPI2(@company.CompanyId);*@
+		$('#collapseFour').collapse('show');
+		$('#CompanyLawActionManage').load('@Url.Action("_ManageViewComponent", "CompanyLawActionManagement")', { companyLawId: data }, function () { MaskData(); });
+		ShowKPI2(@company.CompanyId);
+    }
+    function CompanyLawActionSaveCallback(data) {
+		if (data.saved == true) {
+			$('#collapseThree').collapse('show');
+			$('#companyLawActionListTable').DataTable().ajax.reload();
+			CompanyLawActionSelectCallback(data.CompanyLawAction);
+			ShowKPI2(@company.CompanyId);
+			if (data._new == true) {
+				alert('Nova ação salva com sucesso!');
+			}
+			else {
+				alert('Ação alterada com sucesso!');
+			}
+		}
+		else{
+			alert('Erro ao alterar a ação!');
+		}
+        // dar alerta
+        // atualizar tabela ajax
+        // atualizar com CompanyLawActionSelectCallback os dados na sanfona
+    }
+</script>

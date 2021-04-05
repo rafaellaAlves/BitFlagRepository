@@ -1,0 +1,148 @@
+﻿@{
+    ViewData["Title"] = "Encaminhamento para Apostilamento";
+}
+
+<style>
+    .to-label {
+        height: 30px;
+    }
+
+    .select {
+        font-size: 11px;
+        width: 70px;
+        height: 30px;
+    }
+
+    #Description, #FullName, #BirthDate, #BirthDocument, #MarriageDate, #MarriageDocument, #DeathDate, #DeathDocument, #CNN, #CNNDocument, #Spouse, #Applicant {
+        color: red;
+        font-weight: bolder;
+    }
+
+    #RegistryOfficeId, #Book, #Page, #Term, #FullNameItalian, #CNNDate {
+        color: blue;
+        font-weight: bolder;
+    }
+</style>
+
+
+<h1 class="mb-2"><small>Encaminhamento para Apostilamento</small></h1>
+<div class="card">
+    <div class="card-body">
+        <table class="table table-bordered table-condensed" style="font-size:11px">
+            <thead>
+                <tr>
+                    <td style="text-align: center"><b>Grau de Parentesco</b></td>
+                    <td style="text-align: center"><b>Nome</b></td>
+                    <td style="text-align: center"><b>Certidão</b></td>
+                    <td style="text-align: center"><b>Data de Envio</b></td>
+                    <td style="text-align: center"><b>Data de Recebimento</b></td>
+                </tr>
+            </thead>
+            <tbody>
+                @*@foreach (var item in Model.ViewModel)*@
+
+                <tr>
+                    <td rowspan="3" style="text-align: center" id="Description" name="description">Sarah Reggiani / Pai</td>
+                    <td style="text-align: center;" id="FullName" name="FullName">Dalvo Paulino de Carvalho</td>
+                    <td style="text-align: center;" id="BirthDocument" name="BirthDocument">Nascimento</td>
+                    <td style="text-align: center"><label data-value="Informar" class="editable-label" id="ApostilleSendDate" name="ApostilleSendDate">Informar</label></td>
+                    <td style="text-align: center"><label data-value="Informar" class="editable-label" id="ApostileReceiptDate" name="ApostileReceiptDate">Informar</label></td>
+                </tr>
+                <tr>
+                    <td style="text-align: center" id="Spouse" name="Spouse">Conjuge: Roseli R. Reggiani</td>
+                    <td style="text-align: center" id="MarriageDocument" name="MarriageDocument">Casamento</td>
+                    <td style="text-align: center"><label data-value="Informar" class="editable-label" id="ApostilleSendDate" name="ApostilleSendDate">Informar</label></td>
+                    <td style="text-align: center"><label data-value="Informar" class="editable-label" id="ApostileReceiptDate" name="ApostileReceiptDate">Informar</label></td>
+                </tr>
+                <tr>
+                    <td style="text-align: center" id="FullName" name="FullName">Dalvo Paulino de Carvalho</td>
+                    <td style="text-align: center" id="DeathDocument" name="DeathDocument">Óbito</td>
+                    <td style="text-align: center"><label data-value="Informar" class="editable-label" id="ApostilleSendDate" name="ApostilleSendDate">Informar</label></td>
+                    <td style="text-align: center"><label data-value="Informar" class="editable-label" id="ApostileReceiptDate" name="ApostileReceiptDate">Informar</label></td>
+                </tr>
+                @*Linha para separação dos dados*@
+                <tr data-docusign-id="item.CompanyDocuSignId" data-company-id="item.CompanyId" data-reference-date="item.ReferenceDateISO">
+                    <td colspan="13"></td>
+                </tr>
+                @*Essa tabela será fixa pois pertence somente aos dados do requerente*@
+            <tr>
+                <td rowspan="2" style="text-align: center" id="Applicant" name="Applicant">Requerente</td>
+                <td style="text-align: center" id="FullName" name="FullName">Sarah Reggiani de Carvalho</td>
+                <td style="text-align: center" id="BirthDocument" name="BirthDocument">Nascimento</td>
+                <td style="text-align: center"><label data-value="Informar" class="editable-label" id="ApostilleSendDate" name="ApostilleSendDate">Informar</label></td>
+                <td style="text-align: center"><label data-value="Informar" class="editable-label" id="ApostileReceiptDate" name="ApostileReceiptDate">Informar</label></td>
+            </tr>
+            <tr>
+                <td style="text-align: center;" id="Spouse" name="Spouse">Conjuge: Bruno de Z. Amabile</td>
+                <td style="text-align: center" id="MarriageDocument" name="MarriageDocument">Casamento</td>
+                <td style="text-align: center"><label data-value="Informar" class="editable-label" id="ApostilleSendDate" name="ApostilleSendDate">Informar</label></td>
+                <td style="text-align: center"><label data-value="Informar" class="editable-label" id="ApostileReceiptDate" name="ApostileReceiptDate">Informar</label></td>
+            </tr>
+                @*Linha para separação dos dados*@
+                <tr>
+                    <td colspan="13"></td>
+                </tr>
+                @*Essa tabela será fixa pois pertence somente aos dados do CNN do italiano*@
+            <tr>
+                <td style="text-align: center" id="CNN" name="CNN">CNN</td>
+                <td style="text-align: center"><label data-value="Dalvo Paulino de Carvalho" class="editable-label" id="FullNameItalian" name="FullNameItalian">Dalvo Paulino de Carvalho</label></td>
+                <td style="text-align: center;" id="CNNDocument" name="CNNDocument">CNN</td>
+                <td style="text-align: center"><label data-value="Informar" class="editable-label" id="ApostilleSendDate" name="ApostilleSendDate">Informar</label></td>
+                <td style="text-align: center"><label data-value="Informar" class="editable-label" id="ApostileReceiptDate" name="ApostileReceiptDate">Informar</label></td>
+            </tr>
+            </tbody>
+        </table>
+        &nbsp;
+        <div class="row" style="width: 100%; margin: 0;">
+            <div class="col-md-6">
+                <a class="btn btn-secondary float-left" target="_blank" href="@Url.Action("GetSteps", "Workbench")">Voltar&nbsp;<i class="fas fa-external-link-alt"></i></a>
+            </div>
+            <div class="col-md-6">
+                <button onclick="PreviousStep()" type="button" class="btn btn-success float-right">Salvar</button>
+                <button onclick="PreviousStep()" style="margin-left: 40px; margin-right:40px" type="button" class="btn btn-light float-right">Imprimir</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(function () {
+        initEditableLabel();
+    });
+
+    function initEditableLabel() {
+        $('.editable-label').off('click');
+
+        $(".editable-label").click(function () {
+            var input = $('<input>', { class: 'form-control to-label', value: $(this).data('value') });
+            $(this).replaceWith(input);
+            $(input).focus();
+
+
+            initToLabel();
+        });
+    }
+
+    function initToLabel() {
+        $('.to-label').off('blur').off('keypress');
+
+        $('.to-label').blur(function () {
+            toLabel(this);
+        }).keypress(function (e) {
+            if (e.which == 13) {
+                toLabel(this);
+            }
+        });
+    }
+
+    function toLabel(sel) {
+        var value = $(sel).val();
+
+        $(sel).replaceWith($('<label>', { class: 'editable-label', 'data-value': value }).text(value));
+        initEditableLabel();
+    }
+
+</script>
+
+
+

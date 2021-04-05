@@ -1,0 +1,155 @@
+﻿@model DTO.Shared.EntityViewMode<DTO.Demand.DemandViewModel>
+@using DTO.Utils;
+
+@inject Services.Demand.DemandServices demandServices
+@inject Services.Transporter.TransporterServices transporterServices
+@inject Services.Transporter.TransporterVehicleServices transporterVehicleServices
+@inject Services.Transporter.TransporterDriverServices transporterDriverServices
+@inject Services.Route.RouteServices routeServices
+@inject Web.Helpers.DropDownListHelper dropDownListHelper
+@inject Services.Route.RouteTypeServices routeTypeServices
+
+@{
+    ViewData["Title"] = "Gerenciar Demanda";
+    var Id = $"{(Model.Model.DemandId.HasValue? Model.Model.DestinaJaDemandId : (await demandServices.GetLastId() + 1).ToString("0000") + "/" + (Model.Model.DemandId.HasValue ? Model.Model.CreatedDate.Year : DateTime.Now.Year))}";
+    var routeContractTypeId = (await routeTypeServices.GetDataByExternalCode("CONTRATO"))?.RouteTypeId;
+    var routeServiceTypeId = (await routeTypeServices.GetDataByExternalCode("SERVICO"))?.RouteTypeId;
+
+    var editable = !Model.Model.Closed && !Model.Model.Cancel;
+}
+
+<style type="text/css">
+    .select2.select2-container {
+        width: 100% !important;
+    }
+</style>
+
+<div id="demand-manage-form-area">
+    <div class="row">
+        <div class="col-md-8 form-group">
+            <h5 class="mg-b-0 tx-uppercase tx-inverse tx-bold">Número MTR de Coleta <b>@Id</b></h5>
+        </div>
+        <input type="hidden" name="AlternativeDemandId" value="@Model.Model.AlternativeDemandId" />
+        @*<div class="col-md-4">
+            <div class="input-group" id="alternative-demand-id-area">
+                <div class="input-group-addon">
+                    <span class="">Número de MTR</span>
+                </div>
+                <input class="form-control required demand-mask" name="AlternativeDemandId" placeholder="Número de MTR" value="@Model.Model.AlternativeDemandId" />
+            </div>
+        </div>*@
+    </div>
+    <hr />
+    <div class="row">
+        <div class="col-md-4 form-group">
+            <label class="required">Transportador</label>
+            @Html.DropDownList("TransporterId", dropDownListHelper.ToSelectListItem((await transporterServices.GetDataAsNoTrackingAsync(x => (!x.IsDeleted && x.IsActive) || Model.Model.TransporterId == x.TransporterId)).OrderBy(x => x.CompanyName.IfNullChange(x.FullName)), x => x.TransporterId, x => x.CompanyName.IfNullChange(x.FullName), Model.Model.TransporterId.ToString()), "Selecione", new { Class = "form-control" })
+        </div>
+        <div class="col-md-4 form-group">
+            <label class="required">Veículo</label>
+            @if (Model.Model.DemandId.HasValue)
+            {
+                @Html.DropDownList("TransporterVehicleId", dropDownListHelper.ToSelectListItem(await transporterVehicleServices.GetDataAsNoTrackingAsync(x => (!x.IsDeleted && x.IsActive && x.TransporterId == Model.Model.TransporterId) || x.TransporterVehicleId == Model.Model.TransporterVehicleId), x => x.TransporterVehicleId, x => $"Modelo: {x.Model} - Placa: {x.LicensePlate}", Model.Model.TransporterVehicleId.ToString()), new { Class = "form-control" });
+            }
+            else
+            {
+                <select class="form-control" name="TransporterVehicleId"></select>
+            }
+        </div>
+        <div class="col-md-4 form-group">
+            <label class="required">Motorista</label>
+            @if (Model.Model.DemandId.HasValue)
+            {
+                @Html.DropDownList("TransporterDriverId", dropDownListHelper.ToSelectListItem(await transporterDriverServices.GetDataAsNoTrackingAsync(x => (!x.IsDeleted && x.IsActive && x.TransporterId == Model.Model.TransporterId) || x.TransporterDriverId == Model.Model.TransporterDriverId), x => x.TransporterDriverId, x => $"{x.DriverName} - CNH: {x.CNH} - MOPP: {x.MOPP.IfNullChange("-")}", Model.Model.TransporterDriverId.ToString()), new { Class = "form-control" });
+            }
+            else
+            {
+                <select class="form-control" name="TransporterDriverId"></select>
+            }
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md form-group">
+            <label class="required">Rota</label>
+            @if (!editable)
+            {
+                var route = await routeServices.GetDataByIdAsync(Model.Model.RouteId);
+
+                <input type="hidden" name="RouteId" value="@Model.Model.RouteId" data-type-id="@route.RouteTypeId" />
+            }
+            <select @(editable ? Html.Raw("name=\"RouteId\"") : (object)"") @(!editable ? "disabled" : "") class="form-control">
+                <option value="">Selecione</option>
+                @foreach (var item in (await routeServices.GetDataAsNoTrackingAsync(x => (!x.IsDeleted && !x.Canceled && !x.Suspended) || Model.Model.RouteId == x.RouteId)).OrderBy(x => x.RouteId))
+                {
+                    @(Html.Raw($"<option {(item.RouteId == Model.Model.RouteId ? "selected" : "")} data-type-id=\"{item.RouteTypeId}\" value=\"{item.RouteId}\">{($"{item.RouteId} - {item.Name}")}</option>"))
+                }
+            </select>
+        </div>
+        <div class="col-md form-group">
+            <label>Famílias</label>
+            <input class="form-control" disabled name="Families" placeholder="Familías" value="@(Model.Model.DemandId.HasValue? string.Join("/", (await routeServices.GetResidueFamiliesByRouteId(Model.Model.RouteId)).Select(x => x.NameAbbreviation.IfNullChange(x.Name))) : "")" />
+			<div class="w-100 mt-2">
+				<div style="white-space: nowrap;"><input type="checkbox" name="NotValidateFamily" class="float mr-1 ml-2" @(Model.Model.NotValidateFamily || !Model.Model.DemandId.HasValue ? "checked" : "") /> <small class="float checkbox" style="white-space: initial;"> Desejo não validar os geradores pela família (indicado para demandas antigas).</small></div>
+			</div>
+        </div>
+        <div class="col-md-2 form-group">
+            <label class="required">Data de Saída</label>
+            <input class="form-control date" data-disabledAll="false" name="_DepartureDate" value="@Model.Model._DepartureDate" @(Model.Model.Cancel? "disabled" : "") placeholder="Data de Saída" />
+        </div>
+        <div class="col-md-2 form-group">
+            <label class="required">Data de Chegada</label>
+            <input class="form-control date" data-disabledAll="false" name="_ArriveDate" value="@Model.Model._ArriveDate" @(Model.Model.Cancel? "disabled" : "") placeholder="Data de Chegada" />
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript" asp-cut-key="demand-manage">
+    $(document).ready(function () {
+        $('#demand-manage-form-area [name="TransporterId"], #demand-manage-form-area [name="TransporterVehicleId"], #demand-manage-form-area [name="TransporterDriverId"]@(!editable ? "" : (object)Html.Raw(", #demand-manage-form-area [name=\"RouteId\"]"))').select2({
+            theme: "bootstrap",
+            placeholder: "Selecione",
+            allowClear: true,
+            "language": {
+                "noResults": function () {
+                    return "Nenhum resultado encontrado.";
+                }
+            }
+        });
+
+        @(Html.Raw(Model.Model.Cancel? "disableAllFields('#demand-manage-form-area')" : ""))
+        @(Html.Raw(Model.CanEdit()? "" : "disableAllFields('#demand-manage-form-area')"))
+    });
+
+    $('#demand-manage-form-area [Name="TransporterId"]').change(function () {
+        $('#demand-manage-form-area [name="TransporterVehicleId"], #demand-manage-form-area [name="TransporterDriverId"]').val('');
+        $('#demand-manage-form-area [name="TransporterVehicleId"], #demand-manage-form-area [name="TransporterDriverId"]').empty();
+        $('#demand-manage-form-area [name="TransporterVehicleId"], #demand-manage-form-area [name="TransporterDriverId"]').trigger('change');
+
+        if (isNullOrWhiteSpace($(this).val())) return;
+
+        $.post('@Url.Action("GetTransporterAssociatedDataById", "Transporter")', { id: $(this).val() }, function (d) {
+            $('#demand-manage-form-area [name="TransporterVehicleId"], #demand-manage-form-area [name="TransporterDriverId"]').append(new Option('Selecione', '', true, false));
+
+            d.vehicles.forEach(function (e, i) { $('#demand-manage-form-area [name="TransporterVehicleId"]').append(new Option(e.text, e.value, false, e.selected)); });
+            d.drivers.forEach(function (e, i) { $('#demand-manage-form-area [name="TransporterDriverId"]').append(new Option(e.text, e.value, false, e.selected)); });
+
+            $('#demand-manage-form-area [name="TransporterVehicleId"], #demand-manage-form-area [name="TransporterDriverId"]').trigger('change');
+        });
+    });
+
+    function setFamilyNames(familyNames) {
+        var routeTypeId = $('#demand-manage-form-area [name="RouteId"]').is('input') ? $('#demand-manage-form-area [name="RouteId"]').data('type-id') : $('#demand-manage-form-area [name="RouteId"] option:selected').data('type-id');
+
+        if (routeTypeId  != '@routeServiceTypeId') return;
+
+        $('#demand-manage-form-area [name="Families"]').val($.distinct(familyNames).join(' / '));
+    }
+
+    //$('#demand-manage-form-area [name="AlternativeDemandId"]').blur(function () {
+    //    $('.alternative-demand-id-error').remove();
+
+    //    if (!isNullOrWhiteSpace($(this).val())) return;
+
+    //    $('#alternative-demand-id-area').after('<small class="text-danger alternative-demand-id-error">O formato para o MTR de Coleta é <b>0000/0000</b>.</small>')
+    //});
+</script>

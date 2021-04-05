@@ -1,0 +1,31 @@
+﻿@model WEB.Models.CompanyViewModel
+@inject DB.Models.Insurance_HomologContext context
+
+@{
+    var companyTypeFunctions = new WEB.BLL.CompanyTypeFunctions(context);
+    string companyTypeName = companyTypeFunctions.GetData().Single(x => x.CompanyTypeId == Model.CompanyTypeId).Name;
+
+    if(Model.CompanyTypeId == 1) { 
+    ViewData["Title"] = WEB.Configuration.InsuranceConfiguration.CorretoraDisplayName;
+        }
+    if(Model.CompanyTypeId == 2) { 
+    ViewData["Title"] = WEB.Configuration.InsuranceConfiguration.PartnerDisplayName;
+        }
+}
+
+<div class="card shadow bg-light">
+    <div class="card-body">
+        <div id="_CompanyIndexViewComponent"></div>
+    </div>
+    @if (Model.ParentCompanyId.HasValue){
+    <div class="card-footer">
+        <a href="@Url.Action("Plataforma","Company")" class="btn btn-secondary float-left"><i class="fa fa-arrow-left"></i>&nbsp;Voltar</a>
+    </div>
+    }
+</div>
+
+<script type="text/javascript">
+    $('#_CompanyIndexViewComponent').load('@Url.Action("CompanyIndexComponent", "Company")', { "companyTypeId": '@Model.CompanyTypeId', "parentcompanyId": @if(Model.ParentCompanyId.HasValue) {<text>@Model.ParentCompanyId</text>}else{<text>null</text>}});
+</script>
+
+

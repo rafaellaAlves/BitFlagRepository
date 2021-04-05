@@ -1,0 +1,571 @@
+﻿
+@inject AMaisImob_WEB.BLL.CertificateFunctions certificateFunctions;
+@inject AMaisImob_WEB.BLL.ChargeFunctions chargeFunctions;
+@inject AMaisImob_WEB.BLL.CompanyFunctions companyFunctions;
+@inject AMaisImob_WEB.BLL.UserCompanyFunctions userCompanyFunctions;
+@inject Microsoft.AspNetCore.Identity.UserManager<AMaisImob_DB.Models.User> userManager;
+@using AMaisImob_WEB.Utils;
+@{
+    var userId = await userManager.GetUserAsync(User);
+    ViewData["Title"] = "Painel de Gestão";
+
+
+    var currentDate = DateTime.Now;
+    var previousDate = currentDate.AddMonths(-1);
+    var previousMonth = currentDate.AddMonths(-1).Month;
+
+
+
+
+    int? userRealEstateAgencyId = null;
+    if (ViewData.ContainsKey("UserRealEstateAgencyId"))
+    {
+        userRealEstateAgencyId = (int)ViewData["UserRealEstateAgencyId"];
+    }
+    int? realEstateId = null;
+    if (User.IsInRealEstate())
+    {
+
+        if (userRealEstateAgencyId != null)
+        {
+            realEstateId = userCompanyFunctions.GetDataByUserId(userId.Id).First().CompanyId;
+        }
+    }
+
+    int? companyId = null;
+}
+
+<style type="text/css">
+    .top-box {
+        border: #f39a2d 3px solid;
+        /*orange; #f39a2d;*/
+        background-color: white;
+        border-radius: 30px;
+        padding-top: 15px;
+        padding-left: 30px;
+        padding-right: 32px;
+    }
+
+    .top-box-orange {
+        border: brown 3px solid;
+        background-color: #f39a2d;
+        border-radius: 30px;
+        padding-top: 30px;
+        padding-left: 18px;
+        padding-right: 18px;
+        color: white;
+    }
+
+    .top-box-qtd {
+        font-size: 30px !important;
+        margin-bottom: -5px;
+        font-weight: bold;
+    }
+
+    .top-box-desc {
+        font-size: 15px !important;
+    }
+
+    .top-box-button {
+        font-size: 12px !important;
+        padding: 8px !important;
+        min-width: 80px;
+        padding-top: 2px !important;
+        padding-bottom: 2px !important;
+    }
+
+
+
+    .offset-05 {
+        margin-left: 6.333333%;
+    }
+
+    .offset-025 {
+        margin-left: 3.333333%;
+    }
+</style>
+
+
+
+@if (ViewData["AcceptRealEstateMessage"] != null)
+{
+    <script type="text/javascript">
+    alert('@Html.Raw(ViewData["AcceptRealEstateMessage"])');
+    </script>
+}
+
+<div class="row">
+    @if (User.IsInRealEstate() || User.IsInRole("Corretor"))
+    {
+        <input type="hidden" id="_CertificateManageRealEstateAgencyId" name="RealEstateAgencyId" value="@userRealEstateAgencyId" />
+    }
+    else
+    {
+        <div class="col-md-3">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">Corretora</span>
+                </div>
+                <select class="form-control" id="_CertificateManageRealEstateAgencyId" name="RealEstateAgencyId">
+                    <option value="">Selecione</option>
+                    @foreach (var item in (List<AMaisImob_DB.Models.Company>)ViewData["RealEstateAgency"])
+                    {
+                        var companyName = string.IsNullOrWhiteSpace(item.RazaoSocial) ? item.FirstName + " " + item.LastName : item.RazaoSocial;
+                        <option value="@item.CompanyId">@companyName</option>
+                    }
+                </select>
+            </div>
+        </div>
+    }
+    @if (User.IsInRealEstate())
+    {
+        <input id="_CertificateManageRealEstateId" name="RealEstateId" type="hidden" value="@realEstateId" />
+    }
+    else
+    {
+        <div class="form-group col-md-3">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">Imobiliária</span>
+                </div>
+                <select class="form-control" id="_CertificateManageRealEstateId">
+                    <option value="">Selecione uma corretora</option>
+                </select>
+            </div>
+        </div>
+    }
+    @if (!User.IsInRealEstate())
+    {
+        <div class="form-group float-left @if (User.IsInRole("Corretor")){<text >col-md-1</text>} else {<text>col-md-1</text>}">
+            <button type="button" class="btn btn-primary" style="width: 100%;" id="_CertificateIndexFilterButton"><i class="fas fa-filter"></i>&nbsp;Filtrar</button>
+        </div>
+        <hr />
+    }
+</div>
+
+<div id="home-vip-view-component">
+    @(await Component.InvokeAsync<AMaisImob_WEB.ViewComponents.Home.HomeVIPViewComponent>(new { realEstateId, realEstateAgencyId = userRealEstateAgencyId } ))
+</div>
+<div class="row mb-3 mt-3">
+    <div style="width: 100%; text-align: right;">
+        <span style="font-size: 1em !important; font-weight: bold;">Atenção: dados atualizados a cada 30 minutos!</span>
+    </div>
+</div>
+<div class="row" style="margin-top:1em;">
+    <div class="col-md-4 offset-05">
+        <div class="row">
+            <div class="col-md-6">
+                <img src="~/image/Clube_do_Inquilino.png" class="img-fluid" style="max-height: 70px;" />
+            </div>
+            <div class="col-md-6">
+                <b style="font-size: 20px !important; color: #f39a2d; line-height: 14px;" id="_TaxaInquilinoTotal"></b>
+                <br />
+                <span style="font-size: 13px !important; line-height: 14px;">Taxa arrecadada nos últimos 12 meses</span>
+                <br />
+                <b style="font-size: 20px !important; color: #f39a2d; line-height: 14px;" id="_TaxaInquilinoTotalMes"></b>
+                <br />
+                <span style="font-size: 13px !important; line-height: 14px;">Taxa arrecadada no último mês</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 offset-025">
+        <div class="row">
+            <div class="col-md-4">
+                <i class="fas fa-barcode" style="font-size: 60px;"></i>
+            </div>
+            <div class="col-md-8">
+                <span style="font-size: 13px !important; line-height: 14px;">Última Fatura 15/@previousDate.Month/@previousDate.Year</span>
+                <br />
+                <b style="font-size: 20px !important; color: #5d817a; line-height: 14px;" id="paidCharges"></b>
+                <br />
+                <span style="font-size: 13px !important; line-height: 14px;" id="_PreviousStatus"></span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 offset-025">
+        <div class="row">
+            <div class="col-md-4">
+                <i class="fas fa-barcode" style="font-size: 60px;"></i>
+            </div>
+            <div class="col-md-8">
+                <span style="font-size: 13px !important; line-height: 14px;">Proxima Fatura: 15/@currentDate.Month/@currentDate.Year  </span>
+                <br />
+                <b style="font-size: 20px !important; color: #5d817a; line-height: 14px;" id="unpaidCharges"></b>
+                <br />
+                <span style="font-size: 13px !important; line-height: 14px;" id="_CurrentStatus"></span>
+            </div>
+        </div>
+    </div>
+</div>
+<hr />
+<div class="row" style="margin-top:2em;">
+    <div class="col-md-12">
+        <div id="chart"></div>
+    </div>
+</div>
+<div id="_RankingDiv" style="display: none;">
+    <hr />
+    <div id="_RealStateRank" style="text-align:center; font-size: large;"></div>
+    <div style="text-align: center; text-transform: uppercase"><span><b>Rank</b> @DateTime.Now.ToMonthYearPtBR()</span></div>
+    <br />
+    <div class="row">
+        <div class="col-md-3">
+            <table class="table-striped" width="100%">
+                <thead>
+                    <tr>
+                        <td style="text-align: center;">#</td>
+                        <td style="font-size: 15px; text-align: center;"><small>Certificados Ativos</small></td>
+                    </tr>
+                </thead>
+                <tbody id="rankingEstate">
+                </tbody>
+            </table>
+        </div>
+        <div class="col-md-3">
+            <table class="table-striped" width="100%">
+                <thead>
+                    <tr>
+                        <td style="text-align: center;">#</td>
+                        <td style="font-size: 15px; text-align: center;"><small>Arrecadação Anual Clube Inquilino</small></td>
+                    </tr>
+                </thead>
+                <tbody id="rankingEstate1">
+                </tbody>
+            </table>
+        </div>
+        <div class="col-md-3">
+            <table class="table-striped" width="100%">
+                <thead>
+                    <tr>
+                        <td style="text-align: center;">#</td>
+                        <td style="font-size: 15px; text-align: center; "><small>Arrecadação Mês Clube Inquilino</small></td>
+                    </tr>
+                </thead>
+                <tbody id="rankingEstate2">
+                </tbody>
+            </table>
+        </div>
+        <div class="col-md-3">
+            <table class="table-striped" width="100%">
+                <thead>
+                    <tr>
+                        <td style="text-align: center;">#</td>
+                        <td style="font-size: 15px; text-align: center;"><small>Valor Proxima Fatura</small></td>
+                    </tr>
+                </thead>
+                <tbody id="rankingEstate3">
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function GetChart(certificadosAderidos) {
+
+        var certs = certificadosAderidos.map(function (e, i) { return e.totalAdherence; });
+        var categories = certificadosAderidos.map(function (e, i) { return e._MesAtual; });
+
+        function MountChart() {
+            Highcharts.chart('chart', {
+                chart: {
+                    backgroundColor: null,
+                    type: 'line',
+                    height: '300px'
+                },
+                credits: {
+                    enabled: false
+                },
+                title: {
+                    text: 'Evolução Carteira 12 meses',
+                    align: 'left'
+                },
+                xAxis: {
+                    categories: categories,
+                    //lineColor: 'transparent'
+                },
+                yAxis: {
+                    title: {
+                        text: ''
+                    },
+                    gridLineColor: 'transparent'
+                },
+                plotOptions: {
+                    line: {
+                        dataLabels: {
+                            enabled: true
+                        },
+                    }
+                },
+                legend: {
+                    layout: 'vertical',
+                    align: 'center',
+                    verticalAlign: 'top',
+                    floating: true,
+                    backgroundColor: '#FFFFFF'
+                },
+                series: [{
+                    name: 'Cert. Ativo',
+                    data: certs,
+                    color: '#f39a2d'
+                }]
+            });
+        }
+
+        MountChart();
+    }
+</script>
+
+@if (ViewData["AcceptRealEstateMessage"] != null)
+{
+    <script type="text/javascript">
+        alert('@Html.Raw(ViewData["AcceptRealEstateMessage"])');
+    </script>
+}
+
+<script type="text/javascript">
+    function GetRealEstates() {
+        if (IsNullOrWhiteSpace($('#_CertificateManageRealEstateAgencyId').val())) {
+            $('#_CertificateManageRealEstateId').empty();
+            $('#_CertificateManageRealEstateId').append($('<option>', { value: '' }).append('Selecione um corretora.'));
+        }
+        else {
+            $.ajax({
+                url: '@Url.Action("GetRealEstatesByRealEstateAgencyId", "Company")',
+                type: 'POST',
+                datatype: 'JSON',
+                data: { id: $('#_CertificateManageRealEstateAgencyId').val() },
+                success: function (data) {
+                    $('#_CertificateManageRealEstateId').empty();
+                    if (data == false || data.length == 0) {
+                        $('#_CertificateManageRealEstateId').append($('<option>', { value: '' }).append('Nenhuma imobiliária encontrada.'));
+                    }
+                    if (data.length > 0) {
+                        $('#_CertificateManageRealEstateId').append($('<option>', { value: '' }).append('Selecione'));
+                        for (var i = 0; i < data.length; i++) {
+                            var companyName = IsNullOrWhiteSpace(data[i].razaoSocial) ? data[i].firstName + " " + data[i].lastName : data[i].razaoSocial;
+                            var option = $('<option>', { value: data[i].companyId }).append(companyName);
+                            $('#_CertificateManageRealEstateId').append(option);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+
+    $('#_CertificateManageRealEstateAgencyId').change(function () {
+        GetRealEstates();
+    });
+
+    $('#_CertificateIndexFilterButton').click(function(){
+        GetCompany();
+        if (!$('#_CertificateManageRealEstateId').val()) {
+            $('#_RankingDiv').hide();
+        }
+        GetRank();
+        GetVIPInfo();
+    });
+
+    function GetVIPInfo() {
+        $('#home-vip-view-component').hide();
+        var realEstateAgencyId = $('#_CertificateManageRealEstateAgencyId').val();
+        var realEstateId = $('#_CertificateManageRealEstateId').val();
+
+        $('#home-vip-view-component').show();
+        $('#home-vip-view-component').load('@Url.Action("LoadHomeVIPViewComponent", "Home")', { realEstateAgencyId, realEstateId });
+    }
+
+    //chama a função toda vez que abre a pagina home.
+    GetCompany();
+
+
+    function GetCompany() {
+        var companyAgencyId = $('#_CertificateManageRealEstateAgencyId').val();
+        var companyRealStateId = $('#_CertificateManageRealEstateId').val();
+
+
+        $.ajax({
+                url: '@Url.Action("GetPainelGestao", "Home")',
+                type: 'POST',
+                data: { companyId: (companyRealStateId != 0 ? companyRealStateId : companyAgencyId) },
+                dataType: 'Json',
+                success: function (r) {
+                    $('#_CertificadosPendentes').text(r.certificadosPendentes);
+                    $('#_CertificadosAtivos').text(r.certificadosAtivos);
+                    $('#_CertificadosRenovar').text(r.certificadosRenovar);
+                    $('#_TaxaInquilinoTotal').text('R$ ' + r.taxaInquilinoTotal);
+                    $('#_TaxaInquilinoTotalMes').text('R$ ' + r.taxaInquilinoUltimoMes);
+                    $('#paidCharges').text('R$ ' + r.valorUltimaFatura);
+                    $('#unpaidCharges').text('R$ ' + r.valorProximaFatura);
+                    GetChart(r.certificadosAderidos);
+                    if (r.previousStatus != null) {
+                        if (r.previousStatus == false) {
+                            $('#_PreviousStatus').text('Status : Não Pago');
+                        }
+                        else {
+                            $('#_PreviousStatus').text('Status : Pago');
+                        }
+                        if (r.currentStatus == false) {
+                            $('#_CurrentStatus').text('Status : Não Pago');
+                        }
+                        else {
+                            $('#_CurrentStatus').text('Status : Pago');
+                        }
+                    }
+                    else {
+                        $('#_Status1').val('');
+                    }
+
+                }
+        });
+    }
+    @if (userRealEstateAgencyId.HasValue)
+    {
+        <text>
+            GetRealEstates();
+        </text>
+    }
+    @if (realEstateId.HasValue)
+    {
+        <text>
+        if ($('#_CertificateManageRealEstateId').val() != "") {
+            $('#_RankingDiv').show();
+            GetRank();
+        }
+        </text>
+    }
+
+
+
+    function GetRank() {
+        var imobiliariaId = $('#_CertificateManageRealEstateId').val();
+        if (imobiliariaId != "") {
+        $.ajax({
+            url: '@Url.Action("GetRank", "Home")',
+            type: 'POST',
+            data: { companyId: (imobiliariaId != null ? imobiliariaId : null) },
+            dataType: 'Json',
+            success: function (data) {
+                var qtdAtivos = 0;
+                qtdAtivos = data[0].midIndex.count;
+                     if (qtdAtivos != 0) {
+                         $('#_RankingDiv').hide();
+                         if ($('#_CertificateManageRealEstateId').val() != "") {
+                             $('#_RankingDiv').show();
+                         }
+                     }
+                     else {
+                         $('#_RankingDiv').hide();
+                     }
+
+                $('#rankingEstate').empty();
+                $('#rankingEstate1').empty();
+                $('#rankingEstate2').empty();
+                $('#rankingEstate3').empty();
+
+                if (qtdAtivos != 0) {
+
+                     if (data[0].midPosition > 1 && data[0].midPosition < data[0].lastPosition) {
+                         var tr1 = $('<tr style="color: #5d817a;"><td style="text-align: center;">' + data[0].top1Position + 'º</td><td style="text-align: center;">' + data[0].top1Index.count + '</td></tr>');
+                         var tr2 = $('<tr style="color: #5d817a;"><td style="font-weight: bold; font-size: 20px; text-align: center;">' + data[0].midPosition + 'º</td> <td style="font-weight: bold; font-size: 20px; text-align: center;">' + data[0].midIndex.count + '</td><td></tr>');
+                         var tr3 = $('<tr style="color: #5d817a;"><td style="text-align: center;">' + data[0].bottom1Position + 'º</td><td style="text-align: center;">' + data[0].bottom1Index.count + '</td></tr>');
+                        $('#rankingEstate').append(tr1, tr2, tr3);
+                     }
+                     else if (data[0].midPosition == 1) {
+
+                         var tr2 = $('<tr style="color: #5d817a;"><td style="font-weight: bold; font-size: 20px; text-align: center;">' + data[0].midPosition + 'º</td> <td style="font-weight: bold; font-size: 20px; text-align: center;">' + data[0].midIndex.count + '</td><td></tr>');
+                         var tr3 = $('<tr style="color: #5d817a;"><td style="text-align: center;">' + data[0].bottom1Position + 'º</td><td style="text-align: center;">' + data[0].bottom1Index.count + '</td></tr>');
+                         var tr3A = $('<tr style="color: #5d817a;"><td style="text-align: center;">' + data[0].bottom2Position + 'º</td><td style="text-align: center;">' + data[0].bottom2Index.count + '</td></tr>');
+
+                        $('#rankingEstate').append(tr2, tr3, tr3A);
+                     }
+                     else if (data[0].midPosition >= data[0].lastPosition) {
+                         var tr1A = $('<tr style="color: #5d817a;"><td style="text-align: center;">' + data[0].top2Position + 'º</td><td style="text-align: center;">' + data[0].top2Index.count + '</td></tr>');
+                         var tr1 = $('<tr style="color: #5d817a;"><td style="text-align: center;">' + data[0].top1Position + 'º</td><td style="text-align: center;">' + data[0].top1Index.count + '</td></tr>');
+                         var tr2 = $('<tr style="color: #5d817a;"><td style="font-weight: bold; font-size: 20px; text-align: center;">' + data[0].midPosition + 'º</td> <td style="font-weight: bold; font-size: 20px; text-align: center;">' + data[0].midIndex.count + '</td><td></tr>');
+
+                        $('#rankingEstate').append(tr1A, tr1, tr2);
+                     }
+
+                     if (data[1].midPosition > 1 && data[1].midPosition < data[1].lastPosition) {
+                         var tr1 = $('<tr style="color: #5d817a;"><td style="text-align: center;">' + data[1].top1Position + 'º</td><td style="text-align: center;">' + data[1].top1Index._InquilinoAnual + '</td></tr>');
+                         var tr2 = $('<tr style="color: #5d817a;"><td style="font-weight: bold; font-size: 20px; text-align: center;">' + data[1].midPosition + 'º</td> <td style="font-weight: bold; font-size: 20px; text-align: center;">' + data[1].midIndex._InquilinoAnual + '</td><td></tr>');
+                         var tr3 = $('<tr style="color: #5d817a;"><td style="text-align: center;">' + data[1].bottom1Position + 'º</td><td style="text-align: center;">' + data[1].bottom1Index._InquilinoAnual + '</td></tr>');
+                        $('#rankingEstate1').append(tr1, tr2, tr3);
+                     }
+                     else if (data[1].midPosition == 1) {
+
+                         var tr2 = $('<tr style="color: #5d817a;"><td style="font-weight: bold; font-size: 20px; text-align: center;">' + data[1].midPosition + 'º</td> <td style="font-weight: bold; font-size: 20px; text-align: center;">' + data[1].midIndex._InquilinoAnual + '</td><td></tr>');
+                         var tr3 = $('<tr style="color: #5d817a;"><td style="text-align: center;">' + data[1].bottom1Position + 'º</td><td style="text-align: center;">' + data[1].bottom1Index._InquilinoAnual + '</td></tr>');
+                         var tr3A = $('<tr style="color: #5d817a;"><td style="text-align: center;">' + data[1].bottom2Position + 'º</td><td style="text-align: center;">' + data[1].bottom2Index._InquilinoAnual + '</td></tr>');
+
+                        $('#rankingEstate1').append(tr2, tr3, tr3A);
+                     }
+                     else if (data[1].midPosition >= data[1].lastPosition) {
+                         var tr1A = $('<tr style="color: #5d817a;"><td style="text-align: center;">' + data[1].top2Position + 'º</td><td style="text-align: center;">' + data[1].top2Index._InquilinoAnual + '</td></tr>');
+                         var tr1 = $('<tr style="color: #5d817a;"><td style="text-align: center;">' + data[1].top1Position + 'º</td><td style="text-align: center;">' + data[1].top1Index._InquilinoAnual + '</td></tr>');
+                         var tr2 = $('<tr style="color: #5d817a;"><td style="font-weight: bold; font-size: 20px; text-align: center;">' + data[1].midPosition + 'º</td> <td style="font-weight: bold; font-size: 20px; text-align: center;">' + data[1].midIndex._InquilinoAnual + '</td><td></tr>');
+
+                        $('#rankingEstate1').append(tr1A, tr1, tr2);
+                     }
+
+                     if (data[1].midPosition > 1 && data[1].midPosition < data[1].lastPosition) {
+                         var tr1 = $('<tr style="color: #5d817a;"><td style="text-align: center;">' + data[1].top1Position + 'º</td><td style="text-align: center;">' + data[1].top1Index._InquilinoMensal + '</td></tr>');
+                         var tr2 = $('<tr style="color: #5d817a;"><td style="font-weight: bold; font-size: 20px; text-align: center;">' + data[1].midPosition + 'º</td> <td style="font-weight: bold; font-size: 20px; text-align: center;">' + data[1].midIndex._InquilinoMensal + '</td><td></tr>');
+                         var tr3 = $('<tr style="color: #5d817a;"><td style="text-align: center;">' + data[1].bottom1Position + 'º</td><td style="text-align: center;">' + data[1].bottom1Index._InquilinoMensal + '</td></tr>');
+
+                        $('#rankingEstate2').append(tr1, tr2, tr3);
+                     }
+                     else if (data[1].midPosition == 1) {
+
+                         var tr2 = $('<tr style="color: #5d817a;"><td style="font-weight: bold; font-size: 20px; text-align: center;">' + data[1].midPosition + 'º</td> <td style="font-weight: bold; font-size: 20px; text-align: center;">' + data[1].midIndex._InquilinoMensal + '</td><td></tr>');
+                         var tr3 = $('<tr style="color: #5d817a;"><td style="text-align: center;">' + data[1].bottom1Position + 'º</td><td style="text-align: center;">' + data[1].bottom1Index._InquilinoMensal + '</td></tr>');
+                         var tr3A = $('<tr style="color: #5d817a;"><td style="text-align: center;">' + data[1].bottom2Position + 'º</td><td style="text-align: center;">' + data[1].bottom2Index._InquilinoMensal + '</td></tr>');
+
+                        $('#rankingEstate2').append(tr2, tr3, tr3A);
+                     }
+                     else if (data[1].midPosition >= data[1].lastPosition) {
+                         var tr1A = $('<tr style="color: #5d817a;"><td style="text-align: center;">' + data[1].top2Position + 'º</td><td style="text-align: center;">' + data[1].top2Index._InquilinoMensal + '</td></tr>');
+                         var tr1 = $('<tr style="color: #5d817a;"><td style="text-align: center;">' + data[1].top1Position + 'º</td><td style="text-align: center;">' + data[1].top1Index._InquilinoMensal + '</td></tr>');
+                         var tr2 = $('<tr style="color: #5d817a;"><td style="font-weight: bold; font-size: 20px; text-align: center;">' + data[1].midPosition + 'º</td> <td style="font-weight: bold; font-size: 20px; text-align: center;">' + data[1].midIndex._InquilinoMensal + '</td><td></tr>');
+
+                        $('#rankingEstate2').append(tr1A, tr1, tr2);
+                     }
+
+                     if (data[2].midPosition > 1 && data[2].midPosition < data[2].lastPosition) {
+                         var tr1 = $('<tr style="color: #5d817a;"><td style="text-align: center;">' + data[2].top1Position + 'º</td><td style="text-align: center;">' + data[2].top1Index._ProximaFatura + '</td></tr>');
+                         var tr2 = $('<tr style="color: #5d817a;"><td style="font-weight: bold; font-size: 20px; text-align: center;">' + data[2].midPosition + 'º</td> <td style="font-weight: bold; font-size: 20px; text-align: center;">' + data[2].midIndex._ProximaFatura + '</td><td></tr>');
+                         var tr3 = $('<tr style="color: #5d817a;"><td style="text-align: center;">' + data[2].bottom1Position + 'º</td><td style="text-align: center;">' + data[2].bottom1Index._ProximaFatura + '</td></tr>');
+
+                        $('#rankingEstate3').append(tr1, tr2, tr3);
+                     }
+                     else if (data[2].midPosition == 1) {
+
+                         var tr2 = $('<tr style="color: #5d817a;"><td style="font-weight: bold; font-size: 20px; text-align: center;">' + data[2].midPosition + 'º</td> <td style="font-weight: bold; font-size: 20px; text-align: center;">' + data[2].midIndex._ProximaFatura + '</td><td></tr>');
+                         var tr3 = $('<tr style="color: #5d817a;"><td style="text-align: center;">' + data[2].bottom1Position + 'º</td><td style="text-align: center;">' + data[2].bottom1Index._ProximaFatura + '</td></tr>');
+                         var tr3A = $('<tr style="color: #5d817a;"><td style="text-align: center;">' + data[2].bottom2Position + 'º</td><td style="text-align: center;">' + data[2].bottom2Index._ProximaFatura + '</td></tr>');
+
+                        $('#rankingEstate3').append(tr2, tr3, tr3A);
+                     }
+                     else if (data[2].midPosition >= data[2].lastPosition) {
+                         var tr1A = $('<tr style="color: #5d817a;"><td style="text-align: center;">' + data[2].top2Position + 'º</td><td style="text-align: center;">' + data[2].top2Index._ProximaFatura + '</td></tr>');
+                         var tr1 = $('<tr style="color: #5d817a;"><td style="text-align: center;">' + data[2].top1Position + 'º</td><td style="text-align: center;">' + data[2].top1Index._ProximaFatura + '</td></tr>');
+                         var tr2 = $('<tr style="color: #5d817a;"><td style="font-weight: bold; font-size: 20px; text-align: center;">' + data[2].midPosition + 'º</td> <td style="font-weight: bold; font-size: 20px; text-align: center;">' + data[2].midIndex._ProximaFatura + '</td><td></tr>');
+
+                        $('#rankingEstate3').append(tr1A, tr1, tr2);
+                     }
+
+                     $('#_RealStateRank').html('<i class="fas fa-trophy" style="color: #f39a2d; font-size: 35px;"></i> <b>#Rank </b>' + data[0].midPosition + 'º com total de : ' + data[0].midIndex.count + ' Certificados Ativos');
+                }
+            }
+        });
+    }
+
+}
+
+
+
+    $(document).ready(function () { _MaskData() });
+</script>
+

@@ -1,0 +1,620 @@
+﻿@model DTO.Invoice.InvoiceViewModel
+@inject FUNCTIONS.Client.ClientFunctions clientFunctions
+@inject FUNCTIONS.Invoice.InvoiceFunctions invoiceFunctions
+@inject FUNCTIONS.Invoice.InvoiceStatusFunctions invoiceStatusFunctions
+@inject FUNCTIONS.SystemVariable.SystemVariableFunctions systemVariableFunctions
+@using Web.Extensions;
+@using Web.Utils;
+
+@{
+    int? clientId = Context.Request.Form.ContainsKey("clientId") ? (int?)int.Parse(Context.Request.Form["clientId"]) : null;
+    int? freezedFamilyId = Context.Request.Form.ContainsKey("freezedFamilyId") ? (int?)int.Parse(Context.Request.Form["freezedFamilyId"]) : null;
+    var userId = User.GetUserId().Value;
+    var clients = clientFunctions.GetDataViewModel(!User.IsInRole("Salesman") ? clientFunctions.GetData(x => !x.IsDeleted) : clientFunctions.GetData(x => x.ResponsibleId == userId && !x.IsDeleted));
+
+    var invoiceServiceTypes = invoiceFunctions.GetInvoiceServiceTypes();
+    var invoicePaymentWays = invoiceFunctions.GetInvoicePaymentWays();
+    var invoiceStatus = invoiceStatusFunctions.GetData();
+
+    var _tax = systemVariableFunctions.Get("IMPOSTO");
+    double tax = Model.Tax.HasValue ? Model.Tax.Value : (string.IsNullOrEmpty(_tax) ? 0.0 : float.Parse(_tax, System.Globalization.CultureInfo.InvariantCulture));
+}
+
+<script type="text/javascript">
+    var tax = @tax.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
+</script>
+
+<form action="@Url.Action("Print", "Invoice")" method="post" id="form-print" target="_blank"></form>
+<div class="row">
+    <div class="col-md-12">
+        <div id="alert-error" class="alert alert-danger" role="alert" style="display: none;">
+            <label id="alert-error-text"></label>
+        </div>
+    </div>
+</div>
+@if (Model.IsLocked)
+{
+    <div class="row">
+        <div class="col-md-12">
+            <div id="alert-error" class="alert alert-warning" role="alert">
+                Orçamento finalizado, não é possível salvar novas alterações.
+            </div>
+        </div>
+    </div>
+}
+<input type="hidden" id="InvoiceId" name="InvoiceId" value="@Model.InvoiceId" />
+<input type="hidden" id="ExternalCode" name="ExternalCode" value="@Model.ExternalCode" />
+<div class="row">
+    <div class="col-md-3">
+        <div class="form-gorup">
+            <label class="control-label">Tipo</label>
+            <select class="form-control" id="InvoiceServiceTypeId" name="InvoiceServiceTypeId" onchange="getPaymentTypeByInvoiceServiceType(this.value)">
+                @foreach (var item in invoiceServiceTypes)
+                {
+                    if (Model.InvoiceServiceTypeId == item.InvoiceServiceTypeId)
+                    {
+                        <option value="@item.InvoiceServiceTypeId" selected>@item.Name</option>
+                    }
+                    else
+                    {
+                        <option value="@item.InvoiceServiceTypeId">@item.Name</option>
+                    }
+                }
+            </select>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="form-group">
+            <label class="control-label">Cliente</label>
+            <select id="ClientId" name="ClientId" class="form-control">
+                <option>Selecione</option>
+                @foreach (var client in clients.OrderBy(x => x.ClientName))
+                {
+                    if ((Model.ClientId == 0 && clientId.HasValue && client.ClientId == clientId.Value) || Model.ClientId == client.ClientId)
+                    {
+                        <option value="@client.ClientId" selected>@client.ClientName</option>
+                    }
+                    else
+                    {
+                        <option value="@client.ClientId">@client.ClientName</option>
+                    }
+                }
+            </select>
+            <script type="text/javascript">
+                $('#ClientId').change(function () {
+                    $('#FreezedFamilyId').empty();
+                    $.get('@Url.Action("GetApprovedFreezedFamilies", "FreezedFamily")', { clientId: $(this).val() }, function (d) {
+                        if (d.length == 0) $('#FreezedFamilyId').append('<option value="">Nenhuma árvore encontrada.</option>');
+
+                        $.each(d, function (i, e) {
+                            if (e.freezedFamilyId == '@(Model.FreezedFamilyId == 0 ? (freezedFamilyId.HasValue ? freezedFamilyId.Value : 0) : Model.FreezedFamilyId)') {
+                                $('#FreezedFamilyId').append('<option value="' + e.freezedFamilyId + '" selected>' + e.freezedFamilyTerraNostraId + ' - ' + e.memberCount + ' membro(s)</option>');
+                            } else {
+                                $('#FreezedFamilyId').append('<option value="' + e.freezedFamilyId + '">' + e.freezedFamilyTerraNostraId + ' - ' + e.memberCount + ' membro(s)</option>');
+                            }
+                        });
+
+                        loadFreezedFamilyInvoiceViewComponent('@Model.InvoicePaymentTypeId');
+                    });
+                });
+
+                @if (Model.InvoiceId.HasValue || clientId.HasValue)
+                {
+                <text>
+                $('#ClientId').change();
+                </text>
+                }
+            </script>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="form-group">
+            <label class="control-label">Árvore</label>
+            <select id="FreezedFamilyId" name="FreezedFamilyId" class="form-control">
+                <option value="">Selecione um Cliente</option>
+            </select>
+            <script type="text/javascript">
+                $('#FreezedFamilyId').change(function () {
+                    loadFreezedFamilyInvoiceViewComponent();
+                });
+
+                function loadFreezedFamilyInvoiceViewComponent(invoicePaymentTypeId) {
+                    if (!$('#FreezedFamilyId').val()) {
+                        $('#_FreezedFamilyInvoiceViewComponent').empty();
+                        $('#div-select-info').show();
+                        return false;
+                    } else {
+                        $('#div-select-info').hide();
+                        $('#_FreezedFamilyInvoiceViewComponent').load('@Url.Action("FreezedFamilyInvoiceViewComponent", "FreezedFamily")', { freezedFamilyId: $('#FreezedFamilyId').val(), invoiceId: '@Model.InvoiceId' }, function () {
+                            getPaymentTypeByInvoiceServiceType(invoicePaymentTypeId);
+                        });
+                        $('#invoice-save-button').show();
+                    }
+                }
+            </script>
+        </div>
+    </div>
+    @if (Model.InvoiceId.HasValue)
+    {
+        <div class="col-md-3">
+            <div class="form-gorup">
+                <label class="control-label">Status</label>
+                <select class="form-control" id="InvoiceStatusId" name="InvoiceStatusId">
+                    @foreach (var item in invoiceStatus)
+                    {
+                        if (Model.InvoiceStatusId == item.InvoiceStatusId)
+                        {
+                            <option data-external-code="@item.ExternalCode" value="@item.InvoiceStatusId" selected>@item.Name</option>
+                        }
+                        else
+                        {
+                            <option data-external-code="@item.ExternalCode" value="@item.InvoiceStatusId">@item.Name</option>
+                        }
+                    }
+                </select>
+            </div>
+        </div>
+    }
+    else
+    {
+        <input type="hidden" class="form-control" id="InvoiceStatusId" name="InvoiceStatusId" value="@Model.InvoiceStatusId" />
+    }
+</div>
+<br />
+<h5>Configurações</h5>
+<hr />
+<div class="row">
+    <div class="col-md-2">
+        <div class="form-group">
+            <label class="control-label">Cotação EUR</label>
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">R$</span>
+                </div>
+                @{
+                    var eur = Model.EuroExchange.HasValue ? Model._EuroExchange : systemVariableFunctions.Get("EUR");
+                }
+                <input id="EUR" type="text" class="form-control money" value="@eur">
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="form-group">
+            <label class="control-label">Cert. Italiana</label>
+            <div class="input-group">
+                @{
+                    var cert_ita = Model.ItalianCertificateCost.HasValue ? Model._ItalianCertificateCost : systemVariableFunctions.Get("CERT.ITA");
+                }
+                <input id="CERT-ITA" type="text" class="form-control money" value="@cert_ita">
+                <div class="input-group-append">
+                    <span class="input-group-text">&euro;</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="form-group">
+            <label class="control-label">Cert. Brasileira</label>
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">R$</span>
+                </div>
+                @{
+                    var cert_bra = Model.BrazilianCertificateCost.HasValue ? Model._BrazilianCertificateCost : systemVariableFunctions.Get("CERT.BRA");
+                }
+                <input id="CERT-BRA" type="text" class="form-control money" value="@cert_bra">
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="form-group">
+            <label class="control-label">Tradução</label>
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">R$</span>
+                </div>
+                @{
+                    var trans_bra = Model.TranslationCost.HasValue ? Model._TranslationCost : systemVariableFunctions.Get("TRAD.BRA");
+                }
+                <input id="TRANS-BRA" type="text" class="form-control money" value="@trans_bra">
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="form-group">
+            <label class="control-label">Apostilamento</label>
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">R$</span>
+                </div>
+                @{
+                    var opost_bra = Model.HaiaHandoutCost.HasValue ? Model._HaiaHandoutCost : systemVariableFunctions.Get("APOST.BRA");
+                }
+                <input id="APOST-BRA" type="text" class="form-control money" value="@opost_bra">
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="form-group">
+            <label class="control-label">CNN</label>
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">R$</span>
+                </div>
+                @{
+                    var cnn = Model.CNNCost.HasValue ? Model._CNNCost : systemVariableFunctions.Get("CNN");
+                }
+                <input id="CNN" type="text" class="form-control money" value="@cnn">
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="form-group">
+            <label class="control-label">Custo Procuração Italiana</label>
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">R$</span>
+                </div>
+                @{
+                    var letterofattorney_cost = Model.LetterOfAttorneyCost.HasValue ? Model._LetterOfAttorneyCost : systemVariableFunctions.Get("LETTEROFATTORNEY.COST");
+                }
+                <input id="LETTEROFATTORNEY-COST" type="text" class="form-control money" value="@letterofattorney_cost">
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="form-group">
+            <label class="control-label">Abertura Processo</label>
+            <div class="input-group">
+                @{
+                    var process_cost = Model.ProcessCost.HasValue ? Model._ProcessCost : systemVariableFunctions.Get("PROCESS.COST");
+                }
+                <input id="PROCESS-COST" type="text" class="form-control money" value="@process_cost">
+                <div class="input-group-append">
+                    <span class="input-group-text">&euro;</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="form-group">
+            <label class="control-label">Custo por Requerente</label>
+            <div class="input-group">
+                @{
+                    var applicant_cost = Model.ApplicantCost.HasValue ? Model._ApplicantCost : systemVariableFunctions.Get("APPLICANT.COST");
+                }
+                <input id="APPLICANT-COST" type="text" class="form-control money" value="@applicant_cost">
+                <div class="input-group-append">
+                    <span class="input-group-text">&euro;</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="form-group">
+            <label class="control-label">Imposto</label>
+            <div class="input-group">
+                <input id="CONFIG-TAX" type="text" class="form-control money" value="@tax.ToString("#,###,##0.00", System.Globalization.CultureInfo.InvariantCulture)">
+                <div class="input-group-append">
+                    <span class="input-group-text">%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    @if (!Model.IsLocked)
+    {
+        <div class="col-md-4">
+            <div class="form-group">
+                <label class="control-label">&nbsp;</label><br />
+                <button id="reload-config" type="button" class="btn btn-secondary">Carregar Configurações Globais</button>
+                <script type="text/javascript">
+                            $('#reload-config').click(function () {
+                                if (confirm('Deseja realmente recarregar as configurações globais do sistema?')) {
+                                    $('#EUR').val('@systemVariableFunctions.Get("EUR")').trigger('input');
+                                    $('#CERT-ITA').val('@systemVariableFunctions.Get("CERT.ITA")').trigger('input');
+                                    $('#CERT-BRA').val('@systemVariableFunctions.Get("CERT.BRA")').trigger('input');
+                                    $('#TRANS-BRA').val('@systemVariableFunctions.Get("TRAD.BRA")').trigger('input');
+                                    $('#APOST-BRA').val('@systemVariableFunctions.Get("APOST.BRA")').trigger('input');
+                                    $('#CNN').val('@systemVariableFunctions.Get("CNN")').trigger('input');
+                                    $('#LETTEROFATTORNEY-COST').val('@systemVariableFunctions.Get("LETTEROFATTORNEY.COST")').trigger('input');
+                                    $('#PROCESS-COST').val('@systemVariableFunctions.Get("PROCESS.COST")').trigger('input');
+                                    $('#APPLICANT-COST').val('@systemVariableFunctions.Get("APPLICANT.COST")').trigger('input');
+                                    $('#CONFIG-TAX').val('@systemVariableFunctions.Get("IMPOSTO")').trigger('input');
+
+                                    $('#EUR, #CERT-ITA, #CERT-BRA, #TRANS-BRA, #APOST-BRA, #CNN, #LETTEROFATTORNEY-COST, #PROCESS-COST, #APPLICANT-COST, #CONFIG-TAX').change();
+                                }
+                            });
+                </script>
+            </div>
+        </div>
+    }
+</div>
+<br />
+<h5>Orçamento</h5>
+<hr />
+<div class="row">
+    <div id="div-select-info" class="col-md-12 text-center">
+        <i>Selecione um tipo de orçamento, cliente e árvore para iniciar um orçamento.</i>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div id="_FreezedFamilyInvoiceViewComponent"></div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="form-group">
+            <label class="control-label">Forma de Pagamento</label>
+            <select id="InvoicePaymentWayId" name="InvoicePaymentWayId" class="form-control">
+                @foreach (var item in invoicePaymentWays)
+                {
+                    if (Model.InvoicePaymentWayId == item.InvoicePaymentWayId)
+                    {
+                        <option value="@item.InvoicePaymentWayId" selected="selected">@item.Name</option>
+                    }
+                    else
+                    {
+                        <option value="@item.InvoicePaymentWayId">@item.Name</option>
+                    }
+                }
+            </select>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <label>Comentários:</label>
+        <textarea rows="5" class="form-control" placeholder="Comentários" id="Comments" name="Comments">@Html.Raw(Model.Comments)</textarea>
+    </div>
+</div>
+<hr />
+<div class="row">
+    <div class="col-md-12">
+        <div style="color: red; text-align: center;"><b>Orçamento baseado nas informações fornecidas pelo cliente. Sujeito à análise dos documentos para o fechamento do contrato.</b></div>
+        <div style="color: red; text-align: center;">
+            <b>
+                Orçamento válido por 30 dias a partir desta data @if (Model.InvoiceId > 0)
+                {<text><span>(@Model.CreatedDate.ToString("dd/MM/yyyy"))</span></text>}
+            else
+            {<text>@DateTime.Now.ToString("dd/MM/yyyy")</text>}.
+            </b>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <hr />
+        <a href="@Url.Action("Index", "Invoice")" class="btn btn-secondary"><i class="simple-icon-action-undo"></i>&nbsp;Voltar</a>
+        @if (!Model.IsLocked && User.InvoiceCanAccessEdition())
+        {
+            <button id="invoice-save-button" style="display:none;" class="btn btn-success float-right"><i class="simple-icon-cloud-upload"></i>&nbsp;Salvar</button>
+        }
+        <button id="invoice-print-button" class="btn btn-primary float-right" style="margin-right:10px;"><i class="simple-icon-printer"></i>&nbsp;Imprimir</button>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function getData() {
+        var data = [];
+        data.push({ name: 'Invoice.invoiceId', value: $('#InvoiceId').val() });
+        data.push({ name: 'Invoice.externalCode', value: $('#ExternalCode').val() });
+        data.push({ name: 'Invoice.invoiceServiceTypeId', value: $('#InvoiceServiceTypeId').val() });
+        data.push({ name: 'Invoice.ClientId', value: $('#ClientId').val() });
+        data.push({ name: 'Invoice.freezedFamilyId', value: $('#FreezedFamilyId').val() });
+        data.push({ name: 'Invoice._EuroExchange', value: $('#EUR').val() });
+        data.push({ name: 'Invoice._ItalianCertificateCost', value: $('#CERT-ITA').val() });
+        data.push({ name: 'Invoice._BrazilianCertificateCost', value: $('#CERT-BRA').val() });
+        data.push({ name: 'Invoice._TranslationCost', value: $('#TRANS-BRA').val() });
+        data.push({ name: 'Invoice._HaiaHandoutCost', value: $('#APOST-BRA').val() });
+        data.push({ name: 'Invoice._CNNCost', value: $('#CNN').val() });
+        data.push({ name: 'Invoice._ProcessCost', value: $('#PROCESS-COST').val() });
+        data.push({ name: 'Invoice._ApplicantCost', value: $('#APPLICANT-COST').val() });
+        data.push({ name: 'Invoice._LetterOfAttorneyCost', value: $('#LETTEROFATTORNEY-COST').val() });
+        data.push({ name: 'Invoice.Tax', value: $('#CONFIG-TAX').val() });
+        data.push({ name: 'Invoice.InvoiceStatusId', value: $('#InvoiceStatusId').val() });
+        data.push({ name: 'Invoice.InvoicePaymentTypeId', value: $('#InvoicePaymentTypeId').val() });
+        data.push({ name: 'Invoice.InvoicePaymentWayId', value: $('#InvoicePaymentWayId').val() });
+        data.push({ name: 'Invoice.Comments', value: $('#Comments').val() });
+
+        $.each($('.tr-freezed-family-item'), function (i, e) {
+            data.push({ name: '[' + i + '].FreezedFamilyItemId', value: $(e).data('freezed-family-item-id') });
+            data.push({ name: '[' + i + '].birthCertificateBRA', value: $(e).find('.cert[data-country="bra"][data-type="birth"]')[0].checked });
+            data.push({ name: '[' + i + '].birthCertificateITA', value: $(e).find('.cert[data-country="ita"][data-type="birth"]')[0].checked });
+            data.push({ name: '[' + i + '].marriageCertificateBRA', value: $(e).find('.cert[data-country="bra"][data-type="marriage"]')[0].checked });
+            data.push({ name: '[' + i + '].marriageCertificateITA', value: $(e).find('.cert[data-country="ita"][data-type="marriage"]')[0].checked });
+            data.push({ name: '[' + i + '].birthCertificateTranslation', value: $(e).find('.trans[data-country="bra"][data-type="birth"]')[0].checked });
+            data.push({ name: '[' + i + '].birthCertificateHaiaHandout', value: $(e).find('.apost[data-country="bra"][data-type="birth"]')[0].checked });
+            data.push({ name: '[' + i + '].marriageCertificateTranslation', value: $(e).find('.trans[data-country="bra"][data-type="marriage"]')[0].checked });
+            data.push({ name: '[' + i + '].marriageCertificateHaiaHandout', value: $(e).find('.apost[data-country="bra"][data-type="marriage"]')[0].checked });
+            data.push({ name: '[' + i + '].cnn', value: $(e).find('.cnn')[0].checked });
+
+            var deathCertificateBRA = $(e).find('.cert[data-country="bra"][data-type="death"]');
+            var deathCertificateITA = $(e).find('.cert[data-country="ita"][data-type="death"]');
+            var deathCertificateTranslation = $(e).find('.trans[data-country="bra"][data-type="death"]');
+            var deathCertificateHaiaHandout = $(e).find('.apost[data-country="bra"][data-type="death"]');
+
+            if (deathCertificateBRA.length > 0) data.push({ name: '[' + i + '].deathCertificateBRA', value: deathCertificateBRA[0].checked });
+            else data.push({ name: '[' + i + '].deathCertificateBRA', value: false });
+
+            if (deathCertificateITA.length > 0) data.push({ name: '[' + i + '].deathCertificateITA', value: deathCertificateITA[0].checked });
+            else data.push({ name: '[' + i + '].deathCertificateITA', value: false });
+
+            if (deathCertificateTranslation.length > 0) data.push({ name: '[' + i + '].deathCertificateTranslation', value: deathCertificateTranslation[0].checked });
+            else data.push({ name: '[' + i + '].deathCertificateTranslation', value: false });
+
+            if (deathCertificateHaiaHandout.length > 0) data.push({ name: '[' + i + '].deathCertificateHaiaHandout', value: deathCertificateHaiaHandout[0].checked });
+            else data.push({ name: '[' + i + '].deathCertificateHaiaHandout', value: false });
+        });
+
+        $.each($('.tr-service'), function (i, e) {
+            data.push({ name: '[' + i + '].InvoiceItemServiceTypeId', value: $(e).data('service-type-id') });
+            data.push({ name: '[' + i + '].InvoiceItemServiceTypeName', value: $(e).data('name') });
+            data.push({ name: '[' + i + '].Value', value: $(e).data('masked-value') });
+        });
+
+        //if ($('.tr-installments').length > 0) {
+        $.each($('.tr-installments'), function (i, e) {
+            data.push({ name: '[' + i + ']._InstallmentDate', value: $(e).data('installment-date') });
+            data.push({ name: '[' + i + ']._Price', value: $(e).data('value') });
+        });
+        //} else {
+        //    data.push({ name: '[' + i + ']._InstallmentDate', value: $(e).data('installment-date') });
+        //    data.push({ name: '[' + i + ']._Price', value: $(e).data('value') });
+        //}
+
+
+        return data;
+    }
+    $('#invoice-print-button').click(function () {
+        $('#form-print').empty();
+
+        $.each(getData(), function (i, e) {
+            $('#form-print').append($('<input>', { name: e.name, value: e.value }));
+        });
+
+        //dados a mais usados na impressão
+        $('#form-print').append($('<input>', { name: 'Invoice.Tax', value: tax }));
+        $('#form-print').append($('<input>', { name: 'Invoice.IsLocked', value: '@Model.IsLocked' }));
+        $('#form-print').append($('<input>', { name: 'Invoice.CreatedDate', value: '@Model.CreatedDate' }));
+
+        $.each($('.tr-installments'), function (i, e) {
+            $('#form-print').append($('<input>', { name: '[' + i + ']._Price', value: $(e).data('value') }));
+            $('#form-print').append($('<input>', { name: '[' + i + ']._InstallmentDate', value: $(e).data('installment-date') }));
+        });
+
+        $('#form-print').submit();
+        $('#form-print').empty();
+    });
+    $('#invoice-save-button').click(function () {
+        var statusExternalCode = $('#InvoiceStatusId option:selected').data('external-code');
+        if (statusExternalCode == "APPROVED" || statusExternalCode == "REPPROVED") {
+            if (!confirm('Atenção! Não será possível editar o orçamento após a mudança de status para APROVAÇÃO ou REPROVAÇÃO. Deseja continuar?')) {
+                return false;
+            }
+        }
+
+        $.post('@Url.Action("Manage", "Invoice")',
+            getData()
+            , function (d) {
+                $('#alert-error').hide();
+
+                if (d.hasError) {
+                    $('#alert-error').show().fadeOut(5000);
+                    $('#alert-error-text').text(d.message);
+                    $('html, body').animate({ scrollTop: 0 }, 'slow');
+                } else {
+                    window.location.href = '@Url.Action("Index", "Invoice")?invoiceId=' + d.invoiceId + '&saved=true';
+                }
+        });
+    });
+</script>
+<script type="text/javascript">
+    _MaskData();
+    function getPaymentTypeByInvoiceServiceType(invoiceServiceId) {
+        if (!$('#ClientId').val() || !$('#FreezedFamilyId').val()) { return false; }
+
+        $.post('@Url.Action("GetPaymentTypeByInvoiceServiceType")', { invoiceServiceTypeId: $('#InvoiceServiceTypeId').val() }, function (d) { montarComboParcelamento(d, invoiceServiceId); });
+    }
+    function montarComboParcelamento(data, invoiceServiceId) {
+        $('#InvoicePaymentTypeId').empty();
+
+        if (data.length == 0) {
+            $('#InvoicePaymentTypeId').val('');
+            $('#InvoicePaymentTypeArea').hide();
+        } else {
+            $('#InvoicePaymentTypeArea').show();
+
+            $.each(data, function (i, e) {
+                var option = $('<option>', { value: e.invoicePaymentTypeId });
+                option.data('tax', e.taxes);
+                option.data('times', e.paymentTimes);
+                option.append(e.name + (e.taxes == null || e.taxes == 0 ? '' : ' (' + (e.taxes < 0 ? 'desconto' : 'juros') + ' de ' + e._TaxesABS + '%)'));
+
+
+                if (invoiceServiceId != null && invoiceServiceId == e.invoicePaymentTypeId) {
+                    option.attr('selected', 'selected');
+                }
+
+                $('#InvoicePaymentTypeId').append(option);
+            });
+        }
+
+        getInvoicePaymentTypePrice();
+
+        fillGrandTotalText();
+    }
+    function getInvoicePaymentTypePrice() {
+        $('.tr-installments').remove();
+
+        if ($('#InvoiceServiceTypeId').val() == 1) {
+
+            $.post('@Url.Action("GetInvoicePaymentTypePrice")', {
+                price: (getGrandTotalWithTaxes()).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                invoicePaymentTypeId: $('#InvoicePaymentTypeId').val(),
+                installmentDay: 1
+            }
+                , setInstallmentsTr);
+
+        } else if ($('#InvoiceServiceTypeId').val() == 2) {
+
+            var valorTotalComTaxa = getGrandTotalWithTaxes();
+            var valorDocComTaxa = getValueDocsWithTaxes();
+            var valorAberturaProcessoComTaxa = getProcessCostWithTaxes();
+            var installmentDay = 1;
+            var qtdParcelas = $('#InvoicePaymentTypeId option:selected').data('times');
+            var valorDocumentacaoSemTaxa = getCertTransApostPrice();
+            var aberturaProcessoSemTaxa = getValueProcessCost();
+            var cotacaoEuro = getCotacaoEuro();
+            var valorInscricaoNoAire = getNoAireSubscription();
+            var custoProcuracaoItaliana = getLetterOfAttorneyCost();
+
+            $.post('@Url.Action("GetInvoicePaymentTypePriceDiffida")', {
+                valorTotalComTaxa: valorTotalComTaxa,
+                valorDocComTaxa: valorDocComTaxa,
+                valorAberturaProcessoComTaxa: valorAberturaProcessoComTaxa,
+                installmentDay: installmentDay,
+                qtdParcelas: qtdParcelas,
+                valorDocumentacaoSemTaxa: valorDocumentacaoSemTaxa,
+                cotacaoEuro: cotacaoEuro,
+                valorInscricaoNoAire: valorInscricaoNoAire,
+                aberturaProcessoSemTaxa: aberturaProcessoSemTaxa,
+                custoProcuracaoItaliana: custoProcuracaoItaliana
+            }, setInstallmentsTr);
+        }
+    }
+    function setInstallmentsTr(data) {
+
+        if (data == null) {
+            fillGrandTotalText();
+            return;
+        }
+
+        var trs = [];
+        $.each(data, function (i, e) {
+            var tr = $('<tr>', { class: 'tr-installments', style: 'font-size: 0.8em;' });
+            if (e.visible) {
+                tr.append($('<td>', { colspan: '3', class: 'text-right' }).append($('<b>').append('Parcela: ' + (i + 1) + ' (' + e._InstallmentDate + '):')));
+            }
+            else {
+                tr.append($('<td>', { colspan: '3', class: 'text-right' }).append($('<b>').append('Parcela: ' + (i + 1))));
+            }
+           // tr.append($('<td>', { colspan: '3', class: 'text-right' }).append($('<b>').append('Parcela ' + (i + 1) + ' (' + e._InstallmentDate + '):')));
+            tr.append($('<td>', { colspan: '4', class: 'text-center' }).append($('<b>').append('R$ ' + e._Price)));
+            tr.data('installment-date', e._InstallmentDate);
+            tr.data('value', e._Price);
+
+            trs.push(tr);
+        });
+        $('#InvoicePaymentTypeArea').after(trs);
+        fillGrandTotalText();
+    }
+</script>
+
+@if (!User.InvoiceCanAccessEdition())
+{
+    <script type="text/javascript">
+        disabledFields();
+    </script>
+}

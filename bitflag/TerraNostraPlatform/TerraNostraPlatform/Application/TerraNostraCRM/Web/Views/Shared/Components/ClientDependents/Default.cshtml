@@ -1,0 +1,182 @@
+﻿@model List<DB.ClientDependent>
+
+@using Web.Utils
+
+@{
+    int clientId = (int)ViewBag.ClientId;
+}
+
+<ul class="nav nav-pills mb-4" role="tablist">
+    @for (int i = 0; i < Model.Count; i++)
+    {
+        var first = i == 0;
+
+        <li class="nav-item">
+            <a class="nav-link nav-link-client-dependent @if (first) {<text>active</text>}" id="dependents-@Model[i].ClientDependentId-tab" data-client-dependent-id="@Model[i].ClientDependentId" data-toggle="tab" href="#dependents-@Model[i].ClientDependentId" role="tab" aria-controls="dependents-@Model[i].ClientDependentId" aria-selected="true">@Model[i].FirstName @Model[i].LastName</a>
+        </li>
+    }
+    @if (User.ClientCanAccessEdition())
+    {
+        <li class="nav-item">
+            <a class="nav-link nav-link-client-dependent @if (Model.Count == 0) {<text>active</text>}" id="dependents-new-tab" data-toggle="tab" href="#dependents-new" role="tab" aria-controls="dependents-new" aria-selected="false"><i style="font-size: 11px;" class="simple-icon-plus"></i>&nbsp;Novo</a>
+        </li>
+    }
+</ul>
+
+<div class="tab-content">
+    @for (int i = 0; i < Model.Count; i++)
+    {
+        var first = i == 0;
+
+        <div class="tab-pane fade tab-pane-client-dependent @if (first) {<text>show active</text>}" id="dependents-@Model[i].ClientDependentId" role="tabpanel" aria-labelledby="dependents-@Model[i].ClientDependentId-tab"><div id="ClientDependentsManageViewComponent-@Model[i].ClientDependentId"></div></div>
+    }
+    @if (User.ClientCanAccessEdition())
+    {
+        <div class="tab-pane fade tab-pane-client-dependent @if (Model.Count == 0)
+    {<text>show active</text>}" id="dependents-new" role="tabpanel" aria-labelledby="dependents-new-tab"><div id="ClientDependentsManageViewComponent-new"></div></div>
+    }
+</div>
+
+<script type="text/javascript">
+    $('.nav-link-client-dependent').on('show.bs.tab', function () { loadClientDependentsManageViewComponent(this) });
+
+    function loadClientDependentsManageViewComponent(sel) {
+        var clientDependentId = $(sel).data('client-dependent-id');
+
+        if (clientDependentId == null) {
+            $('#_ClientDependentsManageButtonRemove').hide();
+            $('#_ClientDependentsManageButtonSubmit').html('<i class="simple-icon-cloud-upload"></i>&nbsp;Criar Dependente');
+        } else {
+            $('#_ClientDependentsManageButtonRemove').show();
+            $('#_ClientDependentsManageButtonSubmit').html('<i class="simple-icon-cloud-upload"></i>&nbsp;Salvar');
+        }
+
+        if ($('#ClientDependentsManageViewComponent-' + clientDependentId).children().length > 0) return;
+
+        $('#ClientDependentsManageViewComponent-' + clientDependentId).load('@Url.Action("ClientDependentsManageViewComponent", "Client")', { "clientDependentId": clientDependentId, clientId: '@clientId' });
+    }
+
+    $(document).ready(function () {
+        loadClientDependentsManageViewComponent($('.nav-link-client-dependent.active'));
+
+        $('#ClientDependentsManageViewComponent-new').load('@Url.Action("ClientDependentsManageViewComponent", "Client")', { "clientDependentId": null, clientId: '@clientId' });
+    });
+
+    function _ClientDependentsManageMoreInfo() {
+        $('.tab-pane-client-dependent.show ._ClientDependentsManageMoreInfo').hide();
+        $('.tab-pane-client-dependent.show ._ClientDependentsManageDivMoreInfo').show();
+    }
+    function _ClientDependentsManageLessInfo() {
+        $('.tab-pane-client-dependent.show ._ClientDependentsManageMoreInfo').show();
+        $('.tab-pane-client-dependent.show ._ClientDependentsManageDivMoreInfo').hide();
+    }
+</script>
+
+
+<script type="text/javascript">
+
+function _ClientDependentsManageValidate() {
+
+	var hasError = false;
+	$('.tab-pane-client-dependent.show ._ClientDependentsManageForm .text-danger').remove();
+
+    // FirstName
+    if (IsNullOrWhiteSpace($('.tab-pane-client-dependent.show ._ClientDependentsManageFirstName').val())) {
+        $('.tab-pane-client-dependent.show ._ClientDependentsManageFirstName').after('<div class="text-danger">Preencha o Nome.</div>');
+        hasError = true;
+    }
+
+    // LastName
+    if (IsNullOrWhiteSpace($('.tab-pane-client-dependent.show ._ClientDependentsManageLastName').val())) {
+        $('.tab-pane-client-dependent.show ._ClientDependentsManageLastName').after('<div class="text-danger">Preencha o Sobrenome.</div>');
+        hasError = true;
+    }
+
+    if (IsNullOrWhiteSpace($('.tab-pane-client-dependent.show ._ClientDependentsManageEmail').val())) {
+        $('.tab-pane-client-dependent.show ._ClientDependentsManageEmail').after('<div class="text-danger">Preencha o e-mail.</div>');
+        hasError = true;
+    }
+
+    if (hasError) {
+        $('.tab-pane-client-dependent.show ._ClientDependentsManageAlertErrorClient').show();
+    }
+    else {
+        $('.tab-pane-client-dependent.show ._ClientDependentsManageForm .text-danger').remove();
+        $('.tab-pane-client-dependent.show ._ClientDependentsManageAlertErrorClient').hide();
+    }
+
+	return (!hasError);
+}
+
+    function _ClientDependentsManageSave() {
+	    var d = $('.tab-pane-client-dependent.show ._ClientDependentsManageForm').serializeArray();
+        $.post('@Url.Action("ManageDependent", "Client")', d, function (data) {
+            if (data.hasError) {
+                $('.tab-pane-client-dependent.show ._ClientDependentsManage' + data.data).after('<div class="text-danger">' + data.message + '</div>'); //data.data contem o nome do campo que ocorreu o erro
+                $('.tab-pane-client-dependent.show ._ClientDependentsManageForm .text-danger').show();
+                $('.tab-pane-client-dependent.show ._ClientDependentsManageAlertErrorClient').show();
+            } else {
+                $('.tab-pane-client-dependent.show ._ClientDependentsManageClientId').val(data.code);
+                    _ClientDependentsManageCallBack(data.code);
+            }
+            $('.tab-pane-client-dependent.show ._ClientDependentsManageButtonSubmit').removeAttr('disabled');
+	    });
+    }
+</script>
+
+
+<script type="text/javascript">
+    function getAddress(sel) {
+        var cep = $(sel).val().replace(/\D/g, '');
+
+        $('.CEPError').remove();
+        if (cep != "") {
+            var validacep = /^[0-9]{8}$/;
+
+            if (validacep.test(cep)) {
+
+                LimparCamposEndereco();
+
+                $.getJSON("https://viacep.com.br/ws/" + cep + "/json/?callback=?", function (dados) {
+                    if (!("erro" in dados)) {
+                        $(".tab-pane-client-dependent.show ._ClientDependentsManageEndereco").val(dados.logradouro);
+                        $(".tab-pane-client-dependent.show ._ClientDependentsManageBairro").val(dados.bairro);
+                        $(".tab-pane-client-dependent.show ._ClientDependentsManageCidade").val(dados.localidade);
+                        $(".tab-pane-client-dependent.show ._ClientDependentsManageEstado").val(dados.uf);
+                    } else {
+                        LimparCamposEndereco();
+                        $('.tab-pane-client-dependent.show ._ClientDependentsManageCep').after('<div class="text-danger CEPError">CEP não encontrado.</div>');
+                    }
+                });
+            }
+            else {
+                LimparCamposEndereco();
+                $('.tab-pane-client-dependent.show ._ClientDependentsManageCep').after('<div class="text-danger CEPError">Formato de CEP inválido.</div>');
+            }
+        }
+        else {
+            limpa_formulário_cep();
+        }
+    }
+
+    function LimparCamposEndereco() {
+        $(".tab-pane-client-dependent.show ._ClientDependentsManageEndereco").val("");
+        $(".tab-pane-client-dependent.show ._ClientDependentsManageBairro").val("");
+        $(".tab-pane-client-dependent.show ._ClientDependentsManageCidade").val("");
+        $(".tab-pane-client-dependent.show ._ClientDependentsManageEstado").val("");
+    }
+
+    function _ClientDependentsManageRemove() {
+        if (!confirm('Deseja realmente excluir este dependente?')) return;
+
+        var clientDependentId = $('.tab-pane-client-dependent.show ._ClientDependentsManageClientDependentId').val();
+
+        $.post('@Url.Action("RemoveClientDependent", "Client")', { clientDependentId }, function (d) {
+            alert(d.message);
+
+            if (!d.hasError) {
+                _ClientDependentsManageCallBack();
+            }
+        });
+    }
+</script>

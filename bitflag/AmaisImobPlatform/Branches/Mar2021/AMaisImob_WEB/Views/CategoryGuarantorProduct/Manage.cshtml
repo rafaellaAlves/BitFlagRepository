@@ -1,0 +1,29 @@
+﻿@model int?
+@{
+    ViewData["Title"] = "Produto e Categoria da Garantidora";
+}
+<div id="_SuccessDiv" class="alert alert-success fade show text-center" role="alert" style="display: none;">
+    Os dados foram salvos com sucesso.
+</div>
+<div class="card shadow bg-light">
+    <div class="card-body">
+        <div id="_CategoryGuarantorProductManageViewComponent"></div>
+    </div>
+    <div class="card-footer">
+        <a href="@Url.Action("Index","CategoryGuarantorProduct")" class="btn btn-secondary float-left" style="color:white;"><i class="fa fa-arrow-left"></i>&nbsp;Voltar</a>
+        <button type="button" id="CategoryGuarantorProductSubmitButton" class="btn btn-success float-right"><i class="fa fa-cloud-upload-alt"></i>&nbsp;Criar</button>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#_CategoryGuarantorProductManageViewComponent').load('@Url.Action("CategoryGuarantorProductManageComponent", "CategoryGuarantorProduct")', { "id": @if (Model.HasValue) { @Model } else { <text>null</text> } });
+
+    $('#CategoryGuarantorProductSubmitButton').click(function () {
+        if (CamposSelecionados()) {
+            if (VerificarCamposTaxas()) {
+                CategoryGuarantorProductManageSave();
+            }
+        }
+
+    });
+</script>

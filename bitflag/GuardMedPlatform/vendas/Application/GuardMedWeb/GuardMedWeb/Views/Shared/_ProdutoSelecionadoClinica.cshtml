@@ -1,0 +1,94 @@
+﻿@{
+    double precoMV = 0;
+    precoMV += Convert.ToDouble(Model.PlanoExtensaoCobertura20PrecoTotal) + Convert.ToDouble(Model.PlanoExtensaoCobertura30PrecoTotal) + Convert.ToDouble(Model.PlanoExtensaoCobertura40PrecoTotal) + Convert.ToDouble(Model.PlanoExtensaoCobertura50PrecoTotal);
+}
+
+<div class="row">
+    <div class=" col-md-12 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="amaisvet-green">Produto Selecionado</h5>
+            </div>
+            <div class="card-body">
+                <div class="form-row" style="display: flex;align-items: center;">
+                    <div class="col-md-2 text-center">
+                        <div style=" font-size:3em;" class="amaisvet-green">
+                            <i style="vertical-align: middle;" class="fas fa-cart-plus"></i>
+                        </div>
+                    </div>
+                    <div class="col-md-10">
+                        <div class="form-row" style="padding-top:10px; width:100%;">
+                            <div class="col-md-6" style="text-align:center;">
+                                <strong>Etapa 1</strong> - Seguro Empresarial
+                            </div>
+                            <div class="col-md-3" style="text-align:center;">
+                                <strong>@Model.PlanoClinicaVeterinariaNome</strong>
+                            </div>
+                            <div class="col-md-3" style="text-align:center;">
+                                <strong>R$ <span class="money">@Model.PlanoClinicaVeterinariaPreco</span></strong>
+                                @*<strong>R$ <span class="money">@precoClinica.ToString("0.00")</span></strong>*@
+                            </div>
+                        </div>
+                        <div class="form-row" style="padding-top:10px; width:100%;">
+                            <div class="col-md-6" style="text-align:center;">
+                                <strong>Etapa 2</strong> - Proteção de Renda para o RT
+                            </div>
+                            <div class="col-md-3" style="text-align:center;">
+                                <strong>
+                                    @if (!string.IsNullOrWhiteSpace(Model.PlanoResponsavelTecnicoNome))
+                                    {<text>@Model.PlanoResponsavelTecnicoNome</text>}
+                                else
+                                {<text>Não Selecionado</text>}
+                                </strong>
+                            </div>
+                            <div class="col-md-3" style="text-align:center;">
+                                <strong>
+                                    R$ <span class="money">@Model.PlanoResponsavelTecnicoPreco</span>
+                                </strong>
+                            </div>
+                        </div>
+                        <div class="form-row" style="padding-top:10px; width:100%;">
+                            <div class="col-md-6" style="text-align:center;">
+                                <strong>Etapa 3</strong> - Proteção Profissional aos MVs Colaboradores
+                            </div>
+                            <div class="col-md-3" style="text-align:center;">
+                                <strong>
+                                    @if (!string.IsNullOrWhiteSpace(Model.PlanoExtensaoCoberturaNome))
+                                    {<text>@Model.PlanoExtensaoCoberturaNome</text>}
+                                else
+                                {<text>Não Selecionado</text>}
+                                </strong>
+                            </div>
+                            <div class="col-md-3" style="text-align:center;">
+                                <strong>R$  <span class="money">@precoMV.ToString("0.00")</span></strong>
+                            </div>
+                        </div>
+                        @*<div class="row" style="padding-top:10px; width:100%;">
+                            <div class="col-md-6">
+                                <strong>Etapa 4</strong> - Seguro de Vida
+                            </div>
+                            <div class="col-md-3" style="text-align:right;">
+                                <strong>
+                                    @if (Model.SeguroVida)
+                                    {<text>Selecionado</text>}
+                                else
+                                {<text>Não Selecionado</text>}
+                                </strong>
+                            </div>
+                            <div class="col-md-3" style="text-align:right;">
+                                <strong>R$ - <span class="money"></span></strong>
+                            </div>
+                        </div>*@
+                        <hr />
+                        <div class="form-row" style="padding-top:10px; width:100%;">
+                            <div class="col-md-6"></div>
+                            <div class="col-md-3" style="text-align:center;"><strong>Total</strong></div>
+                            <div class="col-md-3" style="text-align:center;"><strong>R$ <span class="money">@Model.PrecoTotal</span></strong></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<br />                        

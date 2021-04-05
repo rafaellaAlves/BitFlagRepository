@@ -1,0 +1,277 @@
+﻿@model AMaisImob_WEB.Models.CertificateContractualViewModel
+
+@using AMaisImob_WEB.Utils;
+
+@inject AMaisImob_WEB.BLL.CertificateContractualPaymentTypeFunctions certificateContractualPaymentTypeFunctions
+@inject AMaisImob_WEB.BLL.CertificateContractualInstallmentFunctions certificateContractualInstallmentFunctions
+
+@{
+    var certificateContractualPaymentTypes = certificateContractualPaymentTypeFunctions.GetData();
+
+    var dividedTypeId = certificateContractualPaymentTypes.Single(x => x.ExternalCode == "DIVIDED").CertificateContractualPaymentTypeId;
+    var monthlyTypeId = certificateContractualPaymentTypes.Single(x => x.ExternalCode == "MONTHLY").CertificateContractualPaymentTypeId;
+    var atSightTypeId = certificateContractualPaymentTypes.Single(x => x.ExternalCode == "ATSIGHT").CertificateContractualPaymentTypeId;
+
+    var installments = certificateContractualInstallmentFunctions.GetDataViewModel(certificateContractualInstallmentFunctions.GetDataAsNoTracking(x => x.CertificateContractualId == Model.CertificateContractualId).OrderBy(x => x.Date));
+}
+
+<style type="text/css">
+    #certificate-contractual-installment-table th, #certificate-contractual-installment-table td {
+        text-align: center;
+    }
+</style>
+
+<form id="certificate-contractual-installment-form">
+    <input type="hidden" name="CertificateContractualId" value="@Model.CertificateContractualId" />
+    <div class="row">
+        <div class="col-md-6 form-group">
+            <div class="input-group" id="payment-type-area">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" style="padding: 0 10px 0 10px;">Tipo de Pagamento</span>
+                </div>
+                <select class="form-control" id="payment-type-id" name="PaymentTypeId" data-start-value="@Model.CertificateContractualPaymentTypeId">
+                    @foreach (var item in certificateContractualPaymentTypes)
+                    {
+                        if (Model.CertificateContractualPaymentTypeId == item.CertificateContractualPaymentTypeId)
+                        {
+                            <option selected value="@item.CertificateContractualPaymentTypeId">@item.Name</option>
+                            continue;
+                        }
+
+                        <option value="@item.CertificateContractualPaymentTypeId">@item.Name</option>
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="col-md-6 form-group" id="installment-date-col" style="@(Model.CertificateContractualPaymentTypeId == monthlyTypeId || !Model.CertificateContractualPaymentTypeId.HasValue ? "display: none;" : "")">
+            <div class="input-group" id="installment-date-area">
+                <div style="min-width: 120px;" class="input-group-prepend">
+                    <span style="padding: 0 33px 0 34px;" class="input-group-text">Mês e Ano</span>
+                </div>
+                <input class="form-control monthYear" id="installment-date" placeholder="Mês e Ano" name="Date" value="@Model._InstallmentDate" data-start-value="@Model._InstallmentDate" onblur="trySetInstallments()" />
+            </div>
+        </div>
+        <div class="col-md-6 form-group">
+            <div class="input-group" id="installment-price-area">
+                <div style="min-width: 120px;" class="input-group-prepend">
+                    <span style=" padding: 0 18px 0 18px;" class="input-group-text">Preço da Parcela</span>
+                </div>
+                <input class="form-control money" id="installment-price" name="Price" placeholder="Preço" value="@(Model.InstallmentPrice.HasValue? Model._InstallmentPrice : Model._PriceQuote)" data-start-value="@Model._InstallmentPrice" onblur="trySetInstallments()" />
+            </div>
+        </div>
+        <div class="col-md-6 form-group" id="installment-amount-col" style="@(Model.CertificateContractualPaymentTypeId == dividedTypeId ? "" : "display: none;")">
+            <div class="input-group" id="installment-amount-area">
+                <div style="min-width: 120px;" class="input-group-prepend">
+                    <span style="padding: 0 38px 0 38px;" class="input-group-text">Parcelas</span>
+                </div>
+                <input class="form-control number" id="installment-amount" placeholder="Parcelas" name="PaymentTimes" value="@(installments.Count() == 0? 1 : installments.Count())" data-start-value="@installments.Count()" data-old-value="@installments.Count()" onblur="trySetInstallments()" />
+            </div>
+        </div>
+    </div>
+</form>
+<div class="row" id="certificate-contractual-installment-area" style="@(Model.CertificateContractualPaymentTypeId == monthlyTypeId || !Model.CertificateContractualPaymentTypeId.HasValue ? "display: none;" : "")">
+    <div class="col-12">
+        <hr />
+    </div>
+    <div class="col-12" style=" max-height: 550px; overflow-y: auto;">
+        <table class="table table-condensed table-striped table-bordered" id="certificate-contractual-installment-table">
+            <thead>
+                <tr>
+                    <th>Parcela</th>
+                    <th>Preço</th>
+                    <th>Data</th>
+                    @*<th>Pago</th>
+                    <th></th>*@
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    for (int i = 0; i < installments.Count(); i++)
+                    {
+                        <tr data-installment-id="@installments[i].CertificateContractualInstallmentId" data-installment-index="@(i + 1)" data-installment-paid="@(installments[i].Paid? "true" : "false")">
+                            <td>@(i + 1)</td>
+                            <td>@installments[i]._Price</td>
+                            <td>@installments[i]._Date</td>
+                            @*<td>@(installments[i].Paid? Html.Raw("<span style=\"color: green;\">Sim<span>") : Html.Raw("<span style=\"color: red;\">Não<span>"))</td>
+                            <td>@(installments[i].Paid? (object)"" : Html.Raw($"<a class=\"badge badge-pill badge-success\" href=\"javascript:setInstallmentAsPaid({i + 1})\"><i class=\"fas fa-check\"></i> Pago</a>"))</td>*@
+                        </tr>
+                    }
+                    <tr id="certificate-contractual-installment-total-price" style="@(installments.Count() < 2? "display: none;" : "")">
+                        <td>Preço Total:</td>
+                        <td>@installments.Sum(x => x.Price ?? 0).ToPtBR()</td>
+                        <td></td>
+                        @*<td></td>
+                        <td></td>*@
+                    </tr>
+                    if (installments.Count() == 0)
+                    {
+                        <tr id="certificate-contractual-installment-no-items">
+                            <td colspan="5" class="text-center"><i>Preencha os campos acima para gerar as parcelas</i></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#payment-type-id').change(function () {
+        $('#installment-date-col').hide();
+        $('#installment-amount-col').hide();
+        $('#certificate-contractual-installment-area').show();
+
+        if ($(this).val() == @dividedTypeId) {
+            $('#installment-amount-col').show();
+            $('#installment-date-col').show();
+        }
+        else if ($(this).val() == @atSightTypeId) {
+            $('#installment-date-col').show();
+            $('#installment-amount-col').hide();
+            $('#installment-amount').val('1');
+        } else {
+            $('#certificate-contractual-installment-area').hide();
+        }
+
+        trySetInstallments();
+    });
+
+    function trySetInstallments() {
+        if (!validateInstallments(false)) return;
+
+        var amount = 1;
+        if ($('#payment-type-id').val() == @dividedTypeId) amount = $('#installment-amount').val();
+
+        if (!IsNullOrWhiteSpace($('#installment-amount').data('old-value').toString())) {
+            var oldAmount = $('#installment-amount').data('old-value');
+
+            var newAmount = amount - oldAmount;
+
+            if (newAmount > 0) {
+                setInstallments(newAmount, oldAmount);
+            } else if (newAmount < 0) {
+                removeInstallments(Math.abs(newAmount));
+            }
+        } else {
+            $('#certificate-contractual-installment-table tbody tr:not(#certificate-contractual-installment-total-price):last').remove();
+
+            setInstallments(amount, 0);
+        }
+
+        $('#certificate-contractual-installment-no-items').hide();
+        $('#installment-amount').data('old-value', $('#installment-amount').val());
+        updateAllInstallmentDates();
+        updateAllInstallmentPrices();
+        updateTotalPrice();
+    }
+
+    function setInstallments(amount, startIndex) {
+        for (var i = parseInt(startIndex) + 1; i <= parseInt(startIndex) + parseInt(amount); i++) {
+            $('#certificate-contractual-installment-table tbody').append(
+                $('<tr>', { 'data-installment-id': '', 'data-installment-index': i, 'data-installment-paid': 'false' }).append(
+                    $('<td>').append(i),
+                    $('<td>'),
+                    $('<td>'),
+                    //$('<td>').append('<span style="color: red;">Não</span>'),
+                    //$('<td>').append('<a class="badge badge-pill badge-success" href="javascript:setInstallmentAsPaid(' + i + ')"><i class="fas fa-check"></i> Pago</a>'),
+                )
+            );
+        }
+    }
+
+    function removeInstallments(amount)
+    {
+        for (var i = 0; i < amount; i++) $('#certificate-contractual-installment-table tbody tr:not(#certificate-contractual-installment-total-price):last').remove();
+    }
+
+    function updateAllInstallmentDates() {
+        var dt = fromPtBRDate('01/' + $('#installment-date').val());
+
+        $('#certificate-contractual-installment-table tbody tr:not(#certificate-contractual-installment-total-price)').each(function (i, e) {
+            $($(e).find('td')[2]).text(moment(dt).format('MM/YYYY'));
+
+            dt.setMonth(dt.getMonth() + 1);
+        });
+    }
+
+    function updateAllInstallmentPrices() {
+        var price = $('#installment-price').val();
+
+        $('#certificate-contractual-installment-table tbody tr:not(#certificate-contractual-installment-total-price)').each(function (i, e) {
+            $($(e).find('td')[1]).text(price);
+        });
+    }
+
+    function updateTotalPrice() {
+        if ($('#certificate-contractual-installment-area tr[data-installment-id]').length > 1) {
+            $('#certificate-contractual-installment-total-price').show();
+
+            if ($('#certificate-contractual-installment-total-price')[0] == [0]) return;
+
+            var elem = $('#certificate-contractual-installment-total-price');
+
+            $('#certificate-contractual-installment-table tbody').append(elem.get(0).outerHTML);
+            elem.remove();
+
+            var price = Globalize.parseFloat(Globalize.format($('#installment-price').val()));
+
+            $($('#certificate-contractual-installment-total-price td')[1]).text($('.money').masked((price * $('#installment-amount').val()).toFixed(2)));
+        } else {
+            $('#certificate-contractual-installment-total-price').hide();
+        }
+
+    }
+
+    function validateInstallments(showAlerts) {
+        var hasError = false;
+        $('.text-danger').remove();
+
+        if (!fieldHasValue('#installment-price')) {
+            hasError = true;
+            if (showAlerts) $('#installment-price-area').after('<div class="text-danger">Preencha este campo.</div>');
+        }
+        if (!fieldHasValue('#installment-date') && ($('#payment-type-id').val() == @dividedTypeId || $('#payment-type-id').val() == @atSightTypeId)) {
+            hasError = true;
+            if (showAlerts) $('#installment-date-area').after('<div class="text-danger">Preencha este campo.</div>');
+        }
+
+        if (!fieldHasValue('#installment-amount') && $('#payment-type-id').val() == @dividedTypeId) {
+            hasError = true;
+            if (showAlerts) $('#installment-amount-area').after('<div class="text-danger">Preencha este campo.</div>');
+        }
+
+        return !hasError;
+    }
+
+    $('#installment-date').datepicker({ format: 'mm/yyyy', startView: "year", minViewMode: "months", language: 'pt-BR', autoclose: true }).on('changeDate', function () {
+        $(this).datepicker('hide');
+        trySetInstallments();
+    });
+
+    $('#installment-amount, #installment-price, #installment-date').on('keypress', function (e) {
+        if (e.which == 13) {
+            trySetInstallments();
+        }
+    });
+
+    function setInstallmentAsPaid(index) {
+        if (!confirm('Deseja realmente definir a parcela ' + index + ' como paga?')) return;
+
+        $('tr[data-installment-index="' + index + '"]').data('installment-paid', 'true');
+        $($('tr[data-installment-index="' + index + '"] td')[3]).empty().append("<span style=\"color: green;\">Sim<span>");
+        $($('tr[data-installment-index="' + index + '"] td')[4]).empty();
+    }
+
+    function installmentDataChangeFromStart() {
+        if ('@Model.InstallmentPrice.HasValue' == 'True' &&
+            ($('#certificate-contractual-installment-form [name="PaymentTypeId"]').val() != $('#certificate-contractual-installment-form [name="PaymentTypeId"]').data('start-value') ||
+            $('#certificate-contractual-installment-form [name="Date"]').val() != $('#certificate-contractual-installment-form [name="Date"]').data('start-value') ||
+            $('#certificate-contractual-installment-form [name="Price"]').val() != $('#certificate-contractual-installment-form [name="Price"]').data('start-value') ||
+            $('#certificate-contractual-installment-form [name="PaymentTimes"]').val() != $('#certificate-contractual-installment-form [name="PaymentTimes"]').data('start-value')))
+            return true;
+
+        return false;
+    }
+
+    $(document).ready(_MaskData);
+</script>

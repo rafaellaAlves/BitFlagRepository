@@ -1,0 +1,48 @@
+﻿@inject Services.Client.ClientServices clientServices
+
+@{
+    ViewData["Title"] = "Seleção de Cliente";
+    Layout = "~/Views/Shared/_LayoutClientLogin.cshtml";
+}
+
+<a href="http://www.destineja.com.br/" target="_blank" class="btn btn-destineja-orange client-login-more-info-button">Saiba Mais</a>
+
+<div id="container-client-login">
+    <div class="arrow"></div>
+    <form method="post" autocomplete="off" id="select-client-form">
+        <div class="form-group text-center mb-3">
+            <h3 class="control-label" style=" font-weight: 300; color: black;">Selecione um Gerador</h3>
+        </div>
+        <div class="form-group">
+            <select name="ClientId" required class="form-control">
+                @foreach (var item in (await clientServices.GetViewModelAsNoTrackingAsync(x => !x.IsDeleted)).OrderBy(x => x.Name))
+                {
+                    <option value="@item.ClientId">@item.Name - @item.AlternativeName (@item.DocumentFormated)</option>
+                }
+            </select>
+        </div>
+        <div class="row mg-t-30">
+            <div class="col">
+                <button type="submit" class="btn btn-primary btn-custom"><i class="simple-icon-check"></i>&nbsp;Continuar</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts
+{
+    <script type="text/javascript">
+        $('#select-client-form').submit(function () {
+            return validateInputs('select-client-form');
+        });
+
+        $('[name="ClientId"]').select2({
+            theme: "bootstrap",
+            "language": {
+                "noResults": function () {
+                    return "Nenhum resultado encontrado.";
+                }
+            }
+        });
+    </script>
+}

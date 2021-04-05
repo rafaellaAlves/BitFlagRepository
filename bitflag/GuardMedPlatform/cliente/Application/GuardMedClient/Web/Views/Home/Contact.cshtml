@@ -1,0 +1,62 @@
+﻿
+@{
+    ViewData["Title"] = "Contato/Sinistro";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form id="contact-form" action="@Url.Action("ContactSendEmail", "Home")" method="post">
+    <div class="card card-dark-theme">
+        <div class="card-header">
+            <i class="far fa-envelope"></i> E-mail
+        </div>
+        <div class="card-body">
+            @if (Context.Request.Query.ContainsKey("emailSended"))
+            {
+                <div class="alert alert-success alert-dismissible fade show" id="welfare-success-alert" role="alert" style="color: #6b6b6b;">
+                    Mensagem enviada com sucesso!
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <script type="text/javascript">
+                    setTimeout(function () { $('#welfare-success-alert').fadeOut(1000); }, 8000);
+                </script>
+            }
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <input placeholder="Assunto" name="Subject" class="form-control required" />
+                    </div>
+                    <div class="form-group">
+                        <textarea placeholder="Mensagem" name="Message" class="form-control required"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <button class="btn btn-primary float-right" type="submit"><i class="fas fa-paper-plane"></i> Enviar</button>
+        </div>
+    </div>
+</form>
+
+<script type="text/javascript">
+    $('#contact-form').submit(function () {
+        return validateInputs('#contact-form');
+    });
+
+    $(document).ready(function () {
+        $('#contact-form [name="Message"]').summernote({
+            lang: 'pt-BR',
+            height: 200,
+            placeholder: 'Mensagem',
+            toolbar: [
+                ['style', ['bold', 'italic', 'underline', 'clear']],
+                ['font', ['strikethrough', 'superscript', 'subscript']],
+                ['fontsize', ['fontsize']],
+                ['color', ['color']],
+                ['para', ['ul', 'ol', 'paragraph']],
+                ['height', ['height']]
+            ]
+        });
+    });
+</script>

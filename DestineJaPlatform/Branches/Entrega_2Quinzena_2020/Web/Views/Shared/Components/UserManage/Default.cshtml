@@ -1,0 +1,73 @@
+﻿@model DTO.User.UserViewModel
+@inject Services.Account.RoleService roleService
+
+<input type="hidden" id="UserId" name="UserId" value="@Model.UserId" />
+<div class="form-row">
+    <div class="form-group col-md-4">
+        <label class="control-label required" for="FirstName">Nome</label>
+        <input type="text" class="form-control" id="FirstName" name="FirstName" value="@Model.FirstName" placeholder="Nome">
+    </div>
+    <div class="form-group col-md-4">
+        <label class="control-label required" for="LastName">Sobrenome</label>
+        <input type="text" class="form-control" id="LastName" name="LastName" value="@Model.LastName" placeholder="Sobrenome">
+    </div>
+    <div class="form-group col-md-4">
+        <label class="control-label required" for="Email">E-mail</label>
+        <input type="email" class="form-control" id="Email" name="Email" value="@Model.Email" placeholder="E-mail" @(Model.UserId.HasValue ? "disabled=\"disabled\"" : "")>
+    </div>
+</div>
+<div class="form-row">
+    <div class="form-group col-md" id="password-area">
+        <label class="control-label @(Model.UserId.HasValue ? "" : "required")" for="Password">Senha</label>
+        <input type="password" class="form-control" id="Password" name="Password" @(Model.RoleName == "Cliente" && Model.TemporaryPassword? "disabled" : "") placeholder="Senha" autocomplete="off">
+    </div>
+    <div class="form-group col-md" id="password-confirmation-area">
+        <label class="control-label @(Model.UserId.HasValue ? "" : "required")" for="PasswordConfirmation">Confirmação de senha</label>
+        <input type="password" class="form-control" id="PasswordConfirmation" @(Model.RoleName == "Cliente" && Model.TemporaryPassword? "disabled" : "") name="PasswordConfirmation" placeholder="Confirmação de senha" autocomplete="off">
+    </div>
+    @if (User.IsInRole("Administrator"))
+    {
+        <div class="form-group col-md">
+            <label class="control-label required">Perfil @Model.RoleName</label>
+            <select class="form-control" id="RoleName" name="RoleName" onchange="@(!Model.UserId.HasValue || Model.TemporaryPassword? "tryDisabledPassword()" : "")">
+                @foreach (var role in await roleService.GetRoles())
+                {
+                    if (role.Name == Model.RoleName)
+                    {
+                        <option value="@role.Name" selected>@role.Description</option>
+                    }
+                    else
+                    {
+                        <option value="@role.Name">@role.Description</option>
+                    }
+                }
+
+            </select>
+        </div>
+        <div class="form-group col-md">
+            <label class="control-label required">Ativo?</label>
+            <select class="form-control" id="IsActive" name="IsActive">
+                <option value="True" @(Model.IsActive ? "selected=\"selected\"" : "")>Sim</option>
+                <option value="False" @(!Model.IsActive ? "selected=\"selected\"" : "")>Não</option>
+            </select>
+        </div>
+    }
+    else
+    {
+        <input name="IsActive" type="hidden" value="True" />
+    }
+</div>
+
+<script type="text/javascript" asp-cut-key="user-manage" asp-cut-key-load-from-controller="@ViewBag.LoadFromController">
+    @(!Model.UserId.HasValue || Model.TemporaryPassword? "tryDisabledPassword()" : "")
+
+    function tryDisabledPassword() {
+        $('#Password').removeAttr('disabled');
+        $('#PasswordConfirmation').removeAttr('disabled');
+
+        if ($('#RoleName').val() == 'Cliente') {
+            $('#Password').attr('disabled', '');
+            $('#PasswordConfirmation').attr('disabled', '');
+        }
+    }
+</script>

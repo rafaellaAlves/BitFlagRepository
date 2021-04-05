@@ -1,0 +1,253 @@
+﻿@model int
+@{
+    ViewData["Title"] = "Árvore Genealógica";
+
+}
+
+<link href="~/assets/plugins/html5-node-diagram/diagram.css" rel="stylesheet" />
+<script src="~/assets/plugins/html5-node-diagram/models.js"></script>
+
+<div class="card">
+    <div class="card-header" style="height: 62px;">
+        <div class="float-right" id="controlButtons" style="display:none;">
+            <div class="btn-group">
+                <button class="btn btn-primary" id="edit-node-button"><i class="fa fa-edit"></i></button>
+                <button class="btn btn-success" id="new-node-button"><i class="simple-icon-plus"></i></button>
+                <button class="btn btn-danger" id="delete-node-button"><i class="fa fa-trash-o"></i></button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <input type="hidden" id="selectedNode" />
+        <div style="position: relative; width: 100%; height: 500px; overflow-y:auto;" id="stage"></div>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    var data = [];
+    var nodes = [];
+    var y = 0;
+    var x = 0;
+    var stage = $('#stage');
+
+    var NODE_DIMENSIONS = {
+        w: 50,
+        h: 50
+    };
+
+    (function ($, window) {
+        $.post('@Url.Action("GetProductTypeModelHierarchized", "Client")', { clientId: '@Model' }, function (d) {
+            data = d;
+
+            var stage,
+                Node = window.Node,
+                Segment = window.Segment;
+
+            function initialize() {
+                $.each(d, function (i, e) {
+                    y = 0;
+                    setNodes(e);
+                });
+            }
+
+            initialize();
+        });
+    }(jQuery, window));
+
+    function setNodes(e, parentNode) {
+        var node = addNode(e);
+
+        if (!jQuery.isEmptyObject(parentNode)) {
+            addSegment(parentNode, node);
+        }
+
+        if (!jQuery.isEmptyObject(e.spouse)) {
+            addNode(e.spouse, 150);
+
+            addSegment(nodes[nodes.length - 2], nodes[nodes.length - 1], true);
+        }
+        y += 100;
+        var _y = y;
+
+        if (!jQuery.isEmptyObject(e.childrens)) {
+            for (var i = 0; i < e.childrens.length; i++) {
+                y = _y;
+                setNodes(e.childrens[i], node);
+                x += 300;
+            }
+            x = 0;
+        }
+    }
+
+    function GetNodeData(id, nodes) {
+        var d = data;
+        if (!jQuery.isEmptyObject(nodes)) d = nodes;
+
+        for (var i = 0; i < d.length; i++) {
+            if (d[i].familyTreeId == id || (!jQuery.isEmptyObject(d[i].spouse) && d[i].spouse.familyTreeId == id)) {
+                return d[i];
+            }
+            else if (!jQuery.isEmptyObject(d.childrens)) {
+                for (var i = 0; i < length; i++) {
+                    return GetNodeData(id, d.childrens);
+                }
+            }
+        }
+    }
+
+    function addNode(e, additionalX) {
+        var node = new Node({
+            title: e.name,
+            stage: stage,
+            w: NODE_DIMENSIONS.w,
+            h: NODE_DIMENSIONS.h,
+            x: x + (additionalX == null ? 0 : additionalX),
+            y: y,
+            events: {
+                click: function () {
+                    if ($('#selectedNode').val() == e.familyTreeId) {
+                        $('#controlButtons').hide();
+                        $('#selectedNode').val('');
+                    } else {
+                        $('#controlButtons').show();
+                        $('#selectedNode').val(e.familyTreeId);
+                    }
+                }
+            }
+        }).attach();
+        nodes.push(node);
+
+        return node;
+    }
+
+    function addSegment(node1, node2, spouse) {
+        new Segment({
+            h: 5,
+            stage: stage,
+            origin: node1,
+            destination: node2
+        }).attach();
+
+        if (spouse) {
+            new Segment({
+                h: 5,
+                stage: stage,
+                origin: node2,
+                destination: node1
+            }).attach();
+        }
+    }
+</script>
+
+
+<div class="modal fade" id="CreateOrUpdateModal" tabindex="-1" role="dialog" aria-labelledby="CreateOrUpdateModalTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="CreateOrUpdateModalTitle"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="FamilyTreeForm">
+                    <input type="hidden" id="FamilyTreeId" name="FamilyTreeId" />
+                    <input type="hidden" id="ClientId" name="ClientId" value="@Model" />
+                    <div class="row" id="name-and-title-area">
+                        <div class="col-md-12">
+                            <label>Nome:</label>
+                            <input class="form-control" id="Name" name="Name" placeholder="Nome" />
+                        </div>
+                        <input type="hidden" class="form-control" id="Title" name="Title" value="Pai" placeholder="Título" />
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-12" id="positionArea">
+                            <label>Posição:</label>
+                            <select class="form-control" id="Position" name="Position">
+                                <option value="0" data-title="Pai">Pai</option>
+                                <option value="0" data-title="Mãe">Mãe</option>
+                                <option value="1" data-title="Filho">Filho</option>
+                                <option value="1" data-title="Filha">Filha</option>
+                                <option value="2" data-title="Marido" data-paret-title="Pai">Marido</option>
+                                <option value="2" data-title="Esposa" data-paret-title="Mãe">Esposa</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <div class="row" style="width: 100%; margin: 0;">
+                    <div class="col-md-6">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-times"></i>&nbsp;Fechar</button>
+                    </div>
+                    <div class="col-md-6">
+                        <button type="button" id="FamilyTreeButton" class="btn btn-primary float-right"><i class="simple-icon-cloud-upload"></i>&nbsp;Salvar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#edit-node-button').click(function () {
+        var d = GetNodeData($('#selectedNode').val());
+        if (d.isClient) {
+            alert('Não é possível editar o próprio cliente.');
+            return;
+        }
+
+        $('.text-danger').remove();
+
+        $('#positionArea').hide();
+        $('#FamilyTreeId').val(d.id);
+        $('#Name').val(d.name);
+        $('#Title').val(d.title);
+
+        $('#CreateOrUpdateModal').modal('show');
+        $('#CreateOrUpdateModalTitle').text('Registro - ' + d.name);
+    });
+    $('#new-node-button').click(function () {
+        var d = GetNodeData($('#selectedNode').val());
+        $('.text-danger').remove();
+
+        $('#positionArea').show();
+        $('#FamilyTreeId').val('');
+        $('#Name').val('');
+        $('#Title').val('Pai');
+        $('#Position').val(0);
+
+        $('#CreateOrUpdateModal').modal('show');
+        $('#CreateOrUpdateModalTitle').text('Novo Registro em ' + d.name);
+    });
+    $('#delete-node-button').click(function () {
+        var d = GetNodeData($('#selectedNode').val());
+
+        if (d.isClient) {
+            alert('Não é possível excluir o próprio cliente.');
+            return;
+        }
+        var childs = GetNodeDataByParentId(node);
+        if (childs.length > 0 && d.pid != null) {
+            var hasClient = false;
+            for (var i = 0; i < childs.length; i++) {
+                if (childs[i].isClient) hasClient = true;
+            }
+
+            if (!hasClient || d.pid != null) {
+                alert('Delete os filhos ou os pais primeiros.');
+                return;
+            }
+        }
+
+        if (!confirm('Deseja realmente excluir este item?')) return;
+
+        $.post('@Url.Action("DeleteFamilyTree")', { familyTreeId: d.id }, function (_d) {
+            alert(_d.message);
+            if (!_d.hasError) {
+                window.location.reload();
+            }
+        });
+    });
+</script>

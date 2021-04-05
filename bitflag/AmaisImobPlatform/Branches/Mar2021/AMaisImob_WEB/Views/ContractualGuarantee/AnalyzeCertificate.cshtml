@@ -1,0 +1,304 @@
+﻿@model AMaisImob_WEB.Models.ContractualContractualCertificateViewModel
+@inject AMaisImob_WEB.BLL.CategoryGuarantorProductTaxFunctions categoryGuarantorProductTaxFunctions
+@inject AMaisImob_WEB.BLL.PaymentTypeFunctions paymentTypeFunctions
+
+@using AMaisImob_WEB.Utils;
+
+@{
+    Layout = "";
+
+    bool.TryParse(ViewData["OnlyReadable"]?.ToString(), out bool onlyReadable);
+}
+    <style type="text/css">
+        @@font-face {
+            font-family: 'Avenir';
+            src: url('@Url.Content("~/assets/fonts/0078f486-8e52-42c0-ad81-3c8d3d43f48e.woff2")'), url('@Url.Content("~/assets/fonts/bc176270-17fa-4c78-a343-9fe52824e501.woff")'), url('@Url.Content("~/assets/fonts/d513e15e-8f35-4129-ad05-481815e52625.woff2")');
+        }
+    </style>
+
+
+    <style type="text/css">
+
+    body {
+        color-adjust: exact;
+        font-family:Avenir;
+        -webkit-print-color-adjust: exact;
+    }
+
+    .font-bold {
+        font-weight: bold;
+    }
+
+    .card {
+        position: relative;
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-box-orient: vertical;
+        -webkit-box-direction: normal;
+        -ms-flex-direction: column;
+        flex-direction: column;
+        min-width: 0;
+        word-wrap: break-word;
+        background-color: #fff;
+        background-clip: border-box;
+        border: 1px solid rgba(0, 0, 0, 0.125);
+        border-radius: 0.25rem;
+    }
+
+    .card-body {
+        -webkit-box-flex: 1;
+        -ms-flex: 1 1 auto;
+        flex: 1 1 auto;
+        padding: 1.25rem;
+    }
+
+    .card-title {
+        margin-bottom: 0.75rem;
+    }
+
+    .card-header {
+        padding: 0.75rem 1.25rem;
+        margin-bottom: 0;
+        background-color: rgba(0, 0, 0, 0.03);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    }
+
+        .col-1, .col-2, .col-3, .col-4, .col-5, .col-6, .col-7, .col-8, .col-9, .col-10, .col-11, .col-12, .col,
+        .col-auto, .col-sm-1, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6, .col-sm-7, .col-sm-8, .col-sm-9, .col-sm-10, .col-sm-11, .col-sm-12, .col-sm,
+        .col-sm-auto, .col-md-1, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-md-10, .col-md-11, .col-md-12, .col-md,
+        .col-md-auto, .col-lg-1, .col-lg-2, .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-6, .col-lg-7, .col-lg-8, .col-lg-9, .col-lg-10, .col-lg-11, .col-lg-12, .col-lg,
+        .col-lg-auto, .col-xl-1, .col-xl-2, .col-xl-3, .col-xl-4, .col-xl-5, .col-xl-6, .col-xl-7, .col-xl-8, .col-xl-9, .col-xl-10, .col-xl-11, .col-xl-12, .col-xl,
+        .col-xl-auto {
+            position: relative;
+            min-height: 1px;
+            padding-right: 15px;
+            padding-left: 15px;
+            /*display: inline-block;*/
+        }
+
+    @if (!onlyReadable)
+    {
+    <text>
+    @@media (min-width: 768px) {
+    </text>
+    }
+        .col-md-4 {
+            -webkit-box-flex: 0;
+            -ms-flex: 0 0 33.333333%;
+            flex: 0 0 33.333333%;
+            width: 33.333333%;
+        }
+
+        .col-md-12 {
+            -webkit-box-flex: 0;
+            -ms-flex: 0 0 100%;
+            flex: 0 0 100%;
+            width: 100%;
+        }
+
+    @if (!onlyReadable)
+    {
+    <text>
+        .offset-md-2 {
+            margin-left: 16.666667%;
+        }
+        .offset-md-4 {
+            margin-left: 33.333333%;
+        }
+    }
+    </text>
+    }
+    else
+    {
+    <text>
+        .offset-md-2 {
+            margin-left: 100px;
+        }
+
+        .offset-md-4 {
+            margin-left: 200px;
+        }
+    </text>
+    }
+
+    * {
+        -webkit-box-sizing: border-box;
+    }
+        .row {
+            display: -webkit-box;
+            display: -ms-flexbox;
+            display: flex;
+            -ms-flex-wrap: wrap;
+            flex-wrap: wrap;
+            margin-right: -15px;
+            margin-left: -15px;
+        }
+
+    .w-100 {
+    width: 100% !important;
+    }
+        .w-80 {
+            width: 500px !important;
+        }
+        .w-40 {
+            width: 300px !important;
+        }
+
+    .mb-1,
+    .my-1 {
+        margin-bottom: 0.25rem !important;
+    }
+
+    .mt-1,
+    .my-1 {
+        margin-top: 0.25rem !important;
+    }
+
+    .text-center{
+        text-align: center !important;
+    }
+
+    .smallFont {
+        font-size: 10px;
+    }
+
+    .mediumFont {
+        font-size: 12px;
+    }
+
+    .btn {
+        padding: 12px 25px 12px 25px;
+        border-radius: 10px;
+        color: white;
+        text-decoration: none;
+    }
+
+    @@media print {
+        .no-print {
+            display: none;
+        }
+    }
+    </style>
+
+@if (Model.Print)
+{
+    <table class="no-print" style=" width: 100%; margin: 2em 20px 2em 20px;">
+        <tr>
+            <td style="width: 50%; padding: 0 40px 0 40px;">
+                <a href="@Url.Action("Manage", "ContractualGuarantee", new { id = Model.CertificateContractual.CertificateContractualId })" class="btn" style="background: #a2a2a2;"><i class="fas fa-arrow-left"></i> Voltar</a>
+            </td>
+            <td style="padding: 0 40px 0 40px; text-align:right;">
+                <a href="javascript:window.print();" class="btn" style="background: #39b158;"><i class="fas fa-print"></i> Imprimir</a>
+            </td>
+        </tr>
+    </table>
+}
+
+@{
+    var img = Convert.ToBase64String(System.IO.File.ReadAllBytes(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "wwwroot", "image", "Logo_AmaisImob_Novo.png")));
+}
+<div class="row" >
+    <div class="col-md-12" style="text-align:right; margin-right: 10px; margin-top: 0;">
+        <img src="data:image/png;base64, @img" height="85" style="opacity:.6;" />
+    </div>
+</div>
+<div class="row" style="margin-top: 1em;">
+    <div class="col-md-12" style="text-align:left; margin-bottom:.5em;">
+        <b style="font-size: 18px;">FICHA CADASTRAL DE GARANTIA LOCATÍCIA – REFERÊNCIA #@Model.CertificateContractual.Reference</b>
+    </div>
+    <div class="col-md-12" style="margin-bottom:.5em;">
+        Data do Início do Processo: @Model.CertificateContractual.CreatedDate.ToDatePtBR()
+    </div>
+    <div class="col-md-12">
+        Status: <b>@Model.CertificateContractual.StatusName</b>
+    </div>
+</div>
+<div style="margin-top:1em;"></div>
+
+@(await Component.InvokeAsync("ContractualGuaranteeCertificateHeader", new { Model.CertificateContractual.CertificateContractualId }))
+
+@{
+    var annualTypeId = paymentTypeFunctions.GetByExternalCode("ANUAL").PaymentTypeId;
+    var categoryGuarantorProductTax = categoryGuarantorProductTaxFunctions.GetDataViewModel(new List<AMaisImob_DB.Models.CategoryGuarantorProductTax> { categoryGuarantorProductTaxFunctions.GetDataByID(Model.CategoryGuarantorProductTaxIds.First()) }).First();
+
+    var valor = categoryGuarantorProductTax.TaxaMes * Model.CertificateContractual.Aluguel / 100d;
+    if (categoryGuarantorProductTax.GuarantorPaymentTypeId == annualTypeId) { valor *= 12; }
+
+    var imgGuarantor = Convert.ToBase64String(categoryGuarantorProductTax.GuarantorLogoTipo ?? System.IO.File.ReadAllBytes(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "wwwroot", "image", "noimage.png")));
+}
+
+<table style="width: 100%;">
+    <tr class="amaisimob-white">
+        <td colspan="2" class="bgamaisimob-green" style="border-radius: 15px 15px 0px 0px;">
+            <small class="amaisimob-white">DADOS DA SEGURADORA E GARANTIAS ANALISADAS:</small>
+        </td>
+    </tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding text-center" style="width:50%;">
+            <small style="text-transform: uppercase;" class="smallFont"><strong>SEGURADO:</strong> @categoryGuarantorProductTax.GuarantorName</small>
+
+        </td>
+        <td class="td-padding text-center"><small class="smallFont" style="text-transform: uppercase;"><strong>PRODUTO:</strong> @categoryGuarantorProductTax.GuarantorProductName</small></td>
+    </tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding" colspan="2" style="font-size: 10px; text-align: center;">
+            <img  src="data:@(categoryGuarantorProductTax.GuarantorLogoTipoMimeType ?? "image/png");base64, @imgGuarantor" height="75" style="max-width: 100%; padding-top:10px" />
+            @if (categoryGuarantorProductTax.GuarantorProductName == "Completo")
+            {
+                <div style="padding-bottom:2px">@Html.Raw(categoryGuarantorProductTax.Description)<br /></div>
+            }
+            else
+            {
+                <div style="height:130px;">@Html.Raw(categoryGuarantorProductTax.Description)<br /></div>
+            }
+        </td>
+    </tr>
+    <tr class="amaisimob-grey" style="text-align: center;">
+        <td class="td-padding" colspan="2">
+            <div class="bgamaisimob-green" style="padding-top: 5px; color: white; width: 125px; margin:auto;">
+                <small class="smallFont"><strong>VALOR:</strong> R$ @valor.ToString("#,##0.00")</small>
+            </div>
+        </td>
+    </tr>
+</table>
+
+<table style="width: 100%; margin-top: 3em;">
+    <tr class="amaisimob-grey">
+        <td class="td-padding" style="width:35%; font-size: 10px;">@Model.CertificateContractual.Cidade,&nbsp;<span style="width: 20px; text-decoration: underline;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>de<span style="width: 80px; text-decoration: underline;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>de @DateTime.Now.Year</td>
+        <td class="td-padding" style="width:30%; padding-left: 15px; padding-right: 15px;"><div style="border-bottom: 1px solid black;"></div></td>
+        <td class="td-padding" style="width:30%; padding-left: 15px; padding-right: 15px;"><div style="border-bottom: 1px solid black;"></div></td>
+    </tr>
+    <tr class="amaisimob-grey">
+        <td></td>
+        <td style="font-size: 10px; text-align: center;">locador</td>
+        <td style="font-size: 10px; text-align: center;">locatário</td>
+    </tr>
+</table>
+<div style="break-after:always; page-break-before:always; margin-bottom: 1em;"></div>
+
+<table>
+    <tr>
+        <td>
+            <strong>
+                <small class="amaisimob-white">
+                </small>
+            </strong>
+        </td>
+    </tr>
+    <tr>
+        <td class="bgamaisimob-green" style="border-radius: 15px 15px 0px 0px;"><small class="amaisimob-white">DADOS DO SEGURO E CONDIÇÕES GERAIS</small></td>
+    </tr>
+    <tr>
+        <td>
+            @Html.Raw(categoryGuarantorProductTax.GuarantorPrintFooterText)
+        </td>
+    </tr>
+</table>
+
+@if (Model.Print)
+{
+    <script type="text/javascript">
+        window.print();
+    </script>
+}

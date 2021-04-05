@@ -1,0 +1,146 @@
+﻿@model int
+
+<div class="row">
+    <div class="col form-group">
+        <div class="input-group">
+            <div class="input-group-addon">
+                <i class="simple-icon-magnifier"></i>
+            </div>
+            <input type="text" class="form-control" id="client-contact-search" placeholder="Pesquisar..." data-toggle="search-datatable" data-target="#client-contact-table">
+        </div>
+    </div>
+    <div class="col-md-auto form-group">
+        <a href="javascript:openClientContactEditModal()" class="btn btn-primary w-100 float-right text-nowrap"><i class="simple-icon-plus"></i>&nbsp;Adicionar</a>
+    </div>
+</div>
+<hr />
+<div id="success-area-client-contact"></div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="table-responsive">
+            <table id="client-contact-table" class="display table table-striped table-bordered table-condensed w-100" style="border-collapse: collapse !important;">
+                <thead>
+                    <tr>
+                        <th>Tipo</th>
+                        <th>Nome</th>
+                        <th>E-mail</th>
+                        <th>Telefone com ramal</th>
+                        <th>Celular</th>
+                        <th>Cargo</th>
+                        <th>Principal?</th>
+                        <th>&nbsp;</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="client-contact-modal" tabindex="-1" role="dialog" aria-labelledby="client-contact-modal-title" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold" id="client-contact-modal-title"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @(await Component.InvokeAsync("ClientContactManage", new { id = Model }))
+            </div>
+            <div class="modal-footer">
+                <div class="col-md-6">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="simple-icon-close"></i>&nbsp;Fechar</button>
+                </div>
+                <div class="col-md-6">
+                    <button type="button" class="btn btn-success float-right" id="client-contact-modal-save-button"><i class="simple-icon-cloud-upload"></i>&nbsp;Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script asp-cut-key="script-client-contact">
+    var clientContactDatatables;
+    $(document).ready(function () {
+        clientContactDatatables = $('#client-contact-table').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            dom: 'tip',
+            ajax: {
+                url: '@Url.Action("List", "ClientContact")',
+                data: function (d) {
+                    d.clientId = '@Model'
+                },
+                type: 'POST'
+            },
+            columns: [
+                { render: function (data, type, row) { return row.clientContactTypeName; } },
+                { render: function (data, type, row) { return '<div class="text-nowrap">' + row.name + '</div>'; } },
+                { render: function (data, type, row) { return row.email; } },
+                { render: function (data, type, row) { return row.phone; } },
+                { render: function (data, type, row) { return row.mobilePhone; } },
+                { render: function (data, type, row) { return row.role; } },
+                { render: function (data, type, row) { return row.mainContact ? '<div class="badge badge-pill badge-success">Sim</div>' : '<div class="badge badge-pill badge-danger">Não</div>'; } },
+                {
+                    render: function (data, type, row)
+                    {
+                        return '<div class="text-center text-nowrap">' +
+                            '&nbsp;<a href=\'javascript:openClientContactEditModal(' + JSON.stringify(row) + ')\' title="Editar"><span class="badge badge-pill badge-success"><i class="simple-icon-note"></i></span></a>' +
+                            '&nbsp;<a href=\'javascript:removeClientContact(' + JSON.stringify(row) + ')\' title="Excluir"><span class="badge badge-pill badge-danger"><i class="simple-icon-trash"></i></span></a>' +
+                            '</div>';
+                    }
+                }
+            ]
+        });
+    });
+
+    function removeClientContact(clientContact) {
+        bootboxConfirm("Deseja realmente excluir o contato \"" + clientContact.name + "\"?", function(result){
+            if (!result) return;
+
+            $.post('@Url.Action("DeleteDefinitively", "ClientContact")', { id: clientContact.clientContactId }, function () {
+                bootbox.alert("Contato \"" + clientContact.name + "\" excluído com sucesso!");
+                clientContactDatatables.ajax.reload();
+            });
+        });
+    }
+
+    function openClientContactEditModal(data) {
+        $('#form-client-contact [name=\'ClientContactTypeId\']').val(data == null? '' : data.clientContactTypeId);
+        $('#form-client-contact [name=\'Name\']').val(data == null? '' : data.name);
+        $('#form-client-contact [name=\'Email\']').val(data == null? '' : data.email);
+        $('#form-client-contact [name=\'Phone\']').val(data == null? '' : data.phone);
+        $('#form-client-contact [name=\'MobilePhone\']').val(data == null? '' : data.mobilePhone);
+        $('#form-client-contact [name=\'Role\']').val(data == null? '' : data.role);
+        $('#form-client-contact [name=\'ClientContactId\']').val(data == null? '' : data.clientContactId);
+        $('#form-client-contact [name=\'MainContact\']').val(data == null? 'false' : data.mainContact.toString());
+
+        $('#client-contact-modal-title').text(data == null ? 'Novo Contato' : 'Editar Contato');
+
+        $.post('@Url.Action("ExistMainContact", "ClientContact")', { clientId: @Model, clientContactId: (data != null ? data.clientContactId : null) }, function (d) {
+            if (d) $('#form-client-contact [name=\'MainContact\']').attr('disabled', 'disabled');
+            else $('#form-client-contact [name=\'MainContact\']').removeAttr('disabled');
+
+            $('#client-contact-modal').modal('show');
+            InitializeFunctions();
+        });
+    }
+
+    $('#client-contact-modal-save-button').click(function () {
+        if (!validateInputs('form-client-contact')) return;
+        $('#success-area-client-contact').empty();
+
+        $.post("@Url.Action("ManageAjax", "ClientContact")", $('#form-client-contact').serializeArray(), function (d) {
+            clientContactDatatables.ajax.reload();
+            clientContactDatatables.search($('#client-contact-search').val()).draw();
+
+            $('#success-area-client-contact').empty().append(successMessage());
+
+            $('#client-contact-modal').modal('hide');
+        });
+    })
+</script>

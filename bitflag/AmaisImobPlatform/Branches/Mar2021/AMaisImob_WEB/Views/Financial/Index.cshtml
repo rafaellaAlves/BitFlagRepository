@@ -1,0 +1,118 @@
+﻿@model bool 
+@*true = Pagina usada para visualização de EXTRATO / false = Pagina usada para visualização NORMAL*@
+
+@{
+    ViewData["Title"] = "Financeiro" + (Model? " - Extrato" : "");
+
+    var referenceDate = ViewBag.ReferenceDate ?? new DateTime(DateTime.Now.AddMonths(-1).Year, DateTime.Now.AddMonths(-1).Month, 1);
+}
+<div class="card shadow">
+    <div class="card-body">
+        @if (Model)
+        {
+            @(await Component.InvokeAsync<AMaisImob_WEB.ViewComponents.Financial.ExtractFilterViewComponent>(new { startDate = ((DateTime)referenceDate).AddMonths(-12), endDate = referenceDate }))
+        }
+        else
+        {
+            @(await Component.InvokeAsync<AMaisImob_WEB.ViewComponents.Financial.FilterViewComponent>(new { referenceDate = referenceDate, RealEstateId = (int?)ViewBag.RealEstateId, ChargeContractualGuarantee = (bool?)ViewBag.ChargeContractualGuarantee }))
+        }
+        <hr />
+        <div id="charge-list-view-component">
+            @if (Model)
+            {
+            <div class="text-center">
+                <i style="font-size: 20px;">Preencha os filtros acima e clique em "Filtrar".</i>
+            </div>
+            }
+            else
+            {
+                @(await Component.InvokeAsync<AMaisImob_WEB.ViewComponents.Financial.ListViewComponent>(new { extract = Model, filter = new AMaisImob_WEB.Models.Charge.FinancialFilterViewModel() { ReferenceDate = referenceDate, StartDate = referenceDate, EndDate = referenceDate, RealEstateId = (int?)ViewBag.RealEstateId, ChargeContractualGuarantee = ((bool?)ViewBag.ChargeContractualGuarantee) ?? User.IsInRole("Administrator") ? true : (bool?)null } }))
+            }
+        </div>
+    </div>
+    @if (User.IsInRole("Administrator") && !Model)
+    {
+        <div class="card-footer text-right">
+            <button type="button" class="btn btn-success" id="charge-generate-invoices"><i class="fa fa-barcode"></i>&nbsp;Gerar Boletos</button>
+        </div>
+    }
+</div>
+
+<div class="modal fade" id="charge-invoice-result-modal" tabindex="-1" role="dialog" aria-labelledby="charge-invoice-result-modal-title" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="charge-invoice-result-modal-title">Resultado da Geração de Boletos</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="max-height: 600px; overflow-y: auto; overflow-x: hidden;">
+                <table class="table table-striped table-bordered table-condensed" id="charge-invoice-result-table">
+                    <thead>
+                        <tr>
+                            <td>Imobliliária</td>
+                            <td>Boleto Gerado?</td>
+                            <td>Observação</td>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script type="text/javascript" asp-paste-key="charge-filter"></script>
+    <script type="text/javascript" asp-paste-key="charge-list"></script>
+
+    <script type="text/javascript">
+        function reloadChargeList(callback) {
+            var d = $('#charge-filter-form').serializeArray();
+            @if (Model) {<text> d.push({ name: 'Extract', value: true }); </text>}
+
+            $('#charge-list-view-component').load('@Url.Action("LoadListViewComponent", "Financial")', d, function () {
+                if (typeof callback == 'function') callback();
+            });
+        }
+    </script>
+
+    @if (User.IsInRole("Administrator") && !Model)
+    {
+        <script type="text/javascript">
+            $('#charge-generate-invoices').click(function () {
+                if ($('.checkbox-charge:checked').length == 0) {
+                    alert('Nenhuma imobiliária selecionada.');
+                    return;
+                }
+
+                var param = { realEstateIds: $('.checkbox-charge:checked').map(function (i, e) { return $(e).data('company-id'); }).toArray(), referenceDate: $('[name="ChargeListReferenceDate"]').val() };
+
+                $.post('@Url.Action("GenerateInvoices", "Financial")', param, function (json) {
+                    var d = JSON.parse(json);
+
+                    console.log(d);
+                    $('#charge-invoice-result-table tbody').empty();
+
+                    $.each(d, function (i, e) {
+                        var tr = $('<tr>');
+
+                        tr.append($('<td>').append(e.RealEstate.CompanyName_TradeName));
+                        tr.append($('<td>').append('<div class="text-center">' + (e.Success ? '<span class="badge badge-pill badge-success">Sim</span>' : '<span class="badge badge-pill badge-danger">Não</span>') + '</div>'));
+                        tr.append($('<td>').append(e.Message));
+
+                        $('#charge-invoice-result-table tbody').append(tr);
+                    });
+
+                    $('#charge-invoice-result-modal').modal('show');
+
+                    tryReloadChargeList();
+                });
+            });
+        </script>
+    }
+}

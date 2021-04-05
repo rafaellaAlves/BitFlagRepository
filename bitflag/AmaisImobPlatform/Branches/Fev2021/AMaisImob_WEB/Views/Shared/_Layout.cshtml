@@ -1,0 +1,422 @@
+﻿@using Microsoft.AspNetCore.Identity;
+@using AMaisImob_WEB.Utils;
+
+@inject SignInManager<AMaisImob_DB.Models.User> signInManager
+@inject UserManager<AMaisImob_DB.Models.User> userManager
+@inject AMaisImob_WEB.BLL.UserCompanyFunctions userCompanyFunctions
+@inject AMaisImob_WEB.BLL.CompanyFunctions companyFunctions
+
+@{
+    var controllerName = ViewContext.RouteData.Values["controller"].ToString().ToUpper();
+    var actionName = ViewContext.RouteData.Values["action"].ToString().ToUpper();
+    var user = await userManager.GetUserAsync(User);
+
+    //usado apenas na pagina de certificado
+    int certificateType = 0;
+    if (Context.Request.Query.ContainsKey("CertificateType"))
+    {
+        certificateType = int.Parse(Context.Request.Query["CertificateType"]);
+    }
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - AMaisImob</title>
+
+    <link rel="shortcut icon" href="~/favicon transp.png" type="image/x-icon" />
+
+    <link type="text/css" rel="stylesheet" href="~/css/bootstrap/bootstrap.css">
+    <link type="text/css" href="~/theme/assets/css/style.css" rel="stylesheet" />
+    <link type="text/css" href="~/lib/fontawesome/css/fontawsome.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+
+    <script type="text/javascript" src="~/js/jquery/jquery-3.3.1.min.js"></script>
+    <script type="text/javascript" src="~/lib/popper/popper.min.js"></script>
+    <script type="text/javascript" src="~/js/bootstrap/bootstrap.js"></script>
+
+    <!-- Jquery Mask -->
+    <script type="text/javascript" src="~/lib/jqueryMask/jquery.mask.min.js"></script>
+
+    <!--Select2-->
+    <link type="text/css" href="~/lib/select2/select2.min.css" rel="stylesheet" />
+    <script type="text/javascript" src="~/lib/select2/select2.min.js"></script>
+
+    <!--DataTable-->
+    <link type="text/css" href="~/lib/dataTables/css/jquery.dataTables.min.css" rel="stylesheet" />
+    <script type="text/javascript" src="~/lib/dataTables/js/jquery.dataTables.min.js"></script>
+
+
+    <!--Jquery UI-->
+    <link type="text/css" href="~/lib/jqueryUI/jquery-ui.css" rel="stylesheet" />
+    <script type="text/javascript" src="~/lib/jqueryUI/jquery-ui.js"></script>
+
+    <!--SummerNote-->
+    <link type="text/css" href="~/lib/summernote/summernote.min.css" rel="stylesheet" />
+    <script type="text/javascript" src="~/lib/summernote/summernote.min.js"></script>
+
+    <!--Globalize-->
+    <script type="text/javascript" src="~/lib/globalize/globalize.min.js"></script>
+    <script type="text/javascript" src="~/lib/globalize/globalize.culture.pt-BR.min.js"></script>
+
+    <script type="text/javascript" src="~/js/site.js?fingerprint=@Guid.NewGuid().ToString()"></script>
+
+    <script type="text/javascript">
+        $(document).ajaxStart(function () {
+            $("#loading").show();
+        });
+        $(document).ajaxStop(function () {
+            $("#loading").hide();
+        });
+
+        function ShowLoading() {
+            $("#loading").show();
+        }
+        function HideLoading() {
+            $("#loading").hide();
+        }
+    </script>
+
+    <style type="text/css">
+        @@media print {
+            page {
+                margin: 0;
+            }
+
+            body {
+                -webkit-print-color-adjust: exact;
+                margin-top: -2em;
+            }
+
+            .no-print, .no-print * {
+                display: none !important;
+            }
+
+            .page-break {
+                page-break-after: always;
+            }
+
+            .smallFont {
+                font-size: 10px;
+            }
+
+            .no-screen {
+                display: block !important;
+            }
+        }
+
+        .percent {
+            display: inline !important;
+            line-height: 21px !important;
+            z-index: auto !important;
+            font-weight: 400 !important;
+            font-size: 11px !important;
+            color: #212529 !important;
+        }
+
+        /*diminuir object layout*/
+        body, label, span, input, input-group, select, textarea, button, a, table.dataTable {
+            font-size: 11px !important;
+        }
+
+            button.close span {
+                font-size: 14px !important;
+            }
+
+        .btn {
+            padding: 4px !important;
+        }
+
+        input, select, .input-group-text, .select2-selection {
+            height: 27px !important;
+        }
+
+            input[type="file"] {
+                height: 35px !important;
+            }
+
+        table.dataTable thead tr th, table.dataTable tbody th, table.dataTable thead tr th span, table.dataTable thead tr th a
+        table.dataTable tbody tr td, table.dataTable tbody td, table.dataTable tbody tr td span, table.dataTable tbody tr td a {
+            font-size: 8.8px !important;
+            text-transform: uppercase !important;
+        }
+
+        .amaisimob-green {
+            color: #5d817a !important;
+        }
+
+        .amaisimob-orange {
+            color: #f39a2d !important;
+        }
+        /*input {
+            text-transform: uppercase;
+        }*/
+
+        .required::after {
+            content: ' *';
+            color: red;
+        }
+
+        #sidebar-menu ul ul a {
+            padding: 10px 20px 10px 60px !important;
+            white-space: nowrap;
+        }
+
+        .card-header-custom-green {
+            background: #89a7a2;
+            font-size: 12px !important;
+            color: white;
+            font-weight: bold;
+        }
+    </style>
+    <style type="text/css">
+        html, body, .navbar-default {
+            background-color: white !important;
+        }
+
+        .topbar {
+            -webkit-box-shadow: 0px 1px 5px 0px rgba(153,153,153,1);
+            -moz-box-shadow: 0px 1px 5px 0px rgba(153,153,153,1);
+            box-shadow: 0px 1px 5px 0px rgba(153,153,153,1);
+        }
+    </style>
+
+    <!-- HIGHCHARTS -->
+    <script type="text/javascript" src="~/lib/highcharts/highcharts.src.js"></script>
+</head>
+<body class="fixed-left">
+    <div id="loading" style="display: none; z-index: 1060; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6)">
+        <img src="~/image/ajax-loading.svg" style="position: absolute; left: 50%; margin-left: -100px; top: 50%; margin-top: -100px;" />
+    </div>
+
+    <!-- Begin page -->
+    <div id="wrapper">
+
+        <!-- Top Bar Start -->
+        <div class="topbar no-print" style="background-color: white;">
+
+            <!-- LOGO -->
+            <div class="topbar-left">
+                <img src="~/image/logo_AMaisImob.png" style="width:120px; height:60px; margin-top:5px;" />
+            </div>
+            <div class="navbar navbar-default" role="navigation">
+                <div class="container-fluid">
+                    <!-- Page title -->
+                    <ul class="nav navbar-nav list-inline navbar-left">
+                        <li class="list-inline-item">
+                            <button class="button-menu-mobile open-left">
+                                <i class="fa fa-bars"></i>
+                            </button>
+                        </li>
+                        <li class="list-inline-item">
+                            <h4 class="page-title">@ViewData["Title"]</h4>
+                        </li>
+                    </ul>
+                </div><!-- end container -->
+            </div><!-- end navbar -->
+        </div>
+        <!-- Top Bar End -->
+        <!-- ========== Left Sidebar Start ========== -->
+        <div class="left side-menu no-print" style="overflow-y: auto;">
+            <div class="sidebar-inner slimscrollleft">
+
+                <!--- Sidemenu -->
+                <div id="sidebar-menu" style="padding-top: 2em;">
+                    <ul>
+                        <li class="text-muted menu-title">
+                            Olá, @user.FirstName @user.LastName
+                        </li>
+                        @if (!this.User.IsInRole("ImobiliariaVendas"))
+                        {
+                            <li><a href="@Url.Action("Index", "Home")" class="waves-effect @if (controllerName.Equals("HOME")) { <text>active</text> }"><i class="fas fa-home"></i>&nbsp;Home</a></li>
+                        }
+                        @if (this.User.IsInRole("Corretor"))
+                        {
+                            <li><a href="@Url.Action("Index", "Account")" class="waves-effect @if (controllerName.Equals("ACCOUNT")) { <text>active</text> }"><i class="fas fa-users"></i>&nbsp;Usuários</a></li>
+                        }
+                        @if (this.User.IsInRole("Administrator"))
+                        {
+                    <li>
+                        <a href="javascript: void(0);" class="waves-effect">
+                            <img src="~/image/Administrador.png" style="height: 24px; width: 24px;" />
+                            <span style="margin-left: 1em;"> Administrativo </span>
+                            <span class="fa fa-chevron-down float-right"></span>
+                        </a>
+                        <ul>
+                            <li><a href="@Url.Action("Index", "Account")" class="waves-effect @if (controllerName.Equals("ACCOUNT")) { <text>active</text> }"><i class="fas fa-users"></i>&nbsp;Usuários</a></li>
+                            <li><a href="@Url.Action("Corretora", "Company")" class="waves-effect @if (controllerName.Equals("COMPANY") && actionName.Equals("CORRETORA")) { <text>active</text> }"><i class="fas fa-building"></i>&nbsp;Corretoras</a></li>
+                            <li><a href="@Url.Action("Imobiliaria", "Company")" class="waves-effect @if (controllerName.Equals("COMPANY") && actionName.Equals("IMOBILIARIA")) { <text>active</text> }"><i class="fas fa-city"></i>&nbsp;Imobiliárias</a></li>
+                            <li><a href="@Url.Action("Index", "ProductFamily")" class="waves-effect @if (controllerName.Equals("PRODUCTFAMILY")) { <text>active</text> }"><i class="fas fa-shopping-cart"></i>&nbsp;Família de Produtos</a></li>
+                            <li><a href="@Url.Action("Index", "Product")" class="waves-effect @if (controllerName.Equals("PRODUCT")) { <text>active</text> }"><i class="fas fa-shopping-cart"></i>&nbsp;Produtos</a></li>
+                            <li><a href="@Url.Action("Index", "Guarantor")" class="waves-effect @if (controllerName.Equals("GUARANTOR")) {<text>active</text>}"> <i class="fas fa-list-ul"></i>&nbsp;Garantidoras</a></li>
+                            <li><a href="@Url.Action("Index", "Assistance")" class="waves-effect @if (controllerName.Equals("ASSISTANCE")) { <text>active</text> }"><i class="fas fa-clipboard-list"></i>&nbsp;Assistências</a></li>
+                            <li><a href="@Url.Action("Index", "InsurancePolicy")" class="waves-effect @if (controllerName.Equals("INSURANCEPOLICY")) { <text>active</text> }"><i class="fas fa-file-contract"></i>&nbsp;Apólices</a></li>
+                            <li><a href="@Url.Action("Index", "CategoryGuarantorProduct")" class="waves-effect @if (controllerName.Equals("CATEGORYGUARANTORPRODUCT")) { <text>active</text> }"><i class="fas fa-shopping-cart"></i>&nbsp;Produtos Garantidos</a></li>
+                        </ul>
+                    </li>
+
+                        }
+                        else if (this.User.IsInRole("Corretor"))
+                        {
+                            <li>
+                                <a href="javascript: void(0);" class="waves-effect">
+                                    <i class="fas fa-building"></i>
+                                    <span style="margin-left: 1em;"> Imobiliárias</span>
+                                    <span class="fa fa-chevron-down float-right"></span>
+                                </a>
+                                <ul class="nav-second-level" aria-expanded="@(controllerName.Equals("COMPANY") ? "true" : "false")" @(controllerName.Equals("COMPANY") ? Html.Raw("style=\"display:block;\"") : (object)"")>
+                                    <li><a href="@Url.Action("Imobiliaria", "Company")" class="waves-effect @if (controllerName.Equals("COMPANY") && actionName.Equals("IMOBILIARIA")) { <text>active</text> }"><i class="fas fa-list-alt"></i>&nbsp;Listagem</a></li>
+                                    <li><a href="javascript:void(0)" data-copy-to-clipboard data-text="@($"{Context.Request.Scheme}://{Context.Request.Host}{Url.Action("New", "Company", new { Reference = await companyFunctions.GetCompanyReference(userCompanyFunctions.GetDataByUserId(user.Id).First().CompanyId) })}")" class="waves-effect"><i class='fas fa-external-link-alt'></i> Link - Nova Imobiliária</a></li>
+                                </ul>
+                            </li>
+
+
+                        }
+
+                        <li style="padding-left: 12px; padding-right: 12px;"><hr style="margin:0; " /></li>
+
+                        @if (!User.IsInRole("ImobiliariaVendas"))
+                        {
+                            <li>
+                                <a href="javascript: void(0);" class="waves-effect">
+                                    <img src="~/image/Incendio.png" style="height: 24px; width: 24px;" />
+                                    <span style="margin-left: 1em;"> Incêndio </span>
+                                    <span class="fa fa-chevron-down float-right"></span>
+                                </a>
+                                <ul class="nav-second-level" aria-expanded="@(controllerName.Equals("CERTIFICATE") ? "true" : "false")" @(controllerName.Equals("CERTIFICATE") ? Html.Raw("style=\"display:block;\"") : (object)"")>
+                                    <li><a href="@Url.Action("Index", "Certificate")?CertificateType=@((int)AMaisImob_WEB.Utils.CertificateTypes.Simulacao)" class="waves-effect @if (controllerName.Equals("CERTIFICATE") && certificateType == (int)AMaisImob_WEB.Utils.CertificateTypes.Simulacao) { <text>active</text> }"><i class="fas fa-file-invoice"></i>Novo/Notificação</a></li>
+                                    <li><a href="@Url.Action("Index", "Certificate")?CertificateType=@((int)AMaisImob_WEB.Utils.CertificateTypes.Emitidos)" class="waves-effect @if (controllerName.Equals("CERTIFICATE") && certificateType == (int)AMaisImob_WEB.Utils.CertificateTypes.Emitidos) { <text>active</text> }"><i class="fas fa-file-signature"></i>Certificados Ativos</a></li>
+                                    <li><a href="@Url.Action("Index", "Certificate")?CertificateType=@((int)AMaisImob_WEB.Utils.CertificateTypes.Deletados)" class="waves-effect @if (controllerName.Equals("CERTIFICATE") && certificateType == (int)AMaisImob_WEB.Utils.CertificateTypes.Deletados) { <text>active</text> }"><i class="far fa-file-alt"></i>Certificados Inativos</a></li>
+                                    <li><a href="@Url.Action("Index", "Certificate")?CertificateType=@((int)AMaisImob_WEB.Utils.CertificateTypes.Renovacao)" class="waves-effect @if (controllerName.Equals("CERTIFICATE") && certificateType == (int)AMaisImob_WEB.Utils.CertificateTypes.Renovacao) { <text>active</text> }"><i class='fa fa-cloud-upload-alt'></i>Certificados à Renovar</a></li>
+                                </ul>
+                            </li>
+                            <li>
+                                <a href="javascript: void(0);" class="waves-effect">
+                                    <img src="~/image/Doc.jpeg" style="height: 24px; width: 24px;" />
+                                    <span style="margin-left: 1em;"> Garantia Contratual </span>
+                                    <span class="fa fa-chevron-down float-right"></span>
+                                </a>
+                                <ul class="nav-second-level" aria-expanded="@(controllerName.Equals("CONTRACTUALGUARANTEE") ? "true" : "false")" @(controllerName.Equals("CONTRACTUALGUARANTEE") ? Html.Raw("style=\"display:block;\"") : (object)"")>
+                                    <li><a href="@Url.Action("New", "ContractualGuarantee")" class="waves-effect @(controllerName.Equals("CONTRACTUALGUARANTEE") && Context.Request.Query["statusId"] == (int)ContractualGuaranteeTypes.New ? "active" : "")"><i class="fas fa-file-invoice"></i>&nbsp;Nova Garantia</a></li>
+                                    <li><a href="@Url.Action("Active", "ContractualGuarantee")" class="waves-effect @(controllerName.Equals("CONTRACTUALGUARANTEE") && Context.Request.Query["statusId"] == (int)ContractualGuaranteeTypes.Active ? "active" : "")"><i class="fas fa-file-signature"></i>&nbsp;Garantias Ativas</a></li>
+                                    <li><a href="@Url.Action("Inactive", "ContractualGuarantee")" class="waves-effect @(controllerName.Equals("CONTRACTUALGUARANTEE") && Context.Request.Query["statusId"] == (int)ContractualGuaranteeTypes.Inactive ? "active" : "")"><i class="far fa-file-alt"></i>&nbsp;Garantias Inativas</a></li>
+
+                                </ul>
+                            </li>
+                            <li>
+                                <a href="javascript: void(0);" class="waves-effect">
+                                    <img src="~/image/AssinaturaDigital.png" style="height: 24px; width: 24px;" />
+                                    <span style="margin-left: 1em;"> Assinatura Digital </span>
+                                    <span class="fa fa-chevron-down float-right"></span>
+                                </a>
+                                <ul class="nav-second-level" aria-expanded="false">
+                                    <li><a href="@Url.Action("Index", "DocuSign")" class="waves-effect"><i class="fas fa-link"></i>&nbsp;DocuSign</a></li>
+                                </ul>
+                            </li>
+                        }
+
+                        @if (User.IsInRole("ImobiliariaVendas"))
+                        {
+                            <li>
+                                <a href="@Url.Action("New", "ContractualGuarantee")" class="waves-effect">
+                                    <img src="~/image/Doc.jpeg" style="height: 24px; width: 24px;" />
+                                    <span style="margin-left: 1em;"> Garantia Contratual </span>
+                                </a>
+                            </li>
+                        }
+
+                        @*<li><a href="@Url.Action("Index","ContractualGuarantee")" class="waves-effect @if (controllerName.Equals("CONTRACTUALGUARANTEE")){ <text>active</text> }"><i class="fas fa-shopping-cart"></i>&nbsp;Garantia Contratual</a></li>*@
+
+                        @if (this.User.IsInRole("Administrator"))
+                        {
+                            <li><a href="@Url.Action("Report","Certificate")" class="waves-effect @if (controllerName.Equals("CERTIFICATE") && actionName.Equals("REPORT")){ <text>active</text> }"><i class='fas fa-file-excel'></i>Relatório de Certificados</a></li>
+                        }
+                        @if (!User.IsInRole("ImobiliariaVendas"))
+                        {
+                            <li>
+                                <a href="javascript: void(0);" class="waves-effect">
+                                    <i class='fas fa-barcode'></i>
+                                    <span style="margin-left: 1em;"> Financeiro</span>
+                                    <span class="fa fa-chevron-down float-right"></span>
+                                </a>
+                                <ul class="nav-second-level" aria-expanded="@(controllerName.Equals("FINANCIAL") ? "true" : "false")" @(controllerName.Equals("FINANCIAL") ? Html.Raw("style=\"display:block;\"") : (object)"")>
+                                    <li><a href="@Url.Action("Index", "Financial")" class="waves-effect @(controllerName.Equals("FINANCIAL") && actionName.Equals("INDEX") ? "active" : "")"><i class="fas fa-barcode"></i>&nbsp;@(User.IsInRole("Administrator") ? "Gerar Boletos" : "Visualizar Boletos")</a></li>
+                                    <li><a href="@Url.Action("Extract", "Financial")" class="waves-effect @(controllerName.Equals("FINANCIAL") && actionName.Equals("EXTRACT") ? "active" : "")"><i class="fas fa-list"></i>&nbsp;Extrato</a></li>
+                                </ul>
+                            </li>
+                        }
+                        <li style="padding-left: 12px; padding-right: 12px;"><hr style="margin:0; " /></li>
+
+                        <li><a href="@Url.Action("Logout", "Account")" class="waves-effect"><i class="fas fa-power-off"></i> Sair</a></li>
+                    </ul>
+                    <div class="clearfix"></div>
+                </div>
+                <!-- Sidebar -->
+                <div class="clearfix"></div>
+
+            </div>
+        </div>
+        <!-- Left Sidebar End -->
+        <!-- ============================================================== -->
+        <!-- Start right Content here -->
+        <!-- ============================================================== -->
+        <div class="content-page">
+            <!-- Start content -->
+            <div class="content" style="margin-bottom: 2em; padding-top: 2em;">
+                <div class="container-fluid">
+                    @if (Context.Request.Query.ContainsKey("saved"))
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            @if (TempData["SavedMessage"] != null)
+                            {
+                                <span><strong>Sucesso!</strong> @Html.Raw(TempData["SavedMessage"]).</span>
+                            }
+                            else
+                            {
+                                <span><strong>Sucesso!</strong> Os dados foram salvos com sucesso.</span>
+                            }
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    }
+                    @RenderBody()
+
+                </div> <!-- container -->
+
+            </div> <!-- content -->
+
+            <footer class="footer text-right">
+                AmaisImob &copy; @DateTime.Now.Year :: Desenvolvido por <a href="mailto:contato@bitflag.systems">Bit Flag</a> | Versão 4.1.1
+            </footer>
+
+        </div>
+    </div>
+    <!-- END wrapper -->
+
+    <script type="text/javascript" src="~/theme/assets/js/jquery.core.js"></script>
+    <script type="text/javascript" src="~/theme/assets/js/jquery.app.js"></script>
+
+    <!-- BOOTSTRAP DATEPICKER -->
+    <script type="text/javascript" src="~/lib/bootstrap-datepicker/bootstrap-datepicker.js"></script>
+    <link type="text/css" href="~/lib/bootstrap-datepicker/bootstrap-datepicker.css" rel="stylesheet" />
+    <script type="text/javascript" src="~/lib/bootstrap-datepicker/bootstrap-datepicker.pt-BR.min.js"></script>
+
+    <!--BOOTBOX-->
+    <script type="text/javascript" src="~/lib/bootbox/bootbox.min.js"></script>
+
+    <!--Moment-->
+    @*<script src="~/theme/assets/plugins/moment/min/moment.min.js"></script>*@
+    <script type="text/javascript" src="~/theme/assets/plugins/moment/min/moment-with-locales.js"></script>
+
+
+    @RenderSection("Modals", required: false)
+    @RenderSection("Scripts", required: false)
+    <script type="text/javascript">
+        if (window.innerWidth < 420) {
+            $.Sidemenu.openLeftBar();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,382 @@
+﻿@model DTO.Company.CompanyViewModel
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var componentID = string.Format("_{0}", Guid.NewGuid().ToString("N"));
+    ViewData["Title"] = "Unidade de Negócio";
+}
+@{ Html.RenderPartial("~/Views/Shared/_TopMessages.cshtml"); }
+<div id="@componentID">
+    <script type="text/javascript">
+        function MoreInfo() {
+            $('#@componentID #moreInfo').hide();
+            $('#@componentID #divMoreInfo').show();
+        }
+        function LessInfo () {
+            $('#@componentID #moreInfo').show();
+            $('#@componentID #divMoreInfo').hide();
+        }
+        function Create(){
+            var d = $('#@componentID form').serializeArray();
+        }
+    </script>
+    <form id="form" action="@Url.Action("Manage", "CompanyManagement")" method="post" enctype="multipart/form-data">
+        <div class="card shadow">
+            <div class="card-header">
+                <span id="titleText">Nova Unidade de Negócio</span>
+            </div>
+            <div class="card-body">
+                <input type="hidden" id="CompanyID" name="CompanyID" value="@Model.CompanyId" />
+                <div id="divRequiredInfo">
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label class="control-label" for="CNPJ">CNPJ*</label>
+                            <input type="text" class="form-control cnpj" id="Cnpj" name="Cnpj" value="@Model.Cnpj" placeholder="CNPJ">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label class="control-label" for="IE">Inscrição Estadual</label>
+                            <input type="text" class="form-control" id="Ie" name="Ie" value="@Model.Ie" placeholder="Inscrição Estadual">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label class="control-label" for="RazaoSocial">Razão Social*</label>
+                            <input type="text" class="form-control" id="RazaoSocial" name="RazaoSocial" value="@Model.RazaoSocial" placeholder="Razão Social">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label class="control-label" for="NomeFantasia">Nome Fantasia*</label>
+                            <input type="text" class="form-control" id="NomeFantasia" name="NomeFantasia" value="@Model.NomeFantasia" placeholder="Nome Fantasia">
+                        </div>
+                    </div>
+                    <a id="moreInfo" href="javascript: MoreInfo();">Mais Informações...</a>
+                </div>
+                <div id="divMoreInfo" style="display: none;">
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label class="control-label" for="Email">E-mail</label>
+                            <input type="text" class="form-control" id="Email" name="Email" value="@Model.Email" placeholder="E-mail">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label class="control-label" for="PhoneNumber">Telefone</label>
+                            <input type="text" class="form-control phone" id="Telefone" name="Telefone" value="@Model.Telefone" placeholder="Telefone">
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="form-row">
+                        <div class="form-group col-md-2">
+                            <label class="control-label" for="CEP">CEP</label>
+                            <input type="text" class="form-control cep" id="Cep" name="Cep" value="@Model.Cep" placeholder="CEP" maxlength="9">
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label class="control-label" for="Endereco">Endereço</label>
+                            <input type="text" class="form-control" id="Endereco" name="Endereco" value="@Model.Endereco" placeholder="Endereço">
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label class="control-label" for="Numero">Número</label>
+                            <input type="text" class="form-control" id="Numero" name="Numero" value="@Model.Numero" placeholder="Número">
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label class="control-label" for="Complemento">Complemento</label>
+                            <input type="text" class="form-control" id="Complemento" name="Complemento" value="@Model.Complemento" placeholder="Complemento">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-3">
+                            <label class="control-label" for="Bairro">Bairro</label>
+                            <input type="text" class="form-control" id="Bairro" name="Bairro" value="@Model.Bairro" placeholder="Bairro">
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label class="control-label" for="CountryId">País</label>
+                            <select class="form-control" id="CountryId" name="CountryId">
+                            </select>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label class="control-label" for="StateId">Estado</label>
+                            <select id="StateId" name="StateId" class="form-control">
+                                <option value="">Selecione</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label class="control-label" for="CityId">Cidade</label>
+                            @*<input type="text" class="form-control" id="Cidade" name="Cidade" value="@Model.Cidade" placeholder="Cidade">*@
+                            <select id="CityId" name="CityId" class="form-control">
+                                <option value="">Selecione</option>
+                            </select>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="form-row">
+                        <div class="form-group col-md-3">
+                            <label class="control-label">Ativo?</label>
+                            <div class="col-xs-3 selectContainer">
+                                <select class="form-control" id="IsActive" name="IsActive">
+                                    <option id="True" value="true">Sim</option>
+                                    <option id="False" value="false">Não</option>
+                                </select>
+                            </div>
+                        </div>
+                        @if (Model.CompanyId.HasValue && (User.IsInRole(BLL.User.ProfileNames.Administrator) || User.IsInRole(BLL.User.ProfileNames.Master)))
+                        {
+                            <div class="col-md-3"></div>
+                            <div class="form-group col-md-3">
+                                <div id="company-question-visualize-area" style="@(Model.QuestionEmailSended? "" : "display: none")">
+                                    <label class="control-label w-100">&nbsp;</label>
+                                    <a href="@Url.Action("Index", "CompanyQuestion", new { companyId = Model.CompanyId })" target="_blank" class="btn btn-primary w-100">Visualizar Questionário</a>
+                                </div>
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label class="control-label w-100">&nbsp;</label>
+                                <button class="btn btn-primary w-100" type="button" data-toggle="modal" data-target="#question-email-modal" id="send-question-email-button">@(Model.QuestionEmailSended? "Reenviar Questionário por E-mail" : "Enviar Questionário por E-mail")</button>
+                            </div>
+                        }
+                    </div>
+                    <script type="text/javascript">
+						$('#IsActive').find('[id=' + "@Model.IsActive" + ']').attr('selected', true);
+                    </script>
+                    <hr />
+                    <div class="form-row">
+                        @if (Model.HasLogo)
+                        {
+                            <div class="col-md-6">
+                                <div class="text-center">
+                                    <img id="sampleLogo" class="rounded-circle" src="@Url.Action("GetCompanyLogo", "CompanyManagement", new { companyId = Model.CompanyId })" data-holder-rendered="true" style="width: 55px; height: 55px;">
+                                    <div id="noImageLogo" class="rounded-circle" style="height: 55px; line-height: 55px; display: none;">
+                                        <b>Imagem Removida</b>
+                                    </div>
+                                    <div class="form-check">
+                                        <label class="form-check-label">
+                                            <input type="hidden" id="HasLogo" name="HasLogo" value="true" />
+                                            <input name="RemoveLogo" type="hidden">
+                                            <input class="form-check-input" id="RemoveLogo" type="checkbox">
+                                            <script type="text/javascript">
+                                                $('#RemoveLogo').click(function () {
+                                                    $('#form [name="RemoveLogo"]').val(this.checked);
+
+                                                    if (this.checked) {
+                                                        $('#sampleLogo').hide();
+                                                        $('#noImageLogo').show();
+                                                        $('#uploadArea').hide();
+                                                        $("#HasLogo").val("false");
+                                                        $('#Logo').val('');
+                                                    }
+                                                    else {
+                                                        $('#sampleLogo').show();
+                                                        $('#noImageLogo').hide();
+                                                        $('#uploadArea').show();
+                                                        $("#HasLogo").val("true");
+                                                    }
+                                                });
+                                            </script>
+                                            Remover Imagem
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        <div class="form-group col-md-6" id="uploadArea">
+                            <label for="Logo">
+                                @{ if (Model.HasLogo)
+                                    { <text>Substituir </text>} }Logotipo (PNG ou JPEG, máx 2MB)
+                            </label>
+                            <input type="file" class="form-control" name="Logo" id="Logo" />
+                        </div>
+                    </div>
+                    <a id="lessInfo" href="javascript: LessInfo();">Menos Informações...</a>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div id="divControls">
+                    <a href="@Url.Action("Index", "CompanyManagement", new { useFilter = true })" class="btn btn-secondary float-left"><i class="fa fa-arrow-left"></i>&nbsp;Voltar</a>
+                    <button type="button" id="buttonSubmit" class="btn btn-success float-right"><i class="fa fa-plus"></i>&nbsp;Criar Unidade de Negócio</button>
+                    <script type="text/javascript">
+                        $('#buttonSubmit').click(function () {
+
+                            var hasError = false;
+                            $('#form .invalid-feedback').remove();
+                            $('#alertForm').hide();
+
+                            // CNPJ
+                            if (IsNullOrWhiteSpace($('#Cnpj').val())) {
+                                $('#Cnpj').after('<div class="invalid-feedback">Preencha o Cnpj.</div>');
+                                hasError = true;
+                            }
+
+                            // Razao Social
+                            if (IsNullOrWhiteSpace($('#RazaoSocial').val())) {
+                                $('#RazaoSocial').after('<div class="invalid-feedback">Preencha a Razão Social.</div>');
+                                hasError = true;
+                            }
+
+                            //Nome Fantasia
+                            if (IsNullOrWhiteSpace($('#NomeFantasia').val())) {
+                                $('#NomeFantasia').after('<div class="invalid-feedback">Preencha o Nome Fantasia.</div>');
+                                hasError = true;
+                            }
+
+                            if (hasError) {
+                                $('#alertForm').show();
+                                $('#form .invalid-feedback').show();
+                            }
+                            else {
+                                $('#form').submit();
+                            }
+                        });
+                    </script>
+                    @if (ViewData["ErroDoArquivo"] != null)
+                    {
+                        string messageFile = (string)ViewData["ErroDoArquivo"];
+                        <script type="text/javascript">
+					$('#Logo').after('<div class="invalid-feedback">@messageFile</div>');
+						$('#alertForm').show();
+						$('#form .invalid-feedback').show();
+                        </script>
+                    }
+                    @if (Model.CompanyId != null)
+                    {
+                        <script type="text/javascript">
+							$('#@componentID #StateId').val('@Model.StateId');
+						$('#@componentID #buttonSubmit').html('<i class="fa fa-cloud-upload-alt"></i>&nbsp;Atualizar Unidade de Negócio');
+                        $('#@componentID #titleText').html('Atualizar <b> @Model.RazaoSocial </b>');
+                        MoreInfo();
+                        </script>
+                    }
+                    <script type="text/javascript">
+
+						$('#CountryId').change(function () {
+							$.ajax({
+								url: '@Url.Action("GetStates", "Utils")',
+								type: 'POST',
+								data: { countryId: $('#CountryId').val() },
+								dataType: 'json',
+								success: function (d) {
+									$('#StateId').empty();
+									$('#StateId').append($('<option>', { value: "", text: "Selecione" }));
+									$.each(d, function (i, e) {
+										$('#StateId').append($('<option>', { value: e.StateId, text: e.Name }));
+									});
+									@if (Model.StateId != null)
+									{
+									<text>
+									$('#StateId').val('@Html.Raw(Model.StateId)');
+									$('#StateId').change();
+									</text>
+									}
+									else{
+									<text>
+									$('#StateId').val('');
+									</text>
+									}
+								}
+							});
+						});
+							$('#StateId').change(function () {
+							$.ajax({
+								url: '@Url.Action("GetCities", "Utils")',
+								type: 'POST',
+								data: { stateId: $('#StateId').val() },
+								dataType: 'json',
+								success: function (d) {
+									$('#CityId').empty();
+									$('#CityId').append($('<option>', { value: "", text: "Selecione" }));
+									$.each(d, function (i, e) {
+										$('#CityId').append($('<option>', { value: e.CityId, text: e.Name }));
+									});
+									@if (Model.CityId != null)
+									{
+									<text>
+									$('#CityId').val('@Html.Raw(Model.CityId)');
+									</text>
+									}
+									else{
+									<text>
+									$('#CityId').val('');
+									</text>
+									}
+								}
+							});
+						});
+						$(document).ready(function () {
+							$.ajax({
+								url: '@Url.Action("GetCountries", "Utils")',
+								type: 'POST',
+								dataType: 'json',
+								success: function (d) {
+									$('#CountryId').empty();
+									$('#CountryId').append($('<option>', { value: "", text: "Selecione" }));
+									$.each(d, function (i, e) {
+										$('#CountryId').append($('<option>', { value: e.CountryId, text: e.NiceName }));
+									});
+									@if (Model.CountryId != null) {
+									<text>
+										$('#CountryId').val('@Model.CountryId');
+										$('#CountryId').change();
+									</text>
+									}
+									else{
+									<text>
+										$('#CountryId').val('');
+									</text>
+									}
+								}
+							});
+						});
+                    </script>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="modal fade" id="question-email-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Envio de questionário por e-mail</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="question-email-form" action="" method="post">
+                    <input type="hidden" name="CompanyId" value="@Model.CompanyId" />
+                    <div class="row mb-2">
+                        <div class="col">
+                            <label class="text-warning">No caso de envio para múltiplos e-mails utilize <b>; (ponto e vírgula)</b> para separar um e-mail de outro.</label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <label class="required">Destinatário</label>
+                            <input class="form-control" placeholder="Destinatário" name="To" value="@Model.Email" />
+                        </div>
+                        <div class="col">
+                            <label>Cópia</label>
+                            <input class="form-control" placeholder="Cópia" name="ReplyTo" />
+                        </div>
+                        <div class="col">
+                            <label>Cópia Oculta</label>
+                            <input class="form-control" placeholder="Cópia Oculta" name="BCC" />
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" aria-label="Close" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-times"></i>&nbsp;Fechar</button>
+                <button class="btn btn-success float-right" type="button" onclick="sendQuestionEmail()"><i class="fa fa-envelope"></i>&nbsp;Enviar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    function sendQuestionEmail() {
+        if (!validateInputs('question-email-form')) return;
+
+        $.post('@Url.Action("SendQuestionEmail", "CompanyManagement")', $('#question-email-form').serializeArray(), function (d) {
+            alert(d.message);
+
+            if (d.success) {
+                $('#send-question-email-button').text('Reenviar Questionário por E-mail');
+                $('#company-question-visualize-area').show();
+            }
+        });
+    }
+</script>

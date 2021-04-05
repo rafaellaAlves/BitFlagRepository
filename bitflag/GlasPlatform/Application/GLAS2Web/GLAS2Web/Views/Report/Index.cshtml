@@ -1,0 +1,289 @@
+﻿@model AlanJuden.MvcReportViewer.ReportViewerModel
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+
+}
+<script type="text/javascript">
+    var reportPath = '@Model.ReportPath';
+	$(document).ready(function () {
+
+        $('.ViewReport').click(function () {
+            if (!$(this).attr('disabled')) {
+                reportPath = '@Model.ReportPath';
+                //if ($('#CompanyId').val() == null || $('#CompanyId').val().length == 0) {
+                //    alert('Por favor, preencha todos os filtros.');
+                //    return false;
+                //}
+                //$('input[name="CompanyId"]').val($('#CompanyId').val() == null ? '' : ($('#CompanyId').attr('multiple') ? $('#CompanyId').val().join(';') : $('#CompanyId').val()));
+                SendVisibleToHiddenParameterContainer();
+                viewReportPage(1);
+            }
+        });
+
+        $('.FirstPage, .Refresh').click(function () {
+            if (!$(this).attr('disabled')) {
+				viewReportPage(1);
+			}
+		});
+
+		$('.PreviousPage').click(function () {
+			if (!$(this).attr('disabled')) {
+				var page = parseInt($('#ReportViewerCurrentPage').val()) - 1;
+				viewReportPage(page);
+			}
+		});
+
+		$('.NextPage').click(function () {
+			if (!$(this).attr('disabled')) {
+				var page = parseInt($('#ReportViewerCurrentPage').val()) + 1;
+				viewReportPage(page);
+			}
+		});
+
+		$('.LastPage').click(function () {
+			if (!$(this).attr('disabled')) {
+				var page = parseInt($('#ReportViewerTotalPages').text());
+				viewReportPage(page);
+			}
+		});
+
+        $('.BackToMainReport').click(function () {
+            if (!$(this).attr('disabled')) {
+                reportPath = '@Model.ReportPath';
+                $('.ViewReport').click();
+                $(this).hide();
+            }
+        });
+
+		$('#ReportViewerCurrentPage').change(function () {
+			var page = $(this).val();
+			viewReportPage(page);
+		});
+	});
+
+    function viewReportPage(page) {
+
+		var params = $('.HiddenParametersContainer :input').serializeArray();
+		var urlParams = $.param(params);
+		var totalPages = parseInt($('#ReportViewerTotalPages').text());
+
+		if (page == undefined || page == null || page < 1) {
+			page = 1;
+		} else if (page > totalPages) {
+			page = totalPages;
+        }
+
+        $.get('@Url.Action("ViewReportPage", "Report")?reportPath=' + reportPath + '&page=' + page + '&' + urlParams).done(function (data) {
+
+            updateReportContent(data);
+        });
+    }
+
+    function redirectToReport(url) {
+        $.get(url).done(function (data) {
+            $('.BackToMainReport').show();
+			updateReportContent(data);
+		});
+    }
+
+    function exportReport() {
+        //SendVisibleToHiddenParameterContainer();
+
+		var params = $('.HiddenParametersContainer :input').serializeArray();
+		var urlParams = $.param(params);
+
+		window.location.href = "@Url.Action("ExportReport", "Report")?reportPath=" + reportPath + "&format=pdf&" + urlParams;
+	}
+
+	function updateReportContent(data) {
+        if (data != undefined && data != null) {
+
+            reportPath = data.ReportPath;
+			$('#ReportViewerCurrentPage').val(data.CurrentPage);
+			$('#ReportViewerTotalPages').text(data.TotalPages);
+            $('.ReportViewerContent').html(data.Content);
+            $('.HiddenParametersContainer').empty();
+            $.each(data.Parameters, function (i, e) {
+                console.log(e.Name + ': ' + e.SelectedValues[0]);
+                $('.HiddenParametersContainer').append('<input type="hidden" id="' + e.Name + '" name="' + e.Name + '" value="' + (e.SelectedValues[0] == null ? '' : e.SelectedValues[0]) + '" />');
+            });
+
+			if (data.TotalPages <= 1) {
+				$('.FirstPage').attr('disabled', true);
+				$('.PreviousPage').attr('disabled', true);
+				$('.NextPage').attr('disabled', true);
+				$('.LastPage').attr('disabled', true);
+			} else {
+				$('.FirstPage').attr('disabled', false);
+				$('.PreviousPage').attr('disabled', false);
+				$('.NextPage').attr('disabled', false);
+				$('.LastPage').attr('disabled', false);
+			}
+		}
+	}
+</script>
+
+<div id="showFilter" style="position:fixed; top: 100px; left: 0; width: 50px; height: 50px; padding-top: 6px; padding-left: 6px; background-color: #999; z-index: 100; border-top-right-radius: 5px; border-bottom-right-radius: 5px; cursor: pointer; display: none;" class="shadow">
+    <span class="fa-stack fa-lg">
+        <i class="fa fa-circle fa-stack-2x" style="color: white;"></i>
+        <i class="fa fa-filter fa-stack-1x fa-inverse" style="color: #999;"></i>
+    </span>
+</div>
+
+<div class="row">
+    <div class="col-md-3" id="filterColumn">
+        <div class="card shadow" id="filterCard">
+            <div class="card-header">
+                <i class="fa fa-filter"></i>&nbsp;@translationFunctions.GetTranslation("Filtros", User.FindFirstValue("CultureInfo"))
+                <small id="hideFilter" title="@translationFunctions.GetTranslation("Esconder Filtro", User.FindFirstValue("CultureInfo"))" style="cursor: pointer; float: right;">
+                    <span class="fa-stack">
+                        <i class="fa fa-circle fa-stack-2x" style="color: #212529;"></i>
+                        <i class="fa fa-chevron-left fa-stack-1x fa-inverse" style="color: #FFFFFF;"></i>
+                    </span>
+                </small>
+            </div>
+            <div class="card-body" style="overflow-y: auto">
+                <div class="HiddenParametersContainer">
+                    <input type="hidden" id="CompanyId" name="CompanyId" value="" />
+                    <input type="hidden" id="FilterText" name="FilterText" value="" />
+                    <input type="hidden" id="Language" name="Language" value="@User.FindFirstValue("CultureInfo")" />
+                </div>
+                <div class="VisualParametersContainer">
+                    @foreach (var filter in Model.Filters)
+                    {
+                        Html.RenderPartial("~/Views/Report/Shared/" + filter + ".cshtml");
+                    }
+                    <script type="text/javascript">
+                        $('.VisualParametersContainer select[multiple="multiple"]').select2();
+                    </script>
+                </div>
+            </div>
+            <div class="card-footer">
+                <script type="text/javascript">
+                    function SendVisibleToHiddenParameterContainer() {
+                        $.each($('.HiddenParametersContainer input[type="hidden"]'), function (i, e) { $(e).val(''); });
+                        $('.VisualParametersContainer .ReportParameter').each(function (i, e) {
+                            var exists = $('.HiddenParametersContainer #' + $(e).data('hidden-parameter')).length > 0;
+                            if (!exists) $('.HiddenParametersContainer').append('<input type="hidden" name="' + $(e).data('hidden-parameter') + '" id="' + $(e).data('hidden-parameter') + '" value="" />');
+
+                            var val = '';
+                            if (Array.isArray($(e).val()))
+                                val = ($(e).val() == null || $(e).val().length == 0) ? '' : $(e).val().join(';');
+                            else
+                                val = $(e).val();
+
+                            if ($(e).hasClass('date') && ($(e).val() != null && $(e).val() != ''))
+                                $('.HiddenParametersContainer #' + $(e).data('hidden-parameter')).val(moment($(e).val(), 'DD/MM/YYYY').format('YYYY-MM-DD'));
+                            else
+                                $('.HiddenParametersContainer #' + $(e).data('hidden-parameter')).val(val);
+                        });
+                        $('#FilterText').val(GetFilterText());
+                        $('#Language').val('@User.FindFirstValue("CultureInfo")');
+                    }
+                    function GetFilterText() {
+                        var _filterText = [];
+                        $.each($('.VisualParametersContainer .form-group'), function (i, e) {
+                            var label = $(e).find('.control-label').html();
+                            var values = '';
+
+                            var inputGroup = $(e).find('.input-group');
+                            console.log(inputGroup.length);
+
+                            if (inputGroup.length > 0) {
+                                var input1 = $($(e).find('.form-control')[0]).val();
+                                var input2 = $($(e).find('.form-control')[1]).val();
+
+                                if (!input1 && !input2)
+                                    values = '-';
+                                else if (!input2)
+                                    values = 'de ' + input1;
+                                else if (!input1)
+                                    values = 'até ' + input2;
+                                else
+                                    values = 'de ' + input1 + ' até ' + input2;
+
+                            } else {
+                                if ($(e).find('.form-control').is('select')) {
+                                    var options = $.map($(e).find('option:selected'), function (v, k) { return $(v).text() });
+                                    values = options.length == 0 ? 'Todos' : options.join('; ');
+                                } else if ($(e).find('.form-control').is('input')) {
+                                    var val = $($(e).find('.form-control')[0]).val();
+                                    values = !val ? 'Todos' : val;
+                                }
+                            }
+
+                            _filterText.push('<b>' + label + ':</b> ' + values);
+                        });
+                        return '<b>Filtro: </b> <span>' + _filterText.join(' | ') + '</span>';
+                    }
+                </script>
+                <button id="execute" class="btn btn-primary text-left ViewReport"><i class="fa fa-cog"></i>&nbsp;@translationFunctions.GetTranslation("Executar", User.FindFirstValue("CultureInfo"))</button>
+                <button onclick="exportReport()" class="btn btn-secondary text-right"><i class="fa fa-file-pdf"></i>&nbsp;@translationFunctions.GetTranslation("Exportar", User.FindFirstValue("CultureInfo"))</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-9" id="chartColumn">
+        <div class="card shadow" id="reportCard">
+            <div class="card-header">@translationFunctions.GetTranslation(Model.Title, User.FindFirstValue("CultureInfo"))</div>
+            <div class="card-body" style="overflow-x: auto; overflow-y: auto;">
+                <div class="ReportViewerContent">
+                    <div class="jumbotron">
+                        <p class="lead">@translationFunctions.GetTranslation("Utilize o filtro ao lado para visualizar os resultados.", User.FindFirstValue("CultureInfo"))</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer text-center">
+                <input type="hidden" id="ReportViewerCurrentPage" value="1" />
+                <input type="hidden" id="ReportViewerTotalPages" value="1" />
+                <button class="btn btn-secondary BackToMainReport pull-left" style="display: none;"><i class="fa fa-arrow-left"></i>&nbsp;@translationFunctions.GetTranslation("Relatório Principal", User.FindFirstValue("CultureInfo"))</button>
+                <div class="btn-group">
+                    <button class="btn btn-default FirstPage" disabled><i class="fa fa-chevron-left"></i><i class="fa fa-chevron-left"></i>&nbsp;@translationFunctions.GetTranslation("Primeira Página", User.FindFirstValue("CultureInfo"))</button>
+                    <button class="btn btn-default PreviousPage" disabled><i class="fa fa-chevron-left"></i>&nbsp;@translationFunctions.GetTranslation("Página Anterior", User.FindFirstValue("CultureInfo"))</button>
+                    <button class="btn btn-default NextPage" disabled>@translationFunctions.GetTranslation("Próxima Página", User.FindFirstValue("CultureInfo"))&nbsp;<i class="fa fa-chevron-right"></i></button>
+                    <button class="btn btn-default LastPage" disabled>@translationFunctions.GetTranslation("Última Página", User.FindFirstValue("CultureInfo"))&nbsp;<i class="fa fa-chevron-right"></i><i class="fa fa-chevron-right"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(window).resize(function () {
+        if ($(this).width() > 992) {
+            $('#filterCard').height($(this).height() - 120);
+            $('#reportCard').height($(this).height() - 120);
+        }
+    }).resize();
+
+    $('#hideFilter').click(function (e) {
+        var filterColumn = $('#filterColumn');
+        var chartColumn = $('#chartColumn');
+        if (filterColumn.hasClass('col-md-3')) {
+            filterColumn.animate({ width: '0px' }, 100, function () {
+                $(this).removeClass("col-md-3");
+                chartColumn.removeClass("col-md-9");
+                chartColumn.addClass("col-md-12");
+                $(this).hide();
+                $('#showFilter').show();
+                chartColumn.css('padding-left', '60px');
+            });
+        }
+    });
+    $('#showFilter').click(function () {
+        var filterColumn = $('#filterColumn');
+        var chartColumn = $('#chartColumn');
+        if (!filterColumn.hasClass('col-md-3')) {
+            filterColumn.css('width', '');
+            filterColumn.animate({}, 100, function () {
+                $(this).addClass("col-md-3");
+                chartColumn.removeClass("col-md-12");
+                chartColumn.addClass("col-md-9");
+                $(this).show();
+                $('#showFilter').hide();
+                chartColumn.css('padding-left', '');
+            });
+        }
+    });
+</script>

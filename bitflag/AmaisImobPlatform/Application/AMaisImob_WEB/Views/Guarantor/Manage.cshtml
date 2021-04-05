@@ -1,0 +1,34 @@
+﻿@model int?
+@*@if (!string.IsNullOrWhiteSpace(Context.Request.Query["saved"]))
+    {
+        <text>
+            <div id="_AccountManageAlertSuccess" class="alert alert-success fade show text-center">
+                <b>Os dados foram salvos com sucesso!</b>
+            </div>
+            <script type="text/javascript">
+                $('#_AccountManageAlertSuccess').fadeOut(5000);
+            </script>
+        </text>
+    }*@
+
+<div class="card shadow bg-light">
+    <div class="card-header"><span>Criar/Editar Garantidora</span></div>
+    <div class="card-body">
+        <div id="_GuarantormanageViewComponent"></div>
+    </div>
+    <div class="card-footer">
+        <a href="@Url.Action("Index","Guarantor")" class="btn btn-secondary float-left" style="color:white;"><i class="fa fa-arrow-left"></i>&nbsp;Voltar</a>
+        <button type="button" id="GuarantorSubmitButton" class="btn btn-success float-right"><i class="fa fa-cloud-upload-alt"></i>&nbsp;@(Model.HasValue? "Atualizar" : "Criar") Garantidora</button>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#_GuarantormanageViewComponent').load('@Url.Action("GuarantorManageComponent", "Guarantor")', { "id": @if (Model.HasValue) { @Model } else { <text>null</text> } });
+
+    $('#GuarantorSubmitButton').click(function () {
+        if (ValidarCampos()) {
+            GuarantorManageSave();
+        }
+        });
+</script>
+

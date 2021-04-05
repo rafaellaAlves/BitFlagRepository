@@ -1,0 +1,163 @@
+﻿@model int
+
+<style type="text/css">
+    .simple-icon-menu {
+        font-size: 16px;
+    }
+
+    .dropdown-menu a {
+        font-size: 14px !important;
+    }
+</style>
+
+<div class="row">
+    <div class="col-md form-group">
+        <input type="text" class="form-control" placeholder="Pesquisar..." data-toggle="search-datatable" data-target="#client-license-conditioning-table" />
+    </div>
+    <div class="col-md-auto form-group" style="min-width: 150px;">
+        <a href="javascript:openClientLicenseConditioningManageModal()" class="btn btn-destineja-orange w-100"><i class="simple-icon-plus"></i>&nbsp;Novo</a>
+    </div>
+</div>
+<hr />
+<div class="row">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col table-responsive">
+                <table id="client-license-conditioning-table" class="display table table-striped table-bordered table-condensed w-100" style="border-collapse: collapse !important;">
+                    <thead>
+                        <tr>
+                            <th>Número</th>
+                            <th>Descrição</th>
+                            <th>Prazo</th>
+                            <th>Protocolo</th>
+                            <th>Data do Protocolo</th>
+                            <th>&nbsp;</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="client-license-conditioning-manage-modal" tabindex="-1" role="dialog" aria-labelledby="client-license-conditioning-manage-modal-title" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="client-license-conditioning-manage-modal-title">Documento</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="client-license-conditioning-manage-view-component"></div>
+            </div>
+            <div class="modal-footer d-block">
+                <div class="row">
+                    <div class="col-6">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="simple-icon-close"></i>&nbsp;Fechar</button>
+                    </div>
+                    <div class="col-6">
+                        <button type="button" class="btn btn-success float-right" id="client-license-conditioning-manage-modal-save-item-button">Criar</button>
+                        <button type="button" class="btn btn-success float-right mr-sm-3 mt-2 mt-sm-0" id="client-license-conditioning-manage-modal-save-button">Salvar Dados</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script asp-cut-key="client-license-conditioning-index">
+    var clientLicenseConditioningDatatables;
+    $(document).ready(function () {
+        clientLicenseConditioningDatatables = $('#client-license-conditioning-table').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            dom: 'tip',
+            ajax: {
+                url: '@Url.Action("List", "ClientLicenseConditioning")'
+                , data: function (d) {
+                    d.clientLicenseId = '@Model'
+                }
+                , type: 'POST'
+            },
+            columns: [
+                { render: function (data, type, row) { return row.number; } },
+                { render: function (data, type, row) { return row.description; } },
+                { render: function (data, type, row) { return row.daysToRegularize; } },
+                { render: function (data, type, row) { return row.protocol; } },
+                { render: function (data, type, row) { return row.protocolDateFormated; } },
+                {
+                    render: function (data, type, row)
+                    {
+                        return getListActionsLink([
+                            { link: 'javascript:openClientLicenseConditioningManageModal(' + row.clientLicenseConditioningId + ')', text: '<i class="simple-icon-note"></i> Editar' }
+                            , { link: 'javascript:removeClientLicenseConditioning(' + row.clientLicenseConditioningId + ', ' + row.number + ')', text: '<i class="simple-icon-trash"></i> Remover' }
+                        ]);
+                    }
+                }
+            ]
+        });
+    });
+
+    function removeClientLicenseConditioning(id, number) {
+        bootboxConfirm("Deseja realmente excluir a condicionanente de número \"" + number + "\"?", function(result){
+            if (!result) return;
+
+            $.post('@Url.Action("Delete", "ClientLicenseConditioning")', { id }, function (d) {
+                bootbox.alert("Condicionanente número <b>" + number + "</b> excluída com sucesso!");
+                clientLicenseConditioningDatatables.ajax.reload();
+            });
+        });
+    }
+
+    function openClientLicenseConditioningManageModal(clientLicenseConditioningId) {
+        $('#client-license-conditioning-manage-view-component').load('@Url.Action("LoadClientLicenseConditioningManageViewComponent", "ClientLicenseConditioning")', { clientLicenseConditioningId, clientLicenseId: '@Model' }, function () {
+            $('#client-license-conditioning-manage-modal').modal('show');
+        });
+    }
+
+    $('#client-license-conditioning-manage-modal-save-button').click(function () {
+        saveClientLicenseConditioning();
+    });
+
+    $('#client-license-conditioning-manage-modal-save-item-button').click(function () {
+        if (!validateClientLicenseConditioningItem()) return;
+
+        bootboxConfirm('Deseja realmente ' + $('#client-license-conditioning-manage-modal-save-item-button').text() + ' esta condicionante?<br /> Ao ' + $('#client-license-conditioning-manage-modal-save-item-button').text() + ' será inserido um item no histórico que não poderá ser alterado.', function (r) {
+            if (!r) return;
+
+            saveClientLicenseConditioningItem();
+        });
+    });
+
+    $('#client-license-conditioning-manage-modal').on('hidden.bs.modal', function () {
+        clientLicenseConditioningDatatables.ajax.reload();
+    });
+
+    function openListPrint() {
+        var form = $('<form>', { target: "_blank", method: "post", action: '@Url.Action("ListPrint", "ClientLicenseConditioning")'});
+
+        var i = 0;
+        clientLicenseConditioningDatatables.rows({ filter: 'applied' }).data().each(function (e) {
+            form.append($('<input>', { type: 'hidden', value: i, name: 'model.Index' }));
+            $.each(e, function (key, d) {
+                form.append($('<input>', { type: 'hidden', value: d, name: 'model[' + i + '].' + key }));
+            });
+
+            i++;
+        });
+
+        $('body').append(form);
+
+        form.submit();
+        form.remove();
+    }
+
+    function updateSaveButtonText(text) {
+        $('#client-license-conditioning-manage-modal-save-item-button').text(text);
+    }
+</script>

@@ -1,0 +1,30 @@
+﻿@model Web.DTO.SeguradoProfissional.SeguradoProfissionalHistoricoViewModel
+
+<div class="row">
+    <div class="col-12">
+        <table id="AuditLogTable" class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    @*<td style="width:100px;">Data</td>*@
+                    <td>Informações</td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    @*<td>@Model._DataCriacaoHistorico</td>*@
+                    <td>
+                        @foreach (var item in Model.Changes)
+                        {
+                            var val = (string.IsNullOrWhiteSpace(item.Value) ? "-" : item.Value);
+                            <ul style='list-style-type: none; font-size:10px; line-height:10px;' class='list-group list-group-flush'>
+                                <li style='white-space:normal; padding: 5px; padding-left: 15px;' class='list-group-item'>
+                                    <b>@item.Propriety:</b><i>@(string.IsNullOrWhiteSpace(item.OldValue)? val : (object)Html.Raw($"{item.OldValue}&nbsp;<i class=\"fas fa-arrow-right\"></i>&nbsp;{val}"))</i>
+                                </li>
+                            </ul>
+                        }
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

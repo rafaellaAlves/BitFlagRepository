@@ -1,0 +1,123 @@
+﻿<div class="row">
+    <div class="col-md-10">
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text"><i class="fa fa-search"></i></span>
+            </div>
+            <input id="_AccountIndexSearch" type="text" class="form-control" placeholder="Procurar..." />
+        </div>
+    </div>
+    <div class="col-md-2">
+        <a href="@Url.Action("Manage", "Account")" class="btn btn-success pull-right w-100"><i class="fas fa-plus-circle"></i>&nbsp;Novo</a>
+    </div>
+</div>
+<hr />
+<div class="table-wrapper">
+    <table id="_AccountIndexTable" class="table display responsive nowrap" style="border-collapse: collapse !important;">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>E-mail</th>
+                <th>Telefone</th>
+                <th>Perfil</th>
+                <th>Empresa</th>
+                <th>Ativo?</th>
+                <th>&nbsp;</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+<script type="text/javascript">
+
+    var _AccountIndexTypingTimer;
+    var _AccountIndexDoneTypingInterval = 500;
+    var datatables = $('#_AccountIndexTable').DataTable({
+		proccessing: true,
+		serverSide: false,
+		searching: true,
+		lengthChange: false,
+		dom: 'tip',
+		ajax: {
+			url: '@Url.Action("List", "Account")',
+			type: 'POST'
+		},
+		columns: [
+			{ data: 'FirstName',
+            render: function (data, type, row) {
+                return '<a href="@Url.Action("Manage", "Account")?id=' + row.userId + '">' + row.firstName + ' ' + row.lastName + '</a>';
+                }
+            },
+            {
+                data: 'Email',
+                render: function (data, type, row) {
+                    return row.email != null? row.email : '-';
+                }
+            },
+            {
+                data: 'PhoneNumber',
+                render: function (data, type, row) {
+                    return row.phoneNumber != null ? row.phoneNumber : '-';
+                }
+            },
+            {
+                data: 'Role',
+                render: function (data, type, row) {
+                    return row.role != null ? '<span>' + row.role + '</span>' : '-';
+                }
+            },
+            {
+                data: 'CompanyName',
+                render: function (data, type, row) {
+                    return row.companyName != null ? row.companyName : '-';
+                }
+            },
+            {
+                orderable: false,
+                data: 'IsActive',
+                render: function (data, type, row) {
+                    return row.isActive ? '<span class="badge badge-pill badge-success text-center">Sim</span>' : '<span class="badge badge-pill badge-danger text-center">Não</span>';
+                }
+            },
+			{
+				data: null,
+				render: function (data, type, row) {
+                    return '<div class="text-center"><a href="javascript:void(0)" onclick="RemoveUser(' + row.userId + ')" title="Excluir" ><i class="far fa-trash-alt"></i></a></div>';
+				}
+			}
+		]
+	});
+
+    function _AccountIndexDoneTyping() {
+        if ($.fn.DataTable.isDataTable('#_AccountIndexTable')) {
+            datatables.search($('#_AccountIndexSearch').val()).draw();
+        }
+    }
+    $('#_AccountIndexSearch').keyup(function () {
+        clearTimeout(_AccountIndexDoneTypingInterval);
+        _AccountIndexTypingTimer = setTimeout(_AccountIndexDoneTyping, _AccountIndexDoneTypingInterval);
+    });
+    $('#_AccountIndexSearch').keydown(function () {
+        clearTimeout(_AccountIndexDoneTyping);
+    });
+
+    function RemoveUser(id) {
+		if (confirm("Deseja realmente excluir este usuário?")) {
+            _RemoveUser(id, function () {
+                $('#_AccountIndexTable').DataTable().ajax.reload();
+				alert("Usuário excluído com sucesso!");
+			});
+		}
+	}
+
+    function _RemoveUser(_id, callback) {
+        var d = { id: _id};
+		$.ajax({
+			url: '@Url.Action("RemoveUser", "Account")',
+			type: 'POST',
+			data: d,
+			dataType: 'Json',
+			success: callback
+		});
+	}
+</script>

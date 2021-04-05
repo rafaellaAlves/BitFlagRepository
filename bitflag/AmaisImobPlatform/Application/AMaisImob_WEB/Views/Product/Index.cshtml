@@ -1,0 +1,13 @@
+﻿@{
+    ViewData["Title"] = "Produtos";
+}
+
+<div class="card shadow bg-light">
+    <div class="card-body">
+        <div id="_ProductIndexViewComponent"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#_ProductIndexViewComponent').load('@Url.Action("ProductIndexComponent", "Product")');
+</script>

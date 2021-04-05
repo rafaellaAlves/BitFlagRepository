@@ -1,0 +1,49 @@
+﻿@model DTO.Shared.EntityViewMode<List<DTO.Client.Report.ClientReportDownloadDestinationViewModel>>
+
+@section Header{
+    <style type="text/css">
+        #download-destination-report-table tbody td {
+            text-align: center;
+        }
+    </style>
+}
+
+<div class="row">
+    <div class="col table-responsive">
+        <table class="table table-condensed table-striped tablesizeline" id="download-destination-report-table">
+            <thead>
+                <tr>
+                    <td>Data da Destinação</td>
+                    <td>MTR da Destinação&nbsp;<a href="javascript:void(0)" class="simple-icon-info" data-toggle="popover" data-popover-color="default" data-placement="top" title="INFORMAÇÃO" data-html="true" data-content="Manifesto de Transporte de Resíduos até o destino final."></a></td>
+                    <td>Família de Resíduo&nbsp;<a href="javascript:void(0)" class="simple-icon-info" data-toggle="popover" data-popover-color="default" data-placement="top" title="INFORMAÇÃO" data-html="true" data-content="Certificado referente ao destino final dos resíduos."></a></td>
+                    <td>Certificado de Destinação (CDF)</td>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    foreach (var item in Model.Model)
+                    {
+                        <tr>
+                            <td>@item._ArrivedDate</td>
+                            <td>@item.DestineJaDemandDestinationId @(!string.IsNullOrWhiteSpace(item.MTRFileGuidName)? Html.Raw($"<a href=\"{Url.Action("GetMTRFile", "DemandDestination", new { id = item.DemandDestinationId })}\" target=\"_blank\" class=\"badge badge-pill badge-primary ml-2\">Visualizar/Baixar</a>") : (object)"")</td>
+                            <td>@item.ResidueFamilyName</td>
+                            <td class="text-center">@item.CDF.IfNullChange("-") @(!string.IsNullOrWhiteSpace(item.CDFFileGuidName)? Html.Raw($"<a href=\"{Url.Action("GetCDFFile", "DemandDestination", new { id = item.DemandDestinationId })}\" target=\"_blank\" class=\"badge badge-pill badge-primary ml-2\">Visualizar/Baixar</a>") : (object)"")</td>
+                        </tr>
+                    }
+                    if (Model.Model.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center"><i>Nenhum item encontrado.</i></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script type="text/javascript" asp-cut-key="download-destination" asp-cut-key-load-from-controller="@Model.LoadFromController">
+    $(document).ready(function () {
+        $('[data-toggle="popover"]').popover();
+    });
+</script>

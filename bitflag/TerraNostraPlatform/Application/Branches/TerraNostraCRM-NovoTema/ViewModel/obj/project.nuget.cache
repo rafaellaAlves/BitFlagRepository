@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "dgSpecHash": "NYayLl0pqgS4c+RY37683yp+EK7fEisem7LlEPn1C7ey5adCN4vrM0P5vhhsEPRFe5aFAE0dBUZcTSc6DDIsPg==",
+  "success": true,
+  "projectFilePath": "C:\\repositorios\\bitflag\\TerraNostraPlatform\\Application\\Branches\\TerraNostraCRM-NovoTema\\ViewModel\\DTO.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Rafaella Alves Silva\\.nuget\\packages\\microsoft.netcore.app\\2.2.0\\microsoft.netcore.app.2.2.0.nupkg.sha512",
+    "C:\\Users\\Rafaella Alves Silva\\.nuget\\packages\\microsoft.netcore.dotnetapphost\\2.2.0\\microsoft.netcore.dotnetapphost.2.2.0.nupkg.sha512",
+    "C:\\Users\\Rafaella Alves Silva\\.nuget\\packages\\microsoft.netcore.dotnethostpolicy\\2.2.0\\microsoft.netcore.dotnethostpolicy.2.2.0.nupkg.sha512",
+    "C:\\Users\\Rafaella Alves Silva\\.nuget\\packages\\microsoft.netcore.dotnethostresolver\\2.2.0\\microsoft.netcore.dotnethostresolver.2.2.0.nupkg.sha512",
+    "C:\\Users\\Rafaella Alves Silva\\.nuget\\packages\\microsoft.netcore.platforms\\2.2.0\\microsoft.netcore.platforms.2.2.0.nupkg.sha512",
+    "C:\\Users\\Rafaella Alves Silva\\.nuget\\packages\\microsoft.netcore.targets\\2.0.0\\microsoft.netcore.targets.2.0.0.nupkg.sha512",
+    "C:\\Users\\Rafaella Alves Silva\\.nuget\\packages\\netstandard.library\\2.0.3\\netstandard.library.2.0.3.nupkg.sha512",
+    "C:\\Users\\Rafaella Alves Silva\\.nuget\\packages\\newtonsoft.json\\12.0.1\\newtonsoft.json.12.0.1.nupkg.sha512"
+  ],
+  "logs": []
+}

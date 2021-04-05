@@ -1,0 +1,298 @@
+﻿@model DTO.Shared.EntityViewMode<DTO.DemandDestination.DemandDestinationDemandParamenterViewModel>
+
+@inject Services.Demand.DemandListServices demandListServices
+@inject Services.DemandDestination.DemandDestinationServices demandDestinationServices
+@inject Services.DemandDestination.DemandDestinationDemandServices demandDestinationDemandServices
+@inject Services.Demand.DemandResidueFamilyTotalWeightServices demandResidueFamilyTotalWeightServices
+@inject Web.Helpers.DropDownListHelper dropDownListHelper
+
+@{
+    var demands = demandDestinationServices.GetDemandForDemandDestinationNotAsync(Model.Model.ResidueFamilyId.Value, Model.Model.DemandDestination.DepartureDate);
+    //var demands = await demandListServices.GetViewModelAsNoTrackingAsync(x => !x.IsDeleted && Model.Model.DemandDestination.DepartureDate >= x.DepartureDate);//Obtem apenas as coletas no qual a data é anterior a data de destinação
+
+    double totalWeight = 0;
+
+    var usedDemand = demandDestinationDemandServices.GetUsedDemandsNotAsync(Model.Model.DemandDestination.DemandDestinationId);
+    demands = demands.Where(x => !usedDemand.Any(c => c.DemandId == x.DemandId && c.ResidueFamilyId == Model.Model.ResidueFamilyId)).ToList(); //Não obtem as Coletas já utilizadas
+}
+
+<style type="text/css">
+    .input-group > .select2-container--bootstrap {
+        /*width: auto !important;*/
+        flex: 1 1 auto;
+    }
+
+        .input-group > .select2-container--bootstrap .select2-selection--single {
+            height: 37px;
+            line-height: inherit;
+            padding: 0.5rem 1rem;
+        }
+
+    #demand-destination-demand-table td:last-child {
+        white-space: nowrap;
+    }
+</style>
+
+<input type="hidden" class="weight" />
+@*Campo criado para usar a função $('.weight').masked()*@
+
+<div id="demand-destination-demand-form-area">
+    @if (Model.CanEdit())
+    {
+        <div class="row">
+            <div class="col">
+                <div class="input-group mb-3" id="input-group-demand">
+                    <div class="input-group-addon d-none d-sm-block" style=" height: 37px;">
+                        <span class="" id="inputGroup-sizing-default" style="background-color: #F2F2F2">Escolha o MTR de Coleta</span>
+                    </div>
+                    @if (!Model.Model.DemandDestination.DemandDestinationId.HasValue)
+                    {
+                        <select name="DemandId" class="form-control required">
+                            <option value="">Selecione</option>
+                        </select>
+                    }
+                    else
+                    {
+                        @Html.DropDownList("DemandId", dropDownListHelper.ToSelectListItem(demands, x => x.DemandId, x => $"MTR - {x.DestinaJaDemandId} | Data Saída - {x._DepartureDate} | Data Chegada - {x._ArriveDate} | Peso (Kg) - {x.TotalWeight}", ""), "Selecione", new { Class = "form-control, required" })
+                    }
+                    <div class="input-group-append">
+                        <button type="button" style="height: 37px; display: flex;" class="btn btn-primary" onclick="addDemandToTable()"><i class="simple-icon-plus"></i><span class="d-none d-sm-block">&nbsp;Vincular</span></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+<hr />
+<div class="row">
+    <div class="col table-responsive">
+        <table id="demand-destination-demand-table" class="display table table-striped table-bordered table-condensed" style="border-collapse: collapse !important;">
+            <thead>
+                <tr>
+                    <th style="text-align:center">MTR</th>
+                    <th style="text-align:center">Saída</th>
+                    <th style="text-align:center">Chegada</th>
+                    <th style="text-align:center">Rota</th>
+                    <th style="text-align:center">Qtd Geradores</th>
+                    <th style="text-align:center">Peso (Kg)</th>
+                    <th style="text-align:center">Status Coleta</th>
+                    <th style="text-align:center">Status Demanda</th>
+                    <th style="width: 60px !important;">&nbsp;</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Model.DemandList)
+                {
+                    var weight = Model.Model.ResidueFamilyId.HasValue ? demandResidueFamilyTotalWeightServices.GetFirstData(x => x.DemandId == item.DemandId && x.ResidueFamilyId == Model.Model.ResidueFamilyId)?.TotalWeight ?? 0 : item.TotalWeight;
+
+                    totalWeight += weight;
+
+                    <tr data-demand-id="@item.DemandId" data-weight="@weight.ToWeightPtBr()">
+                        <td class="text-center">@item.DestinaJaDemandId</td>
+                        <td class="text-center">@item._DepartureDate</td>
+                        <td class="text-center">@item._ArriveDate</td>
+                        <td>@($"{item.RouteId} - {item.RouteName}")</td>
+                        <td class="text-center">@item.TotalClient</td>
+                        <td class="text-center">@weight.ToWeightPtBr()</td>
+                        <td>@item.DemandStatusName</td>
+                        <td>@(item.Closed? "Fechada" : "Aberta")</td>
+
+                        <td>
+                            <div class="text-center">
+                                <a href="javascript:openDemandInfoModal(@item.DemandId)" class="badge badge-pill badge-primary" title="Visualizar Informações"><i class="simple-icon-magnifier"></i></a>&nbsp;
+                                @if (Model.CanEdit())
+                                {
+                                    <a href="javascript:removeDemand(@item.DemandId)" class="badge badge-pill badge-danger" title="Remover"><i class="simple-icon-trash"></i></a>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="row mt-4">
+    <div class="col">
+        <h4>Peso Total:&nbsp;<b id="total-weight">@totalWeight.ToWeightPtBr()</b>&nbsp;<b>(Kg)</b></h4>
+    </div>
+</div>
+
+<div class="modal fade" id="demand-info-modal" tabindex="-1" role="dialog" aria-labelledby="demand-info-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-lg w-100" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold" id="demand-info-modal-title">Informações da Demanda</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="demand-info-view-component"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="simple-icon-close"></i>&nbsp;Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script asp-cut-key="demand-destination-demand" asp-cut-key-load-from-controller="@Model.LoadFromController">
+    var demandDestinationDemandDatatables;
+    var totalWeight = 0;
+
+    $(document).ready(function () {
+        totalWeight = Globalize.parseFloat(Globalize.format(isNull('@totalWeight.ToWeightPtBr()', 0)));
+
+        demandDestinationDemandDatatables = $('#demand-destination-demand-table').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            dom: 'tip',
+            scrollY: '400px',
+            scrollCollapse: true,
+            paging: false,
+            drawCallback: function () {
+                $('#demand-destination-demand-table').DataTable().columns.adjust();
+            }
+        });
+
+        $('#demand-destination-demand-form-area [name="DemandId"]').select2({
+            theme: "bootstrap",
+            placeholder: "Selecione",
+            allowClear: true,
+            "language": {
+                "noResults": function () {
+                    return "Nenhum resultado encontrado.";
+                }
+            }
+        });
+    });
+
+    $.fn.dataTable.ext.search.push(
+        function (settings, data, dataIndex) {
+            if (settings.sInstance != "demand-destination-demand-table") return true;
+
+            var r = true;
+
+            var demandStatusId = $('#demand-index-table-filter-area [name="DemandStatusId"]').val();
+
+            var statusID = $('#demand-index-table-filter-area [name="StatusId"]').val();
+
+            r = isNullOrWhiteSpace(statusID) || statusID == $(settings.aoData[dataIndex].anCells[6]).find('[data-status-id]').data('status-id');
+
+            return r;
+        }
+    );
+
+    function addDemandToTable()
+    {
+        if (!validateInputs('demand-destination-demand-form-area')) return;
+        if ($('#demand-destination-demand-table tr[data-demand-id="' + $('#demand-destination-demand-form-area [name="DemandId"]').val() + '"]').length > 0) {
+            $('#input-group-demand').after('<small class="text-danger">Esta demanda já está selecionada.</small>');
+            return;
+        }
+
+        $.post('@Url.Action("GetViewModelByIdForDemandDestination", "Demand")', { demandId: $('#demand-destination-demand-form-area [name="DemandId"]').val(), residueFamilyId: $('#demand-destination-manage-form-area [name="ResidueFamilyId"]').val() }, function (d) {
+            if (d.hasError) {
+                bootbox.alert(d.message);
+                return;
+            }
+
+            if (!isNaN(Globalize.parseFloat(Globalize.format(isNull(d.demandResidueFamilyTotalWeight, 0))))) {
+                increaseTotalWeight(Globalize.parseFloat(Globalize.format(isNull(d.demandResidueFamilyTotalWeight, 0))));
+            }
+
+            var r = demandDestinationDemandDatatables.row.add(
+                $('<tr>').append(
+                    $('<td>', { class: "text-center" }).append(d.data.destinaJaDemandId),
+                    $('<td>', { class: "text-center" }).append(d.data._DepartureDate),
+                    $('<td>', { class: "text-center" }).append(d.data._ArriveDate),
+                    $('<td>').append(d.data.routeId + ' - ' + d.data.routeName),
+                    $('<td>', { class: "text-center" }).append(d.data.totalClient),
+                    $('<td>', { class: "text-center" }).append(d.demandResidueFamilyTotalWeight),
+                    $('<td>').append(d.data.demandStatusName),
+                    $('<td>').append(d.data.closed ? 'Fechada' : 'Aberta'),
+                    $('<td>').append('<div class="text-center"><a href="javascript:openDemandInfoModal(' + d.data.demandId + ')" class="badge badge-pill badge-primary" title="Visualizar Informações"><i class="simple-icon-magnifier"></i></a>&nbsp;<a href="javascript:removeDemand(' + d.data.demandId + ')" class="badge badge-pill badge-danger" title="Remover"><i class="simple-icon-trash"></i></a></div>')
+                )
+            );
+
+            $(r.node()).attr('data-demand-id', d.data.demandId);
+            $(r.node()).attr('data-weight', d.demandResidueFamilyTotalWeight);
+
+            demandDestinationDemandDatatables.draw(false);
+            demandDestinationDemandDatatables.columns.adjust();
+
+            $('#demand-destination-demand-form-area [name="DemandId"]').val('').trigger('change');
+        });
+    }
+
+    function removeDemand(demandId) {
+
+        if (!isNaN(Globalize.parseFloat(Globalize.format(isNull($('#demand-destination-demand-table tr[data-demand-id="' + demandId + '"]').data('weight'), 0))))) {
+            decreaseTotalWeight(Globalize.parseFloat(Globalize.format(isNull($('#demand-destination-demand-table tr[data-demand-id="' + demandId + '"]').data('weight'), 0))));
+        }
+
+        demandDestinationDemandDatatables.row($('#demand-destination-demand-table tr[data-demand-id="' + demandId + '"]')).remove();
+        demandDestinationDemandDatatables.draw(false);
+
+        //reloadDemandSelect();
+    }
+
+    @*function reloadDemandSelect() {
+        $('#demand-destination-demand-form-area [name="DemandId"]').empty();
+        $('#demand-destination-demand-form-area [name="DemandId"]').append(new Option('Selecione', '', false, false));
+
+        $.post('@Url.Action("GetDemands", "Demand")', function (d) {
+            $.each(d, function (i, e) {
+                $('#demand-destination-demand-form-area [name="DemandId"]').append(new Option('MTR - ' + e.demandId, e.demandId, false, false));
+            });
+
+            $('#demand-destination-demand-form-area [name="DemandId"]').trigger('change');
+        });
+    }*@
+
+    function openDemandInfoModal(demandId) {
+        $('#demand-info-modal').modal('show');
+
+        $('#demand-info-view-component').load('@Url.Action("LoadDemandInfoViewComponent", "Demand")', { demandId, residueFamilyId: '@Model.Model.ResidueFamilyId' });
+    }
+
+    function increaseTotalWeight(weight) {
+        totalWeight += weight;
+        $('#total-weight').text(totalWeight.toFixed(totalWeight % 1 === 0? 0 : 1).replace('.', ','));
+    }
+
+    function decreaseTotalWeight(weight) {
+        totalWeight -= weight;
+        $('#total-weight').text(totalWeight.toFixed(totalWeight % 1 === 0 ? 0 : 1).replace('.', ','));
+    }
+
+    function reloadDemandIdSelection(departureDate, residueFamilyId) {
+        $('#demand-destination-demand-form-area [name="DemandId"]').empty().trigger('change');
+
+        $.post('@Url.Action("GetDemands", "DemandDestination")', { departureDate, residueFamilyId, demandDestinationId: '@Model.Model.DemandDestination.DemandDestinationId' }, function (d) {
+            $.each(d, function (i, x) {
+                $('#demand-destination-demand-form-area [name="DemandId"]').append(new Option(x.description, x.demandId));
+            });
+        });
+
+        $('#demand-destination-demand-form-area [name="DemandId"]').trigger('change');
+    }
+
+    function hideSelectedDemands()
+    {
+        $('#demand-destination-demand-form-area .select2-results__option').show();
+
+        $.each($('tr[data-demand-id]').map(function (i, e) { return $(e).data('demand-id'); }), function (j, demandId) {
+            $.each($('.select2-results__option'), function (k, option) {
+                if ($(option).data('data').id != demandId) return;
+
+                $(option).hide();
+            })
+        });
+    }
+
+    $('#demand-destination-demand-form-area [name="DemandId"]').on('select2:open', function () { setTimeout(hideSelectedDemands, 50); });
+</script>

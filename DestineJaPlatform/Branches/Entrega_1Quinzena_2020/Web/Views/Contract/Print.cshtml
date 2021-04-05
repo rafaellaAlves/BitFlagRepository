@@ -1,0 +1,348 @@
+﻿@model DTO.Contract.ContractPrintViewModel
+@using DTO.Utils;
+
+@inject Services.Contract.ContractPeriodicityServices contractPeriodicityServices
+
+@{
+    Layout = "~/Views/Shared/_LayoutClean.cshtml";
+}
+
+<style type="text/css">
+    .justify p {
+        text-align: justify;
+    }
+
+    .ul-sm li {
+        margin-bottom: .5em;
+        font-size: 20px;
+    }
+</style>
+
+@if (Model.UsingForPdf)
+{
+    <style type="text/css">
+        p {
+            line-height: 1.2em !important;
+            font-size: 15px;
+        }
+    </style>
+}
+else
+{
+    <style type="text/css">
+        p, li, td {
+            line-height: 1em !important;
+            font-size: 25px;
+        }
+
+        .break-page {
+            page-break-after: always;
+        }
+
+        @@media print {
+            .no-print, .no-print * {
+                display: none !important;
+            }
+
+
+            @@page {
+                size: auto;
+                margin-top: 25mm;
+            }
+
+            #image-print-area {
+                margin-top: -6em;
+            }
+        }
+    </style>
+}
+
+@if (Context.Request.Query.ContainsKey("creation"))
+{
+    <div class="row" id="success-alert">
+        <div class="col-md-12">
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <span>Suas informações foram salvas com <strong>sucesso</strong>.</span>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
+            </div>
+        </div>
+    </div>
+    @section Scripts{
+        <script type="text/javascript">
+            $(document).ready(function () { setTimeout(function () { $('#success-alert').fadeOut(2000); }, 8000); });
+        </script>
+    }
+}
+@if (!Model.UsingForEmail && !Model.UsingForPdf)
+{
+    <div style="margin-bottom:5em; margin-top:3em;" class="no-print">
+        <a class="btn btn-primary" style="padding: 10px 30px 10px 30px;" href="@Url.Action("Manage", "Contract", new { id = Model.Contract.ContractId })"><i class="simple-icon-arrow-left"></i>&nbsp;Voltar</a>
+        <a class="btn btn-success float-right" style="padding: 10px 30px 10px 30px;" href="javascript:window.print();"><i class="simple-icon-printer"></i>&nbsp;Imprimir</a>
+    </div>
+}
+@if (Context.Request.Query.ContainsKey("creation"))
+{
+    <div class="row">
+        <div class="col text-center">
+            <h4 class="text-danger">Para enviar o contrato via e-mail, primeiro leia e faça a conferência, logo após, clique no botão abaixo das assinaturas.</h4>
+        </div>
+    </div>
+}
+<div style="width:100%; text-align:center;" id="image-print-area">
+    @if (Model.UsingForEmail)
+    {
+        <img src="cid:Logo" style="width:80%;" />
+    }
+    else if (Model.UsingForPdf)
+    {
+        var bytes = System.IO.File.ReadAllBytes(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "wwwroot", "Imagens", "logo2.png"));
+        var base64 = Convert.ToBase64String(bytes);
+
+        <img src="@($"data:image/png;base64, {base64}")" width="500" />
+    }
+    else
+    {
+        <img src="@Url.Content("~/Imagens/logo2.png")" style="width:80%;" />
+    }
+</div>
+<div style="text-align:center; @(Model.UsingForPdf? "" : "margin-top:-3em;") margin-bottom:2em;">
+    <label style="@(Model.UsingForPdf? "font-size:25px;" : "font-size:40px;") font-weight:bold; color: #FF972F;">CONTRATO DE PARCERIA AMBIENTAL</label>
+    <br />
+    <label style="@(Model.UsingForPdf? "font-size:25px;" : "font-size:40px;") font-weight:bold; color: #FF972F;">@Model.Contract.Code</label>
+</div>
+<div class="justify">
+    <div>
+        <p><b>CONTRATANTE: @Model.Client.CompanyName.IfNullChange(Model.Client.FullName)</b>, inscrito no <b>@(Model.Client.IsCompany? "CNPJ" : "CPF")</b> sob o nº @(Model.Client.IsCompany? Model.Client.CNPJ.CNPJMask() : Model.Client.CPF.CPFMask()), com <b>endereço</b> na @($"{Model.Client.Address}, {(string.IsNullOrWhiteSpace(Model.Client.Number)? "S/Nº" : Model.Client.Number)}, {Model.Client.Neighborhood} - {Model.Client.City} - {Model.Client.State} - CEP: {Model.Client.CEP.CEPMask()}"), neste documento representado por Sr(a). @(Model.Contract.ContactName), <b>ocupante do cargo</b> @(Model.Contract.ContactRole), inscrito no <b>CPF</b> sob o nº @(Model.Contract.ContactCpf.CPFMask()).</p>
+    </div>
+    <div style="margin-top: 3em; margin-bottom: 3em;">
+        <p><b>CONTRATADA: DESTINE JÁ PRESTAÇÃO DE SERVIÇOS AMBIENTAIS LTDA</b>, inscrito no CNPJ sob o nº 27.191.617/0001-98, Inscrição Estadual: ISENTO, com endereço na Rua Marins Alvarino, 150, Itararé, Vitoria - ES, neste ato representado por <b>Ruan Guasti Villela dos Santos</b>, inscrito no CPF: <b>124.160.927-66</b>.</p>
+    </div>
+    <div>
+        <p><b>CLÁUSULA 1ª – LICENÇAS: A CONTRATADA</b> declara para todos os fins de direito que é uma empresa legalmente constituída e possui expertise em gestão ambiental e resíduos. A Coleta dos resíduos é realizada de forma licenciada e homologada pelos órgãos ambientais estaduais e nacionais. A empresa responsável pela logística, execução e coleta conta com profissionais altamente qualificados  e  experientes  em suas áreas de atuações. É multidisciplinar, onde relacionamos engenheiros ambientais, engenheiros   de   software,   administradores,   especialistas   em   meio   ambiente, especialistas em logística e em vendas. É licenciada pelos entes públicos competentes, estando às respectivas licenças atualizadas a disposição da <b>CONTRATANTE</b> no site <a target="_blank" href="https://www.destineja.com.br">www.destineja.com.br</a> ou via endereço eletrônico mediante solicitação <a href="mailto:contato@destineja.com.br">contato@destineja.com.br</a></p>
+    </div>
+
+    <div>
+        <p><b>CLÁUSULA 2ª – OBJETO:</b> O objeto do presente contrato, é a coleta dos resíduos a seguir descritos, gerados pela <b>CONTRATANTE:</b></p>
+    </div>
+    <div>
+        <p>I – Coleta de resíduos de família e tipologia Classe I e Classe II conforme NBR 10004.</p>
+    </div>
+    <div>
+        <p><b>Parágrafo Primeiro:</b> Os referidos serviços serão prestados no estabelecimento da <b>CONTRATANTE</b> localizado em: @($"{Model.Client.Address}, {(string.IsNullOrWhiteSpace(Model.Client.Number)? "S/Nº" : Model.Client.Number)}, {Model.Client.Neighborhood} - {Model.Client.City} - {Model.Client.State} - CEP: {Model.Client.CEP.CEPMask()}").</p>
+    </div>
+    <div>
+        <p><b>Parágrafo Segundo: A CONTRATADA</b> poderá realizar coletas de resíduos não especificados acima, mas classificados como resíduos de classe I e classe II conforme a NBR 10004, sendo que as condições de prestação de serviço específico, valores e formas de pagamentos serão negociados separadamente do presente contrato.</p>
+    </div>
+    <div>
+        <p><b>Parágrafo Terceiro:</b> Os resíduos coletados passam a ser de propriedade da <b>CONTRATADA</b>, podendo esta dar a destinação que lhe convier, desde que observados os limites e obrigações determinadas pela legislação pertinente.</p>
+    </div>
+    <div>
+        <p><b>Parágrafo Quarto: A CONTRATADA</b> poderá terceirizar os serviços prestados à empresa com as mesmas características técnicas e observância às exigências legais, responsabilizando-se diretamente pelo serviço prestado.</p>
+    </div>
+    <div>
+        <p><b>CLÁUSULA 3ª – PRAZO:</b> O presente contrato é celebrado por prazo de @Model.ContractMonthDuration @(Model.ContractMonthDuration == 1 ? "mês" : "meses"), prorrogado automaticamente por igual período, não havendo manifestação contraria. Em caso de solicitação de rescisão devera ser comunicada por notificação escrita à outra parte com o prazo mínimo de 30 (Trinta) dias de antecedência, sendo verificado o volume de resíduos coletados e os valores pagos para acerto final com base nos valores determinados na <b>CLÁUSULA 4ª</b>, Item II.</p>
+    </div>
+    <div>
+        <p><b>CLÁUSULA 4ª – PERIODICIDADE DE COLETA VALOR E FORMA DE PAGAMENTO:</b> Em remuneração aos serviços prestados a <b>CONTRATANTE</b> se compromete a pagar à <b>CONTRATADA:</b></p>
+    </div>
+    <div>
+        <ul style="list-style:upper-roman" class="ul-sm">
+            <li>
+                <p>Mensalidade no valor de <b>R$ @Model.Contract._ParcelValue (@Model.Contract.ParcelValue.Value.DinheiroExtenso())</b> com vencimento no dia <b>@Model.Contract.DueDay (@Model.Contract.DueDay.Value.PorExtenso())</b> de cada mês, sendo a primeira no referido dia do mês subsequente à impressão do presente contrato;</p>
+            </li>
+            @{
+                var highestPrice = Model.ResidueDeductFromFranchise.GetValues(x => x.DeductFromFranchise).Max(x => x.Price);
+            }
+        <li>
+            <p>Crédito de <b>@Model.Contract.ContractedWeight (@DTO.Utils.DoubleExtesions.PorExtenso(Model.Contract.ContractedWeight)) quilos</b> ano de resíduos originados previstos no item II da <b>CLÁUSULA 2ª</b> contabilizado pela balança da <b>CONTRATADA</b>. O excedente de resíduos será cobrado conforme o item III (abaixo) desta cláusula, com prazo de pagamento de 21 (vinte e um) dias;</p>
+            @*O excedente de resíduos será cobrado o valor de <b>R$ @highestPrice.ToPtBR() (@highestPrice.DinheiroExtenso()) o @Model.ResidueDeductFromFranchise.GetValues(x => x.DeductFromFranchise).First(c => c.Price == highestPrice).UnitOfMeasurementName</b>, com prazo de pagamento de <b>21 (vinte e um)</b> dias;*@
+        </li>
+            <li style="margin-bottom: 1em;">
+                <p>As famílias (tipologias) de resíduos que serão abatidos na franquia no item II da <b>CLÁUSULA 4ª</b> são:</p>
+                <ul style="list-style:lower-latin">
+                    @foreach (var item in Model.ResidueDeductFromFranchise)
+                    {
+                        var itemMaxPrice = item.Value.Aggregate(item.Value.FirstOrDefault(), (max, next) => next.Price > max.Price ? next : max);
+                        <li>
+                            <b>@item.Key.Name</b> – PREÇO: <b>R$ @itemMaxPrice._Price (@itemMaxPrice.Price.DinheiroExtenso())</b> por @itemMaxPrice.UnitOfMeasurementName@(!itemMaxPrice.Charge || !itemMaxPrice.DeductFromFranchise? " (" + (!itemMaxPrice.Charge? "Isento de cobrança" + (!itemMaxPrice.DeductFromFranchise? " e " : "") : "") + ((!itemMaxPrice.DeductFromFranchise ? "não abaterá da franquia e será cobrado a parte com prazo de 21 dias após a coleta" : "")) + ")" : "").
+                            @if (item.Value.Count(x => x.Price != itemMaxPrice.Price) > 0)
+                            {
+                                <ul style="list-style:lower-roman">
+                                    <li>
+                                        Consideração para preços diferentes e abatimento na franquia de peso: Todos os resíduos listados e caracterizados como <b>@item.Key.Name</b> possui o preço citado acima, e serão abatidos na franquia; Salvos casos listados abaixo que, por negociação com o CONTRATANTE, consideramos que:
+                                        <ol style="list-style:decimal">
+                                            @foreach (var residue in item.Value.Where(x => x.Price != itemMaxPrice.Price))
+                                            {
+                                                <li><b>@residue.Residue.Name</b> – @Html.Raw(residue.Charge ? $"Será considerado o valor R$ {residue._Price}" : "<b>Isento de cobrança</b>"); Seu peso @(residue.DeductFromFranchise? "abaterá" : "não abaterá") na franquia de peso contratada no <b>item II da CLAUSULA 4ª</b>@(residue.DeductFromFranchise ? "" : " e será cobrado a parte com prazo de 21 dias após a coleta").</li>
+                                            }
+                                        </ol>
+                                    </li>
+                                </ul>
+                            }
+                        </li>
+                    }
+                </ul>
+            </li>
+            <li>
+                <p>Em caso de envio de resíduos que não estão listados no item III da <b>CLÁUSULA 4ª</b>, os citados não serão abatidos na franquia informada no item II da <b>CLÁUSULA 4ª</b> e serão cobrados a parte com prazo de 21 dias de vencimento. @(Model.ResidueNoResiduePriceDeductFromFranchise.Count > 0? "São eles:" : "")</p>
+                <ul style="list-style:lower-latin">
+                    @foreach (var item in Model.ResidueNoResiduePriceDeductFromFranchise)
+                    {
+                        var itemMaxPrice = item.Value.Aggregate(item.Value.FirstOrDefault(), (max, next) => next.Price > max.Price ? next : max);
+                        <li>
+                            <b>@item.Key.Name</b> – PREÇO: <b>R$ @itemMaxPrice._Price (@itemMaxPrice.Price.DinheiroExtenso())</b> por @itemMaxPrice.UnitOfMeasurementName@(!itemMaxPrice.Charge? " (Isento de cobrança)" : "").
+                            @if (item.Value.Count(x => x.Price != itemMaxPrice.Price && !x.Charge) > 0)
+                            {
+                                <ul style="list-style:lower-roman">
+                                    <li>
+                                        Consideração para preços diferentes e abatimento na franquia de peso: Todos os resíduos listados e caracterizados como <b>@item.Key.Name</b> possui o preço citado acima, e serão abatidos na franquia; Salvos casos listados abaixo que, por negociação com o CONTRATANTE, consideramos que:
+                                        <ol style="list-style:decimal">
+                                            @foreach (var residue in item.Value.Where(x => x.Price != itemMaxPrice.Price && !x.Charge))
+                                            {
+                                                <li><b>@residue.Residue.Name</b> – @Html.Raw(residue.Charge ? $"Será considerado o valor R$ {residue._Price}" : "<b>Isento de cobrança</b>"); Seu peso @(residue.DeductFromFranchise? "abaterá" : "não abaterá") na franquia de peso contratada no <b>item II da CLAUSULA 4ª</b>.</li>
+                                            }
+                                        </ol>
+                                    </li>
+                                </ul>
+                            }
+                        </li>
+                    }
+                </ul>
+            </li>
+            <li>
+                <p>Periodicidade da coleta <b>@((await contractPeriodicityServices.GetDataByIdAsync(Model.Contract.ContractPeriodicityId)).Name)</b> de resíduos.</p>
+            </li>
+            <li>
+                Limpeza S.A.O <b>(Separador Água e Óleo) ou Fossa</b> periódica com veículo sugador <b>(solicitação deverá ser efetuada com antecedência de até 15 dias úteis)</b>, onde, o frete do veículo será cobrado o valor de R$@(Model.Contract.SuckerFreight.HasValue? Model.Contract._SuckerFreight : "600,00") (até 70km de distância da base da Contratada), ou, excedendo o KM especificado, o valor será conforme fórmula (Dx2)/(CxP)+30%, onde, D equivale a distância, C equivale a consumo do veículo, P equivale a preço, 30% a equipe operacional e o trabalho parado da máquina de sucção e o volume dos resíduos será debitado da franquia anual.
+            </li>
+        </ul>
+    </div>
+    <div>
+        <p><b>Parágrafo Primeiro:</b> A mensalidade, valor de frete e o valor do peso dos resíduos serão reajustados anualmente através de aplicação do <b>IGPM (índice geral de preços do mercado)</b> apurado no período.</p>
+    </div>
+    <div>
+        <p><b>Parágrafo Segundo:</b> O volume de resíduos coletados no item I da <b>CLÁUSULA 2ª</b> será informado à <b>CONTRATANTE</b> juntamente com o certificado de coleta de resíduos.</p>
+    </div>
+    <div>
+        <p><b>CLÁUSULA 5ª – RESPONSABILIDADE DA CONTRATANTE:</b> Cabe à <b>CONTRATANTE: I.</b> acondicionar os resíduos que gerar adequadamente para permitir sua coleta; <b>II.</b> Manter exclusividade com a <b>CONTRATADA</b> no que diz respeito aos serviços prestados através da presente parceria conforme seu objeto previsto na <b>CLÁUSULA 2ª</b>; <b>III.</b> Realizar pagamento nos prazos determinados.</p>
+    </div>
+    <div>
+        <p><b>CLÁUSULA 6ª – RESPONSABILIDADE DA CONTRATADA:</b> Cabe à <b>CONTRATADA: I.</b> Manter suas licenças ambientais, e de seus fornecedores em dia, bem como apresentá-las quando requisitadas; <b>II.</b> Manter equipe técnica atualizada e capacitada para o bom cumprimento do presente contrato; <b>III.</b> Zelar pelo correto andamento dos procedimentos aplicáveis às coletas visando a preservação da saúde das pessoas envolvidas e do meio ambiente; <b>IV.</b> Recolhimento direto de todos os tributos, encargos e obrigações trabalhistas inerentes à realização dos serviços contratados, devendo comprová-los mediante requisição da <b>CONTRATANTE</b>; <b>V.</b> cumprir todas as normas de Segurança, Higiene e Medicina do Trabalho, responsabilizando-se direta e exclusivamente pela não utilização de Equipamentos de Proteção Individual (EPI) por seus funcionários; <b>VI.</b> Observar rigorosamente as obrigações e exigências legais aplicáveis aos serviços prestados.</p>
+    </div>
+    <div>
+        <p><b>CLÁUSULA 7ª – RESPONSABILIDADES COMUNS:</b> Cabe tanto à <b>CONTRATANTE</b> quanto à <b>CONTRATADA</b> observar satisfazer e arcar com os respectivos ônus das exigências atribuídas pela legislação pertinente no limite das responsabilidades determinadas.</p>
+    </div>
+    <div>
+        <p><b>CLÁUSULA 8ª – RESCISÃO CONTRATUAL:</b> À <b>CONTRATADA</b> terá o direito de cobrar pelos serviços já prestados de coleta e destinação de resíduos (kg do resíduo).</p>
+    </div>
+    <div>
+        <p><b>CLÁUSULA 9ª – FORO:</b> As partes elegem o foro de <b>VITORIA/ES</b> para tudo quanto for devido em razão do presente contrato, renunciando a qualquer outro, por mais privilegiado que seja.</p>
+    </div>
+    <div>
+        <p>Para estarem justas e contratadas, firmam o presente em 2 (duas) vias de igual teor, juntamente com as testemunhas abaixo assinadas, para que surtam seus efeitos jurídicos e legais, inclusive com relação a seus sucessores.</p>
+    </div>
+</div>
+<div class="break-page"></div>
+<div style="text-align:center;">
+    <p>Vitória, <b>@Model.Contract.StartContract?.Day de @Model.Contract.StartContract?.ToString("MMMM", System.Globalization.CultureInfo.CreateSpecificCulture("pt-BR")) de @Model.Contract.StartContract?.Year.</b></p>
+</div>
+
+<table style="width:100%;margin-top: 3em;">
+    <tr>
+        <td style="text-align: center;">
+            @if (Model.UsingForEmail)
+            {
+                <img src="cid:Assin_Ruan" style="width:150px;" />
+            }
+            else if (Model.UsingForPdf)
+            {
+                var bytes = System.IO.File.ReadAllBytes(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "SystemArchives", "Assinaturas", "Assin_Ruan.jpg"));
+                var base64 = Convert.ToBase64String(bytes);
+
+                <img src="@($"data:image/png;base64, {base64}")" width="150" />
+            }
+            else
+            {
+                <img src="@Url.Content("~/SystemArchives/Assinaturas/Assin_Ruan.jpg")" style="width: 150px;" />
+            }
+        </td>
+        <td style="text-align:center;vertical-align: bottom;">
+            @if (!Model.UsingForEmail && !Model.UsingForPdf && Model.Contract.TermAccepted)
+            {
+                <span style="font-size: 18px;">Assinado dia @Model.Contract._TermAcceptedDate por @Model.Contract.ContactName as @Model.Contract.TermAcceptedDateTime pelo e-mail @Model.Contract.ContactEmail.</span>
+            }
+        </td>
+    </tr>
+    <tr>
+        <td style="width:50%;">
+            <div style="width:90%; margin-left:5%; border-top:1px solid black;"></div>
+        </td>
+        <td style="width:50%;">
+            <div style="width:90%; margin-left:5%; border-top:1px solid black;"></div>
+        </td>
+    </tr>
+    <tr style="text-align: center; font-weight: bold;">
+        <td>DESTINE JÁ</td>
+        <td>@Model.Client.CompanyName.IfNullChange(Model.Client.FullName)?.ToUpper()</td>
+    </tr>
+    <tr style="text-align: center;">
+        <td>Ruan Guasti V. dos Santos</td>
+        <td>@Model.Contract.ContactName</td>
+    </tr>
+</table>
+<table style="width:100%;margin-top: 3em;">
+    <tr>
+        <td colspan="3" style="text-align: center;">
+            @if (Model.UsingForEmail)
+            {
+                <img src="cid:Assin_Monique" />
+            }
+            else if (Model.UsingForPdf)
+            {
+                var bytes = System.IO.File.ReadAllBytes(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "SystemArchives", "Assinaturas", "Assin_Monique.jpg"));
+                var base64 = Convert.ToBase64String(bytes);
+
+                <img src="@($"data:image/png;base64, {base64}")" width="400" />
+            }
+            else
+            {
+                <img src="@Url.Content("~/SystemArchives/Assinaturas/Assin_Monique.jpg")" />
+            }
+        </td>
+    </tr>
+    <tr>
+        <td style="width: 27.5%;">
+            <div style="width: 100%;"></div>
+        </td>
+        <td style="width: 45%;">
+
+            <div style="width: 100%; border-top:1px solid black;"></div>
+        </td>
+        <td style="width: 27.5%;">
+            <div style="width: 100%;"></div>
+        </td>
+    </tr>
+    <tr style="text-align: center; font-weight: bold;">
+        <td colspan="3">TESTEMUNHA</td>
+    </tr>
+    <tr style="text-align: center;">
+        <td colspan="3">Monique Rocha Ferreira</td>
+    </tr>
+</table>
+@if (Model.UsingForEmail)
+{
+    <div style="width:100%; margin-top:5em; text-align:center; margin-bottom: 1em;">
+        <a style="border: 1px solid #f1f1f1; padding: 10px; border-radius: 4px; background: #49a76a; color: white; text-decoration: none;" href="@($"{Context.Request.Scheme}://{Context.Request.Host}{Url.Action("AcceptTerm", "Contract")}?token={Model.Contract.AcceptTermToken}")">Aceitar os Termos</a>
+    </div>
+    <div style="width:100%; text-align:center; margin-bottom: 1em;">
+        <small>Esse link irá expirar em @Model.Contract.AcceptTermEmailSendedDate.Value.AddDays(7).ToBrazilianDateFormat()</small>
+    </div>
+}
+
+@if (Context.Request.Query.ContainsKey("creation"))
+{
+    <div style="width:100%; margin-top:3em; text-align:center; margin-bottom: 1em;">
+        <a style="border: 1px solid #f1f1f1; padding: 10px; border-radius: 4px; margin-right: 15px; background: #3f90ca; color: white; text-decoration: none;" href="@Url.Action("CreationConfirm", "Contract", new { id = Model.Contract.ContractId, sendEmail = false })">Sair sem enviar contrato via e-mail</a>
+        <a style="border: 1px solid #f1f1f1; padding: 10px; border-radius: 4px; background: #49a76a; color: white; text-decoration: none;" href="@Url.Action("CreationConfirm", "Contract", new { id = Model.Contract.ContractId })">Confirmar e Enviar E-mail</a>
+    </div>
+}

@@ -1,0 +1,119 @@
+﻿<div class="row">
+    <div class="col-md-10">
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text"><i class="fa fa-search"></i></span>
+            </div>
+            <input id="_InsurancePolicyIndexSearch" type="text" class="form-control" placeholder="Procurar..." />
+        </div>
+    </div>
+    <div class="col-md-2">
+        <a href="@Url.Action("Manage", "InsurancePolicy")" class="btn btn-success pull-right w-100"><i class="fas fa-plus-circle"></i>&nbsp;Novo</a>
+    </div>
+</div>
+<hr />
+<div class="table-wrapper">
+    <table id="_InsurancePolicyIndexTable" class="table display responsive nowrap" style="border-collapse: collapse !important;">
+        <thead>
+            <tr>
+                <th>Nº Apólice</th>
+                <th>Início de Vigência</th>
+                <th>Fim de Vigência</th>
+                <th>@WEB.Configuration.InsuranceConfiguration.CorretoraDisplayName</th>
+                <th>Produto</th>
+                <th>&nbsp;</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+<script type="text/javascript">
+
+    var _InsurancePolicyIndexTypingTimer;
+    var _InsurancePolicyIndexDoneTypingInterval = 500;
+    var datatables = $('#_InsurancePolicyIndexTable').DataTable({
+		proccessing: true,
+		serverSide: false,
+		searching: true,
+		lengthChange: false,
+		dom: 'tip',
+		ajax: {
+			url: '@Url.Action("List", "InsurancePolicy")',
+			type: 'POST'
+		},
+		columns: [
+            {
+                data: 'InsurancePolicyNumber',
+            render: function (data, type, row) {
+                return '<a href="@Url.Action("Manage", "InsurancePolicy")?id=' + row.insurancePolicyId + '">' + row.insurancePolicyNumber + '</a>';
+                }
+            },
+            {
+                data: 'StartDate',
+                render: function (data, type, row) {
+                return row._StartDate;
+                }
+            },
+            {
+                data: 'EndDate',
+                render: function (data, type, row) {
+                    return row._EndDate;
+                }
+            },
+            {
+                data: 'CorretoraName',
+                render: function (data, type, row) {
+                    return row.corretoraName;
+                }
+            },
+            {
+                data: 'ProductName',
+                render: function (data, type, row) {
+                    return row.productName;
+                }
+            },
+			{
+				data: null,
+				render: function (data, type, row) {
+                    return '<div class="text-center"><a href="javascript:void(0)" onclick="RemoveInsurancePolicy(' + row.insurancePolicyId + ')" title="Excluir" ><i class="far fa-trash-alt"></i></a></div>';
+				}
+			}
+		]
+	});
+
+    function _InsurancePolicyIndexDoneTyping() {
+        if ($.fn.DataTable.isDataTable('#_InsurancePolicyIndexTable')) {
+            datatables.search($('#_InsurancePolicyIndexSearch').val()).draw();
+        }
+    }
+    $('#_InsurancePolicyIndexSearch').keyup(function () {
+        clearTimeout(_InsurancePolicyIndexDoneTypingInterval);
+        _InsurancePolicyIndexTypingTimer = setTimeout(_InsurancePolicyIndexDoneTyping, _InsurancePolicyIndexDoneTypingInterval);
+    });
+    $('#_InsurancePolicyIndexSearch').keydown(function () {
+        clearTimeout(_InsurancePolicyIndexDoneTyping);
+    });
+
+    function RemoveInsurancePolicy(insurancePolicyId) {
+		if (confirm("Deseja realmente excluir esta apólice?")) {
+            _RemoveInsurancePolicy(insurancePolicyId, function (data) {
+                if(!data.hasError)
+                    $('#_InsurancePolicyIndexTable').DataTable().ajax.reload();
+                alert(data.message);
+			});
+		}
+	}
+
+	function _RemoveInsurancePolicy(_InsurancePolicyId, callback) {
+		var d = { id: _InsurancePolicyId };
+		$.ajax({
+			url: '@Url.Action("RemoveInsurancePolicy", "InsurancePolicy")',
+			type: 'POST',
+			data: d,
+			dataType: 'Json',
+			success: function(data){
+                callback(data)
+            }
+		});
+	}
+</script>

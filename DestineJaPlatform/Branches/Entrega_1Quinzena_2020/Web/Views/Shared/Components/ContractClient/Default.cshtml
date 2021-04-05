@@ -1,0 +1,402 @@
+﻿@inject Services.Client.ClientServices clientServices
+
+@model DTO.Contract.ContractClientViewModel
+
+<style type="text/css">
+    .input-group > .select2-container {
+        flex: 1 1 auto;
+        width: 50px !important;
+    }
+
+        .input-group > .select2-container .select2-selection {
+            min-height: 37px !important;
+            line-height: inherit;
+            padding: 0.5rem 1rem;
+        }
+
+    #contract-manage-people-table td, #contract-manage-people-table th, #contact-client-address-table td, #contact-client-address-table th {
+        text-align: center;
+    }
+
+    #contract-manage-people-table tbody tr {
+        cursor: pointer;
+    }
+
+    #contract-client-area label, #contract-client-area span, #contract-client-area input {
+        font-size: 12px;
+    }
+
+    #contact-client-address-table-area th, #contact-client-address-table-area tr {
+        font-size: 12px;
+    }
+
+</style>
+
+<div id="contract-client-area">
+    <div class="row">
+        <div class="input-group mb-3 col-md-12">
+            <div class="input-group-addon" style=" height: 37px;">
+                <span class="" id="inputGroup-sizing-default" style="background-color: #F2F2F2">Gerador</span>
+            </div>
+            <select class="form-control required w-100" error-message="Escolha um gerador" aria-label="Default" aria-describedby="inputGroup-sizing-default" name="ClientId">
+                @foreach (var client in await clientServices.GetViewModelAsNoTrackingAsync(x => Model.Client.ClientId.HasValue || !x.IsDeleted)) //Caso seja uma edição traz todos os clientes mesmo os deletados para garantir que o cliente já selecionado aparecerá, não há problemas uma vez que na edição este campo é desabilitado
+                {
+                    if (Model.Client.ClientId == client.ClientId)
+                    {
+                        <option selected value="@client.ClientId">@client.Name - @client.AlternativeName</option>
+                        continue;
+                    }
+
+                    <option value="@client.ClientId">@client.Name - @client.AlternativeName</option>
+                }
+            </select>
+            @if (!Model.Client.ClientId.HasValue)
+            {
+                <div class="input-group-append">
+                    <a href="javascript:loadClientData()" style=" height: 37px;" class="btn btn-secondary float-right">
+                        <span class="d-none d-md-block">Carregar dados</span>
+                        <i class="d-md-none d-block simple-icon-check"></i>
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 form-group">
+            <label id="company-name-label">@(!string.IsNullOrWhiteSpace(Model.Client.FullName) ? "Nome Completo" : "Razão Social")</label>
+            <input class="form-control" placeholder="Razão Social" name="CompanyName" value="@(!string.IsNullOrWhiteSpace(Model.Client.FullName) ? Model.Client.FullName : Model.Client.CompanyName)" disabled />
+        </div>
+        <div class="col-md-6 form-group">
+            <label id="trade-name-label">@(!string.IsNullOrWhiteSpace(Model.Client.NickName) ? "Como gostaria de ser chamado(a)" : "Nome Fantasia")</label>
+            <input class="form-control" placeholder="Nome Fantasia" name="TradeName" value="@(!string.IsNullOrWhiteSpace(Model.Client.NickName) ? Model.Client.NickName : Model.Client.TradeName)" disabled />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4 form-group">
+            <label>Endereço</label>
+            <input class="form-control" placeholder="Endereço" name="Address" value="@Model.Client.Address" disabled />
+        </div>
+        <div class="col-md-3 form-group">
+            <label>Bairro</label>
+            <input class="form-control" placeholder="Bairro" name="Neighborhood" value="@Model.Client.Neighborhood" disabled />
+        </div>
+        <div class="col-md-3 form-group">
+            <label>Cidade</label>
+            <input class="form-control" placeholder="Cidade" name="City" value="@Model.Client.City" disabled />
+        </div>
+        <div class="col-md-2 form-group">
+            <label>Estado</label>
+            <input class="form-control" placeholder="Estado" name="State" value="@Model.Client.State" disabled />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-3 form-group">
+            <label class="required">Contato Principal</label>
+            <input class="form-control" placeholder="Contato Principal" name="ContactName" value="@Model.ContactName" />
+        </div>
+        <div class="col-md form-group">
+            <label class="required">CPF</label>
+            <input class="form-control cpf" placeholder="CPF" name="_ContactCpf" value="@Model._ContactCpf" />
+        </div>
+        <div class="col-md form-group">
+            <label class="required">Cargo</label>
+            <input class="form-control" placeholder="Cargo" name="ContactRole" value="@Model.ContactRole" />
+        </div>
+        <div class="col-md form-group">
+            <label>Telefone</label>
+            <input class="form-control" placeholder="Telefone" name="ContactPhone" value="@Model.ContactPhone" />
+        </div>
+        <div class="col-md form-group">
+            <label>Celular</label>
+            <input class="form-control" placeholder="Celular" name="ContactMobilePhone" value="@Model.ContactMobilePhone" />
+        </div>
+        <div class="col-md form-group">
+            <label class="required">E-mail</label>
+            <input class="form-control" placeholder="E-mail" name="ContactEmail" value="@Model.ContactEmail" />
+        </div>
+    </div>
+</div>
+&nbsp;
+<div class="row mb-4" id="contract-manage-client-more-info-link">
+    <div class="col-md-12 text-center">
+        <a href="javascript:void(0)" data-disabledAll="false" class="badge badge-info" onclick="$('#contract-manage-client-more-info-link').hide(); $('#contract-client-contact-area').show();"><i class="simple-icon-arrow-down"></i>&nbsp;Mostrar Contatos</a>
+    </div>
+</div>
+<div class="row" id="contract-client-contact-area" style="display:none;">
+    <div class="col-md-12">
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered w-100" id="contract-manage-people-table">
+                <thead>
+                    <tr>
+                        <th style="text-align:center; background-color:#BFBFBF" colspan="12" scope="col">Pessoas por Cargo</th>
+                    </tr>
+                    <tr>
+                        <th scope="col">Cargo</th>
+                        <th scope="col">Nome</th>
+                        <th scope="col">Telefone</th>
+                        <th scope="col">Celular</th>
+                        <th scope="col">Email</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.ClientContact)
+                    {
+                        <tr onclick="setPrincipalContact(@Newtonsoft.Json.JsonConvert.SerializeObject(item))">
+                            <td>@item.Role</td>
+                            <td>@item.Name</td>
+                            <td>@item.Phone</td>
+                            <td>@item.MobilePhone</td>
+                            <td>@item.Email</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="col-md-12 text-center">
+        <a href="javascript:void(0)" data-disabledAll="false" class="badge badge-info" onclick="$('#contract-manage-client-more-info-link').show(); $('#contract-client-contact-area').hide();"><i class="simple-icon-arrow-up"></i>&nbsp;Esconder Contatos</a>
+    </div>
+</div>
+<hr />
+<div class="row" id="contact-client-address-table-area" @(!Model.Client.ClientId.HasValue ? Html.Raw("style=\"display:none;\"") : (object)"")>
+    <div class="col-md-12 form-group table-responsive">
+        <table class="table table-bordered table-striped table-condensed" id="contact-client-address-table">
+            <thead>
+                <tr>
+                    <th colspan="7" style="background:#BFBFBF;" class="text-center">Endereço de Coleta</th>
+                </tr>
+                <tr>
+                    <th>CEP</th>
+                    <th>Endereço</th>
+                    <th>Complemento</th>
+                    <th>Bairro</th>
+                    <th>Cidade</th>
+                    <th>UF</th>
+                    <th>&nbsp;</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="7" class="text-left"><a href="javascript:openContractClientAddressModal()" class="btn btn-primary btn-sm-custom"><i class="fa fa-external-link"></i>&nbsp;Definir endereço</a></td>
+                </tr>
+                @foreach (var address in Model.ClientCollectionAddresses)
+                {
+                    <tr data-address-id="@address.ClientCollectionAddressId">
+                        <td class="cep">@address._CEP</td>
+                        <td>@address.Address, @address.Number</td>
+                        <td>@(address.Complement ?? "-")</td>
+                        <td>@address.Neighborhood</td>
+                        <td>@address.City</td>
+                        <td>@address.State</td>
+                        <td><a href="javascript:removecontractClientAddress(@address.ClientCollectionAddressId)" class="badge badge-pill badge-danger"><i class="simple-icon-trash"></i>&nbsp;Remover</a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @foreach (var x in Model.ClientCollectionAddresses)
+    {
+        <input data-disabled="false" name="clientCollectionAddressId.Index" type="hidden" value="@x.ClientCollectionAddressId" data-address-id="@x.ClientCollectionAddressId">
+        <input data-disabled="false" name="clientCollectionAddressId[@x.ClientCollectionAddressId]" type="hidden" value="@x.ClientCollectionAddressId" data-address-id="@x.ClientCollectionAddressId">
+    }
+</div>
+
+<modal id="contract-client-address-modal" title-id="contract-client-address-modal-title" title="Escolha o Endereço de Coleta" modal-lg="true">
+    @(Model.Client.ClientId.HasValue ? await Component.InvokeAsync<Web.ViewComponents.Client.ClientCollectionAddressIndexViewComponent>(new { clientId = Model.Client.ClientId, viewMode = DTO.Shared.ViewMode.NonEditable }) : (object)"")
+</modal>
+
+<script type="text/javascript" asp-cut-key="contract-client">
+    function loadClientData()
+    {
+        $('.text-danger').remove();
+
+        if (isNullOrWhiteSpace($('#contract-client-area [name="ClientId"]').val()))
+        {
+            $('#contract-client-area [name="ClientId"]').closest('.input-group').after($('<small>', { class: 'text-danger ml-3', style: 'margin-top: -15px;' }).append($('#contract-client-area [name="ClientId"]').attr('error-message')));
+            return;
+        }
+
+        _loadClientCallback($('#contract-client-area [name="ClientId"]').val());
+
+        if (typeof loadClientCallback == 'function') loadClientCallback($('#contract-client-area [name="ClientId"]').val());
+
+        @{ string action = Context.Request.Path.Value.Contains("Service") ? "GetDataByClientId" : "GetDataByIdForContract"; }
+
+        var momentDate = moment($('#form-contract-manage [name="_StartContract"]').val(), 'DD/MM/YYYY');
+        var date = momentDate._isValid ? momentDate._d.toISOString() : null;
+
+        $.post('@Url.Action(action, "Client")', { id: $('#contract-client-area [name="ClientId"]').val(), date }, function (d) {
+            if (!d.success) {
+                bootboxConfirm(d.message, function (r) {
+                    if (r) window.location.href = d.url;
+                    else $('#contract-client-area [name="ClientId"]').val('').trigger('change');
+                });
+
+                return;
+            }
+
+            if (typeof firstContractCallback == 'function' && d.data.firstContract != null) firstContractCallback(d.data.firstContract);
+
+            $('#contract-manage-contract-number').text(d.data.client.clientId + '/' + (new Date).getFullYear());
+            if (!isNullOrWhiteSpace(d.data.client.address)) $('#contract-client-area [name="Address"]').val(d.data.client.address + ', ' + d.data.client.number);
+            $('#contract-client-area [name="City"]').val(d.data.client.city);
+            $('#contract-client-area [name="State"]').val(d.data.client.state);
+            $('#contract-client-area [name="Neighborhood"]').val(d.data.client.neighborhood);
+
+            $('#contract-client-area [name="CompanyName"]').val(isNull(d.data.client.companyName, d.data.client.fullName));
+            $('#contract-client-area [name="TradeName"]').val(isNull(d.data.client.tradeName, d.data.client.nickName));
+
+            $('#contract-client-area [name="ContactName"]').val('');
+            $('#contract-client-area [name="ContactPhone"]').val('');
+            $('#contract-client-area [name="ContactRole"]').val('');
+            $('#contract-client-area [name="ContactMobilePhone"]').val('');
+            $('#contract-client-area [name="ContactEmail"]').val('');
+
+            if (d.data.mainContact != null) {
+                $('#contract-client-area [name="ContactName"]').val(d.data.mainContact.name);
+                $('#contract-client-area [name="ContactPhone"]').val(d.data.mainContact.phone);
+                $('#contract-client-area [name="ContactRole"]').val(d.data.mainContact.role);
+                $('#contract-client-area [name="ContactMobilePhone"]').val(d.data.mainContact.mobilePhone);
+                $('#contract-client-area [name="ContactEmail"]').val(d.data.mainContact.email);
+                $('#contract-client-area [name="_ContactCpf"]').val(isNullOrWhiteSpace(d.data.mainContact.cpf) ? '' : $('.cpf').masked(d.data.mainContact.cpf));
+            }
+
+            if (d.data.mainAddress != null) {
+                $('#contact-client-address-table tbody').append(
+                    $('<tr>', { 'data-address-id': d.data.mainAddress.clientCollectionAddressId }).append(
+                        $('<td>', { class: 'cep' }).append(d.data.mainAddress.cep),
+                        $('<td>').append(d.data.mainAddress.address + ', ' + d.data.mainAddress.number),
+                        $('<td>').append(d.data.mainAddress.complement == null ? "-" : d.data.mainAddress.complement),
+                        $('<td>').append(d.data.mainAddress.neighborhood),
+                        $('<td>').append(d.data.mainAddress.city),
+                        $('<td>').append(d.data.mainAddress.state),
+                        $('<td>').append('<a href="javascript:removecontractClientAddress(' + d.data.clientCollectionAddressId + ')" class="badge badge-pill badge-danger"><i class="simple-icon-trash"></i>&nbsp;Remover</a>')
+                    )
+                );
+
+                $('#contract-client-contact-area').append($('<input>', { name: 'clientCollectionAddressId.Index', type: 'hidden', 'data-address-id': d.data.mainAddress.clientCollectionAddressId, value: d.data.mainAddress.clientCollectionAddressId }));
+                $('#contract-client-contact-area').append($('<input>', { name: 'clientCollectionAddressId[' + d.data.mainAddress.clientCollectionAddressId + ']', type: 'hidden', 'data-address-id': d.data.mainAddress.clientCollectionAddressId, value: d.data.mainAddress.clientCollectionAddressId }));
+            }
+
+            $('#company-name-label').text(isNullOrWhiteSpace(d.data.client.companyName) ? 'Nome Completo' : 'Razão Social');
+            $('#trade-name-label').text(isNullOrWhiteSpace(d.data.client.tradeName) ? 'Como gostaria de ser chamado(a)' : 'Nome Fantasia');
+
+            $('#contract-client-area [name="CompanyName"]').attr('placeholder', isNullOrWhiteSpace(d.data.client.companyName) ? 'Nome Completo' : 'Razão Social');
+            $('#contract-client-area [name="TradeName"]').attr('placeholder', isNullOrWhiteSpace(d.data.client.tradeName) ? 'Como gostaria de ser chamado(a)' : 'Nome Fantasia');
+            loadContacts(d.data.contacts);
+
+            if (typeof setLastDemandClientServiceInfo == 'function') setLastDemandClientServiceInfo();
+
+            InitializeFunctions();
+        });
+    }
+
+    function loadContacts(contacts) {
+        contractPeopleDatatables.clear();
+
+        $.each(contacts, function (i, contact) {
+            var r = contractPeopleDatatables.row.add({
+                0: contact.role,
+                1: contact.name,
+                2: contact.phone,
+                3: contact.mobilePhone,
+                4: contact.email,
+            });
+
+            $(r.node()).click(function () {
+                setPrincipalContact({
+                    Role: contact.role,
+                    Name: contact.name,
+                    Phone: contact.phone,
+                    MobilePhone: contact.mobilePhone,
+                    Email: contact.email,
+                    CPF: contact.cpf
+                });
+            });
+
+        });
+
+        contractPeopleDatatables.draw();
+    }
+
+    $(document).ready(function () {
+        contractPeopleDatatables = $('#contract-manage-people-table').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            dom: 'tip'
+        });
+
+        $('#contract-client-area [name="ClientId"]').select2({
+            theme: "bootstrap",
+            placeholder: "Selecione",
+            allowClear: true,
+            "language": {
+                "noResults": function () {
+                    return "Nenhum resultado encontrado.";
+                }
+            }
+        });
+
+        @(Model.Client.ClientId.HasValue? (object)"" : Html.Raw("$('#contract-client-area [name=\"ClientId\"]').val('').trigger('change');"))
+
+    });
+
+    function _loadClientCallback(clientId) {
+        $('#contact-client-address-table tbody').empty().append('<tr><td colspan="7" class="text-left"><a href="javascript:openContractClientAddressModal()" class="btn btn-primary btn-sm"><i class="fa fa-external-link"></i>&nbsp;Definir endereço</a></td></tr>');
+
+        $('#contract-client-address-modal .modal-body').empty().load('@Url.Action("LoadIndexComponent", "ClientCollectionAddress")', { clientId: clientId, viewMode: '@DTO.Shared.ViewMode.NonEditable' });
+        $('#contact-client-address-table-area').show();
+    }
+
+    function clientCollectionAddressSelectionCallback(data) {
+        if ($('[data-address-id="' + data.clientCollectionAddressId + '"]').length > 0) return;
+
+        $('#contact-client-address-table tbody').append(
+            $('<tr>', { 'data-address-id': data.clientCollectionAddressId }).append(
+                $('<td>', { class: 'cep' }).append(data.cep),
+                $('<td>').append(data.address + ', ' + data.number),
+                $('<td>').append(data.complement == null ? "-" : data.complement),
+                $('<td>').append(data.neighborhood),
+                $('<td>').append(data.city),
+                $('<td>').append(data.state),
+                $('<td>').append('<a href="javascript:removecontractClientAddress(' + data.clientCollectionAddressId + ')" class="badge badge-pill badge-danger"><i class="simple-icon-trash"></i>&nbsp;Remover</a>')
+            )
+        );
+
+        $('#contract-client-contact-area').append($('<input>', { name: 'clientCollectionAddressId.Index', type: 'hidden', 'data-address-id': data.clientCollectionAddressId, value: data.clientCollectionAddressId }));
+        $('#contract-client-contact-area').append($('<input>', { name: 'clientCollectionAddressId[' + data.clientCollectionAddressId + ']', type: 'hidden', 'data-address-id': data.clientCollectionAddressId, value: data.clientCollectionAddressId }));
+
+        $('#contract-client-address-modal').modal('hide');
+    }
+
+    function openContractClientAddressModal() {
+        $("#contract-client-address-modal").modal('show');
+        $("[data-client-collection-address]").removeClass('badge-success').addClass('badge badge-pill badge-primary').text('Selecionar');
+
+        $('[data-address-id]').each(function (i, e) {
+            $('[data-client-collection-address="' + $(e).data('address-id') + '"]').removeClass('badge-primary').addClass('badge badge-pill badge-success').text('Selecionado');
+        });
+
+        $('#contract-client-address-modal').on('shown.bs.modal', function () {
+            $('#client-collection-address-table').DataTable().columns.adjust();
+        });
+    }
+
+    function removecontractClientAddress(addressId) {
+        $('[data-address-id="' + addressId + '"]').remove();
+    }
+
+    function setPrincipalContact(contact)
+    {
+        $('#contract-client-area [name="ContactName"]').val(contact.Name);
+        $('#contract-client-area [name="ContactPhone"]').val(contact.Phone);
+        $('#contract-client-area [name="ContactRole"]').val(contact.Role);
+        $('#contract-client-area [name="ContactMobilePhone"]').val(contact.MobilePhone);
+        $('#contract-client-area [name="ContactEmail"]').val(contact.Email);
+        $('#contract-client-area [name="_ContactCpf"]').val(isNullOrWhiteSpace(contact.CPF) ? '' : $('.cpf').masked(contact.CPF));
+    }
+</script>

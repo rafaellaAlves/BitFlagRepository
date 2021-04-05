@@ -1,0 +1,154 @@
+﻿@model AMaisImob_WEB.Models.Home.HomeVIPViewModel
+@using AMaisImob_WEB.Utils;
+
+<style type="text/css">
+    .home-vip-info-col {
+        /*        border: 1px solid #d1d1d1;
+            border-radius: 10px;*/
+        padding: 0;
+        margin-left: 5px;
+        margin-right: 5px;
+    }
+
+    .home-vip-info-main-div {
+        padding: 10px;
+        text-align: center;
+        border-radius: 10px 10px 0 0;
+        background: white;
+    }
+
+        .home-vip-info-main-div b {
+            font-size: 1.1em;
+        }
+
+
+    .home-vip-info-secondary-div {
+        border-top: 1px solid #d1d1d1;
+        padding: 6px;
+        background: #efefef;
+        border-radius: 0 0 10px 10px;
+    }
+</style>
+
+<div class="row" style="background-image: linear-gradient(to right, transparent, #5f7f7a 2%, #5f7f7a 98%, transparent); padding: 10px; padding-left: 15px; padding-right: 15px;">
+    <div class="col-md home-vip-info-col">
+        <div class="home-vip-info-main-div">
+            <img src="/image/Incendio.png" style="height: 24px; width: 24px;">
+            <br />
+            <label>Certificados Cotação</label>
+            <br>
+            <b>@Model.CertificateSimulationCount</b>
+        </div>
+        <div class="home-vip-info-secondary-div">
+            Ganhe <b>@Model.CertificateSimulationPoints</b> Pontos
+            @if (User.IsInRealEstate())
+            {
+                <a href="@Url.Action("Index", "Certificate", new { CertificateType = (int)AMaisImob_WEB.Utils.CertificateTypes.Simulacao })" style="float: right;">Acessar</a>
+            }
+            else
+            {
+                <a href="@Url.Action("Index", "Certificate", new { Model.RealEstateId, Model.RealEstateAgencyId, CertificateType = (int)AMaisImob_WEB.Utils.CertificateTypes.Simulacao })"  style="float: right;">Acessar</a>
+            }
+        </div>
+    </div>
+    <div class="col-md home-vip-info-col">
+        <div class="home-vip-info-main-div">
+            <img src="/image/Incendio.png" style="height: 24px; width: 24px;">
+            <br />
+            <label>Certificados à Renovar</label>
+            <br>
+            <b>@Model.CertificateRenewCount</b>
+        </div>
+        <div class="home-vip-info-secondary-div">
+            Ganhe <b>@Model.CertificateRenewPoints</b> Pontos
+            @if (User.IsInRealEstate())
+            {
+                <a href="@Url.Action("Index", "Certificate", new { CertificateType = (int)AMaisImob_WEB.Utils.CertificateTypes.Renovacao })" style="float: right;">Acessar</a>
+            }
+            else
+            {
+                <a href="@Url.Action("Index", "Certificate", new { Model.RealEstateId, Model.RealEstateAgencyId, CertificateType = (int)AMaisImob_WEB.Utils.CertificateTypes.Renovacao })" style="float: right;">Acessar</a>
+            }
+        </div>
+    </div>
+    <div class="col-md home-vip-info-col">
+        <div class="home-vip-info-main-div">
+            <img src="/image/Incendio.png" style="height: 24px; width: 24px;">
+            <br />
+            <label>Certificados Ativos</label>
+            <br>
+            <b style="color: #f39a2d;">@Model.CertificateActiveCount</b>
+        </div>
+        <div class="home-vip-info-secondary-div">
+            Ganhou <b>@Model.CertificateActivePoints</b> Pontos
+            @if (User.IsInRealEstate())
+            {
+                <a href="@Url.Action("Index", "Certificate", new { CertificateType = (int)AMaisImob_WEB.Utils.CertificateTypes.Emitidos })"  style="float:right;">Acessar</a>
+            }
+            else
+            {
+                <a href="@Url.Action("Index", "Certificate", new { Model.RealEstateId, Model.RealEstateAgencyId, CertificateType = (int)AMaisImob_WEB.Utils.CertificateTypes.Emitidos })"  style="float:right;">Acessar</a>
+            }
+        </div>
+    </div>
+    <div class="col-md home-vip-info-col">
+        <div class="home-vip-info-main-div">
+            <img src="~/image/Doc.jpeg" style="height: 24px; width: 24px;" />
+            <br />
+            <label>Contratos Novos Pendentes</label>
+            <br>
+            <b>@Model.CertificateContractualNewCount</b>
+        </div>
+        <div class="home-vip-info-secondary-div">
+            Ganhe <b>@Model.CertificateContractualNewPoints</b> Pontos
+            @if (User.IsInRealEstate())
+            {
+                <a href="@Url.Action("New", "ContractualGuarantee")" style="float:right;">Acessar</a>
+            }
+            else
+            {
+                <a href="@Url.Action("New", "ContractualGuarantee", new { Model.RealEstateId, Model.RealEstateAgencyId })"  style="float:right;">Acessar</a>
+            }
+        </div>
+    </div>
+    <div class="col-md home-vip-info-col">
+        <div class="home-vip-info-main-div">
+            <img src="~/image/Doc.jpeg" style="height: 24px; width: 24px;" />
+            <br />
+            <label>Contratos Ativos</label>
+            <br>
+            <b style="color: #f39a2d;">@Model.CertificateContractualActiveCount</b>
+        </div>
+        <div class="home-vip-info-secondary-div">
+            Ganhou <b>@Model.CertificateContractualActivePoints</b> Pontos
+            @if (User.IsInRealEstate())
+            {
+                <a href="@Url.Action("Active", "ContractualGuarantee")" style="float:right; ">Acessar</a>
+            }
+            else
+            {
+                <a href="@Url.Action("Active", "ContractualGuarantee", new { Model.RealEstateId, Model.RealEstateAgencyId })" style="float:right;">Acessar</a>
+            }
+        </div>
+    </div>
+    @if (Model.VIP.HasValue)
+    {
+        <div class="col-md home-vip-info-col">
+            <div class="home-vip-info-main-div" style="@(!Model.VIP.Value ? "" : "border-radius: 10px;")">
+                <div style="height: 10px;">
+                    <i class="fas fa-trophy" style="color: #f39a2d; font-size: 21px;"></i>
+                </div>
+                <br />
+                <label style="transform: translateY(-3px); margin-bottom: 5px;">Pontuação e Classificação</label>
+                <br>
+                <span style="color: #f39a2d;"><b>@Model.TotalPoints</b> pontos - <b>@(Model.VIP.Value ? "VIP" : "CLASSIC")</b></span>
+            </div>
+            @if (!Model.VIP.Value)
+            {
+                <div class="home-vip-info-secondary-div">
+                    Faltam <b>@Model.NeededPoints</b> Pontos para <b>VIP</b>
+                </div>
+            }
+        </div>
+    }
+</div>

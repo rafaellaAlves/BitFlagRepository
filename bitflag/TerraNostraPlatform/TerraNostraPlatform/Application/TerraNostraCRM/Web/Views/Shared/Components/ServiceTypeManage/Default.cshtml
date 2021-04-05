@@ -1,0 +1,71 @@
+﻿@model DTO.ServiceType.ServiceTypeViewModel
+
+<script type="text/javascript">
+function _ServiceTypeManageValidate() {
+	var hasError = false;
+	$('#_ServiceTypeManageForm .text-danger').remove();
+
+    if (IsNullOrWhiteSpace($('#_ServiceTypeManageName').val())) {
+        $('#_ServiceTypeManageName').after('<div class="text-danger">Preencha o nome.</div>');
+        hasError = true;
+    }
+    if (IsNullOrWhiteSpace($('#_ServiceTypeManageExternalCode').val())) {
+        $('#_ServiceTypeManageExternalCode').after('<div class="text-danger">Preencha o código.</div>');
+        hasError = true;
+    }
+
+    if (hasError) {
+        $('#_ServiceTypeManageAlertErrorServiceType').show();
+    }
+    else {
+        $('#_ServiceTypeManageForm .text-danger').remove();
+        $('#_ServiceTypeManageAlertErrorServiceType').hide();
+    }
+
+	return (!hasError);
+}
+
+function _ServiceTypeManageSave() {
+var d = $('#_ServiceTypeManageForm').serializeArray();
+    $.post('@Url.Action("Manage", "ServiceType")', d, function (data) {
+        console.log(data);
+        if (data.hasError) {
+            if (data.data != null) $('#_ServiceTypeManage' + data.data).after('<div class="text-danger">' + data.message + '</div>'); //data.data contem o nome do campo que ocorreu o erro
+            else alert('Houve um erro ao salvar a indicação.');
+
+            $('#_ServiceTypeManageForm .text-danger').show();
+            $('#_ServiceTypeManageAlertErrorServiceType').show();
+    } else {
+        $('#_ServiceTypeManageServiceTypeId').val(data.code);
+            _ServiceTypeManageCallBack(data.code);
+    }
+});
+}
+</script>
+
+<form id="_ServiceTypeManageForm" method="post" enctype="multipart/form-data">
+    <div id="_ServiceTypeManageAlertErrorServiceType" class="alert alert-danger fade show text-center" role="alert" style="display: none;">
+        <strong>Atenção!</strong> O Formulário contém erros.
+    </div>
+    <input type="hidden" id="_ServiceTypeManageServiceTypeId" name="ServiceTypeId" value="@Model.ServiceTypeId" />
+    <div class="form-row">
+        <div class="form-group col-md-8">
+            <label class="control-label">Nome*</label>
+            <input type="text" class="form-control" id="_ServiceTypeManageName" name="Name" value="@Model.Name" placeholder="Nome">
+        </div>
+        <div class="form-group col-md-4">
+            <label class="control-label">Código*</label>
+            <input type="text" class="form-control" id="_ServiceTypeManageExternalCode" name="ExternalCode" value="@Model.ExternalCode" placeholder="Código">
+        </div>
+    </div>
+    <div class="row">
+        <div class="form-group col-md-12">
+            <label class="control-label">Descrição</label>
+            <textarea class="form-control" id="_ServiceTypeManageDescription" name="Description" rows="4" placeholder="Descrição">@Html.Raw(Model.Description)</textarea>
+        </div>
+    </div>
+</form>
+
+<script type="text/javascript">
+    _MaskData();
+</script>

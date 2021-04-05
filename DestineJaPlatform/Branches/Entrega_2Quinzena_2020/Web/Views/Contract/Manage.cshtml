@@ -1,0 +1,121 @@
+﻿@model DTO.Shared.EntityViewMode<DTO.Contract.ContractManageParametersViewModel>
+@{
+    ViewData["Title"] = "Gerenciar Contratos";
+}
+
+<input type="hidden" id="Editable" value="@(Model.CanEdit()? "true" : "false")" />
+<div class="card bg-light" id="main-contract-manage-card">
+    <div class="card-body">
+        @(await Component.InvokeAsync<Web.ViewComponents.Contract.ContractManageViewComponent>(new { contractId = Model.Model.Contract.ContractId, renewing = Model.Model.Renewing }))
+    </div>
+    <div class="card-footer">
+        <div class="row">
+            <div class="col-md-6">
+                <a data-disabledAll="false" href="@Url.Action("Index", "Contract")" class="btn btn-secondary"><i class="simple-icon-arrow-left"></i>&nbsp;Voltar</a>
+            </div>
+            <div class="col-md-6">
+                @if (!Model.CanEdit())
+                {
+                    <a href="@Url.Action("Manage", "Contract", new { id = Model.Model.Contract.ContractId })" data-disabledAll="false" data-disabled="false" class="btn btn-primary float-right"><i class="simple-icon-note"></i>&nbsp;Editar</a>
+                }
+                else
+                {
+                    <button id="contract-save-button" class="btn btn-success float-right"><i class="simple-icon-cloud-upload"></i>&nbsp;@(Model.Model.Renewing? "Renovar" : "Salvar")</button>
+                }
+                @if (Model.Model.Contract.ContractId.HasValue && !Model.Model.Renewing)
+                {
+                    <a href="@Url.Action("Print", "Contract", new { id = Model.Model.Contract.ContractId })" target="_blank" data-disabledAll="false" data-disabled="false" class="btn btn-primary float-right mr-1"><i class="simple-icon-printer"></i>&nbsp;Visualizar/Imprimir</a>
+                    <a href="javascript:openSendContractEmailModal()" data-disabledAll="false" data-disabled="false" class="btn btn-primary float-right mr-1"><i class="simple-icon-envelope-letter"></i>&nbsp;<span id="contract-open-email-modal-button-text">@(Model.Model.Contract.AcceptTermEmailSended? "Contrato Enviado" : "Enviar Contrato por E-mail")</span></a>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Modals
+{
+    @if (Model.Model.Contract.ContractId.HasValue)
+    {
+        <modal id="contract-email-modal" title-id="contract-email-modal-title" title="Envio de Contrato por E-mail" modal-lg="true">
+            @(await Component.InvokeAsync<Web.ViewComponents.Contract.ContractEmailViewComponent>(new { Id = Model.Model.Contract.ContractId }))
+        </modal>
+    }
+}
+
+
+@section Scripts
+{
+    <script type="text/javascript">
+        $(document).ready(InitializeFunctions);
+
+        $('#contract-save-button').click(function () {
+            $('.text-danger').remove();
+
+            var v = validateInputs('form-contract-manage');
+            if (contractResiduesDatatables.row()[0].length == 0) {
+                $('#contract-manage-residues-table').after($('<small>', { class: 'text-danger' }).append('Insira ao menos um resíduo.'));
+                v = false;
+            }
+
+            if ($('[data-address-id]').length == 0) {
+                $('#contact-client-address-table').after($('<small>', { class: 'text-danger' }).append('Defina ao menos um endereço de coleta.'));
+                v = false;
+            }
+
+            if (!isNullOrWhiteSpace($('#form-contract-manage [name="DueDay"]').val()) && (parseInt($('#form-contract-manage [name="DueDay"]').val()) <= 0 || parseInt($('#form-contract-manage [name="DueDay"]').val()) > 31)) {
+                $('#form-contract-manage [name="DueDay"]').after($('<small>', { class: 'text-danger' }).append('O dia deve estar entre 1 à 31.'));
+                v = false;
+            }
+
+            var startDate = moment($('#form-contract-manage [name="_StartContract"]').val(), 'DD/MM/YYYY')._d;
+            var dueDate = moment($('#form-contract-manage [name="_DueDate"]').val(), 'DD/MM/YYYY')._d;
+
+            if (startDate >= dueDate) {
+                $('#form-contract-manage [name="_StartContract"]').after($('<small>', { class: 'text-danger' }).append('A data inicial deve ser anterior a data final.'));
+                v = false;
+            }
+            else if (startDate.getDate() == dueDate.getDate() && startDate.getMonth() == dueDate.getMonth()) {
+                $('#form-contract-manage [name="_DueDate"]').after($('<small>', { class: 'text-danger' }).append('A data final não pode ser no mesmo dia e mês da data inicial.'));
+                v = false;
+            }
+
+            if (!v) return;
+
+            $('#contract-save-button').attr('disabled', '');
+            $('#form-contract-manage').submit();
+        });
+
+        $(document).ready(function () {
+            if ($('#Editable').val() == 'false') disableAllFields('#main-contract-manage-card', true);
+        });
+
+        function openSendContractEmailModal() {
+            $('#contract-email-modal').modal('show');
+        }
+
+        function emailSendedCallback() {
+            //$('#contract-email-modal').modal('hide');
+            //$('#contract-open-email-modal-button-text').text('Contrato Enviado');
+
+            window.location.href = '@Url.Action("Manage", "Contract", new { id = Model.Model.Contract.ContractId})';
+        }
+    </script>
+
+    @if (Context.Request.Query.ContainsKey("creation") && Model.Model.Contract.ContractId.HasValue && !Model.Model.Renewing)
+    {
+        <script type="text/javascript">
+            $(document).ready(function () {
+                if (typeof openSendContractEmailModal == 'function') {
+                    setTimeout(openSendContractEmailModal, 1000);
+                }
+            });
+        </script>
+    }
+
+    <script asp-paste-key="contract-manage"></script>
+    <script asp-paste-key="script-client-collection-address"></script>
+    <script asp-paste-key="script-contract-index"></script>
+    <script asp-paste-key="contract-client"></script>
+    <script asp-paste-key="contract-residue"></script>
+    <script asp-paste-key="contract-email"></script>
+}

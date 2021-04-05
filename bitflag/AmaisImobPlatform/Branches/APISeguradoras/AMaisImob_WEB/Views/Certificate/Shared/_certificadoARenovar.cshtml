@@ -1,0 +1,308 @@
+﻿@model AMaisImob_WEB.Models.CertificatePrintViewModel
+@inject AMaisImob_DB.Models.AMaisImob_HomologContext context
+@using AMaisImob_WEB.Utils;
+
+@{
+    ViewData["Title"] = "Impressão de Certificado";
+
+    var productFunctions = new AMaisImob_WEB.BLL.ProductFunctions(context);
+
+    var product = productFunctions.GetDataByID(Model.Certificate.ProductId);
+
+    //preco líquido mensal do plano
+    double planMonthly = Model.Certificate.PlanPrice / 1.0738;
+
+    var monthlyPrice = (Model.Certificate.PlanPrice) + (Model.Certificate.TaxaInquilini / 12d);
+    if (Model.Certificate.AssistanceId.HasValue)
+    {
+        monthlyPrice += Model.Assistance.Value.Value;
+    }
+    var annualPrice = (monthlyPrice * 12);
+    var _annualPrice = annualPrice.ToString("#,##0.00");
+
+    var simlationTermDatePassed = Model.Certificate.CreatedDate.AddDays(7);
+}
+<script type="text/javascript">
+    _MaskData();
+</script>
+
+<style type="text/css">
+        @@font-face {
+            font-family: 'Avenir';
+            src: url('@Url.Content("~/assets/fonts/0078f486-8e52-42c0-ad81-3c8d3d43f48e.woff2")'), url('@Url.Content("~/assets/fonts/bc176270-17fa-4c78-a343-9fe52824e501.woff")'), url('@Url.Content("~/assets/fonts/d513e15e-8f35-4129-ad05-481815e52625.woff2")');
+        }
+</style>
+
+<style>
+    body {
+        font-family: Avenir;
+    }
+</style>
+
+<div style="width: 100%; text-align: center;">
+    <strong class="impressao-titulo">
+        RENOVAÇÃO - SEGURO @if (product.ExternalCode == "Residencial1")
+        {<text>RESIDENCIAL</text>}
+    else if (product.ExternalCode == "EMPRESARIAL001")
+    {<text>EMPRESARIAL</text>}
+else
+{<text>INDIVIDUAL</text>} #@Model.Certificate.Reference
+</strong><br />
+</div>
+<div style="margin-top:1em;">
+    <small><b>Data da Notificação: <span class="date">@Model.Certificate._CreatedDate</span></b></small>
+</div>
+<div style="margin-top:1em;">
+    <small>Prezado(a) @Model.Certificate.RenterName,</small>
+    <br />
+    <small>
+        Comunicamos que o seguro do imóvel, em acordo com a obrigatoriedade exigida pela Lei do Inquilinato - nº 8245/91, que em seu artigo 22 - VIII – descreve sobre o seguro complementar contra fogo – seguro de incêndio.
+    </small>
+</div>
+<div style="margin-top:.6em;">
+    <small>
+        Terá sua vigência renovada por mais 12 meses.
+    </small>
+</div>
+<div style="margin-top:.6em;">
+    <small>
+        Abaixo encaminhamos as condições de renovação para mais um ano de proteção.
+    </small>
+</div>
+<table style="width: 100%; margin-top: .2em;">
+    <tr class="amaisimob-white">
+        <td colspan="4" class="bgamaisimob-green" style="border-radius: 15px 15px 0px 0px;">
+            <small class="amaisimob-white">DADOS DA IMOBILIÁRIA</small>
+        </td>
+    </tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding" style="width:75%;" colspan="2"><small class="smallFont"><strong>NOME DA IMOBILIÁRIA:</strong> @Model.RealEstate.CompanyName</small></td>
+        <td class="td-padding" colspan="2"><small class="smallFont"><strong>CPF/CNPJ:</strong> <span class="@(!string.IsNullOrWhiteSpace(Model.RealEstate.Cnpj) ? "cnpj" : "cpf")">@Model.RealEstate.CompanyDocument</span></small></td>
+    </tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding" colspan="2"><small class="smallFont"><strong>E-MAIL:</strong> @Model.RealEstate.Email</small></td>
+        <td class="td-padding" colspan="2"><small class="smallFont"><strong>TELEFONE:</strong> <span class="phone">@Model.RealEstate.Telefone</span></small></td>
+    </tr>
+</table>
+<br />
+<table style="width: 100%;">
+    <tr class="amaisimob-white">
+        <td colspan="3" class="bgamaisimob-green" style="border-radius: 15px 15px 0px 0px;">
+            <small class="amaisimob-white">DADOS DO SEGURO</small>
+        </td>
+    </tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding" colspan="2"><small class="smallFont"><strong>NOME DO LOCATÁRIO:</strong> @Model.Certificate.RenterName</small></td>
+        <td class="td-padding"><small class="smallFont"><strong>CPF/CNPJ DO LOCATÁRIO:</strong> <span class="@(Model.Certificate.RenterCpf.Length > 11 ? "cnpj" : "cpf")">@Model.Certificate.RenterCpf</span></small></td>
+    </tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding" colspan="2">
+            <small class="smallFont">
+                <strong>E-MAIL:</strong> @if (string.IsNullOrWhiteSpace(Model.Certificate.RenterEmail))
+                {<text>-</text> }
+            else
+            { <text>@Model.Certificate.RenterEmail</text>}
+            </small>
+        </td>
+        <td class="td-padding">
+            <small class="smallFont">
+                <strong>TELEFONE:</strong> @if (string.IsNullOrWhiteSpace(Model.Certificate.RenterPhone))
+                {<text>-</text> }
+            else
+            { <text>@Model.Certificate.RenterPhone</text>}
+            </small>
+        </td>
+    </tr>
+    <tr><td colspan="4" style="padding: 0px 6px 0px 6px;"><hr /></td></tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding" colspan="2"><small class="smallFont"><strong>NOME DO LOCADOR:</strong> @Model.Certificate.LocatorName</small></td>
+        <td class="td-padding"><small class="smallFont"><strong>CPF/CNPJ DO LOCADOR:</strong> <span class="@(Model.Certificate.LocatorCpf.Length > 11 ? "cnpj" : "cpf")">@Model.Certificate.LocatorCpf</span></small></td>
+    </tr>
+    <tr><td colspan="4" style="padding: 0px 6px 0px 6px;"><hr /></td></tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding" colspan="2">
+            <small class="smallFont"><strong>ENDEREÇO:</strong> @Model.Certificate.Endereco,  @Model.Certificate.Numero</small>
+        </td>
+        <td class="td-padding">
+            <small class="smallFont">
+                <strong>COMP:</strong> @if (string.IsNullOrWhiteSpace(Model.Certificate.Complemento))
+                {<text>-</text>}
+            else
+            {<text>@Model.Certificate.Complemento</text>}
+            </small>
+        </td>
+    </tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding"><small class="smallFont"><strong>CEP:</strong> <span class="cep">@Model.Certificate.Cep</span></small></td>
+        <td class="td-padding"><small class="smallFont"><strong>BAIRRO:</strong> @Model.Certificate.Bairro</small></td>
+        <td class="td-padding"><small class="smallFont"><strong>CIDADE - UF:</strong> @Model.Certificate.Cidade -  @Model.Certificate.Uf</small></td>
+    </tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding" colspan="2"><small class="smallFont"><strong>TIPO DE CONSTRUÇÃO:</strong> @Model.Certificate.ConstructionTypeName</small></td>
+        <td class="td-padding">
+            <small class="smallFont">
+                <strong>TIPO DE HABITAÇÃO:</strong> @if (Model.Certificate.HabitationTypeId.HasValue)
+                {<text>@Model.Certificate.HabitationTypeName</text>}
+            else
+            {<text>-</text>}
+            </small>
+        </td>
+    </tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding"><small class="smallFont"><strong>TIPO DE IMÓVEL:</strong> @Model.Certificate.PropertyTypeName</small></td>
+        <td class="td-padding">
+            <small class="smallFont">
+                <strong>DESCRIÇÃO:</strong> @if (string.IsNullOrWhiteSpace(Model.Certificate.PropertyTypeDescription))
+                {<text>-</text> }
+            else
+            { <text>@Model.Certificate.PropertyTypeDescription</text>}
+            </small>
+        </td>
+        <td class="td-padding">
+            <small class="smallFont">
+                <strong>REFERÊNCIA IMOBILIÁRIA:</strong> @if (string.IsNullOrWhiteSpace(Model.Certificate.RealEstateReference))
+                {<text>-</text> }
+            else
+            { <text>@Model.Certificate.RealEstateReference</text>}
+            </small>
+        </td>
+    </tr>
+</table>
+<br />
+<table style="width: 100%;">
+    <tr class="amaisimob-white">
+        <td colspan="3" class="bgamaisimob-green" style="border-top-left-radius: 15px; border-top-right-radius: 15px; padding: 8px; width: 40%;"><small>@Model.Plan.Name.ToUpper()</small></td>
+    </tr>
+    <tr class="amaisimob-white bgamaisimob-green">
+        <td style="padding: 8px; width: 50%;"><small>Coberturas</small></td>
+        <td style="width: 15%; text-align: center;"><small>Garantias</small></td>
+        <td style="padding: 8px; width: 35%; text-align: center;"><small>Franquias</small></td>
+    </tr>
+    @foreach (var coverage in Model.Coverages.Where(x => !x.IsOptional || x.Used))
+    {
+        <tr>
+            <td class="bgamaisimob-white"><small class="smallFont"><strong class="amaisimob-orange">@coverage.Name</strong></small></td>
+            <td class="bgamaisimob-white" style="text-align: center; border-left: 1px solid black;"><small class="smallFont amaisimob-orange">R$ <span class="money">@coverage._Garantia</span></small></td>
+            <td class="bgamaisimob-white" style="text-align: center; border-left: 1px solid black;">
+                <small class="smallFont amaisimob-orange">
+                    @if (string.IsNullOrWhiteSpace(coverage.Franquias))
+                    {<text>-</text> }
+                else
+                { <text>@coverage.Franquias</text>}
+                </small>
+            </td>
+        </tr>
+    }
+    <tr class="amaisimob-white">
+        <td class="bgamaisimob-green" style="border-radius: 0px 0px 15px 15px;" colspan="3"><small>&nbsp;</small></td>
+    </tr>
+</table>
+
+<table style="margin-top:.4em; width:100%;">
+    <tr style="text-align:center;">
+        <td class="bgamaisimob-green amaisimob-white" valign="middle">
+            FORMA DE PAGAMENTO: @if (Model.Certificate.PaymentTimes == 12)
+            {<text>MENSAIS</text>}
+        else
+        {<text>@(Model.Certificate.PaymentTimes)X</text>} DE R$ <span class="money">@((annualPrice / Model.Certificate.PaymentTimes).ToString("#,##0.00"))</span>
+        </td>
+    </tr>
+</table>
+
+<div style="margin-top:.6em; text-align:center;">
+    <small>
+        <b>ATENÇÃO</b>
+    </small>
+</div>
+<div style="margin-top:.6em;">
+    <small>A adesão da renovação desta proposta é automatica visando o cumprimento da lei vigente e terá sua cobrança já no proximo junto com o seu boleto de aluguel. Eventuais dúvidas devem ser encaminhadas até o último dia útil do mês de adesão.</small>
+    <br /><br />
+</div>
+
+<div style="margin-top:1em; text-align:center">
+    <small>
+        <b>@Model.RealEstate.CompanyName</b>
+    </small>
+</div>
+
+<div style="page-break-after: always;"></div>
+<div style="text-align:center;">
+    <img src="@AMaisImob_WEB.Utils.CertificateUtils.GetInquilinoLogo()" height="100" width="270" />
+</div>
+<div style="width:100%; text-align:center;">
+    <small>Com o Clube do Inquilino você terá acesso a diversos benefícios que farão você desfrutar de descontos e serviços exclusivos. O certificado do seguro está disponível através da referência do certificado no site. <a href="www.amaisimob.com.br/beneficios">www.amaisimob.com.br/beneficios</a></small>
+</div>
+<div class="row" style="margin-top:2em;">
+    <div class="img-container">
+        <i class="fas fa-prescription-bottle-alt amaisimob-green" style="font-size: 55px;"></i>
+    </div>
+    <div class="text-container">
+        <small>
+            <b>Farmácia com Descontos</b>
+            <br />
+            Medicamentos fazem parte do nosso dia a dia e agora você terá acesso a um super benefício. Com o clube  do Inquilino você terá acesso a mais de 5.000 farmácias com         descontos de até 30% em medicamentos. Para ter acesso entre no site <a href="www.amaisimob.com.br/beneficios">www.amaisimob.com.br/beneficios</a> e encontre a farmácia mais próxima e veja como utilizar este super benefício.
+        </small>
+    </div>
+</div>
+
+<div class="row" style="margin-top:1em;">
+    <div class="img-container">
+        <br />
+        <i class="fas fa-key amaisimob-green" style="font-size: 55px; transform: rotate(90deg) scaleY(-1);"></i>
+    </div>
+    <div class="text-container">
+        <small>
+            <b>Assistência 24h Chaveiro</b>
+            <br />
+            Caso o Segurado necessite entrar na Residência Assistida e tenha perdido ou quebrado a chave dentro da fechadura da porta principal de acesso ao imóvel, ou ainda em caso de roubo ou furto da mesma, ou arrombamento da residência a Seguradora se encarregará do envio de um chaveiro para a realização dos reparos/abertura da porta e confecção de nova chave, se necessário.
+        </small>
+    </div>
+</div>
+<div class="row" style="margin-top:1em;">
+    <div class="img-container">
+        <br /><br />
+        <i class="fas fa-wrench fa-flip-horizontal amaisimob-green" style="font-size: 55px;"></i>
+    </div>
+    <div class="text-container">
+        <small>
+            <b>Assistência 24h Hidráulica</b>
+            <br />
+            Em caso de vazamento interno que esteja causando ou possa causar alagamento na Residência Assistida, como vazamento de tubulações, sifões, rabichos, torneiras, a Seguradora se encarregará do envio de um profissional para sua reparação.
+            <br />
+            Incluem-se neste serviço os custos decorrentes do envio do profissional, materiais (aqueles necessários e indispensáveis à execução do serviço) e mão de obra, sendo excluídas quaisquer peças que eventualmente tenham que ser substituídas.
+            <br />
+            A Seguradora não assumirá custos de reparo definitivo, nem serviços de alvenaria ou qualquer serviço de desobstrução.
+        </small>
+    </div>
+</div>
+<div class="row" style="margin-top:1em;">
+    <div class="img-container">
+        <br /><br /><br />
+        <i class="fas fa-bolt amaisimob-green" style="font-size: 55px;"></i>
+    </div>
+    <div class="text-container">
+        <small>
+            <b>Assistência 24h Eletricista</b>
+            <br />
+            Em caso de falta de energia elétrica na Residência Assistida devido a uma falha ou avaria nas suas instalações elétricas em decorrência de curto circuito, tomadas queimadas, interrupção de energia por problemas na rede de baixa tensão, a Seguradora se encarregará do envio de um profissional para a reparação emergencial necessária para restabelecer a energia elétrica, sempre que o estado das instalações permitir.
+            <br />
+            Incluem-se neste serviço os custos decorrentes do envio do profissional, materiais (aqueles necessários e indispensáveis à execução do serviço) e mão de obra, sendo excluída a reparação de elementos próprios da iluminação, tais como lâmpadas, lâmpadas fluorescentes, interruptores, tomadas, bombas elétricas, assim como a reparação de avarias que sofram os aparelhos de calefação, eletrodomésticos e, em geral, de qualquer avaria de aparelhos que funcionem por corrente elétrica, além de peças que eventualmente tenham que ser substituídas.
+        </small>
+    </div>
+</div>
+
+
+
+<script type="text/javascript">
+    _MaskData();
+    var time;
+    var coolDown = 500;
+    window.print();
+
+    function CloseWindow() {
+        //window.close();
+    }
+
+    clearTimeout(time);
+    coolDown = setTimeout(CloseWindow, time);
+</script>

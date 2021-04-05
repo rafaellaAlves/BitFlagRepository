@@ -1,0 +1,167 @@
+﻿
+@{
+    ViewData["Title"] = "CoberturaRT";
+}
+
+<script type="text/javascript">
+    
+    function CoberturaRTMandarCookie() {
+        setCookie("CoberturaRTPlano", cardSelected);
+        window.location.href = '@Url.Action("ExtensaoCobertura", "SeguroClinicaVeterinaria")';
+    }
+
+</script>
+
+<h2>Cobertura do Responsável Técnico</h2>
+
+<br />
+<div class="form-group">
+    <h6>Gostaria de contratar a cobertura adicional de Perda de Renda para o Responsável Técnico?</h6>
+    <div class="form-check">
+        <label class="form-check-label" for="CoberturaRT">
+            <input class="form-check-input" type="checkbox" id="CoberturaRT">
+            Adicional de cobertura ao RT
+        </label>
+    </div>
+</div>
+<div id="CardGroup" style="display:none">
+    <hr />
+    <div class="card-group" id="CardGeral">
+        <div style="width:35%;">
+            <div class="card" id="InfoCard">
+                <div class="card-header">
+                    <h5 class="card-title text-center">Coberturas</h5>
+                </div>
+                <div class="card-body">
+                    <br />
+                    <div class="row">
+                        <div class="col-md-12"><small>Perda de renda decorrente de afastamento por doença</small></div>
+                        <div class="col-md-12"><small>Perda de renda decorrente de afastamento por acidente</small></div>
+                        <div class="col-md-12"><small>Morte acidental</small></div>
+                        <div class="col-md-12"><small>Invalidez por acidental</small></div>
+                        <div class="col-md-12"><small>Assistência</small></div>
+                        <div class="col-md-12"><small>Assistência funeral</small></div>
+                        <div class="col-md-12"><small>Auxílio jurídico AmaisVet</small></div>
+                        <br /><br />
+                        <div class="col-md-12"><h5>CRMV Conveniado</h5></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card" id="MaltesCard" style="cursor:pointer;">
+            <div class="card-header">
+                <h5 class="card-title text-center">maltês</h5>
+            </div>
+            <div class="card-body text-center">
+                <strong>Valores</strong>
+                <div class="row">
+                    <div class="col-md-12"><small class="card-text">12x R$ 2.500</small></div>
+                    <div class="col-md-12"><small class="card-text">12x R$ 2.500</small></div>
+                    <div class="col-md-12"><small class="card-text">R$ 15.000,00</small></div>
+                    <div class="col-md-12"><small class="card-text">R$ 15.000,00</small></div>
+                    <div class="col-md-12"><small class="card-text">Farmácia</small></div>
+                    <div class="col-md-12"><small class="card-text">R$ 4.000,00</small></div>
+                    <div class="col-md-12"><small class="card-text">Ilimitado</small></div>
+                    <br /><br />
+                    <div class="col-md-12"><h5>R$ 33,99</h5></div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="col-md-12 text-center"><button type="button" id="CotacaoSubmitButton2" class="btn btn-success">Contratar</button></div>
+            </div>
+        </div>
+        <div class="card" id="BuldogCard" style="cursor:pointer;">
+            <div class="card-header">
+                <h5 class="card-title text-center">buldog</h5>
+            </div>
+            <div class="card-body text-center">
+                <strong>Valores</strong>
+                <div class="row">
+                    <div class="col-md-12"><small class="card-text">12x R$ 3.500</small></div>
+                    <div class="col-md-12"><small class="card-text">12x R$ 3.500</small></div>
+                    <div class="col-md-12"><small class="card-text">R$ 30.000,00</small></div>
+                    <div class="col-md-12"><small class="card-text">R$ 30.000,00</small></div>
+                    <div class="col-md-12"><small class="card-text">Farmácia</small></div>
+                    <div class="col-md-12"><small class="card-text">R$ 4.000,00</small></div>
+                    <div class="col-md-12"><small class="card-text">Ilimitado</small></div>
+                    <br /><br />
+                    <div class="col-md-12"><h5>R$ 46,99</h5></div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="col-md-12 text-center"><button type="button" id="CotacaoSubmitButton3" class="btn btn-success">Contratar</button></div>
+            </div>
+        </div>
+        <div class="card" id="MastiffCard" style="cursor:pointer;">
+            <div class="card-header">
+                <h5 class="card-title text-center">mastiff</h5>
+            </div>
+            <div class="card-body text-center">
+                <strong>Valores</strong>
+                <div class="row">
+                    <div class="col-md-12"><small class="card-text">12x R$ 5.000</small></div>
+                    <div class="col-md-12"><small class="card-text">12x R$ 5.000</small></div>
+                    <div class="col-md-12"><small class="card-text">R$ 45.000,00</small></div>
+                    <div class="col-md-12"><small class="card-text">R$ 45.000,00</small></div>
+                    <div class="col-md-12"><small class="card-text">Farmácia</small></div>
+                    <div class="col-md-12"><small class="card-text">R$ 4.000,00</small></div>
+                    <div class="col-md-12"><small class="card-text">Ilimitado</small></div>
+                    <br /><br />
+                    <div class="col-md-12"><h5>R$ 66,99</h5></div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="col-md-12 text-center"><button type="button" id="CotacaoSubmitButton4" class="btn btn-success">Contratar</button></div>
+            </div>
+        </div>
+    </div>
+</div>
+<br />
+<div class="form-group">
+    <a href="@Url.Action("Formulario","SeguroClinicaVeterinaria")" id="VoltarButton" class="btn btn-secondary"><i class="fas fa-arrow-left"></i>&nbsp;Voltar</a>
+    <button type="button" id="SkipButton" class="btn btn-secondary float-right">Pular&nbsp;<i class="fas fa-arrow-right"></i></button>
+</div>
+
+<script type="text/javascript">
+
+
+    function LimparClasseDosCards() {
+        $('#MaltesCard').removeClass('shadow bg-light');
+        $('#BuldogCard').removeClass('shadow bg-light');
+        $('#MastiffCard').removeClass('shadow bg-light');
+    }
+
+    $('#MaltesCard').click(function () {
+        LimparClasseDosCards();
+        $('#MaltesCard').addClass('shadow bg-light');
+    });
+    $('#BuldogCard').click(function () {
+        LimparClasseDosCards();
+        $('#BuldogCard').addClass('shadow bg-light');
+    });
+    $('#MastiffCard').click(function () {
+        LimparClasseDosCards();
+        $('#MastiffCard').addClass('shadow bg-light');
+    });
+
+    $('#CoberturaRT').change(function () { 
+        if ($(this)[0].checked) {
+            $('#CardGroup').show();
+            $('#SkipButton').hide();
+        }
+        else {
+            $('#CardGroup').hide();
+            $('#SkipButton').show();
+        }
+    });
+
+    $('#SkipButton').click(function () {
+        window.location.href = '@Url.Action("ExtensaoCobertura", "SeguroClinicaVeterinaria")';
+    });
+
+    $('.btn-success').click(function () {
+        var botaoId = $(this).attr('id');
+        cardSelected = botaoId.split('Button')[1];
+        CoberturaRTMandarCookie();
+    });
+</script>

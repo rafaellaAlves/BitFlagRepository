@@ -1,0 +1,61 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["title"] = "Assinatura Suspensa";
+}
+
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="mb-2">
+            <h2>
+                Desbloqueio de Assinatura<br /><small><b>@Context.Request.RouteValues["reference"]</b></small>
+            </h2>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="card card-blue">
+            <div class="card-body">
+                @if (ViewData["Error"] == null)
+                {
+                    <div class="row mb-4">
+                        <div class="col-md-12 text-center">
+                            <span class="fa-stack fa-5x">
+                                <i class="fas fa-circle fa-stack-2x text-green"></i>
+                                <i class="fas fa-check fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12 text-center">
+                            <h2>Processo de desbloqueio da assinatura realizada com sucesso!</h2>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="row mb-4">
+                        <div class="col-md-12 text-center">
+                            <span class="fa-stack fa-5x">
+                                <i class="fas fa-circle fa-stack-2x"></i>
+                                <i class="fas fa-times fa-stack-1x fa-inverse"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12 text-center">
+                            <h2>Houve um erro ao desbloquear assinatura!</h2>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+<hr />
+<div class="row">
+    <div class="col-md-6">
+        <a href="@Url.Action("Index", "Home")" class="btn btn-secondary">Voltar</a>
+    </div>
+</div>

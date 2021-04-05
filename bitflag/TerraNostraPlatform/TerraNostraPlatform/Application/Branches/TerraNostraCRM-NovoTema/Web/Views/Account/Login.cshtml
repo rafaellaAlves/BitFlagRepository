@@ -1,0 +1,124 @@
+﻿@model DTO.Account.LoginViewModel
+
+@{
+    ViewData["Title"] = "Login";
+    Layout = "~/Views/Shared/_LayoutClean.cshtml";
+}
+<div class="row">
+    <div class="col-6 offset-3">
+        <div class="card auth-card">
+            <div class="form-side" style="width: 100% !important;">
+                <div class="text-center">
+                    <img src="~/images/logo.png" width="250" height="80" style="margin-bottom:1em;" />
+                </div>
+                <h6 class="mb-4">Login</h6>
+                <form method="post" action="@Url.Action("Login", "Account")">
+                    <label class="form-group has-float-label mb-4">
+                        <input class="form-control" name="Email" id="Email" value="@Model.Email">
+                        <span>E-mail</span>
+                    </label>
+                    <label class="form-group has-float-label mb-4">
+                        <input class="form-control" name="Password" id="Password" type="password" value="@Model.Password">
+                        <span>Password</span>
+                    </label>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="javascript:void(0)" data-toggle="modal" data-target="#forgetPasswordModal">Esqueceu a senha?</a>
+                        <button class="btn btn-primary btn-lg btn-shadow" type="submit">ENTRAR</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+@if (ViewData["ErroEmail"] != null)
+{
+    string messageFile = (string)ViewData["ErroEmail"];
+    <script type="text/javascript">
+        $('#Email').after('<div class="text-danger">@messageFile</div>');
+    </script>
+}
+@if (ViewData["ErroPassword"] != null)
+{
+    string messageFile = (string)ViewData["ErroPassword"];
+    <script type="text/javascript">
+        $('#Password').after('<div class="text-danger">@messageFile</div>');
+    </script>
+}
+@if (ViewData["InactiveUser"] != null)
+{
+    string messageFile = (string)ViewData["InactiveUser"];
+    <script type="text/javascript">
+        $('#Email').after('<div class="text-danger">@messageFile</div>');
+    </script>
+}
+
+<div class="modal fade" id="forgetPasswordModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-md" style="min-width:300px" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Recuperação de senha</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="alertSuccessPasswordRecovery" class="alert alert-success fade show text-center" role="alert" style="display: none;">
+                    <strong>Um email foi enviado para você, verifique sua caixa de entrada!</strong>
+                </div>
+                <label>Digite seu e-mail no campo abaixo.</label>
+                <div class="form-group">
+                    <input type="text" class="form-control" placeholder="E-mail" id="recoveryMail" />
+                </div>
+                <div class="form-group">
+                    <button type="submit" aria-label="Close" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    <button type="button" class="btn btn-primary float-right" id="SendMailButton">Enviar e-mail</button>
+                </div>
+                <script type="text/javascript">
+                    $('#SendMailButton').click(function () {
+
+                        var hasError = false;
+                        $('#forgetPasswordModal .text-danger').remove();
+
+                        if (IsNullOrWhiteSpace($('#recoveryMail').val())) {
+                            hasError = true;
+                            $('#recoveryMail').after('<div class="text-danger">Digite um e-mail!</div>');
+                        }
+
+                        if (!hasError) {
+                            SendMail();
+                        }
+                    });
+                </script>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#forgetPasswordModal').on('shown.bs.modal', function () {
+        $('#recoveryMail').val("");
+        $('#forgetPasswordModal .text-danger').remove();
+        $('#alertSuccessPasswordRecovery').hide();
+    });
+
+    function SendMail() {
+        var d = { 'mail': $('#recoveryMail').val() };
+        $.ajax({
+            url: '@Url.Action("SendRecoveryMail", "Account")',
+            type: 'POST',
+            dataType: 'json',
+            data: d,
+            success: function (data) {
+                $('#recoveryMail').val("");
+                if (data.hasError) {
+                    $('#recoveryMail').after('<div class="text-danger">' + data.message + '</div>');
+                    $('#alertSuccessPasswordRecovery').hide();
+                }
+                else {
+                    $('#forgetPasswordModal .text-danger').remove();
+                    $('#alertSuccessPasswordRecovery').show();
+                }
+            }
+        });
+    }
+</script>

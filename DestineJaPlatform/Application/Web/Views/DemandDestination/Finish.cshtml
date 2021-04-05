@@ -1,0 +1,173 @@
+﻿@model DTO.DemandDestination.DemandDestinationViewModel
+
+@{
+    ViewData["Title"] = "Destinação";
+}
+
+<form id="demand-destination-manage-form" action="@Url.Action("FinishUpdate", "DemandDestination")" method="post">
+    <input type="hidden" value="@Model.DemandDestinationId" name="DemandDestinationId" />
+    <div class="card">
+        <div class="card-body">
+            <div class="card ">
+                <div class="card-header card-header-default tx-uppercase justify-content-between  bg-gray-400">
+                    <h6 class="mg-b-0 tx-14 tx-inverse"><i class="simple-icon-magnifier"></i>&nbsp;Dados da Destinação</h6>
+                    <div class="card-option">
+                        <a href="" class="tx-gray-600 hover-white mg-l-10" data-toggle="collapse" aria-expanded="true" data-target="#demand-destination-area"><i class="simple-icon-arrow-up lh-0"></i></a>
+                    </div>
+                    @*<div class="row w-100">
+                        <div class="col">
+                            <i class="simple-icon-magnifier"></i>&nbsp;Dados da Destinação
+                        </div>
+                        <div class="col text-right p-0">
+                            <i class="simple-icon-arrow-up float-right" data-toggle="collapse" aria-expanded="true" data-target="#demand-destination-area"></i>
+                        </div>
+                    </div>*@
+                </div>
+                <div class="card-body bd collapse show" id="demand-destination-area">
+                    @(await Component.InvokeAsync<Web.ViewComponents.DemandDestination.DemandDestinationManageViewComponent>(new { id = Model.DemandDestinationId, viewMode = DTO.Shared.ViewMode.NonEditable }))
+                </div>
+            </div>
+            <br />
+            <div class="card ">
+                <div class="card-header card-header-default tx-uppercase justify-content-between  bg-gray-400">
+                    <h6 class="mg-b-0 tx-14 tx-inverse"><i class="simple-icon-organization"></i>&nbsp;Coletas Vinculadas</h6>
+                    <div class="card-option">
+                        <a href="" class="tx-gray-600 hover-white mg-l-10" data-toggle="collapse" aria-expanded="true" data-target="#demand-destination-demand-area"><i class="simple-icon-arrow-up lh-0"></i></a>
+                    </div>
+                    @*<div class="row w-100">
+                        <div class="col">
+                            <i class="simple-icon-organization"></i>&nbsp;Coletas Vinculadas
+                        </div>
+                        <div class="col text-right p-0">
+                            <i class="simple-icon-arrow-up float-right" data-toggle="collapse" aria-expanded="true" data-target="#demand-destination-demand-area"></i>
+                        </div>
+                    </div>*@
+                </div>
+                <div class="card-body bd collapse show" id="demand-destination-demand-area">
+                    <div id="demand-destination-demand-view-component">
+                        @(await Component.InvokeAsync<Web.ViewComponents.DemandDestination.DemandDestinationDemandViewComponent>(new { demandDestinationId = Model.DemandDestinationId, residueFamilyId = Model.ResidueFamilyId, viewMode = (Model.Finished? DTO.Shared.ViewMode.NonEditable : DTO.Shared.ViewMode.Editable) }))
+                    </div>
+                </div>
+            </div>
+            <br />
+            <div class="card ">
+                <div class="card-header card-header-default tx-uppercase justify-content-between  bg-gray-400">
+                    <h6 class="mg-b-0 tx-14 tx-inverse"><i class="simple-icon-note"></i>&nbsp;Dados de Fechamento da Destinação</h6>
+                    <div class="card-option">
+                        <a href="" class="tx-gray-600 hover-white mg-l-10" data-toggle="collapse" aria-expanded="true" data-target="#demand-destination-finish-area"><i class="simple-icon-arrow-up lh-0"></i></a>
+                    </div>
+                    @*<div class="row w-100">
+                        <div class="col">
+                            <i class="simple-icon-note"></i>&nbsp;Dados de Fechamento da Destinação
+                        </div>
+                        <div class="col text-right p-0">
+                            <i class="simple-icon-arrow-up float-right" data-toggle="collapse" aria-expanded="true" data-target="#demand-destination-finish-area"></i>
+                        </div>
+                    </div>*@
+                </div>
+                <div class="card-body bd collapse show" id="demand-destination-finish-area">
+                    @(await Component.InvokeAsync<Web.ViewComponents.DemandDestination.DemandDestinationFinishViewComponent>(new { demandDestinationId = Model.DemandDestinationId }))
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <div class="row">
+                <div class="col">
+                    <a href="@Url.Action("Index", "DemandDestination")" data-disabledAll="false" class="btn btn-secondary"><i class="simple-icon-arrow-left"></i>&nbsp;Voltar</a>
+                </div>
+                @if (!Model.Finished)
+                {
+                    <div class="col">
+                        <button type="button" id="demand-destination-manage-finish-button" class="btn btn-info float-right"><i class="simple-icon-check"></i>&nbsp;Finalizar Destinação</button>
+                        @*<button class="btn btn-success float-right mr-2"><i class="simple-icon-cloud-upload"></i>&nbsp;Salvar</button>*@
+                    </div>
+                }
+                <button type="submit" class="btn btn-success float-right mr-2"><i class="simple-icon-cloud-upload"></i>&nbsp;Salvar</button>
+                @*else
+                {
+                    <div class="col">
+                        <button type="button" id="demand-destination-manage-update-cdf-button" class="btn btn-success float-right"><i class="simple-icon-cloud-upload"></i>&nbsp;Atualizar CDF</button>
+                    </div>
+                }*@
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts
+{
+    <script type="text/javascript">
+        $(document).ready(function () {
+            InitializeFunctions();
+        });
+
+        $('#demand-destination-manage-form').submit(function () {
+
+            if (!validateInputs('demand-destination-finish-area')) return false;
+
+            var departureDate = moment($('#demand-destination-manage-form input[name=\'_DepartureDate\']').val(), 'DD/MM/YYYY')._d;
+            var arrivedDate = moment($('#demand-destination-manage-form input[name=\'_ArrivedDate\']').val(), 'DD/MM/YYYY')._d;
+
+            if (arrivedDate < departureDate) {
+                $('#demand-destination-manage-form input[name=\'_ArrivedDate\']').after('<small class="text-danger">A data de chegada não pode ser anterior a data de saída.</small>');
+                return false;
+            }
+
+            //adiciona ao form as demandas selecionadas
+            $.each($('#demand-destination-demand-table tr[data-demand-id]'), function (i, e) {
+                $('#demand-destination-manage-form').append('<input type="hidden" name="Demands.Index" value="' + i + '" />');
+                $('#demand-destination-manage-form').append('<input type="hidden" name="Demands[' + i + '].DemandId" value="' + $(e).data('demand-id') + '" />');
+            });
+
+
+            return true;
+        });
+
+        $('#demand-destination-manage-finish-button').click(function () {
+
+            if (!validateInputs('demand-destination-finish-area')) return;
+
+
+            if (isNaN(Globalize.parseFloat(Globalize.format(isNull($('#demand-destination-manage-form input[name=\'Weight\']').val(), 0))))) {
+                $('#demand-destination-manage-form input[name=\'Weight\']').after('<small class="text-danger">O peso deve ser um valor númerico.</small>')
+                return;
+            }
+
+            var departureDate = moment($('#demand-destination-manage-form input[name=\'Weight\']').val(), 'DD/MM/YYYY')._d;
+            var arrivedDate = moment($('#demand-destination-manage-form input[name=\'_ArrivedDate\']').val(), 'DD/MM/YYYY')._d;
+
+            if (arrivedDate < departureDate) {
+                $('#demand-destination-manage-form input[name=\'_ArrivedDate\']').after('<small class="text-danger">A data de chegada não pode ser anterior a data de saída.</small>');
+                return;
+            }
+
+            $.post('@Url.Action("FinishValidate", "DemandDestination")', { demandDestinationId: '@Model.DemandDestinationId', weight: $('[name="Weight"]').val(), demandsId: $('#demand-destination-demand-table tr[data-demand-id]').map(function (i, e) { return $(e).data('demand-id'); }).toArray() }, function (d) {
+                if (d.hasError && !d.canContinue) {
+                    bootbox.alert(d.message);
+                    return;
+                }
+
+                bootboxConfirm((d.hasError? d.message : '') + '<br/>Deseja realmente finalizar este MTR de destinação?', function (r) {
+                    if (!r) return;
+
+                     $('#demand-destination-manage-form').attr('action', '@Url.Action("Finish", "DemandDestination")');
+                    $('#demand-destination-manage-form').submit();
+                });
+            });
+        });
+
+       
+
+        $('#demand-destination-manage-update-cdf-button').click(function() {
+           
+            $('#demand-destination-manage-form').attr('action', '@Url.Action("UpdateDCF", "DemandDestination")');
+            $('#demand-destination-manage-form').submit();
+        });
+    </script>
+
+    <script asp-paste-key="demand-destination-manage"></script>
+    <script asp-paste-key="demand-destination-demand"></script>
+    <script asp-paste-key="demand-destination-finish"></script>
+    <script asp-paste-key="file-1"></script>
+    <script asp-paste-key="file-2"></script>
+}

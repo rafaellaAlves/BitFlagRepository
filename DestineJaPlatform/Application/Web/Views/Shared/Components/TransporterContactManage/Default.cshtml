@@ -1,0 +1,28 @@
+﻿@model int
+
+<form id="form-transporter-contact">
+    <input type="hidden" name="TransporterId" value="@Model" />
+    <input type="hidden" name="TransporterContactId" />
+    <div class="row">
+        <div class="col-md-12 mb-2">
+            <label class="required">Nome</label>
+            <input class="form-control" placeholder="Nome" name="Name" />
+        </div>
+        <div class="col-md-12 mb-2">
+            <label class="required">Cargo</label>
+            <input class="form-control" placeholder="Cargo" name="Role" />
+        </div>
+        <div class="col-md-6 mb-2">
+            <label class="required">Telefone</label>
+            <input class="form-control" placeholder="Telefone" name="Phone" />
+        </div>
+        <div class="col-md-6 mb-2">
+            <label>Celular</label>
+            <input class="form-control" placeholder="Celular" name="CellPhone" />
+        </div>
+        <div class="col-md-12 mb-2">
+            <label class="required">E-mail</label>
+            <input class="form-control" placeholder="E-mail" name="Email" />
+        </div>
+    </div>
+</form>

@@ -1,0 +1,12 @@
+C:\repositorios\bitflag\AmaisVetPlatform\Application\Branches\AmaisVetPlatform-SegundaVia\ApplicationDbContext\bin\Release\netcoreapp3.1\ApplicationDbContext.deps.json
+C:\repositorios\bitflag\AmaisVetPlatform\Application\Branches\AmaisVetPlatform-SegundaVia\ApplicationDbContext\bin\Release\netcoreapp3.1\ApplicationDbContext.runtimeconfig.json
+C:\repositorios\bitflag\AmaisVetPlatform\Application\Branches\AmaisVetPlatform-SegundaVia\ApplicationDbContext\bin\Release\netcoreapp3.1\ApplicationDbContext.runtimeconfig.dev.json
+C:\repositorios\bitflag\AmaisVetPlatform\Application\Branches\AmaisVetPlatform-SegundaVia\ApplicationDbContext\bin\Release\netcoreapp3.1\ApplicationDbContext.dll
+C:\repositorios\bitflag\AmaisVetPlatform\Application\Branches\AmaisVetPlatform-SegundaVia\ApplicationDbContext\bin\Release\netcoreapp3.1\ApplicationDbContext.pdb
+C:\repositorios\bitflag\AmaisVetPlatform\Application\Branches\AmaisVetPlatform-SegundaVia\ApplicationDbContext\obj\Release\netcoreapp3.1\ApplicationDbContext.csprojAssemblyReference.cache
+C:\repositorios\bitflag\AmaisVetPlatform\Application\Branches\AmaisVetPlatform-SegundaVia\ApplicationDbContext\obj\Release\netcoreapp3.1\ApplicationDbContext.AssemblyInfoInputs.cache
+C:\repositorios\bitflag\AmaisVetPlatform\Application\Branches\AmaisVetPlatform-SegundaVia\ApplicationDbContext\obj\Release\netcoreapp3.1\ApplicationDbContext.AssemblyInfo.cs
+C:\repositorios\bitflag\AmaisVetPlatform\Application\Branches\AmaisVetPlatform-SegundaVia\ApplicationDbContext\obj\Release\netcoreapp3.1\ApplicationDbContext.csproj.CoreCompileInputs.cache
+C:\repositorios\bitflag\AmaisVetPlatform\Application\Branches\AmaisVetPlatform-SegundaVia\ApplicationDbContext\obj\Release\netcoreapp3.1\ApplicationDbContext.dll
+C:\repositorios\bitflag\AmaisVetPlatform\Application\Branches\AmaisVetPlatform-SegundaVia\ApplicationDbContext\obj\Release\netcoreapp3.1\ApplicationDbContext.pdb
+C:\repositorios\bitflag\AmaisVetPlatform\Application\Branches\AmaisVetPlatform-SegundaVia\ApplicationDbContext\obj\Release\netcoreapp3.1\ApplicationDbContext.genruntimeconfig.cache

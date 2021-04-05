@@ -1,0 +1,173 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Indication Vet";
+}
+@section Styles {
+    <style type="text/css">
+        #menu {
+            background-image: url('@Url.Content("~/assets/image/home-background-cover.jpeg")');
+            background-repeat: no-repeat;
+            background-size: cover;
+            min-height: 100%;
+        }
+        .form_error{
+            color: red;
+            display: none;
+        }
+    </style>
+}
+<div class="row">
+    <div class="col-md-6">
+        <div id="menu" class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12 text-center">
+                        <a href="#" class="btn btn-primary">
+                            <i class="simple-icon-user-follow"></i> Nova Assinatura
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="row">
+            <div class="col-12">
+                <div class="mb-2">
+                    <h2>
+                        Olá Dr(a), esse programa de relacionamento possibilita descontos de até 30% na sua assinatura mensal durante um período de 12 meses.
+                    </h2>
+                </div>
+                <hr />
+            </div>
+        </div>
+        <form id="FormIndication" style="" method="post" action="">           
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="form-group">
+                                        <label class="control-label">Nome</label>
+                                        <input name="FullName" type="text" class="form-control" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label ">CRMV</label>
+                                        <input name="CRMV" type="text" class="form-control" />
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label ">Data de Nascimento</label>
+                                        <input name="BirthDate" id="BirthDate" type="date" class="form-control " />
+                                    </div>
+                                </div>
+                            </div>
+                            <hr />
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label ">Nome</label>
+                                        <input name="FullNameVet" type="text" class="form-control" />
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label">Celular</label>
+                                        <input name="CellphoneVet" type="text" class="form-control " />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label">Nome</label>
+                                        <input name="FullNameVet2" type="text" class="form-control " />
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label ">Celular</label>
+                                        <input name="CellphoneVet2" type="text" class="form-control " />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12 text-right pt-3">
+                            <div class="btn-group">
+                                <button type="submit" id="Send" onclick="return validateIndication()" class="btn btn-primary">Enviar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+@section Scripts {
+<script type="text/javascript" src="~/assets/js/Utils.js"></script>
+    <script type="text/javascript">
+        function validateIndication() {
+            var name = $('#FullName').val();
+            var data = $('#BirthDate').val();
+            var crmv = $('#Crmv').val();
+            var cont = 0;
+
+            //NOME
+            if (name == '') {
+                $('#FullName').next().show();
+                $('#invalid-name').hide();
+                focus('#FullName');
+                cont = cont + 1;
+            } else if (name.length < 5 || name.length > 30) {
+                $('#invalid-name').show();
+                $('#FullName').next().hide();
+                focus('#FullName');
+                cont = cont + 1;
+            } else {
+                forceFocus('#FullName');
+                $('#FullName').next().hide();
+                $('#invalid-name').hide();
+            }
+
+            //DATA
+            if (data == '') {
+                $('#BirthDate').next().show();
+                focus('#BirthDate');
+                cont = cont + 1;
+
+            } else {
+                forceFocus('#BirthDate');
+                $('#BirthDate').next().hide();
+            }
+
+            //CRMV 
+            if (crmv == '') {
+                $('#Crmv').next().show();
+                focus('#Crmv');
+                cont = cont + 1;
+
+            } else {
+                forceFocus('#Crmv');
+                $('#Crmv').next().hide();
+            }
+            if (cont == 0) {
+                $("#FormIndication").submit();
+            } else {
+                return false;
+            }
+        }
+        $(document).ready(function () {
+            document.getElementById('BirthDate').max = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split("T")[0];
+        });
+    </script>
+}

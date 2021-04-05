@@ -1,0 +1,15 @@
+C:\repositorios\bitflag\AmaisImobPlatform\Branches\APISeguradoras\BackgroundServices\bin\Debug\netcoreapp2.2\BackgroundServices.deps.json
+C:\repositorios\bitflag\AmaisImobPlatform\Branches\APISeguradoras\BackgroundServices\bin\Debug\netcoreapp2.2\BackgroundServices.runtimeconfig.json
+C:\repositorios\bitflag\AmaisImobPlatform\Branches\APISeguradoras\BackgroundServices\bin\Debug\netcoreapp2.2\BackgroundServices.runtimeconfig.dev.json
+C:\repositorios\bitflag\AmaisImobPlatform\Branches\APISeguradoras\BackgroundServices\bin\Debug\netcoreapp2.2\BackgroundServices.dll
+C:\repositorios\bitflag\AmaisImobPlatform\Branches\APISeguradoras\BackgroundServices\bin\Debug\netcoreapp2.2\BackgroundServices.pdb
+C:\repositorios\bitflag\AmaisImobPlatform\Branches\APISeguradoras\BackgroundServices\bin\Debug\netcoreapp2.2\AMaisImob_DB.dll
+C:\repositorios\bitflag\AmaisImobPlatform\Branches\APISeguradoras\BackgroundServices\bin\Debug\netcoreapp2.2\AMaisImob_DB.pdb
+C:\repositorios\bitflag\AmaisImobPlatform\Branches\APISeguradoras\BackgroundServices\obj\Debug\netcoreapp2.2\BackgroundServices.csprojAssemblyReference.cache
+C:\repositorios\bitflag\AmaisImobPlatform\Branches\APISeguradoras\BackgroundServices\obj\Debug\netcoreapp2.2\BackgroundServices.AssemblyInfoInputs.cache
+C:\repositorios\bitflag\AmaisImobPlatform\Branches\APISeguradoras\BackgroundServices\obj\Debug\netcoreapp2.2\BackgroundServices.AssemblyInfo.cs
+C:\repositorios\bitflag\AmaisImobPlatform\Branches\APISeguradoras\BackgroundServices\obj\Debug\netcoreapp2.2\BackgroundServices.csproj.CoreCompileInputs.cache
+C:\repositorios\bitflag\AmaisImobPlatform\Branches\APISeguradoras\BackgroundServices\obj\Debug\netcoreapp2.2\BackgroundServices.csproj.CopyComplete
+C:\repositorios\bitflag\AmaisImobPlatform\Branches\APISeguradoras\BackgroundServices\obj\Debug\netcoreapp2.2\BackgroundServices.dll
+C:\repositorios\bitflag\AmaisImobPlatform\Branches\APISeguradoras\BackgroundServices\obj\Debug\netcoreapp2.2\BackgroundServices.pdb
+C:\repositorios\bitflag\AmaisImobPlatform\Branches\APISeguradoras\BackgroundServices\obj\Debug\netcoreapp2.2\BackgroundServices.genruntimeconfig.cache

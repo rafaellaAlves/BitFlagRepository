@@ -1,0 +1,194 @@
+﻿@model DTO.Shared.EntityViewMode<int?>
+
+@inject Web.Helpers.DropDownListHelper dropDownListHelper
+@inject Services.Service.ServiceStatusServices serviceStatusServices
+@inject Services.Service.ServiceSituationServices serviceSituationServices
+@inject Services.Service.ServiceServices serviceServices
+
+@{
+    int canceledStatusId = (await serviceStatusServices.GetDataByExternalCode("OSCANCELADA")).ServiceStatusId;
+    int concludedStatusId = (await serviceStatusServices.GetDataByExternalCode("COLETACONCLUIDA")).ServiceStatusId;
+}
+
+<form id="service-index-form">
+    <div class="row">
+        <div class="col-md form-group">
+            <input type="text" class="form-control" placeholder="Pesquisar..." data-toggle="search-datatable" data-target="#service-table" />
+        </div>
+        <div class="col-md-auto form-group text-center">
+            @Html.DropDownList("ServiceSituationId", dropDownListHelper.ToSelectListItem<ApplicationDbContext.Models.ServiceSituation, int, string>(await serviceSituationServices.GetDataAsNoTrackingAsync(), x => x.ServiceSituationId, x => x.Name, null), "Situaçao", new { Class = "form-control w-100", onchange = "serviceDatatables.draw();" })
+        </div>
+        <div class="col-md-auto form-group text-center">
+            @Html.DropDownList("ServiceStatusId", dropDownListHelper.ToSelectListItem<ApplicationDbContext.Models.ServiceStatus, int, string>((await serviceStatusServices.GetDataAsNoTrackingAsync()).OrderBy(x => x.Order), x => x.ServiceStatusId, x => x.Name, null), "Status", new { Class = "form-control w-100", onchange = "serviceDatatables.draw();" })
+        </div>
+        @if (Model.CanEdit())
+        {
+            <div class="col-md-auto form-group text-center">
+                <a href="@Url.Action("Manage", "Service")" class="btn btn-primary w-100"><i class="simple-icon-plus"></i>&nbsp;Novo Serviço</a>
+            </div>
+        }
+    </div>
+</form>
+<hr />
+<div class="row">
+    <div class="col-12 text-center mb-1 ">
+        <span style="font-size: 18px;"><b>@(await serviceServices.GetServiceThisMonth())</b> Serviço(s) feitos este mês.</span>
+        <a href="@Url.Action("Service", "Report")" class="float-right">Ver Relatório</a>
+    </div>
+    <div class="col">
+        <div class="table-responsive">
+            <table id="service-table" class="display norwap table table-striped table-bordered table-condensed w-100 tablesizeline" style="border-collapse: collapse !important;">
+                <thead>
+                    <tr>
+                        <th>Status</th>
+                        <th>Situação</th>
+                        <th>Data de Criação</th>
+                        <th>Código</th>
+                        <th>Gerador</th>
+                        <th>Peso</th>
+                        <th>Valor Total</th>
+                        <th>Status</th>
+                        <th>MTR de Coleta</th>
+                        <th>MTR de Destinação</th>
+                        <th>&nbsp;</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script asp-cut-key="service-index">
+    var serviceDatatables;
+    $(document).ready(function () {
+        serviceDatatables = $('#service-table').DataTable({
+            order: [[3, "desc"]],
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            dom: 'tip',
+            scrollX: true,
+            pageLength: 30,
+            ajax: {
+                url: '@Url.Action("List", "Service")',
+                data: function (d) {
+                    d.serviceStatusId = $('#service-index-form [name="ServiceStatusId"]').val();
+                    d.clientId = '@Model.Model';
+                },
+                type: 'POST'
+            },
+            'columnDefs': [
+                {
+                    'targets': 3,
+                    'createdCell': function (td, cellData, rowData, row, col) {
+                        //$(td).attr('data-order', rowData.clientId);
+                        $(td).attr('data-sort', rowData.clientId);
+                    }
+                }
+            ],
+            columnDefs: [{
+                targets: [3],
+                orderData: [12]
+            }],
+            columns: [
+                { visible: false, render: function (data, type, row) { return row.serviceStatusId; } },
+                { visible: false, render: function (data, type, row) { return row.serviceSituationId; } },
+                { visible: false, render: function (data, type, row) { return row.createdDate; } },
+                { data: function (row, type, set) { return row.code; } },
+                { render: function (data, type, row) { return row.clientName; } },
+                { render: function (data, type, row) { return isNull(row.weight, '-') + (isNullOrWhiteSpace(row.weight)? '' : ' Kg'); } },
+                { render: function (data, type, row) { return 'R$ ' + row._TotalPrice; } },
+                { render: function (data, type, row) { return row.statusName; } },
+                { render: function (data, type, row) { return isNull(row.demandIds, '-'); } },
+                { render: function (data, type, row) { return isNull(row.demandDestinationIds, '-'); } },
+                {
+                    render: function (data, type, row)
+                    {
+                    @if (Model.CanEdit())
+                    {
+                        <text>
+                        var r = '<div class="text-center">';
+                        if (row.hasServiceOrderFile) r += '&nbsp;<a href="@Url.Action("GetServiceOrder", "Service")?id=' + row.serviceId + '"  target="_blank" title="Visualizar Ordem de Serviço"><span class="badge badge-pill badge-primary"><i class="simple-icon-docs"></i>&nbsp;</span></a>';
+                        r += '&nbsp;<a href="@Url.Action("View", "Service")?id=' + row.serviceId +'" title="Visualizar"><span class="badge badge-pill badge-primary"><i class="simple-icon-magnifier"></i></span></a>';
+                        r += '&nbsp;<a href="@Url.Action("Manage", "Service")?id=' + row.serviceId +'"  title="Editar"><span class="badge badge-pill badge-success"><i class="simple-icon-note"></i></span></a>';
+                        if (row.serviceStatusId != @canceledStatusId) r += '&nbsp;<a href=\'javascript:removeService(' + JSON.stringify(row) + ')\' title="Cancelar"><span class="badge badge-pill badge-danger"><i class="simple-icon-close"></i></span></a>';
+                        r += '</div>';
+
+                        return r;
+                        </text>
+                    } else
+                    {
+                        <text>
+                        var r = '<div class="text-center">';
+                        if (row.hasServiceOrderFile) r += '&nbsp;<a href="@Url.Action("GetServiceOrder", "Service")?id=' + row.serviceId +'"  target="_blank" title="Visualizar Ordem de Serviço"><span class="badge badge-pill badge-primary"><i class="simple-icon-docs"></i></span></a>';
+                        if (row.hasServiceOrderFile) r += '&nbsp;<a href="@Url.Action("DownloadServiceOrder", "Service")?id=' + row.serviceId +'"  target="_blank" title="Baixar Ordem de Serviço"><span class="badge badge-pill badge-primary"><i class="simple-icon-cloud-download"></i></span></a>';
+                        r += '&nbsp;<a href="@Url.Action("View", "Service")?id=' + row.serviceId +'"  target="_blank" title="Visualizar"><span class="badge badge-pill badge-primary"><i class="simple-icon-magnifier"></i></span></a>';
+                        r += '</div>';
+
+                        return r;
+                        </text>
+                    }
+                    }
+                },
+                { visible: false, render: function (data, type, row) { return type === 'sort' ? row.createdDate : moment(row.createdDate).format('L'); } },
+                { visible: false, render: function (data, type, row) { return row.clientId; } },
+                { visible: false, render: function (data, type, row) { return row.tradeName; } },
+            ]
+        });
+    });
+
+    $.fn.dataTable.ext.search.push(
+        function (settings, data, dataIndex) {
+            if (settings.sInstance != "service-table") return true;
+
+            var r = false;
+
+            var statusId = $('#service-index-form [name="ServiceStatusId"]').val();
+            if (isNullOrWhiteSpace(statusId) || statusId == data[0]) r = true;
+
+            var situationId = $('#service-index-form [name="ServiceSituationId"]').val();
+            if (r) {
+                if (isNullOrWhiteSpace(situationId) || situationId == data[1]) r = true;
+                else r = false
+            }
+
+            if (r && (isNullOrWhiteSpace(statusId) || statusId != '@concludedStatusId'))
+                r = data[0] != @concludedStatusId; //apenas os itens que não estão concluidos
+
+            if (r && (isNullOrWhiteSpace(statusId) || statusId != '@canceledStatusId'))
+                r = data[0] != @canceledStatusId; //apenas os itens que não estão cancelados
+
+            return r;
+        }
+    );
+
+    function removeService(service) {
+        bootboxConfirm("Deseja realmente cancelar o Serviço \"" + service.code + "\"?", function(result){
+            if (!result) return;
+
+            $.post('@Url.Action("Cancel", "Service")', { id: service.serviceId }, function (d) {
+                if (!d) {
+                    bootbox.alert("Houve um erro ao cancelar o serviço.");
+                    return;
+                }
+                bootbox.alert("O Serviço \"" + service.code + "\" foi cancelado com sucesso!");
+                serviceDatatables.ajax.reload();
+            });
+        });
+    }
+    
+    function visualizeServiceOrderFile(id) {
+        $.post('@Url.Action("GetServiceOrder", "Service")', { id }, function (d) {
+            if (d.hasError) {
+                bootbox.alert(d.message);
+                return;
+            }
+
+            window.open(d.data, '_blank');
+        });
+    }
+</script>
+

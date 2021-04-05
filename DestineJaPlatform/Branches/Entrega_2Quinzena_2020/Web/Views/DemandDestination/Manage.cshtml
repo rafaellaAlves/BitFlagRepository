@@ -1,0 +1,168 @@
+﻿@model DTO.DemandDestination.DemandDestinationViewModel
+
+@{
+    ViewData["Title"] = "Destinação";
+}
+
+<form id="demand-destination-manage-form" action="@Url.Action("_ManageForm", "DemandDestination")" method="post">
+    <input type="hidden" value="@Model.DemandDestinationId" name="DemandDestinationId" />
+    <div class="card">
+        <div class="card-body">
+            <div class="card ">
+                <div class="card-header card-header-default tx-uppercase justify-content-between  bg-gray-400">
+                    <h6 class="mg-b-0 tx-14 tx-inverse"><i class="simple-icon-note"></i>&nbsp;Dados de Destinação</h6>
+                    <div class="card-option">
+                        <a href="" class="tx-gray-600 hover-white mg-l-10" data-toggle="collapse" aria-expanded="true" data-target="#demand-destination-area"><i class="simple-icon-arrow-up lh-0"></i></a>
+                    </div>
+                    @*<div class="row w-100">
+                        <div class="col">
+                            <i class="simple-icon-note"></i>&nbsp;Dados de Destinação
+                        </div>
+                        <div class="col text-right p-0">
+                            <i class="simple-icon-arrow-up float-right" data-toggle="collapse" aria-expanded="true" data-target="#demand-destination-area"></i>
+                        </div>
+                    </div>*@
+                </div>
+                <div class="card-body bd collapse show" id="demand-destination-area">
+                    @(await Component.InvokeAsync<Web.ViewComponents.DemandDestination.DemandDestinationManageViewComponent>(new { id = Model.DemandDestinationId, viewMode = DTO.Shared.ViewMode.Editable }))
+                </div>
+            </div>
+            <br />
+            <div class="card ">
+                <div class="card-header card-header-default tx-uppercase justify-content-between  bg-gray-400">
+                    <h6 class="mg-b-0 tx-14 tx-inverse"><i class="simple-icon-organization"></i>&nbsp;Vincular MTR de Coleta</h6>
+                    <div class="card-option">
+                        <a href="" class="tx-gray-600 hover-white mg-l-10" data-toggle="collapse" aria-expanded="true" data-target="#demand-destination-demand-area"><i class="simple-icon-arrow-up lh-0"></i></a>
+                    </div>
+                    @*<div class="row w-100">
+                        <div class="col">
+                            <i class="simple-icon-organization"></i>&nbsp;Vincular MTR de Coleta
+                        </div>
+                        <div class="col text-right p-0">
+                            <i class="simple-icon-arrow-up float-right" data-toggle="collapse" aria-expanded="true" data-target="#demand-destination-demand-area"></i>
+                        </div>
+                    </div>*@
+                </div>
+                <div class="card-body bd collapse show" id="demand-destination-demand-area">
+                    <div id="demand-destination-manage-no-family-area" style="@(Model.DemandDestinationId.HasValue? "display:none;" : "")">
+                        <div class="row">
+                            <div class="col text-center">
+                                <i style="font-size:20px;">Selecione uma Família.</i>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="demand-destination-manage-family-area" style="@(!Model.DemandDestinationId.HasValue? "display:none;" : "")">
+                        <div id="demand-destination-demand-view-component">
+                            @(await Component.InvokeAsync<Web.ViewComponents.DemandDestination.DemandDestinationDemandViewComponent>(new { demandDestinationId = Model.DemandDestinationId, residueFamilyId = Model.ResidueFamilyId }))
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <div class="row">
+                <div class="col">
+                    <a href="@Url.Action("Index", "DemandDestination")" data-disabledAll="false" class="btn btn-secondary"><i class="simple-icon-arrow-left"></i>&nbsp;Voltar</a>
+                </div>
+                <div class="col">
+                    @if (Model.DemandDestinationId.HasValue)
+                    {
+                        <a href="@Url.Action("MTRFile", "DemandDestination", new { id = Model.DemandDestinationId })" class="btn btn-primary float-right" style="display: flex;"><i class="simple-icon-printer"></i>&nbsp;Imprimir&nbsp;<span class="d-none d-sm-block" style="font-size: 14px;">MTR de Destino</span></a>
+                    }
+                    <button class="btn btn-success float-right mr-sm-2 mt-2 mt-sm-0" type="button" id="demand-destination-save-button"><i class="simple-icon-cloud-upload"></i>&nbsp;Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts
+{
+    <script type="text/javascript">
+        $(document).ready(function () {
+            InitializeFunctions();
+        });
+
+        $('#demand-destination-save-button').click(function () {
+            var r = validateInputs('demand-destination-manage-form-area');
+            var _r = demandDestionationValidate();
+            if (r) r = _r;
+
+            if (r) {
+                var departureDate = moment($('#demand-destination-manage-form input[name=\'_DepartureDate\']').val(), 'DD/MM/YYYY')._d;
+                var arrivedDate = moment($('#demand-destination-manage-form input[name=\'_ArrivedDate\']').val(), 'DD/MM/YYYY')._d;
+
+                if (arrivedDate < departureDate) {
+                    $('#demand-destination-manage-form input[name=\'_ArrivedDate\']').after('<small class="text-danger">A data de chegada não pode ser anterior a data de saída.</small>');
+                    r = false;
+                }
+            }
+
+            if (!r) return;
+
+            $.post('@Url.Action("ValidateDemandDestinationCreation", "DemandDestination")', $('#demand-destination-manage-form').serializeArray(), function (d) {
+                if (d.hasError) {
+                    bootbox.alert(d.message);
+                    return;
+                }
+
+                insertDemandDestinationHiddenInputs();
+                showLoading();
+                $('#demand-destination-manage-form').submit();
+            });
+        });
+
+        function insertDemandDestinationHiddenInputs() {
+            //adiciona ao form as demandas selecionadas
+            $.each($('#demand-destination-demand-table tr[data-demand-id]'), function (i, e) {
+                $('#demand-destination-manage-form').append('<input type="hidden" name="Demands.Index" value="' + i + '" />');
+                $('#demand-destination-manage-form').append('<input type="hidden" name="Demands[' + i + '].DemandId" value="' + $(e).data('demand-id') + '" />');
+            });
+        }
+
+        function demandDestionationValidate() {
+            var hasError = false;
+
+            if (isNullOrWhiteSpace($('#demand-destination-manage-form [name="TransporterId"]').val())) {
+                $('#demand-destination-manage-form [name="TransporterId"]').next('.select2-container').after($('<small>', { class: 'text-danger' }).append('Este campo deve ser preenchido.'));
+                hasError = true;
+            }
+            if (isNullOrWhiteSpace($('#demand-destination-manage-form [name="TransporterVehicleId"]').val())) {
+                $('#demand-destination-manage-form [name="TransporterVehicleId"]').next('.select2-container').after($('<small>', { class: 'text-danger' }).append('Este campo deve ser preenchido.'));
+                hasError = true;
+            }
+            if (isNullOrWhiteSpace($('#demand-destination-manage-form [name="TransporterDriverId"]').val())) {
+                $('#demand-destination-manage-form [name="TransporterDriverId"]').next('.select2-container').after($('<small>', { class: 'text-danger' }).append('Este campo deve ser preenchido.'));
+                hasError = true;
+            }
+            if (isNullOrWhiteSpace($('#demand-destination-manage-form [name="RecipientId"]').val())) {
+                $('#demand-destination-manage-form [name="RecipientId"]').next('.select2-container').after($('<small>', { class: 'text-danger' }).append('Este campo deve ser preenchido.'));
+                hasError = true;
+            }
+            if (isNullOrWhiteSpace($('#demand-destination-manage-form [name="ResidueFamilyId"]').val())) {
+                $('#demand-destination-manage-form [name="ResidueFamilyId"]').next('.select2-container').after($('<small>', { class: 'text-danger' }).append('Este campo deve ser preenchido.'));
+                hasError = true;
+            }
+
+            return !hasError;
+        }
+
+        function visibilyNoFamilyArea(show) {
+            if (show) {
+                $('#demand-destination-manage-no-family-area').show();
+                $('#demand-destination-manage-family-area').hide();
+            }
+            else {
+                $('#demand-destination-manage-no-family-area').hide();
+                $('#demand-destination-manage-family-area').show();
+            }
+        }
+
+        function changeResidueFamilyCallback(id) {
+            $('#demand-destination-demand-view-component').load('@Url.Action("LoadDemandDestinationDemandViewComponent", "DemandDestination")', { residueFamilyId: id, demandDestinationId: '@Model.DemandDestinationId' }, tryReloadDemandIdSelection);
+        }
+    </script>
+
+    <script asp-paste-key="demand-destination-manage"></script>
+    <script asp-paste-key="demand-destination-demand"></script>
+}

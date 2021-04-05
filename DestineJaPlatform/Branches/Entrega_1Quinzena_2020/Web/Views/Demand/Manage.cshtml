@@ -1,0 +1,190 @@
+﻿@model DTO.Demand.DemandViewModel
+
+@{
+    ViewData["Title"] = "Abertura de Demanda";
+}
+
+<form id="demand-manage-form" action="@Url.Action("_ManageForm", "Demand")" method="post">
+    <input type="hidden" value="@Model.DemandId" name="DemandId" />
+    <div class="card">
+        <div class="card-body">
+            <div class="card ">
+                <div class="card-header card-header-default tx-uppercase justify-content-between  bg-gray-400">
+                    <h6 class="mg-b-0 tx-14 tx-inverse"><i class="simple-icon-note"></i>&nbsp;Dados Gerais de Coleta e Transporte</h6>
+                    <div class="card-option">
+                        <a href="" class="tx-gray-600 hover-white mg-l-10" data-toggle="collapse" aria-expanded="true" data-target="#demand-area"><i class="simple-icon-arrow-up lh-0"></i></a>
+                    </div>
+                    @*<div class="row w-100">
+                            <div class="col">
+                                <i class="simple-icon-note"></i>&nbsp;Dados Gerais de Coleta e Transporte
+                            </div>
+                            <div class="col text-right p-0">
+                                <i class="simple-icon-arrow-up float-right" data-toggle="collapse" aria-expanded="true" data-target="#demand-area"></i>
+                            </div>
+                        </div>*@
+                </div>
+                <div class="card-body bd collapse show" id="demand-area">
+                    @(await Component.InvokeAsync<Web.ViewComponents.Demand.DemandManageViewComponent>(new { id = Model.DemandId, viewMode = DTO.Shared.ViewMode.Editable }))
+                </div>
+            </div>
+            <br />
+            <div class="card ">
+                <div class="card-header card-header-default tx-uppercase justify-content-between  bg-gray-400">
+                    <h6 class="mg-b-0 tx-14 tx-inverse"><i class="simple-icon-location-pin"></i>&nbsp;Planejamento da Rota</h6>
+                    <div class="card-option">
+                        <a href="" class="tx-gray-600 hover-white mg-l-10" data-toggle="collapse" aria-expanded="true" data-target="#demand-route-area"><i class="simple-icon-arrow-up lh-0"></i></a>
+                    </div>
+                    @*<div class="row w-100">
+                            <div class="col">
+                                <i class="simple-icon-location-pin"></i>&nbsp;Planejamento da Rota
+                            </div>
+                            <div class="col text-right p-0">
+                                <i class="simple-icon-arrow-up float-right" data-toggle="collapse" aria-expanded="true" data-target="#demand-route-area"></i>
+                            </div>
+                        </div>*@
+                </div>
+                <div class="card-body bd collapse show" id="demand-route-area">
+                    <div id="demand-client-no-route" class="w-100 text-center" style="@(Model.DemandId.HasValue? "display:none;" : "")">
+                        <hr />
+                        <i style="font-size: 20px;">Selecione uma Rota.</i>
+                    </div>
+                    <div id="demand-client-view-component">
+                        @if (Model.DemandId.HasValue)
+                        {
+                            @(await Component.InvokeAsync<Web.ViewComponents.Demand.DemandClientViewComponent>(new { routeId = Model.RouteId, demandId = Model.DemandId }))
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <div class="row">
+                <div class="col">
+                    <a href="@Url.Action("Index", "Demand")" data-disabledAll="false" class="btn btn-secondary"><i class="simple-icon-arrow-left"></i>&nbsp;Voltar</a>
+                </div>
+                <div class="col">
+                    @if (!Model.Cancel)
+                    {
+                        <button id="demand-save-button" type="button" class="btn btn-success float-right"><i class="simple-icon-cloud-upload"></i>&nbsp;Salvar</button>
+                    }
+                    @*@if (!Model.Closed)
+                        {
+                            <button id="client-save-button" class="btn btn-success float-right"><i class="simple-icon-cloud-upload"></i>&nbsp;Salvar</button>
+                        }*@
+                    @if (Model.DemandId.HasValue && !Model.Cancel)
+                    {
+                        <a href="@Url.Action("MTRFile", "Demand", new { id = Model.DemandId })" target="_blank" class="btn btn-primary float-right mr-2"><i class="simple-icon-printer"></i>&nbsp;Imprimir Rota</a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts
+{
+    <script type="text/javascript">
+        $(document).ready(function () {
+            InitializeFunctions();
+        });
+
+        $('#demand-save-button').click(function () {
+            $('#demand-save-button').attr('disabled', '');
+
+            $('#demand-manage-form-area [name="FilterPeriodicity"]').val('');
+            if (typeof demandClientTable != 'undefined') demandClientTable.draw(); //remove o filtro de periodicidade para salvar todos itens da tabela
+
+            var r = validateInputs('demand-manage-form-area');
+
+            if (r) { //validações extras
+                var departureDate = moment($('#demand-manage-form input[name=\'_DepartureDate\']').val(), 'DD/MM/YYYY')._d;
+                var arrivedDate = moment($('#demand-manage-form input[name=\'_ArriveDate\']').val(), 'DD/MM/YYYY')._d;
+
+                if (arrivedDate < departureDate) {
+                    $('#demand-manage-form input[name=\'_ArriveDate\']').after('<small class="text-danger">A data de chegada não pode ser anterior a data de saída.</small>');
+                    r = false;
+                }
+
+            }
+            if (r) { //validações extras
+                if ($('#demand-client-table tr[data-address-id]').length == 0) {
+                    bootbox.alert('Selecione ao menos um cliente para esta <b>Rota</b>.');
+                    r = false;
+                }
+                else if ($('#demand-client-table tr[data-address-id]').length > addressFamilyIds.length) {
+                    bootbox.alert('Selecione ao menos uma <b>Família</b> para cada <b>Cliente</b> desta <b>Rota</b>.');
+                    r = false;
+                }
+            }
+
+            if (!r) {
+                $('#demand-save-button').removeAttr('disabled');
+                return;
+            }
+
+            $.post('@Url.Action("ValidateDemandCreation", "Demand")', $('#demand-manage-form').serializeArray(), function (d) {
+                if (d.hasError) {
+                    bootbox.alert(d.message);
+                    $('#demand-save-button').removeAttr('disabled');
+
+                    return;
+                }
+
+                insertDemandHiddenInputs();
+                showLoading();
+                $('#demand-manage-form').submit();
+            });
+        });
+
+        function insertDemandHiddenInputs() {
+            //adiciona ao form os clientes selecionados
+            $.each($('#demand-not-used-client-table tr[data-address-id]'), function (i, e) {
+                $('#demand-manage-form').append('<input type="hidden" name="NotUsedClients.Index" value="' + i + '" />');
+                $('#demand-manage-form').append('<input type="hidden" name="NotUsedClients[' + i + '].ClientCollectionAddressId" value="' + $(e).data('address-id') + '" />');
+            });
+
+            $.each($('#demand-client-table tr[data-address-id]'), function (i, e) {
+
+                $('#demand-manage-form').append('<input type="hidden" name="Clients.Index" value="' + i + '" />');
+                $('#demand-manage-form').append('<input type="hidden" name="Clients[' + i + '].DemandClientId" value="' + $(e).data('demand-client-id') + '" />');
+                $('#demand-manage-form').append('<input type="hidden" name="Clients[' + i + '].ClientCollectionAddressId" value="' + $(e).data('address-id') + '" />');
+                $('#demand-manage-form').append('<input type="hidden" name="Clients[' + i + '].ContractId" value="' + $(e).data('contract-id') + '" />');
+                $('#demand-manage-form').append('<input type="hidden" name="Clients[' + i + '].ServiceId" value="' + $(e).data('service-id') + '" />');
+                var rowIndex = demandClientTable.rows({ order: 'applied' }).nodes().indexOf(e) + 1;
+                $('#demand-manage-form').append('<input type="hidden" name="Clients[' + i + '].Order" value="' + rowIndex + '" />');
+            });
+
+            $.each(addressFamilyIds, function (i, e) {
+                $.each(e.familyIds, function (_i, _e) {
+                    var index = $('#demand-manage-form [name="DemandResidueFamily.Index"]').length;
+                    $('#demand-manage-form').append('<input type="hidden" name="DemandResidueFamily.Index" value="' + index + '" />');
+                    $('#demand-manage-form').append('<input type="hidden" name="DemandResidueFamily[' + index + '].ClientCollectionAddressId" value="' + e.clientCollectionAddressId + '" />');
+                    $('#demand-manage-form').append('<input type="hidden" name="DemandResidueFamily[' + index + '].ResidueFamilyId" value="' + _e + '" />');
+                });
+            });
+
+            $('#demand-manage-form-area [name="NotValidateFamily"]').val($('#demand-manage-form-area [name="NotValidateFamily"]')[0].checked);
+        }
+
+        $('#demand-manage-form-area [Name="RouteId"]').change(function () {
+            $('#demand-client-view-component').empty();
+
+            if (isNullOrWhiteSpace($(this).val())) {
+                $('#demand-client-no-route').show();
+                return;
+            }
+
+            $('#demand-client-no-route').hide();
+            $.post('@Url.Action("GetResidueFamiliesByRouteId", "Route")', { id: $(this).val() }, function (d) {
+                $('#demand-manage-form-area [Name="Families"]').val($.distinct(d.map(function (e, i) { return isNull(e.nameAbbreviation, e.name); })).join(' / '));
+            });
+
+            $('#demand-client-view-component').load('@Url.Action("LoadDemandClientViewComponent", "Demand")', { routeId: $(this).val() });
+        });
+    </script>
+
+    <script asp-paste-key="demand-manage"></script>
+    <script asp-paste-key="demand-client"></script>
+    <script asp-paste-key="demand-client-selection"></script>
+    <script asp-paste-key="demand-client-family"></script>
+}

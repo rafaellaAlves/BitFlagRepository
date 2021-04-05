@@ -1,0 +1,173 @@
+﻿@model DTO.Shared.EntityViewMode<int>
+
+<div class="row">
+    <div class="col form-group">
+        <div class="input-group">
+            <div class="input-group-addon">
+                <i class="simple-icon-magnifier"></i>
+            </div>
+            <input type="text" class="form-control" id="client-collection-address-search" placeholder="Pesquisar..." data-toggle="search-datatable" data-target="#client-collection-address-table">
+        </div>
+    </div>
+    @if (Model.CanEdit())
+    {
+        <div class="col-md-auto form-group">
+            <a href="javascript: openClientCollectionAddressEditModal();" class="btn btn-primary w-100 float-right text-nowrap"><i class="simple-icon-plus"></i>&nbsp;Adicionar</a>
+        </div>
+    }
+</div>
+<hr />
+<div id="success-area-client-collection-address"></div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="table-responsive">
+            <table id="client-collection-address-table" class="display nowrap table table-striped table-bordered table-condensed w-100" style="border-collapse: collapse !important;">
+                <thead>
+                    <tr>
+                        <th>CEP</th>
+                        <th>Endereço</th>
+                        <th>Cidade</th>
+                        <th>Estado</th>
+                        <th>Principal?</th>
+                        <th>&nbsp;</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@if (Model.CanEdit())
+{
+<div class="modal fade" id="client-collection-address-modal" tabindex="-1" role="dialog" aria-labelledby="client-collection-address-modal-title" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold" id="client-collection-address-modal-title"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @(await Component.InvokeAsync("ClientCollectionAddressManage", new { id = Model.Model }))
+            </div>
+            <div class="modal-footer">
+                <div class="col-md-6">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="simple-icon-close"></i>&nbsp;Fechar</button>
+                </div>
+                <div class="col-md-6">
+                    <button type="button" class="btn btn-success float-right" id="client-collection-address-modal-save-button"><i class="simple-icon-cloud-upload"></i>&nbsp;Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+}
+
+<script asp-cut-key-load-from-controller="@Model.LoadFromController" type="text/javascript" asp-cut-key="script-client-collection-address">
+    var clientCollectionAddressDatatables;
+    $(document).ready(function () {
+        clientCollectionAddressDatatables = $('#client-collection-address-table').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            dom: 'tip',
+            scrollX: true,
+            ajax: {
+                url: '@Url.Action("List", "ClientCollectionAddress")',
+                data: function (d) {
+                    d.clientId = '@Model.Model'
+                },
+                type: 'POST'
+            },
+            columns: [
+                { render: function (data, type, row) { return '<div class="cep">' + row.cep + '</div>'; } },
+                { render: function (data, type, row) { return '<div class="text-nowrap">' + row.address + (!row.number ? '' : ', ' + row.number) + (!row.complement ? '' : ', ' + row.complement) + (!row.neighborhood ? '' : ' - ' + row.neighborhood) + '</div>'; } },
+                { render: function (data, type, row) { return '<div class="text-nowrap">' + row.city + '</div>'; } },
+                { render: function (data, type, row) { return row.state; } },
+                { render: function (data, type, row) { return row.main ? '<span class="badge badge-success badge-pill">Sim</span>' : '<span class="badge badge-danger badge-pill">Não</span>'; } },
+                {
+                    render: function (data, type, row)
+                    {
+                        @if (Model.CanEdit())
+                        {
+                            <text>
+                            return '<div class=\"text-nowrap text-center\">' +
+                                '&nbsp;<a href=\'javascript:openClientCollectionAddressEditModal(' + JSON.stringify(row) + ')\' title=\"Editar\"><span class=\"badge badge-pill badge-success\"><i class=\"simple-icon-note\"></i></span></a>' +
+                            '&nbsp;<a href=\'javascript:removeClientCollectionAddress(' + JSON.stringify(row) + ')\' title=\"Excluir\"><span class=\"badge badge-pill badge-danger\"><i class=\"simple-icon-trash\"></i></span></a>' +
+                            '</div>';
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                                return '<div class=\"text-nowrap text-center\">' +
+                                '&nbsp;<a data-client-collection-address=\"' + row.clientCollectionAddressId + '\" href=\'javascript:clientCollectionAddressSelectionCallback(' + JSON.stringify(row) + ')\'><span class=\"badge badge-pill badge-primary\">Selecionar</span></a>' +
+                                '</div>';
+                            </text>
+                        }
+                    }
+                }
+            ]
+        });
+
+        initSearchDataTable();
+    });
+
+    function removeClientCollectionAddress(clientCollectionAddress) {
+        bootboxConfirm("Deseja realmente excluir o endereço \"" + clientCollectionAddress.address + ", " + clientCollectionAddress.number + "\"?", function(result){
+            if (!result) return;
+
+            $.post('@Url.Action("DeleteDefinitively", "ClientCollectionAddress")', { id: clientCollectionAddress.clientCollectionAddressId }, function () {
+                bootbox.alert("Endereço \"" + clientCollectionAddress.address + ", " + clientCollectionAddress.number + "\" excluído com sucesso!");
+                clientCollectionAddressDatatables.ajax.reload();
+            });
+        });
+    }
+
+    function openClientCollectionAddressEditModal(data) {
+        $("#main-address-area").appendTo("#form-client-collection-address .row:first");
+
+        $('#form-client-collection-address [name=\'CEP\']').val(data == null? '' : $('.cep').masked(data.cep));
+        $('#form-client-collection-address [name=\'Address\']').val(data == null? '' : data.address);
+        $('#form-client-collection-address [name=\'Number\']').val(data == null? '' : data.number);
+        $('#form-client-collection-address [name=\'Complement\']').val(data == null? '' : data.complement);
+        $('#form-client-collection-address [name=\'Neighborhood\']').val(data == null? '' : data.neighborhood);
+        $('#form-client-collection-address [name=\'City\']').val(data == null? '' : data.city);
+        $('#form-client-collection-address [name=\'State\']').val(data == null? '' : data.state);
+        $('#form-client-collection-address [name=\'ClientCollectionAddressId\']').val(data == null ? '' : data.clientCollectionAddressId);
+        $('#form-client-collection-address [name=\'Main\']').val(data == null ? 'false' : data.main.toString());
+
+        $('#form-client-collection-address [name=\'Main\']').removeAttr('disabled');
+        if (data != null && data.main == true)
+            $('#form-client-collection-address [name=\'Main\']').attr('disabled', 'disabled');
+
+        @*$.post('@Url.Action("ExistMainAddress", "ClientCollectionAddress")', { clientId: @Model.Model, clientCollectionAddressId: (data != null ? data.clientCollectionAddressId : null) }, function (d) {
+            if (d) $('#form-client-collection-address [name=\'Main\']').attr('disabled', 'disabled');
+            else $('#form-client-collection-address [name=\'Main\']').removeAttr('disabled');
+        });*@
+
+        $('#client-collection-address-modal-title').text(data == null ? 'Novo Endereço' : 'Editar Endereço');
+        $('#client-collection-address-modal').modal('show');
+    }
+
+    $('#client-collection-address-modal-save-button').click(function () {
+        if (!validateInputs('form-client-collection-address')) return;
+        $('#success-area-client-collection-address').empty();
+
+        $.post("@Url.Action("ManageAjax", "ClientCollectionAddress")", $('#form-client-collection-address').serializeArray(), function (d) {
+            clientCollectionAddressDatatables.ajax.reload();
+            clientCollectionAddressDatatables.search($('#client-collection-address-search').val()).draw();
+
+            $('#success-area-client-collection-address').empty().append(successMessage());
+
+            $('#client-collection-address-modal').modal('hide');
+        });
+    });
+
+    //$('#client-collection-address-modal').on('modal.bs.hide', function () {
+    //    $("#main-address-area").appendTo("#form-client-collection-address .address-sm:first");
+    //});
+</script>

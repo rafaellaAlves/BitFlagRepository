@@ -1,0 +1,49 @@
+﻿<!-- ************ -->
+<!-- REMOVE GROUP -->
+<!-- ************ -->
+<div class="modal fade" tabindex="-1" role="dialog" id="removeGroupModal" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Excluir Grupo</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Atenção: deseja realmente excluir este grupo junto com seus subgrupos e unidades de negócio?</p>
+                <div class="form-check">
+                    <label class="form-check-label">
+                        <input type="checkbox" class="form-check-input">
+                        Concordo que essa operação não poderá ser desfeita.
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" id="removeGroupButtonSave"><i class="fa fa-times-circle" aria-hidden="true"></i>&nbsp;Excluir</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-ban" aria-hidden="true"></i>&nbsp;Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $('#removeGroupButtonSave').click(function () {
+        var node = $('#tree').tree('getSelectedNode');
+        if (node == false || node.IsCompany) {
+            alert('Por favor, selecione um grupo.');
+            return;
+        }
+        var d = { GroupId: node.GroupId };
+        $.ajax({
+            url: '@Url.Action("Remove", "GroupManagement")',
+            type: 'POST',
+            data: d,
+            dataType: 'json',
+            success: function (data) {
+                $('#tree').tree('removeNode', node);
+                $('#removeGroupModal').modal('hide');
+            }
+        });
+     });
+</script>
+<!-- ************ -->

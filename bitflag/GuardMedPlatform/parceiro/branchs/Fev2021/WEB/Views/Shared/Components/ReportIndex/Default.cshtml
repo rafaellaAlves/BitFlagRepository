@@ -1,0 +1,957 @@
+﻿@model int
+@using WEB.Utils;
+@using Microsoft.AspNetCore.Identity;
+
+@inject WEB.BLL.UserFunctions userFunctions
+@inject UserManager<DB.Models.AspNetUser> userManager
+@inject WEB.BLL.VendasSystemVariableFunctions vendasSystemVariableFunctions
+@inject WEB.BLL.CompanyFunctions companyFunctions
+@inject WEB.BLL.CompanyTypeFunctions companyTypeFunctions
+
+@{
+    int? userRealEstateAgencyId = null;
+    if (ViewData.ContainsKey("UserRealEstateAgencyId"))
+    {
+        userRealEstateAgencyId = (int)ViewData["UserRealEstateAgencyId"];
+    }
+
+    var user = await userManager.GetUserAsync(User);
+    PlataformaEscritorioViewModel plataforma = userFunctions.GetPlataformaEscritorioByUserId(user.Id);
+}
+
+<style type="text/css">
+    tbody .last-row {
+        text-align: center;
+        display: flex;
+    }
+
+    .input-group .input-group-text, .input-group input, .input-group select, #_CertificateIndexTable {
+        font-size: 12px !important;
+    }
+</style>
+
+<div class="row">
+    @if (User.IsInRealEstate() || User.IsInRole("Corretor") || User.IsInRole("GrupoMedico"))
+    {
+        <input type="hidden" id="_CertificateManageRealEstateAgencyId" name="RealEstateAgencyId" value="@userRealEstateAgencyId" />
+    }
+    else
+    {
+        <div class="form-group col-md-6">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">@WEB.Configuration.InsuranceConfiguration.CorretoraDisplayName</span>
+                </div>
+                <select class="form-control" id="_CertificateManageRealEstateAgencyId" name="PlataformId">
+                    <option value="">Todas Corretoras</option>
+                    @{
+                        var companyTypeId = companyTypeFunctions.GetDataByExternalCode("CORRETORA").CompanyTypeId;
+                        foreach (var item in companyFunctions.GetData(c => !c.IsDeleted && c.CompanyTypeId == companyTypeId))
+                        {
+                            var companyName = string.IsNullOrWhiteSpace(item.RazaoSocial) ? item.FirstName + " " + item.LastName : item.RazaoSocial;
+                            <option value="@item.CompanyId">@companyName</option>
+                        }
+                    }
+
+                </select>
+            </div>
+        </div>
+    }
+    @if (User.IsInRealEstate() || User.IsInRole("GrupoMedico"))
+    {
+        <input id="_CertificateManageRealEstateId" name="RealEstateId" type="hidden" value="" />
+    }
+    else
+    {
+        <div class="form-group col-md-6 @if (User.IsInRole("Corretor")) {<text>offset-md-0</text>}">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">@WEB.Configuration.InsuranceConfiguration.PartnerDisplayName</span>
+                </div>
+                <select class="form-control" id="_CertificateManageRealEstateId" name="PartnerId">
+                    <option value="">Selecione</option>
+                </select>
+            </div>
+        </div>
+    }
+    <div class="form-group col-md-4 @if (User.IsInRole("Corretor")) {<text>col-md-6</text> } ">
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text">Produto</span>
+            </div>
+            <select class="form-control" id="_CertificateManageInsurancePolicyId">
+                <option value="">TODOS</option>
+                <option value="1">GM 20</option>
+                <option value="2">GM 35</option>
+                <option value="3">GM 50</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="form-group col-md-4 @if (User.IsInRole("Corretor")) {<text>col-md-6</text> }">
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text">Data Início</span>
+            </div>
+            <input type="text" class="form-control date" id="_CertificateManageStartDate" placeholder="Data Início">
+        </div>
+    </div>
+    <div class="form-group col-md-4  @if (User.IsInRole("Corretor")) {<text>col-md-6</text> }">
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text">Data Fim</span>
+            </div>
+            <input type="text" class="form-control date" id="_CertificateManageEndDate" placeholder="Data Fim" />
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="form-group col-md">
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text"><i class="fa fa-search"></i></span>
+            </div>
+            <input id="_CertificateIndexSearch" type="text" class="form-control" placeholder="Procurar..." />
+        </div>
+    </div>
+    @if (Model != (int)WEB.Models.InsuranceStatus.New)
+    {
+        <div class="form-group col-md-3">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">Origem</span>
+                </div>
+                <select class="form-control" name="OrigemId">
+                    <option value="">Selecione</option>
+                    <option value="2">Novo</option>
+                    <option value="1">Renovação</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group col-md-3">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">Situação</span>
+                </div>
+                @if (Model == (int)WEB.Models.InsuranceStatus.Active)
+                {
+                    <select class="form-control" name="SituacaoId">
+                        <option value="">Selecione</option>
+                        <option value="1">Regular</option>
+                        @if (!User.IsInRole("GrupoMedico"))
+                        {
+                            <option value="2">Cotação de Renovação</option>
+                        }
+                        <option value="3">Aguardando Upload - Apólice</option>
+                    </select>
+                }
+                else if (Model == (int)WEB.Models.InsuranceStatus.Renew)
+                {
+                    <select class="form-control" disabled>
+                        <option value="">A Renovar</option>
+                    </select>
+                }
+                else if (Model == (int)WEB.Models.InsuranceStatus.Inactive)
+                {
+                    <select class="form-control" name="SituacaoId">
+                        <option value="">Selecione</option>
+                        <option value="4">Não Renovadas</option>
+                        <option value="5">Removido</option>
+                    </select>
+                }
+            </div>
+        </div>
+    }
+    <div class="form-group col-md-2">
+        <button type="button" class="btn btn-primary" style="width: 100%;" id="_CertificateIndexFilterButton"><i class="fas fa-filter"></i>&nbsp;Filtrar</button>
+    </div>
+    @if (Model == (int)WEB.Models.InsuranceStatus.New)
+    {
+        <div class="form-group col-md-2">
+            <a href="@Url.Action("Index", "Redirect")" class="btn btn-success pull-right w-100"><i class="fas fa-plus-circle"></i>&nbsp;Novo</a>
+        </div>
+    }
+</div>
+
+
+<div class="table-wrapper" style="margin-top:1em; white-space:nowrap; overflow-x:auto;">
+    <table id="_CertificateIndexTable" class="table display responsive" style="border-collapse: collapse !important; width: 100%;">
+        <thead>
+            <tr>
+
+                @if (Model != (int)WEB.Models.InsuranceStatus.New)
+                {
+                    <th>Origem</th>
+                }
+                @if (Model == (int)WEB.Models.InsuranceStatus.New)
+                {
+                    <th id="referencia"> Referencia </th>
+                }
+                <th>Criação</th>
+                @if (Model == (int)WEB.Models.InsuranceStatus.New || Model == (int)WEB.Models.InsuranceStatus.Inactive)
+                {
+                    <th>Status</th>
+                }
+
+                @if (User.IsInRole("GrupoMedico"))
+                {
+                    <th hidden>Plataforma</th>
+                    <th hidden>Escritório</th>
+                }
+                else
+                {
+                    <th>Plataforma</th>
+                    <th>Escritório</th>
+                }
+
+                <th>Grupo Médico</th>
+                <th>Profissional</th>
+                <th>Produto</th>
+                @if (Model != (int)WEB.Models.InsuranceStatus.New)
+                {
+                    <th>Qtd Parcelas</th>
+                }
+                <th>Valor Anual</th>
+
+                @if (User.IsInRole("GrupoMedico"))
+                {
+                    <th hidden>Comissão Anual</th>
+                }
+                else
+                {
+                    <th>Comissão Anual</th>
+                }
+                <th>&nbsp;</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+
+
+
+@if (!User.IsInRole("GrupoMedico"))
+{
+    <script type="text/javascript">
+    var _CertificateIndexDateTypingTimer;
+    var _CertificateIndexTypingTimer;
+    var _CertificateIndexDateDoneTypingInterval = 500;
+    var _CertificateIndexDoneTypingInterval = 500;
+
+    var datatables = $('#_CertificateIndexTable').DataTable({
+    order: [],
+            proccessing: true,
+            serverSide: false,
+            searching: true,
+            pageLength: 10,
+            dom: 'tip',
+            ajax: {
+        url: '@Url.Action("List", "Report")',
+                data: function (d) {
+                d.status = "@Model";
+                d.realEstateAgencyId = $('#_CertificateManageRealEstateAgencyId').val();
+                d.realEstateId = $('#_CertificateManageRealEstateId').val();
+                d.productName = $('#_CertificateManageInsurancePolicyId').val();
+                d.startDate = $('#_CertificateManageStartDate').val();
+                d.endDate = $('#_CertificateManageEndDate').val();
+                d.motivo = $('#_CertificateManageMotivo').val();
+                d.origemId = $('[name="OrigemId"]').val();
+                d.situacaoId = $('[name="SituacaoId"]').val();
+            },
+                type: 'POST'
+            },
+            columns: [
+                @if (Model == (int)WEB.Models.InsuranceStatus.New)
+                {
+                    <text>
+                    {
+            data: 'Referencia',
+                    render: function (data, type, row) {
+                    switch (row.status) {
+                        case "Planos":
+                            return '<a href="@WEB.Configuration.InsuranceConfiguration.VendasWebsite/SeguroProfissional/Cotacao?reference=' + row.referencia + '" target="_blank" >' + row.referencia + '</a>';
+                            break;
+                        case "Proposta":
+                            return '<a href="@WEB.Configuration.InsuranceConfiguration.VendasWebsite/SeguroProfissional/Formulario?reference=' + row.referencia + '" target="_blank">' + row.referencia + '</a>';
+                            break;
+                        case "Pagamento":
+                            return '<a href="@WEB.Configuration.InsuranceConfiguration.VendasWebsite/SeguroProfissional/Pagamento?reference=' + row.referencia + '" target="_blank">' + row.referencia + '</a>';
+                            break;
+                        default:
+                            return row.referencia;
+                            break;
+                    }
+                }
+            },
+                    </text>
+
+                }
+        @if (Model != (int)WEB.Models.InsuranceStatus.New)
+                {
+                    <text>
+                    {
+            data: 'Origem',
+                        render: function (data, type, row) {
+                    return row.origem;
+                }
+            },
+                    </text>
+                }
+        {
+        data: 'DataCriacao',
+                        render: function (data, type, row) {
+                if (row.dataCompra == null) {
+                    return row._DataCriacao;
+                }
+                else {
+                    return row._DataCompra;
+                }
+            }
+        },
+                @if (Model == (int)WEB.Models.InsuranceStatus.New || Model == (int)WEB.Models.InsuranceStatus.Inactive)
+                {
+                    <text>
+                {
+            data: 'Status',
+                        render: function (data, type, row) {
+                    return row.status;
+                }
+            },
+                    </text>
+                }
+        {
+        data: 'PlataformaName',
+                    render: function (data, type, row) {
+                return row.plataformaName == null? "" : row.plataformaName.length > 20 ? row.plataformaName.substring(0, 20) + '...' : row.plataformaName;
+            }
+        },
+
+                {
+        data: 'EscritorioName',
+                    render: function (data, type, row) {
+                return row.escritorioName == null ? "" : row.escritorioName.length > 20 ? row.escritorioName.substring(0, 20) + '...' : row.escritorioName;
+            }
+        },
+                {
+        data: 'MedicGroupName',
+                    render: function (data, type, row) {
+                if (row.medicGroupName == null)
+                {
+                    return '-';
+                }
+                else
+                {
+                    return row.medicGroupName.length > 20 ? row.medicGroupName.substring(0, 20) + '...' : row.medicGroupName;
+                }
+
+            }
+        },
+                {
+        data: 'Nome',
+                    render: function (data, type, row) {
+                return row.nome == null ? "" : row.nome.length > 20 ? row.nome.substring(0, 20) + '...' : row.nome;
+            }
+        },
+                {
+        data: 'NomePlano',
+                    render: function (data, type, row) {
+                return row.nomePlano;
+            }
+        },
+                @if (Model != (int)WEB.Models.InsuranceStatus.New)
+                {
+                    <text>
+                    {
+            data: 'VezesPagamento',
+                        render: function (data, type, row) {
+                    return row.vezesPagamento;
+                }
+            },
+                    </text>
+                }
+        {
+        data: 'ValorAnual',
+                    render: function (data, type, row) {
+
+                return (row.certificadoGerado == false) ? row._ValorTotalAnualComDesconto : row._PrecoTotal;
+            }
+
+        },
+                {
+        data: 'ComissaoAno',
+                    render: function (data, type, row) {
+                return row._ComissaoAno;
+            }
+        },
+                {
+        data: null,
+                    className: 'last-row',
+                    render: function (data, type, row) {
+                        @(Model == (int)WEB.Models.InsuranceStatus.New ? "return getListActionNew(row);" : "")
+                        @(Model == (int)WEB.Models.InsuranceStatus.Active ? "return getListActionActive(row);" : "")
+                        @(Model == (int)WEB.Models.InsuranceStatus.Renew ? "return getListActionRenew(row);" : "")
+                        @(Model == (int)WEB.Models.InsuranceStatus.Inactive ? "return getListActionInactive(row);" : "")
+
+                    }
+        }
+            ],
+            "columnDefs": [ { "orderable": false, "targets": [1] } ]
+    });
+    _MaskData();
+
+    function getListActionNew(row) {
+        return getListActionAdhere(row);
+    }
+
+    function getListActionActive(row) {
+        var r = '';
+
+        @if (User.IsInRole("GrupoMedico")){ <text> r += getListActions2(row); </text> }
+        else if (!User.IsInRole("Administrator")) { <text> if (row.certificadoGerado == true) r += '&nbsp;&nbsp;' + getListActionPrint(row); </text> }
+        else { <text> r += getListActions(row); if (row.cotacaoRenovacao == true) r += '&nbsp;' + getListActionRenewQuote(row); if (row.retroatividadeArquivoPendente == true) r += '&nbsp;' + getListActionUpload(row); </text> }
+
+        return r;
+    }
+
+    function getListActionRenew(row) {
+        var r = '';
+
+        @if (!User.IsInRole("Administrator")) { <text> if (row.certificadoGerado == true) r += getListActionPrint(row); </text> }
+        else { <text> r += getListActions(row) + '&nbsp;' + getListActionToRenew(row); if (row.retroatividadeArquivoPendente == true) r += '&nbsp;' + getListActionUpload(row); </text> }
+
+        return r;
+    }
+
+    function getListActionInactive(row) {
+        @if (User.IsInRole("Administrator")) { <text> r = row.podeRenovar == true ? getListActions(row) : getListActions2(row);  </text> }
+        else { <text> if (row.podeRenovar == true) r = getListActions2(row); </text> }
+
+
+        @if (User.IsInRole("Administrator")) { <text> if (row.podeRenovar == true) r += '&nbsp;&nbsp;' + getListActionToRenew(row); </text> }
+
+        return r;
+    }
+
+    function getListActionAdhere(row) {
+        return '<a href="@Url.Action("Index", "Redirect")" title="Aderir"><i class="fas fa-check"></i></a>';
+    }
+
+    function getListActionPrint(row) {
+        return '<a href="' + "@WEB.Configuration.InsuranceConfiguration.VendasWebsite" + '/SeguroProfissional/Impressao?reference=' + row.referencia + '" target="_blank" title="Imprimir" style="font-size: 12px !important;"><i class="fas fa-print"></i></a>';
+    }
+
+    function getListActionUpload(row) {
+        return '<a href="javascript:void(0)" onclick="openUploadFileModal(' + row.primeiroSeguradoProfissionalId + ')" title="Inserir Arquivo de Retroatividade"><i class="fas fa-file-upload"></i></a>';
+    }
+
+    function getListActionToRenew(row) {
+        return '<a target="_blank" href="@WEB.Configuration.InsuranceConfiguration.VendasWebsite/SeguroProfissional/Renew?SeguradoProfissionalId=' + row.seguradoProfissionalId + '&RenewToken=@(vendasSystemVariableFunctions.GetSystemVariable("RenewToken"))" title="Renovar"><i class="fas fa-undo-alt"></i></a>';
+    }
+
+    function getListActionRenewQuote(row) {
+        return '<a target="_blank" href="@WEB.Configuration.InsuranceConfiguration.VendasWebsite/SeguroProfissional/Renew?SeguradoProfissionalId=' + row.seguradoProfissionalId + '&RenewToken=@(vendasSystemVariableFunctions.GetSystemVariable("RenewToken"))" title="Cotação de Renovação"><i class="fas fa-money-check-alt"></i></a>';
+    }
+
+    function getListActions(row) {
+        return '<ul class="nav justify-content-center p-0"><li class="nav-item dropdown"><a class="nav-link dropdown-toggle p-0" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="fas fa-bars"></i></a>' +
+                '<div class="dropdown-menu">' +
+                '<a href="@WEB.Configuration.InsuranceConfiguration.VendasWebsite/SeguroProfissional/Impressao?reference=' + row.referencia + '" target="_blank" class="dropdown-item" title="Imprimir">Imprimir</a>' +
+                '<a href="javascript:openInsuranceLogModal(' + row.seguradoProfissionalId + ')" class="dropdown-item" title="Visualizar Histórico">Visualizar Histórico</a>' +
+                '<a href="javascript:RemoveVenda(' + row.seguradoProfissionalId + ')" class="dropdown-item" title="Excluir">Excluir</a>' +
+                '</div></li></ul>';
+    }
+
+    function getListActions2(row) {
+        return '<ul class="nav justify-content-center p-0"><li class="nav-item dropdown"><a class="nav-link dropdown-toggle p-0" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="fas fa-bars"></i></a>' +
+                '<div class="dropdown-menu">' +
+                '<a href="@WEB.Configuration.InsuranceConfiguration.VendasWebsite/SeguroProfissional/Impressao?reference=' + row.referencia + '" target="_blank" class="dropdown-item" title="Imprimir">Imprimir</a>' +
+                '<a href="javascript:openInsuranceLogModal(' + row.seguradoProfissionalId + ')" class="dropdown-item" title="Visualizar Histórico">Visualizar Histórico</a>' +
+                '</div></li></ul>';
+    }
+
+    function RemoveVenda(seguradoProfissionalId) {
+		if (confirm("Você realmente deseja excluir esta venda?")) {
+            _RemoveVenda(seguradoProfissionalId, function (data) {
+                if(!data.hasError)
+                    $('#_CertificateIndexTable').DataTable().ajax.reload();
+                alert(data.message);
+			});
+		}
+	}
+
+    function _RemoveVenda(_seguradoProfissionalId, callback) {
+        var d = { id: _seguradoProfissionalId };
+		$.ajax({
+			url: '@Url.Action("RemoveVenda", "Report")',
+			type: 'POST',
+			data: d,
+            dataType: 'Json',
+            success: function (data) {
+                callback(data)
+            }
+		});
+    }
+
+    function GetRealEstates() {
+        if (IsNullOrWhiteSpace($('#_CertificateManageRealEstateAgencyId').val())) {
+            $('#_CertificateManageRealEstateId').empty();
+            $('#_CertificateManageRealEstateId').append($('<option>', { value: '' }).append('Selecione uma Plataforma.'));
+        }
+        else {
+            $.ajax({
+                url: '@Url.Action("GetRealEstatesByRealEstateAgencyId", "Company")',
+                type: 'POST',
+                datatype: 'JSON',
+                data: { id: $('#_CertificateManageRealEstateAgencyId').val() },
+                success: function (data) {
+                    $('#_CertificateManageRealEstateId').empty();
+                    if (data == false || data.length == 0) {
+                        $('#_CertificateManageRealEstateId').append($('<option>', { value: '' }).append('Nenhum escritório encontrado.'));
+                    }
+                    if (data.length > 0) {
+                        $('#_CertificateManageRealEstateId').append($('<option>', { value: '' }).append('Selecione'));
+                        for (var i = 0; i < data.length; i++) {
+                            var companyName = IsNullOrWhiteSpace(data[i].razaoSocial) ? data[i].firstName + " " + data[i].lastName : data[i].razaoSocial;
+                            var option = $('<option>', { value: data[i].companyId }).append(companyName);
+                            $('#_CertificateManageRealEstateId').append(option);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+        function _CertificateIndexDoneTyping() {
+            if ($.fn.DataTable.isDataTable('#_CertificateIndexTable')) {
+            datatables.search($('#_CertificateIndexSearch').val()).draw();
+        }
+    }
+    $('#_CertificateIndexSearch').keyup(function () {
+        clearTimeout(_CertificateIndexDoneTypingInterval);
+        _CertificateIndexTypingTimer = setTimeout(_CertificateIndexDoneTyping, _CertificateIndexDoneTypingInterval);
+    });
+    $('#_CertificateIndexSearch').keydown(function () {
+        clearTimeout(_CertificateIndexDoneTyping);
+    });
+
+    $('#_CertificateManageRealEstateAgencyId').change(function () {
+        GetRealEstates();
+    });
+    $('#_CertificateIndexFilterButton').click(function(){
+        datatables.ajax.reload();
+    });
+
+
+
+        @if (userRealEstateAgencyId.HasValue)
+    {
+        <text>
+    GetRealEstates();
+        </text>
+    }
+    </script>
+}
+
+
+else
+{
+    <script type="text/javascript">
+    var _CertificateIndexDateTypingTimer;
+    var _CertificateIndexTypingTimer;
+    var _CertificateIndexDateDoneTypingInterval = 500;
+    var _CertificateIndexDoneTypingInterval = 500;
+
+    var datatables = $('#_CertificateIndexTable').DataTable({
+    order: [],
+            proccessing: true,
+            serverSide: false,
+            searching: true,
+            pageLength: 10,
+            dom: 'tip',
+            ajax: {
+        url: '@Url.Action("List", "Report")',
+                data: function (d) {
+                d.status = "@Model";
+                d.productName = $('#_CertificateManageInsurancePolicyId').val();
+                d.startDate = $('#_CertificateManageStartDate').val();
+                d.endDate = $('#_CertificateManageEndDate').val();
+                d.motivo = $('#_CertificateManageMotivo').val();
+                d.origemId = $('[name="OrigemId"]').val();
+                d.situacaoId = $('[name="SituacaoId"]').val();
+            },
+                type: 'POST'
+            },
+            columns: [
+                @if (Model == (int)WEB.Models.InsuranceStatus.New)
+                {
+                    <text>
+                    {
+            data: 'Referencia',
+                    render: function (data, type, row) {
+                    switch (row.status) {
+                        case "Planos":
+                            return '<a href="@WEB.Configuration.InsuranceConfiguration.VendasWebsite/SeguroProfissional/Cotacao?reference=' + row.referencia + '" target="_blank" >' + row.referencia + '</a>';
+                            break;
+                        case "Proposta":
+                            return '<a href="@WEB.Configuration.InsuranceConfiguration.VendasWebsite/SeguroProfissional/Formulario?reference=' + row.referencia + '" target="_blank">' + row.referencia + '</a>';
+                            break;
+                        case "Pagamento":
+                            return '<a href="@WEB.Configuration.InsuranceConfiguration.VendasWebsite/SeguroProfissional/Pagamento?reference=' + row.referencia + '" target="_blank">' + row.referencia + '</a>';
+                            break;
+                        default:
+                            return row.referencia;
+                            break;
+                    }
+                }
+            },
+                    </text>
+
+                }
+        @if (Model != (int)WEB.Models.InsuranceStatus.New)
+                {
+                    <text>
+                    {
+            data: 'Origem',
+                        render: function (data, type, row) {
+                    return row.origem;
+                }
+            },
+                    </text>
+                }
+        {
+        data: 'DataCriacao',
+                        render: function (data, type, row) {
+                if (row.dataCompra == null) {
+                    return row._DataCriacao;
+                }
+                else {
+                    return row._DataCompra;
+                }
+            }
+        },
+                @if (Model == (int)WEB.Models.InsuranceStatus.New || Model == (int)WEB.Models.InsuranceStatus.Inactive)
+                {
+                    <text>
+                {
+            data: 'Status',
+                        render: function (data, type, row) {
+                    return row.status;
+                }
+            },
+                    </text>
+                }
+
+
+                {
+        data: 'MedicGroupName',
+                    render: function (data, type, row) {
+                if (row.medicGroupName == null)
+                {
+                    return '-';
+                }
+                else
+                {
+                    return row.medicGroupName.length > 20 ? row.medicGroupName.substring(0, 20) + '...' : row.medicGroupName;
+                }
+
+            }
+        },
+                {
+        data: 'Nome',
+                    render: function (data, type, row) {
+                return row.nome == null ? "" : row.nome.length > 20 ? row.nome.substring(0, 20) + '...' : row.nome;
+            }
+        },
+                {
+        data: 'NomePlano',
+                    render: function (data, type, row) {
+                return row.nomePlano;
+            }
+        },
+                @if (Model != (int)WEB.Models.InsuranceStatus.New)
+                {
+                    <text>
+                    {
+            data: 'VezesPagamento',
+                        render: function (data, type, row) {
+                    return row.vezesPagamento;
+                }
+            },
+                    </text>
+                }
+        {
+        data: 'ValorAnual',
+                    render: function (data, type, row) {
+
+                return (row.certificadoGerado == false) ? row._ValorTotalAnualComDesconto : row._PrecoTotal;
+            }
+
+        },
+
+                {
+        data: null,
+                    className: 'last-row',
+                    render: function (data, type, row) {
+                        @(Model == (int)WEB.Models.InsuranceStatus.New ? "return getListActionNew(row);" : "")
+                        @(Model == (int)WEB.Models.InsuranceStatus.Active ? "return getListActionActive(row);" : "")
+                        @(Model == (int)WEB.Models.InsuranceStatus.Renew ? "return getListActionRenew(row);" : "")
+                        @(Model == (int)WEB.Models.InsuranceStatus.Inactive ? "return getListActionInactive(row);" : "")
+
+                    }
+        }
+            ],
+            "columnDefs": [ { "orderable": false, "targets": [1] } ]
+    });
+    _MaskData();
+
+    function getListActionNew(row) {
+        return getListActionAdhere(row);
+    }
+
+    function getListActionActive(row) {
+        var r = '';
+
+        @if (User.IsInRole("GrupoMedico")){ <text> r += getListActions2(row); </text> }
+        else if (!User.IsInRole("Administrator")) { <text> if (row.certificadoGerado == true) r += '&nbsp;&nbsp;' + getListActionPrint(row); </text> }
+        else { <text> r += getListActions(row); if (row.cotacaoRenovacao == true) r += '&nbsp;' + getListActionRenewQuote(row); if (row.retroatividadeArquivoPendente == true) r += '&nbsp;' + getListActionUpload(row); </text> }
+
+        return r;
+    }
+
+    function getListActionRenew(row) {
+        var r = '';
+
+        @if (!User.IsInRole("Administrator")) { <text> if (row.certificadoGerado == true) r += getListActionPrint(row); </text> }
+        else { <text> r += getListActions(row) + '&nbsp;' + getListActionToRenew(row); if (row.retroatividadeArquivoPendente == true) r += '&nbsp;' + getListActionUpload(row); </text> }
+
+        return r;
+    }
+
+    function getListActionInactive(row) {
+        @if (User.IsInRole("Administrator")) { <text> r = row.podeRenovar == true ? getListActions(row) : getListActions2(row);  </text> }
+        else { <text> if (row.podeRenovar == true) r = getListActions2(row); </text> }
+
+
+        @if (User.IsInRole("Administrator")) { <text> if (row.podeRenovar == true) r += '&nbsp;&nbsp;' + getListActionToRenew(row); </text> }
+
+        return r;
+    }
+
+    function getListActionAdhere(row) {
+        return '<a href="@Url.Action("Index", "Redirect")" title="Aderir"><i class="fas fa-check"></i></a>';
+    }
+
+    function getListActionPrint(row) {
+        return '<a href="' + "@WEB.Configuration.InsuranceConfiguration.VendasWebsite" + '/SeguroProfissional/Impressao?reference=' + row.referencia + '" target="_blank" title="Imprimir" style="font-size: 12px !important;"><i class="fas fa-print"></i></a>';
+    }
+
+    function getListActionUpload(row) {
+        return '<a href="javascript:void(0)" onclick="openUploadFileModal(' + row.primeiroSeguradoProfissionalId + ')" title="Inserir Arquivo de Retroatividade"><i class="fas fa-file-upload"></i></a>';
+    }
+
+    function getListActionToRenew(row) {
+        return '<a target="_blank" href="@WEB.Configuration.InsuranceConfiguration.VendasWebsite/SeguroProfissional/Renew?SeguradoProfissionalId=' + row.seguradoProfissionalId + '&RenewToken=@(vendasSystemVariableFunctions.GetSystemVariable("RenewToken"))" title="Renovar"><i class="fas fa-undo-alt"></i></a>';
+    }
+
+    function getListActionRenewQuote(row) {
+        return '<a target="_blank" href="@WEB.Configuration.InsuranceConfiguration.VendasWebsite/SeguroProfissional/Renew?SeguradoProfissionalId=' + row.seguradoProfissionalId + '&RenewToken=@(vendasSystemVariableFunctions.GetSystemVariable("RenewToken"))" title="Cotação de Renovação"><i class="fas fa-money-check-alt"></i></a>';
+    }
+
+    function getListActions(row) {
+        return '<ul class="nav justify-content-center p-0"><li class="nav-item dropdown"><a class="nav-link dropdown-toggle p-0" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="fas fa-bars"></i></a>' +
+                '<div class="dropdown-menu">' +
+                '<a href="@WEB.Configuration.InsuranceConfiguration.VendasWebsite/SeguroProfissional/Impressao?reference=' + row.referencia + '" target="_blank" class="dropdown-item" title="Imprimir">Imprimir</a>' +
+                '<a href="javascript:openInsuranceLogModal(' + row.seguradoProfissionalId + ')" class="dropdown-item" title="Visualizar Histórico">Visualizar Histórico</a>' +
+                '<a href="javascript:RemoveVenda(' + row.seguradoProfissionalId + ')" class="dropdown-item" title="Excluir">Excluir</a>' +
+                '</div></li></ul>';
+    }
+
+    function getListActions2(row) {
+        return '<ul class="nav justify-content-center p-0"><li class="nav-item dropdown"><a class="nav-link dropdown-toggle p-0" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false"><i class="fas fa-bars"></i></a>' +
+                '<div class="dropdown-menu">' +
+                '<a href="@WEB.Configuration.InsuranceConfiguration.VendasWebsite/SeguroProfissional/Impressao?reference=' + row.referencia + '" target="_blank" class="dropdown-item" title="Imprimir">Imprimir</a>' +
+                '<a href="javascript:openInsuranceLogModal(' + row.seguradoProfissionalId + ')" class="dropdown-item" title="Visualizar Histórico">Visualizar Histórico</a>' +
+                '</div></li></ul>';
+    }
+
+    function RemoveVenda(seguradoProfissionalId) {
+		if (confirm("Você realmente deseja excluir esta venda?")) {
+            _RemoveVenda(seguradoProfissionalId, function (data) {
+                if(!data.hasError)
+                    $('#_CertificateIndexTable').DataTable().ajax.reload();
+                alert(data.message);
+			});
+		}
+	}
+
+    function _RemoveVenda(_seguradoProfissionalId, callback) {
+        var d = { id: _seguradoProfissionalId };
+		$.ajax({
+			url: '@Url.Action("RemoveVenda", "Report")',
+			type: 'POST',
+			data: d,
+            dataType: 'Json',
+            success: function (data) {
+                callback(data)
+            }
+		});
+    }
+
+    function GetRealEstates() {
+        if (IsNullOrWhiteSpace($('#_CertificateManageRealEstateAgencyId').val())) {
+            $('#_CertificateManageRealEstateId').empty();
+            $('#_CertificateManageRealEstateId').append($('<option>', { value: '' }).append('Selecione uma Plataforma.'));
+        }
+        else {
+            $.ajax({
+                url: '@Url.Action("GetRealEstatesByRealEstateAgencyId", "Company")',
+                type: 'POST',
+                datatype: 'JSON',
+                data: { id: $('#_CertificateManageRealEstateAgencyId').val() },
+                success: function (data) {
+                    $('#_CertificateManageRealEstateId').empty();
+                    if (data == false || data.length == 0) {
+                        $('#_CertificateManageRealEstateId').append($('<option>', { value: '' }).append('Nenhum escritório encontrado.'));
+                    }
+                    if (data.length > 0) {
+                        $('#_CertificateManageRealEstateId').append($('<option>', { value: '' }).append('Selecione'));
+                        for (var i = 0; i < data.length; i++) {
+                            var companyName = IsNullOrWhiteSpace(data[i].razaoSocial) ? data[i].firstName + " " + data[i].lastName : data[i].razaoSocial;
+                            var option = $('<option>', { value: data[i].companyId }).append(companyName);
+                            $('#_CertificateManageRealEstateId').append(option);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+        function _CertificateIndexDoneTyping() {
+            if ($.fn.DataTable.isDataTable('#_CertificateIndexTable')) {
+            datatables.search($('#_CertificateIndexSearch').val()).draw();
+        }
+    }
+    $('#_CertificateIndexSearch').keyup(function () {
+        clearTimeout(_CertificateIndexDoneTypingInterval);
+        _CertificateIndexTypingTimer = setTimeout(_CertificateIndexDoneTyping, _CertificateIndexDoneTypingInterval);
+    });
+    $('#_CertificateIndexSearch').keydown(function () {
+        clearTimeout(_CertificateIndexDoneTyping);
+    });
+
+    $('#_CertificateManageRealEstateAgencyId').change(function () {
+        GetRealEstates();
+    });
+    $('#_CertificateIndexFilterButton').click(function(){
+        datatables.ajax.reload();
+    });
+
+
+
+        @if (userRealEstateAgencyId.HasValue)
+    {
+        <text>
+    GetRealEstates();
+        </text>
+    }
+    </script>
+}
+
+
+
+<div class="modal fade" id="upload-file-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-md" role="document">
+        <div class="modal-content">
+            <form action="@Url.Action("InsertRetroactivityFile", "Report")" enctype="multipart/form-data" onsubmit="sendFile(this); return false;" method="post">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Arquivo de Retroatividade</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <label>Insira o arquivo no campo abaixo.</label>
+                    <div class="form-group">
+                        <input type="hidden" name="SeguradoProfissionalId" />
+                        <input type="file" class="form-control" id="retroatividade-arquivo" name="RetroatividadeArquivo" />
+                    </div>
+                </div>
+                <div class="modal-footer d-block">
+                    <button type="submit" aria-label="Close" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-times"></i>&nbsp;Fechar</button>
+                    <button type="submit" class="btn btn-success float-right"><i class="far fa-upload"></i>&nbsp;Salvar Arquivo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function openUploadFileModal(seguradoProfissionalId) {
+        $('#upload-file-modal [name="SeguradoProfissionalId"]').val(seguradoProfissionalId);
+        $('#upload-file-modal').modal('show');
+    }
+
+    async function sendFile(oFormElement) {
+        $('.text-danger').remove();
+
+        if ($('#retroatividade-arquivo').get(0).files.length == 0) {
+            $('#retroatividade-arquivo').after('<div class="text-danger">Insira o arquivo de retroatividade.</div>');
+            return;
+        }
+
+        const formData = new FormData(oFormElement);
+
+        try {
+            ShowLoading();
+
+            await fetch(oFormElement.action, {
+                method: 'POST',
+                body: formData
+            }).then(response => response.json().then(function (d) {
+                HideLoading();
+
+                alert(d.message);
+
+                if (d.hasError) return;
+
+                $('#upload-file-modal').modal('hide');
+                $('#upload-file-modal [name="RetroatividadeArquivo"]').val('');
+
+                datatables.ajax.reload();
+            }));
+        } catch (error) {
+            HideLoading();
+            bootbox.alert('Houve um Erro:' + error);
+        }
+    }
+</script>
+
+<div class="modal fade" id="insurance-log-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Histórico - Renovação de Certificado</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="insurance-log-view-component"></div>
+            </div>
+            <div class="modal-footer d-block">
+                <button type="submit" aria-label="Close" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-times"></i>&nbsp;Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function openInsuranceLogModal(seguradoProfissionalId) {
+        $('#insurance-log-view-component').load('@Url.Action("LoadInsuranceLogViewComponent", "Report")', { seguradoProfissionalId }, function () {
+            $("#insurance-log-modal").modal('show');
+        });
+    }
+</script>

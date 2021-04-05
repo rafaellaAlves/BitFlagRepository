@@ -1,0 +1,22 @@
+﻿@model int
+@inject FUNCTIONS.Client.ClientFunctions clientFunctions
+@inject FUNCTIONS.Invoice.InvoiceFunctions invoiceFunctions
+@{
+    ViewData["Title"] = "Parcelas";
+    var invoice = invoiceFunctions.GetDataViewModel(invoiceFunctions.GetDataByID(Model));
+    var x = clientFunctions.GetDataByID(invoice.ClientId);
+    string nome = x.FirstName + "" + x.LastName;
+}
+
+<div>
+    <h2 class="mb-2" style="font-size:22.4px;">Orçamento nº <b>@invoice.InvoiceTerraNostraId</b><br /><small>Parcelas</small></h2>
+</div>
+<div class="card">
+    <div class="card-body">
+        <div id="_FinancialManageViewComponent"></div>
+    </div>
+</div>
+<script type="text/javascript">
+    $('#_FinancialManageViewComponent').load('@Url.Action("FinancialManageViewComponent", "Financial")', {invoiceId: @Model});
+</script>
+

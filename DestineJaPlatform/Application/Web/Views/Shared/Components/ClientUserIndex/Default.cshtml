@@ -1,0 +1,193 @@
+﻿@model DTO.Shared.EntityViewMode<DTO.Client.ClientUserListViewModel>
+
+@{
+    var controller = this.ViewContext.RouteData.Values["controller"].ToString();
+}
+
+<style type="text/css">
+    @@media (min-width: 992px) {
+        .modal-xl {
+            max-width: 1000px;
+            width: 1000px;
+        }
+    }
+</style>
+
+<div class="row form-group">
+    <div class="col form-group">
+        <input data-toggle="search-datatable" data-target="#client-user-table" class="form-control" placeholder="Pesquisar" />
+    </div>
+    @if (controller.Equals("Client"))
+    {
+        <div class="col-md-auto form-group">
+            <button data-toggle="modal" data-target="#user-manage-modal" class="btn btn-success w-100"><i class="simple-icon-plus"></i> Criar</button>
+        </div>
+    }
+    <div class="col-md-auto form-group">
+        <button data-toggle="modal" data-target="#client-user-manage-modal" class="btn btn-success w-100"><i class="simple-icon-user"></i> Vincular</button>
+    </div>
+</div>
+<div class="table-responsive">
+    <table id="client-user-table" class="display table table-striped table-bordered table-condensed" style="border-collapse: collapse !important; width:100%;">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>E-mail</th>
+                <th>Perfil</th>
+                <th>Ativo?</th>
+                <th>&nbsp;</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Model.Users)
+            {
+                <tr data-client-id="@Model.Model.ClientId" data-user-id="@item.UserId">
+                    <td>
+                        <a href="@Url.Action("Manage", "User", new { id = item.UserId })" target="_blank">@item.FirstName @item.LastName</a>
+                    </td>
+                    <td>@item.Email</td>
+                    <td>@item.RoleDescription</td>
+                    <td>@item.IsActiveText</td>
+                    <td class="text-center">
+                        @if (item.RoleName == "Cliente" && item.TemporaryPassword)
+                        {
+                            <a href="javascript: sendNewUserEmail(@item.UserId)" title="Enviar e-mail de criação"><span class="badge badge-pill badge-primary mb-1"><i class="simple-icon-envelope"></i></span></a>
+                        }
+                        <a href="javascript: disattachUser(@Model.Model.ClientId, @item.UserId)" title="Remover"><span class="badge badge-pill badge-danger mb-1"><i class="simple-icon-trash"></i></span></a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+<div class="modal fade" id="client-user-manage-modal" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold" id="client-user-manage-modal-title">Vincular Usuários</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+            </div>
+            <div class="modal-body">
+                @(await Component.InvokeAsync<Web.ViewComponents.Client.ClientUserManageViewComponent>(new { Model.Model.ClientId, Model.LoadFromController }))
+            </div>
+            <div class="modal-footer">
+                <div class="col-md-6">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="simple-icon-close"></i>&nbsp;Fechar</button>
+                </div>
+                <div class="col-md-6">
+                    <button type="button" class="btn btn-success float-right" onclick="attachUser()"><i class="simple-icon-cloud-upload"></i>&nbsp;Vincular</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (controller.Equals("Client"))
+{
+    <div class="modal fade" id="user-manage-modal" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold" id="user-manage-modal-title">Novo Usuário</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                </div>
+                <div class="modal-body">
+                    <form id="user-manager-form">
+                        <input type="hidden" name="RoleName" value="Cliente" />
+                        <input type="hidden" name="ClientId" value="@Model.Model.ClientId" />
+                        @(await Component.InvokeAsync<Web.ViewComponents.User.UserManageViewComponent>())
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <div class="col-md-6">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="simple-icon-close"></i>&nbsp;Fechar</button>
+                    </div>
+                    <div class="col-md-6">
+                        <button type="button" class="btn btn-success float-right" id="user-manage-save-button"><i class="simple-icon-cloud-upload"></i>&nbsp;Criar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<script type="text/javascript" asp-cut-key="client-user-index" asp-cut-key-load-from-controller="@Model.LoadFromController">
+    var userTable;
+
+    $(document).ready(function () {
+        userTable = $('#client-user-table').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            dom: 'tip'
+        });
+
+        initUserManageField();
+    });
+
+    function disattachUser(clientId, userId)
+    {
+        $.post('@Url.Action("DisattachClientUser", "Client")', { clientId, userId }, function (d) {
+            bootbox.alert(d.message);
+
+            if (d.hasError) {
+                return;
+            }
+
+            $('[data-client-id="' + clientId + '"][data-user-id="' + userId + '"]').remove();
+            typeof reloadClientUserViewComponent == 'function' && reloadClientUserViewComponent();
+        });
+    }
+
+    $(document).ready(function () {
+        $('#password-area').hide();
+        $('#password-confirmation-area').hide();
+    })
+
+    $('#user-manage-modal').on('show.bs.modal', function () {
+        $('#user-manager-form input:not([type="hidden"])').val('');
+        $('#user-manager-form [name="IsActive"]').val($('#user-manager-form [name="IsActive"] option').val());
+    });
+
+    $('#user-manage-save-button').click(function () {
+     
+        var r = validateInputs('user-manager-form');
+
+        if (!r) return;
+
+        $.post('@Url.Action("Manage", "User")', $('#user-manager-form').serializeArray(), function (d) {
+            if (d.hasError) {
+                bootbox.alert(d.message);
+                return;
+            }
+
+            $('#user-manage-modal').modal('hide');
+            bootbox.alert('Usuário criado com sucesso!');
+            typeof reloadClientUserViewComponent == 'function' && reloadClientUserViewComponent();
+        });
+    });
+
+    function initUserManageField()
+    {
+        $('#user-manager-form [name="IsActive"]').val($('#user-manager-form [name="IsActive"] option').val());
+
+        $('#RoleName').attr('name', '');
+        $('#RoleName').attr('disabled', '');
+        $('#RoleName').val('Cliente');
+
+        $('#user-manager-form [name="Password"]').prev('label').addClass('required');
+        $('#user-manager-form [name="PasswordConfirmation"]').prev('label').addClass('required');
+    }
+
+    function sendNewUserEmail(userId) {
+       
+            bootboxConfirm('Deseja realmente enviar um e-mail com as credenciais para este usuário?', function (r) {
+                if (!r) return;
+
+                $.post('@Url.Action("SendNewClientUserEmail", "User")', { userId }, function (d) {
+                    bootbox.alert(d.message);
+                });
+            });
+        }
+</script>

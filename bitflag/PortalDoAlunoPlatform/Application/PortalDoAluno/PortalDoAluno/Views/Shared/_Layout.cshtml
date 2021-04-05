@@ -1,0 +1,264 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject UserManager<AspNetIdentityDbContext.User> userManager
+
+@{
+    var controller = this.ViewContext.RouteData.Values["controller"].ToString();
+    var action = this.ViewContext.RouteData.Values["action"].ToString();
+}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Portal do Aluno :: @ViewData["Title"]</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <link rel="stylesheet" href="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/font/iconsmind-s/css/iconsminds.css" />
+    <link rel="stylesheet" href="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/font/simple-line-icons/css/simple-line-icons.css" />
+    <link rel="stylesheet" href="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/css/vendor/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/css/vendor/bootstrap.rtl.only.min.css" />
+    <link rel="stylesheet" href="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/css/vendor/component-custom-switch.min.css" />
+    <link rel="stylesheet" href="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/css/vendor/perfect-scrollbar.css" />
+    <link rel="stylesheet" href="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/css/vendor/bootstrap-datepicker3.min.css" />
+    <link rel="stylesheet" href="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/css/main.css" />
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />    
+    <link rel="stylesheet" href="~/assets/css/custom.css" />
+    <style type="text/css">
+        a {
+            color: #007bff;
+        }
+
+        table.dataTable td {
+            padding: 0.5em;
+        }
+
+        table.dataTable thead > tr > td.sorting, table.dataTable thead > tr > td.sorting_asc, table.dataTable thead > tr > td.sorting_desc, table.dataTable thead > tr > th.sorting, table.dataTable thead > tr > th.sorting_asc, table.dataTable thead > tr > th.sorting_desc {
+            padding-left: 0.5em;
+            padding-right: 0.5em;
+            padding-top: 1em;
+            padding-bottom: 1em;
+        }
+    </style>
+
+
+
+    <link href="~/assets/plugins/datatables/dataTables.bootstrap4.min.css" rel="stylesheet" type="text/css" />
+    <link href="~/assets/plugins/datatables/buttons.bootstrap4.min.css" rel="stylesheet" type="text/css" />
+    <link href="~/assets/plugins/datatables/responsive.bootstrap4.min.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body id="app-container" class="menu-default show-spinner">
+    <div id="loading" style="display: none; z-index: 1060; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6)">
+        <img src="~/assets/images/ajax-loading.svg" style="position: absolute; left: 50%; margin-left: -100px; top: 50%; margin-top: -100px;" />
+    </div>
+    <nav class="navbar fixed-top">
+        <div class="d-flex align-items-center navbar-left">
+            <a href="#" class="menu-button d-none d-md-block">
+                <svg class="main" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9 17">
+                    <rect x="0.48" y="0.5" width="7" height="1" />
+                    <rect x="0.48" y="7.5" width="7" height="1" />
+                    <rect x="0.48" y="15.5" width="7" height="1" />
+                </svg>
+                <svg class="sub" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 17">
+                    <rect x="1.56" y="0.5" width="16" height="1" />
+                    <rect x="1.56" y="7.5" width="16" height="1" />
+                    <rect x="1.56" y="15.5" width="16" height="1" />
+                </svg>
+            </a>
+            <a href="#" class="menu-button-mobile d-xs-block d-sm-block d-md-none">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26 17">
+                    <rect x="0.5" y="0.5" width="25" height="1" />
+                    <rect x="0.5" y="7.5" width="25" height="1" />
+                    <rect x="0.5" y="15.5" width="25" height="1" />
+                </svg>
+            </a>
+        </div>
+        <div class="navbar-logo">
+            <h1>Portal do Aluno</h1>
+            @*<span class="logo d-none d-xs-block">
+                    <img src="~/images/logo.png" class="img-fluid">
+                </span>
+                <span class="logo-mobile d-block d-xs-none"></span>*@
+        </div>
+        <div class="navbar-right">
+            @if (User.Identity.IsAuthenticated)
+            {
+                var user = await userManager.FindByNameAsync(User.Identity.Name);
+
+                <div class="user d-inline-block">
+                    <button class="btn btn-empty p-0" type="button" data-toggle="dropdown" aria-haspopup="true"
+                            aria-expanded="false">
+                        <span class="name">Meu Perfil</span>
+                        <span></span>
+                    </button>
+
+                    <div class="dropdown-menu dropdown-menu-right mt-3">
+                        <a class="dropdown-item" href="@Url.Action("Logout", "Account")">Sair</a>
+                    </div>
+                </div>
+            }
+        </div>
+    </nav>
+    <div class="menu" style="z-index: 20;">
+        <div class="main-menu">
+            <div class="scroll">
+                <ul class="list-unstyled">
+
+                    <li class="@if (controller.Equals("Home")) {<text>active</text>}">
+                        <a href="@Url.Action("Index", "Home")">
+                            <i class="simple-icon-home"></i>
+                            <span>Home</span>
+                        </a>
+                    </li>
+                    <li class="@if (controller.Equals("Class")) {<text>active</text>}">
+                        <a href="@Url.Action("Index", "Class")">
+                            <i class="simple-icon-people"></i>
+                            <span>Turmas</span>
+                        </a>
+                    </li>
+                    <li class="@if (controller.Equals("Student")) {<text>active</text>}">
+                        <a href="@Url.Action("Index", "Student")">
+                            <i class="simple-icon-user"></i>
+                            <span>Alunos</span>
+                        </a>
+                    </li>
+                    @*<li class="@if (controller.Equals("Report")) {<text>active</text>}">
+                            <a href="#menu-reports">
+                                <i class="simple-icon-book-open"></i>
+                                <span>Relatórios</span>
+                            </a>
+                        </li>
+                        <li class="@if (controller.Equals("Invoice") && action.Equals("Index")) {<text>active</text>}">
+                            <a href="#">
+                                <i class="simple-icon-graduation"></i>
+                                <span>Teses</span>
+                            </a>
+                        </li>*@
+                </ul>
+            </div>
+        </div>
+
+        <div class="sub-menu">
+            <div class="scroll">
+                <ul class="list-unstyled" data-link="menu-reports">
+                    <li>
+                        <a href="#">
+                            <i class="simple-icon-doc"></i>
+                            <span class="d-inline-block">Detalhado</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#">
+                            <i class="simple-icon-doc"></i>
+                            <span class="d-inline-block">Etiqueta Pimaco</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="@Url.Action("PresenceIndex", "Report")">
+                            <i class="simple-icon-doc"></i>
+                            <span class="d-inline-block">Lista de Presença</span>
+                        </a>
+                    </li>
+                </ul>
+
+            </div>
+        </div>
+    </div>
+    <main>
+        <div class="container-fluid">
+            @if (Context.Request.Query.ContainsKey("error"))
+            {
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <div class="alert alert-warning alert-dismissible fade show rounded mb-0" role="alert">
+                            <strong>Erro!</strong>
+                            @if (TempData.ContainsKey("ErrorMessage"))
+                            {
+                                <span>@TempData["ErrorMessage"]</span>
+                            }
+                            else
+                            {
+                                <span>Um erro inesperado aconteceu, tente novamente mais tarde.</span>
+                            }
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
+                        </div>
+                    </div>
+                </div>
+            }
+            @if (Context.Request.Query.ContainsKey("saved"))
+            {
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <div class="alert alert-success alert-dismissible fade show rounded mb-0" role="alert">
+                            <strong>Sucesso!</strong>
+                            <span>Os dados foram salvos com êxito.</span>
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
+                        </div>
+                    </div>
+                </div>
+            }
+            <div class="row">
+                <div class="col-12">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h1>@ViewData["Title"]</h1>
+                            </div>
+                            <div class="col-md-6 text-right">
+                                @RenderSection("HeaderButtons", false)
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                @RenderSection("HeaderTabs", false)
+                                <div class="card">
+                                    <div class="card-body">
+                                        @RenderBody()
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="page-footer">
+        <div class="footer-content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-12 col-sm-6">
+                        <p class="mb-0 text-muted">Portal do Aluno &copy; @DateTime.Now.Year</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <script src="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/js/vendor/jquery-3.3.1.min.js"></script>
+    <script src="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/js/vendor/bootstrap.bundle.min.js"></script>
+    <script src="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/js/vendor/perfect-scrollbar.min.js"></script>
+    <script src="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/js/vendor/mousetrap.min.js"></script>
+    <script src="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/js/dore.script.js"></script>
+    <script type="text/javascript">
+        var basePathForDore = '@Url.Content("~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/")';
+    </script>
+    <script src="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/js/scripts.js"></script>
+
+    <!-- ******* -->
+    <!-- LIBRARY -->
+    <!-- ******* -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.15/jquery.mask.min.js"></script>
+    <script src="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/js/vendor/bootstrap-datepicker.js"></script>
+    <script src="~/assets/plugins/datatables/jquery.dataTables.min.js"></script>
+    <script src="~/assets/plugins/datatables/dataTables.bootstrap4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.4.0/bootbox.min.js" integrity="sha256-sfG8c9ILUB8EXQ5muswfjZsKICbRIJUG/kBogvvV5sY=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js" integrity="sha512-qTXRIMyZIFb8iQcfjXWCO8+M5Tbc38Qi5WzdPOYZHIlZpzBHG3L3by84BBBOiRGiEb7KKtAOAs5qYdUiZiQNNQ==" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <!-- ******* -->
+
+    <script src="~/assets/js/custom.js"></script>
+
+    @RenderSection("Modals", required: false)
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

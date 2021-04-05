@@ -1,0 +1,96 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Atualizar Dados Assinatura";
+}
+
+<div class="row">
+    <div class="col-md-6">
+        <div id="menu" class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12 text-center">
+                        @await Html.PartialAsync("../Shared/_LayoutMenuHome.cshtml");
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="row">
+            <div class="col-12">
+                <div class="mb-2">
+                    <h2>
+                        Olá Dr(a), Informe abaixo o que deseja atualizar ou corrigir.
+                    </h2>
+                </div>
+                <hr />
+            </div>
+        </div>
+        <form id="form-update-account" method="post" action="@Url.Action("CheckSubscriptionByCpf", "Subscription")">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card card-blue">
+                        <div class="card-body">
+                            @if (TempData["ErrorMessage"] != null)
+                            {
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="alert alert-warning">
+                                            <b>Atenção!</b> @TempData["ErrorMessage"]
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="control-label">CPF</label>
+                                        <input name="Cpf" type="text" class="form-control" />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="control-label">&nbsp;</label><br />
+                                        <button type="submit" class="btn btn-primary">Validar</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('input[name = Cpf]').mask('999.999.999-99');
+
+
+            //VALIDA CPF CHAMA  A FUNCTION
+            $('button#valid').click(function () {
+                $('#not-found').hide();
+                $('#Update').hide();
+                Validate({
+                    "Cpf": $('input[name="Cpf"]').val()
+                }, function (d) {
+                    /* *** APOS A REQUISICAO AJAX *** */
+                    if (d) {
+
+                        $('#Update').show();
+                    } else {
+                        $('#not-found').show();
+                    }
+                });
+            });
+        });
+
+        function validateForm() {
+
+            return false;
+        }
+    </script>
+}

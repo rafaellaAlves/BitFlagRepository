@@ -1,0 +1,187 @@
+﻿@model AMaisImob_WEB.Models.Charge.FinancialFilterViewModel
+
+@inject AMaisImob_WEB.BLL.CompanyFunctions companyFunctions
+@inject AMaisImob_WEB.BLL.CompanyTypeFunctions companyTypeFunctions
+@inject AMaisImob_WEB.BLL.UserCompanyFunctions userCompanyFunctions
+@inject Microsoft.AspNetCore.Identity.UserManager<AMaisImob_DB.Models.User> userManager
+
+@using AMaisImob_WEB.Utils;
+
+@{
+    var realEstateTypeId = companyTypeFunctions.GetDataByExternalCode("IMOBILIARIA").CompanyTypeId;
+    var realEstateAgencyTypeId = companyTypeFunctions.GetDataByExternalCode("CORRETORA").CompanyTypeId;
+    var user = await userManager.GetUserAsync(User);
+
+    int? realEstateId = null, realEstateAgencyId = null;
+    if (User.IsInRealEstate())
+    {
+        var realEstate = companyFunctions.GetDataByID(userCompanyFunctions.GetDataByUserId(user.Id).First().CompanyId);
+        realEstateId = realEstate.CompanyId;
+        realEstateAgencyId = realEstate.ParentCompanyId;
+    }
+    else if (User.IsInRole("Corretor"))
+    {
+        realEstateAgencyId = companyFunctions.GetDataByID(userCompanyFunctions.GetDataByUserId(user.Id).First().CompanyId).CompanyId;
+    }
+}
+
+<form id="charge-filter-form">
+    <div class="row">
+        @if (User.IsInRole("Administrator"))
+        {
+            <div class="col">
+                <div class="input-group" id="financial-filter-real-estate-agency-area">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">Corretora</span>
+                    </div>
+                    <select class="form-control" name="RealEstateAgencyId" onchange="hideRealEstateOptionsByRealEstateAgency();">
+                        <option value="">Selecione</option>
+                        @foreach (var item in companyFunctions.GetDataAsNoTracking(x => x.CompanyTypeId == realEstateAgencyTypeId && !x.IsDeleted && x.IsActive))
+                        {
+                            if (Model.RealEstateAgencyId == item.CompanyId)
+                            {
+                                <option value="@item.CompanyId" selected>@(item.NomeFantasia ?? $"{item.FirstName} {item.LastName}")</option>
+                                continue;
+                            }
+
+                            <option value="@item.CompanyId">@(item.NomeFantasia ?? $"{item.FirstName} {item.LastName}")</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        }
+        else
+        {
+            <input type="hidden" name="RealEstateAgencyId" value="@realEstateAgencyId" />
+        }
+        @if (!User.IsInRealEstate())
+        {
+            <div class="col">
+                <div class="input-group" id="financial-filter-real-estate-area">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">Imobiliária</span>
+                    </div>
+                    <select class="form-control" name="RealEstateId">
+                        <option value="">Selecione</option>
+                        @foreach (var item in companyFunctions.GetDataAsNoTracking(x => x.CompanyTypeId == realEstateTypeId && x.ParentCompanyId.HasValue && !x.IsDeleted && x.IsActive))
+                        {
+                            if (realEstateAgencyId == item.CompanyId || Model.RealEstateId == item.CompanyId)
+                            {
+                                <option selected value="@item.CompanyId" data-parent-id="@item.ParentCompanyId">@(item.NomeFantasia ?? $"{item.FirstName} {item.LastName}")</option>
+                                continue;
+                            }
+
+                            <option value="@item.CompanyId" data-parent-id="@item.ParentCompanyId">@(item.NomeFantasia ?? $"{item.FirstName} {item.LastName}")</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        }
+        else
+        {
+            <input type="hidden" name="RealEstateId" value="@realEstateId" />
+        }
+        <div class="col">
+            <div class="input-group" id="financial-filter-date-area">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">Data</span>
+                </div>
+                <input type="hidden" name="StartDate" />
+                <input class="form-control monthYear" name="_StartDate" placeholder="Data" value="@($"{Model.StartDate:MM/yyyy}")" />
+                <div class="input-group-append">
+                    <span class="input-group-text"><i class="fas fa-calendar"></i></span>
+                </div>
+                <input type="hidden" name="EndDate" />
+                <input class="form-control monthYear" name="_EndDate" placeholder="Data" value="@($"{Model.EndDate:MM/yyyy}")" />
+            </div>
+            @*<a  style="display: block; margin-top: 4px;">últmios 12 meses.</a>*@
+        </div>
+        <div class="col-auto" style="min-width: 100px;">
+            <a class="btn btn-primary w-100" href="javascript:set12months()"><i class="fa fa-filter"></i>&nbsp;Últimos 12 meses</a>
+        </div>
+        <div class="col-auto" style="min-width: 100px;">
+            <button class="btn btn-primary w-100" type="button" id="charge-filter-button"><i class="fa fa-filter"></i>&nbsp;Filtrar</button>
+        </div>
+    </div>
+</form>
+
+<script type="text/javascript" asp-cut-key="charge-filter">
+    function hideRealEstateOptionsByRealEstateAgency(notClear) {
+        $.each($('[name="RealEstateId"] option'), function (i, e) {
+            $(e).hide();
+            if ($(e).data('parent-id') != $('[name="RealEstateAgencyId"]').val() && !IsNullOrWhiteSpace($(e).val())) return;
+
+            $(e).show();
+        });
+
+        if (notClear != true) $('[name="RealEstateId"]').val('');
+    }
+
+    $(document).ready(function () { hideRealEstateOptionsByRealEstateAgency(true); });
+
+    $('#charge-filter-button').click(tryReloadChargeList);
+
+    function tryReloadChargeList(callback) {
+        $('[name="StartDate"]').val('');
+        $('[name="EndDate"]').val('');
+
+        if (!IsNullOrWhiteSpace($('[name="_StartDate"]').val())) {
+            var date = moment($('[name="_StartDate"]').val(), 'MM/YYYY')._d;
+            var now = new Date();
+
+            if (date.getYear() > now.getYear() || (date.getYear() == now.getYear() && date.getMonth() >= now.getMonth())) {
+                $('[name="_StartDate"]').val('@($"{DateTime.Now.AddMonths(-1):MM/yyyy}")');
+                date = moment($('[name="_StartDate"]').val(), 'MM/YYYY')._d;
+            }
+
+            $('[name="StartDate"]').val(date.toISOString());
+        }
+
+        if (!IsNullOrWhiteSpace($('[name="_EndDate"]').val())) {
+            var date = moment($('[name="_EndDate"]').val(), 'MM/YYYY')._d;
+            var now = new Date();
+
+            if (date.getYear() > now.getYear() || (date.getYear() == now.getYear() && date.getMonth() >= now.getMonth())) {
+                $('[name="_EndDate"]').val('@($"{DateTime.Now.AddMonths(-1):MM/yyyy}")');
+                date = moment($('[name="_EndDate"]').val(), 'MM/YYYY')._d;
+            }
+
+            $('[name="EndDate"]').val(date.toISOString());
+        }
+
+        if (!validateFilter()) return;
+
+        typeof reloadChargeList == 'function' && reloadChargeList(callback);
+    }
+
+    function validateFilter() {
+        $('.financial-filter-error').remove();
+
+        var startDate, endDate;
+
+        if (!fieldHasValue('[name="RealEstateId"]'))
+            $('#financial-filter-real-estate-agency-area').after('<div class="text-danger financial-filter-error">Escolha uma imobiliária.</div>');
+
+        if (!fieldHasValue('[name="StartDate"]'))
+            $('#financial-filter-date-area').after('<div class="text-danger financial-filter-error">Preencha a Data Inicial.</div>');
+        else
+            startDate = new Date($('[name="StartDate"]').val());
+
+        if (!fieldHasValue('[name="EndDate"]'))
+            $('#financial-filter-date-area').after('<div class="text-danger financial-filter-error">Preencha a Data Final.</div>');
+        else
+            endDate = new Date($('[name="EndDate"]').val());
+
+        if (startDate != null && endDate != null && startDate.getTime() > endDate.getTime())
+            $('#financial-filter-date-area').after('<div class="text-danger financial-filter-error">A Data Inicial não pode ser posterior a Data Final.</div>');
+
+        return $('.financial-filter-error').length == 0;
+    }
+
+    function set12months() {
+        $('[name="_StartDate"]').val('@($"{DateTime.Now.AddMonths(-13):MM/yyyy}")');
+        $('[name="_EndDate"]').val('@($"{DateTime.Now.AddMonths(-1):MM/yyyy}")');
+
+        tryReloadChargeList();
+    }
+</script>

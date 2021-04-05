@@ -1,0 +1,54 @@
+﻿@model AMaisImob_WEB.Models.ProductAssistanceManageViewModel
+
+
+<div id="_ProductAssistanceManageAlertError" class="alert alert-danger fade show text-center" style="display:none;">
+    <b>Houve um erro ao salvar os dados, tente novamente.</b>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <label>Assistências:</label>
+        <select class="form-control" id="Usuarios" multiple>
+            @foreach (var assistance in (List<AMaisImob_DB.Models.Assistance>)ViewData["Assistances"])
+            {
+                if (Model.AssistanceIds.Contains(assistance.AssistanceId))
+                {
+                    <option value="@(assistance.AssistanceId)" selected>@(assistance.Name)</option>
+                    continue;
+                }
+                <option value="@(assistance.AssistanceId)">@(assistance.Name)</option>
+            }
+        </select>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#Usuarios').select2({
+        allowClear: true,
+        escapeMarkup: function (markup) { return markup; },
+        placeholder: "Selecione as assistências para o produto: @Html.Raw(Model.Product.Name)",
+        "language": {
+            "noResults": function () {
+                return 'Nenhuma assistência encontrado, <a href="@Url.Action("Manage", "Assistance")">clique aqui</a> para criar novos.';
+            }
+        },
+        closeOnSelect: false
+    });
+
+    function _ProductAssistanceManageSave() {
+        $.ajax({
+            url: '@Url.Action("ProductAssistanceSave", "Assistance")',
+            type: 'POST',
+            datatype: 'JSON',
+            data: { productId: '@Model.Product.ProductId', assistanceIds: $('#Usuarios').val() },
+            success: function (data) {
+                if (data.hasError) {
+                    $('#_ProductAssistanceManageAlertError').show();
+                } else {
+                    $('#_ProductAssistanceManageAlertError').hide();
+                    _ProductAssistanceManageCallBack(data.code);
+                }
+            }
+        });
+    }
+</script>

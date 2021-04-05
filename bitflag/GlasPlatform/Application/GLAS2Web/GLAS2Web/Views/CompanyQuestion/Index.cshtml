@@ -1,0 +1,168 @@
+﻿@model DAL.CompanyView
+
+@inject BLL.CompanyQuestion.CompanyQuestionChoosenAnswerItemFunctions companyQuestionChoosenAnswerItemFunctions
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Questionário";
+}
+
+
+@if (Context.Request.Query.ContainsKey("finish"))
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @(Context.Request.Query["finish"].ToString().ToLower() == "true" ? "O questionário foi finalizado com sucesso!" : "O questionário foi salvo com sucesso!")
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+}
+
+@if (Context.Request.Query.ContainsKey("updated"))
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        O questionário foi atualizado com sucesso!
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+}
+
+@if (Context.Request.Query.ContainsKey("finish") || Context.Request.Query.ContainsKey("updated"))
+{
+    <script type="text/javascript">
+        setTimeout(function () {
+            $('.alert.fade').alert('close');
+        }, 5000);
+    </script>
+}
+
+
+<form id="company-question-form" method="post" action="@Url.Action("Save", "CompanyQuestion")">
+    <input type="hidden" name="CompanyId" value="@Model.CompanyId" />
+    @if (Context.Request.Query.ContainsKey("companyQuestionToken"))
+    {
+        <input type="hidden" name="companyQuestionToken" value="@Context.Request.Query["companyQuestionToken"]" />
+    }
+    <div class="row">
+        <div class="col-md-12 text-center">
+            <h4>
+                QUESTIONÁRIO
+                <br />
+                @switch (Model.CompanyQuestionStatusId)
+                {
+                    case 1:
+                        <small><span class="badge badge-success">@Model.CompanyQuestionStatusName</span></small>
+                        break;
+                    case 2:
+                        <small><span class="badge badge-danger">@Model.CompanyQuestionStatusName</span></small>
+                        break;
+                    case 3:
+                        <small><span class="badge badge-warning">@Model.CompanyQuestionStatusName</span></small>
+                        break;
+                    case 4:
+                        <small><span class="badge badge-warning">@Model.CompanyQuestionStatusName</span></small>
+                        break;
+                }
+            </h4>
+        </div>
+    </div>
+
+    <div class="card shadow uppercase">
+        <div class="card-header">
+            <b>@Model.NomeFantasia</b> (@(Model.CountryId.HasValue ? Html.Raw($"{Model.Country}") : (object)"")@(Model.StateId.HasValue? Html.Raw($" - {Model.State}") : (object)"")@(Model.CityId.HasValue ? Html.Raw($" - {Model.City}") : (object)""))
+        </div>
+        <div class="card-body">
+            <div id="company-question-law-detail-view-component">
+                @(await Component.InvokeAsync<GLAS2Web.ViewComponents.CompanyQuestion.CompanyQuestionLawDetailViewComponent>(new { companyId = Model.CompanyId, questionAnswerId = await companyQuestionChoosenAnswerItemFunctions.GetQuestionAnswersByCompanyId(Model.CompanyId) }))
+            </div>
+            @if (User.IsInRole(BLL.User.ProfileNames.Administrator) || User.IsInRole(BLL.User.ProfileNames.Master))
+            {
+                <div class="row mb-4">
+                    @if (!Model.CompanyEndedQuestions)
+                    {
+                        <div class="col-md-12 text-right">
+                            <a class="btn btn-primary" href="@Url.Action("UpdateCompanyQuestion", "CompanyQuestion", new { companyId = Model.CompanyId })"><i class="fa fa-sync"></i> Atualizar o questionário para versão mais atual</a>
+                        </div>
+                    }
+                </div>
+            }
+            @(await Component.InvokeAsync<GLAS2Web.ViewComponents.CompanyQuestion.CompanyQuestionViewComponent>(Model.CompanyId))
+        </div>
+        @if (Model.CompanyQuestionStatusId != 1)
+        {
+            <div class="card-footer">
+                <button id="question-index-save-button" type="button" class="btn btn-success float-right"><i class="fa fa-upload"></i> Salvar</button>
+                <button onclick="showFinishModal()" type="button" class="btn btn-primary float-right mr-2"><i class="fa fa-check"></i> Revisar e Finalizar</button>
+            </div>
+        }
+    </div>
+</form>
+
+<div id="modal-finish" class="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Seu ambiente de <b><i>compliance</i></b> socioambiental</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="company-question-law-detail-finish-view-component">
+                    @(await Component.InvokeAsync<GLAS2Web.ViewComponents.CompanyQuestion.CompanyQuestionLawDetailViewComponent>(new { companyId = Model.CompanyId, questionAnswerId = await companyQuestionChoosenAnswerItemFunctions.GetQuestionAnswersByCompanyId(Model.CompanyId) }))
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-6 text-left">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-ban"></i> Fechar</button>
+                        </div>
+                        <div class="col-md-6 text-right">
+                            <button id="question-index-finish-button" type="button" class="btn btn-primary"><i class="fa fa-check"></i> Confirmar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#question-index-save-button').click(function () {
+        $('#company-question-form').append($('<input>', { type: 'hidden', name: 'finish', value: false }));
+        $('#company-question-form').submit();
+    });
+
+    $('#question-index-finish-button').click(function () {
+        if (!confirm('Deseja realmente finalizar o questionário?')) return;
+
+        if (!validateInputs('#company-question-form')) {
+            $('#modal-finish').modal('hide');
+            return;
+        }
+
+
+        $('#company-question-form').append($('<input>', { type: 'hidden', name: 'finish', value: true }));
+        $('#company-question-form').submit();
+    });
+
+    $('[data-question-id]').change(function () {
+        $('#company-question-law-detail-view-component, #company-question-law-detail-finish-view-component').load('@Url.Action("LoadCompanyQuestionLawDetailViewComponent", "CompanyQuestion")', { companyId: '@Model.CompanyId', questionAnswerId: $('[data-question-id]:checked').map(function (i, e) { return $(e).val(); }).toArray() });
+    });
+
+    function showFinishModal() {
+        $('#modal-finish .control-result').show();
+        $('#modal-finish').modal('show');
+    }
+</script>
+
+@if (Model.CompanyEndedQuestions)
+{
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('input, textarea').attr('disabled', '');
+        });
+    </script>
+}

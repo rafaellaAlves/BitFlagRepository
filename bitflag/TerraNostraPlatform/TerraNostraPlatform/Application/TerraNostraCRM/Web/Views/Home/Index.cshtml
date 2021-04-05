@@ -1,0 +1,288 @@
+﻿@inject Microsoft.AspNetCore.Identity.UserManager<TerraNostraIdentityDbContext.User> userManager
+@inject Microsoft.AspNetCore.Identity.RoleManager<TerraNostraIdentityDbContext.Role> roleManager
+@inject FUNCTIONS.Client.ClientCalendarFunctions clientCalendar
+
+@using Web.Utils
+
+@{
+    ViewData["Title"] = "Dashboard";
+    var user = await userManager.FindByNameAsync(User.Identity.Name);
+
+    var roles = await userManager.GetRolesAsync(user);
+    var roleName = roles.First();
+    var role = await roleManager.FindByNameAsync(roleName);
+}
+
+<style type="text/css">
+    .progress-banner {
+        height: 215px;
+        background-image: linear-gradient(to right top,#145388,#3693ce);
+    }
+</style>
+
+<div>
+    <h1>
+        Seja bem-vindo, <b>@user.FirstName @user.LastName</b>!
+        @if (!User.IsInRole("Client"))
+        {
+            <br />
+            <small>Atuando como <b>@role.Description</b> no CRM.</small>
+        }
+    </h1>
+</div>
+
+<div class="row" style="margin-bottom: 1em;">
+    @if (User.CalendarCanAccess() || User.InvoiceCanAccess())
+    {
+        if (User.CalendarCanAccess())
+        {
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body" style="height: 457px;">
+                        <h5 class="card-title">Tarefas: próximos 7 dias</h5>
+                        <div class="scroll dashboard-list-with-user ps ps--active-y">
+                            <div id="UserCalendarViewComponent"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        if (User.InvoiceCanAccess())
+        {
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h5>Processos Finalizados</h5>
+                        <div style="height: 372px; line-height: 372px;" id="ReturnsFinished"></div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    @if (User.InvoiceCanAccess())
+    {
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5>Etapa x Quantidade clientes</h5>
+                    <div style="height: 370px; line-height: 370px;" id="ReturnClientsCurrentStepCount"></div>
+                </div>
+            </div>
+        </div>
+        if (!User.CalendarCanAccess())
+        {
+            <div class="col-md-12"><br /></div>
+        }
+        <div class="col-md-@if (!User.CalendarCanAccess()){<text>12</text>}else{<text>6</text>}">
+            <div class="row">
+                <div class="col-md-@if (!User.CalendarCanAccess()){<text>3</text>}else{<text>6</text>}">
+                    <div class="card mb-4 progress-banner" onclick="redirectToInvoice(3)">
+                        <div class="card-body justify-content-between d-flex flex-row align-items-center">
+                            <p style="color:white; font-size:25px">Orçamentos Aprovados</p>
+                            <p id="approved" style="font-size:80px; color:white;"></p>
+                        </div>
+                    </div>
+                </div>
+                <div id="ReturnsInvoiceStatus"></div>
+                <div class="col-md-@if (!User.CalendarCanAccess()){<text>3</text>}else{<text>6</text>}">
+                    <div class="card mb-3 progress-banner" onclick="redirectToInvoice(2)">
+                        <div class="card-body justify-content-between d-flex flex-row align-items-center">
+                            <p style="color:white; font-size:25px">Orçamentos Reprovados</p>
+                            <p id="repproved" style="font-size:80px; color:white;"></p>
+                        </div>
+                    </div>
+                </div>
+                <div id="ReturnsInvoiceStatus"></div>
+                <div class="col-md-@if (!User.CalendarCanAccess()){<text>3</text>}else{<text>6</text>}" style="color-rendering:auto">
+                    <div class="card mb-4 progress-banner" onclick="redirectToInvoice(1)">
+                        <div class="card-body justify-content-between d-flex flex-row align-items-center">
+                            <p style="color:white; font-size:25px">Orçamentos em negociação</p>
+                            <p id="undernegotiation" style="font-size:80px; color:white;"></p>
+                        </div>
+                    </div>
+                </div>
+                <div id="ReturnsInvoiceStatus"></div>
+                <div class="col-md-@if (!User.CalendarCanAccess()){<text>3</text>}else{<text>6</text>}">
+                    <div class="card mb-4 progress-banner" onclick="redirectToInvoice(4)">
+                        <div class="card-body justify-content-between d-flex flex-row align-items-center">
+                            <p style="color:white; font-size:25px">Orçamentos abandonados</p>
+                            <p id="abandoned" style="font-size:80px; color:white;"></p>
+                        </div>
+                    </div>
+                </div>
+                <div id="ReturnsInvoiceStatus"></div>
+            </div>
+        </div>
+    }
+</div>
+
+@if (User.InvoiceCanAccess())
+{
+    <script type="text/javascript">
+        function ReturnClientsCurrentStepCount() {
+            $.ajax({
+                url: '@Url.Action("ReturnClientsCurrentStepCount", "Home")',
+                type: 'GET',
+                success: function (d) {
+
+                    if (d.length == 0) {
+                        $('#ReturnClientsCurrentStepCount').append("<i>Nenhum cliente encontrado.</i>");
+                        return false;
+                    }
+
+                    var _categories = [];
+                    var _data = [];
+
+                    for (i = 0; i < d.length; i++) {
+                        var item = d[i];
+                        _categories.push(item.stepName);
+                        _data.push(item.count);
+                    }
+                    Highcharts.chart('ReturnClientsCurrentStepCount', {
+                        chart: {
+                            type: 'column'
+                        },
+                        credits: {
+                            enabled: false
+                        },
+                        title: {
+                            //text: 'Etapa x Quantidade Clientes']
+                            text: null
+                        },
+                        xAxis: {
+                            categories: _categories
+                        },
+                        yAxis: {
+                            allowDecimals: false,
+                            min: 0,
+                            title: {
+                                text: 'Quantidade de clientes'
+                            }
+                        },
+                        tooltip: {
+                            formatter: function () {
+                                return '<b>' + this.x + '</b><br/>' +
+                                    this.series.name + ': ' + this.y + '<br/>' +
+                                    'Total: ' + this.point.stackTotal;
+                            }
+                        },
+                        plotOptions: {
+                            column: {
+                                stacking: 'normal'
+                            }
+                        },
+                        series: [{
+                            name: 'Etapa do processo',
+                            data: _data,
+                            color: '#145388'
+                        }]
+                    });
+                }
+            });
+        }
+
+        function ReturnsFinished() {
+            $.ajax({
+                url: '@Url.Action("ReturnsFinished", "Home")',
+                type: 'GET',
+                success: function (d) {
+                    if (d.finished == 0 && d.notFinished == 0) {
+                        $('#ReturnsFinished').append("<i>Nenhum processo encontrado.</i>");
+                        return false;
+                    }
+
+                    // Build the chart
+                    Highcharts.chart('ReturnsFinished', {
+                        chart: {
+                            plotBackgroundColor: null,
+                            plotBorderWidth: null,
+                            plotShadow: false,
+                            type: 'pie'
+                        },
+                        credits:
+                        {
+                            enabled: false
+                        },
+                        title: {
+                            //text: 'Processos Finalizados'
+                            text: null
+                        },
+                        tooltip: {
+                            //pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+                        },
+                        accessibility: {
+                            point: {
+                                valueDecimals: 0,
+                                valueSuffix: ''
+                            }
+                        },
+                        plotOptions: {
+                            pie: {
+                                allowPointSelect: true,
+                                cursor: 'pointer',
+                                dataLabels: {
+                                    enabled: true,
+                                    // format: '<b>{point.name}</b>: {point.percentage:.1f} %',
+                                    connectorColor: 'silver'
+                                }
+                            }
+                        },
+                        series: [{
+                            name: 'Total',
+                            data: [
+                                { name: 'Finalizados', y: d.finished, color: '#145388' },
+                                { name: 'Em Andamento', y: d.notFinished },
+
+                            ]
+                        }]
+                    });
+                }
+            });
+        }
+
+        function ReturnsInvoiceStatus() {
+            $.ajax({
+                url: '@Url.Action("ReturnsInvoiceStatus", "Home")',
+                type: 'GET',
+                success: function (d) {
+                $('#approved').html(d.approved);
+                $('#repproved').html(d.repproved);
+                $('#undernegotiation').html(d.undernegotiation);
+                $('#abandoned').html(d.abandoned);
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            ReturnsFinished();
+            ReturnClientsCurrentStepCount();
+            ReturnsInvoiceStatus();
+        });
+
+    function redirectToInvoice(invoiceStatusId) {
+        if (invoiceStatusId == null) {
+            window.open('@Url.Action("Index", "Invoice")', '_blank');
+        }
+        else {
+            window.open('@Url.Action("Index", "Invoice")?invoiceStatusId=' + invoiceStatusId, '_blank');
+        }
+    }
+    </script>
+}
+
+
+@section Scripts {
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+    <script src="https://code.highcharts.com/highcharts-more.js"></script>
+    <script src="https://code.highcharts.com/modules/solid-gauge.js"></script>
+
+    <script type="text/javascript">
+        var today = new Date();
+
+        var day = 60 * 60 * 24 * 1000;
+        var endDate = new Date(today.getTime() + (day * 7));
+
+        $('#UserCalendarViewComponent').load('@Url.Action("UserCalendarViewComponent", "User")', { startDate: today.toISOString(), endDate: endDate.toISOString() });
+    </script>
+}

@@ -1,0 +1,344 @@
+﻿@model List<DTO.Contract.ContractResidueViewModel>
+
+@inject Web.Helpers.DropDownListHelper dropDownListHelper
+@inject Services.Residue.ResidueFamilyServices residueFamilyServices
+@inject Services.Residue.UnitOfMeasurementServices unitOfMeasurementServices
+
+<style type="text/css">
+    #contract-manage-residues-table td, #contract-manage-residues-table th {
+        text-align: center;
+    }
+</style>
+
+<div class="row mb-3">
+    <div class="col-md-12">
+        <a href="javascript:openResidueModel()" class="btn btn-primary float-right btn-sm"><i class="simple-icon-plus"></i>&nbsp;Adicionar Resíduo</a>
+    </div>
+</div>
+<div class="table-responsive">
+    <table class="table table-striped table-bordered" id="contract-manage-residues-table" style="width: 100%;">
+        <thead>
+            <tr>
+                <th style="text-align:center; background-color:#BFBFBF" colspan="12" scope="col">
+                    Resíduos a Coletar
+                    @*<a href="javascript:openResidueModel()" class="badge badge-secondary badge-pill float-right"><i class="simple-icon-plus"></i>&nbsp;Adicionar Resíduo</a>*@
+                </th>
+            </tr>
+            <tr>
+                <th scope="col">Código</th>
+                <th scope="col">Família</th>
+                <th scope="col">IBAMA</th>
+                <th scope="col">Resíduo</th>
+                <th scope="col">Cobrar?</th>
+                <th scope="col">R$ do Resíduo</th>
+                <th scope="col">Unidade de Medida</th>
+                <th scope="col">Abater na Franquia?</th>
+                <th style="width: 160px;" scope="col">&nbsp;</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.Count; i++)
+            {
+                var rowId = i + 1;
+                var serializeData = Newtonsoft.Json.JsonConvert.SerializeObject(Model[i]);
+            <tr>
+                <td>@rowId</td>
+                <td>@Model[i].ResidueFamilyName</td>
+                <td>@Model[i].Residue.IBAMACode</td>
+                <td>@Model[i].Residue.Name</td>
+                <td class="text-center">@(Model[i].Charge ? "Sim" : "Não")</td>
+                <td>@Model[i]._Price</td>
+                <td>@Model[i].UnitOfMeasurementName</td>
+                <td class="text-center">@(Model[i].DeductFromFranchise ? "Sim" : "Não")</td>
+                <td>
+                    <div class="text-center">
+                        <a data-row-id="@rowId" data-residue-id="@Model[i].Residue.ResidueId" href='javascript:void(0)' onclick='openResidueModel(@serializeData)' title="Editar"><span class="badge badge-pill badge-success"><i class="simple-icon-note"></i>&nbsp;Editar</span></a>&nbsp;
+                        <a data-row-id="@rowId" data-residue-id="@Model[i].Residue.ResidueId" href='javascript:removeContractResidue("@Model[i].Residue.ResidueId")' title="Excluir"><span class="badge badge-pill badge-danger"><i class="simple-icon-trash"></i>&nbsp;Excluir</span></a>
+                    </div>
+                </td>
+            </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<div class="modal fade" id="contract-manage-residue-modal" tabindex="-1" role="dialog" aria-labelledby="contract-manage-residue-modal-title" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold" id="contract-manage-residue-modal-title">Escolher Resíduos</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" name="edit-row-id" />
+                <div class="row">
+                    <div class="col-md-6 form-group">
+                        <label class="required">Familia do Resíduo</label>
+                        <select class="form-control w-100" onchange="loadResidues(); loadPriceVariation();" name="ResidueFamilyId">
+                            <option value="">Selecione</option>
+                            @foreach (var item in (await residueFamilyServices.GetDataAsNoTrackingAsync(x => !x.IsDeleted)).OrderBy(x => x.Name))
+                            {
+                                <option data-name="@item.Name" value="@item.ResidueFamilyId">@item.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6 form-group">
+                        <label class="required">Resíduo</label>
+                        <div class="input-group">
+                            <select type="text" class="form-control" name="ResidueId"><option value="">selecione</option></select>
+                            <div class="input-group-append">
+                                <select class="form-control w-100" onchange="loadPriceVariation();" name="UnitOfMeasurementId">
+                                    @foreach (var item in (await unitOfMeasurementServices.GetDataAsNoTrackingAsync()).OrderBy(x => x.Order))
+                                    {
+                                        <option data-name="@item.Name" value="@item.UnitOfMeasurementId">@item.Initials</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 form-group">
+                        <label>Preço Mínimo</label>
+                        <input type="text" class="form-control" name="_MinimumPrice" disabled placeholder="Preço Mínimo" />
+                    </div>
+                    <div class="col-md-4 form-group">
+                        <label>Preço Médio</label>
+                        <input type="text" class="form-control" name="_MediumPrice" disabled placeholder="Preço Médio" />
+                    </div>
+                    <div class="col-md-4 form-group">
+                        <label>Preço Máximo</label>
+                        <input type="text" class="form-control" name="_MaximumPrice" disabled placeholder="Preço Máximo" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4 form-group">
+                        <label class="required">Cobrar</label>
+                        <select type="text" class="form-control" name="Charge">
+                            <option value="true">Sim</option>
+                            <option value="false">Não</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 form-group">
+                        <label class="required">Preço do Resíduo</label>
+                        <input type="text" placeholder="Preço do Resíduo" class="form-control money" name="Price" />
+                    </div>
+                    <div class="col-md-4 form-group">
+                        <label class="required">Abater na Franquia</label>
+                        <select type="text" class="form-control" name="DeductFromFranchise">
+                            <option value="true">Sim</option>
+                            <option value="false">Não</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="col-md-6">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="simple-icon-close"></i>&nbsp;Fechar</button>
+                </div>
+                <div class="col-md-6">
+                    <button type="button" class="btn btn-success float-right" id="contract-manage-residue-modal-add-button"><i class="simple-icon-cloud-upload"></i>&nbsp;Adicionar Resíduo</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script asp-cut-key="contract-residue">
+    $(document).ready(function () {
+        contractResiduesDatatables = $('#contract-manage-residues-table').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            dom: 'tip',
+            drawCallback: function () {
+                $(this).DataTable().column(0, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
+                    var rowId = $(cell).parent('tr').find('[data-row-id]').data('row-id');
+
+                    var newIndex = i + 1;
+
+                    var inputs = $('.row-id-' + rowId);
+                    inputs.removeClass('row-id-' + rowId).addClass('row-id-' + newIndex);
+                    $.each(inputs, function (i, e) {
+                        var name = $(e).attr('name');
+                        $(e).attr('name', 'contractResidues[' + newIndex + '].' + name.replace(name.split('.')[0] + '.', ''));
+                    });
+
+                    $('.row-index-' + rowId).removeClass('row-index-' + rowId).addClass('row-index-' + newIndex);
+
+                    $('[row-id="' + rowId + '"]').data('row-id', newIndex);
+                    $(cell).data('row-id', newIndex);
+                    cell.innerHTML = newIndex;
+                });
+
+                if ($('#Editable').val() == 'false') {
+                    $(this).DataTable().column(7).visible(false);//esconde a coluna de edição de residuos
+                }
+            }
+        });
+    });
+
+    function openResidueModel(data) {
+        $('#contract-manage-residue-modal [name="ResidueId"]').empty().append($('<option>', { value: '' }).append('Selecione'));
+
+        $('#contract-manage-residue-modal [name="ResidueFamilyId"]').val(data == null ? $('#contract-manage-residue-modal [name="ResidueFamilyId"] option:first').val() : data.ResidueFamilyId);
+        $('#contract-manage-residue-modal [name="ResidueId"]').val($('#contract-manage-residue-modal [name="ResidueId"] option:first').val());
+        $('#contract-manage-residue-modal [name="Charge"]').val(data == null ? $('#contract-manage-residue-modal [name="Charge"] option:first').val() : data.Charge.toString());
+        $('#contract-manage-residue-modal [name="Price"]').val(data == null ? '' : data._Price);
+        $('#contract-manage-residue-modal [name="UnitOfMeasurementId"]').val(data == null ? $('#contract-manage-residue-modal [name="UnitOfMeasurementId"] option:first').val() : data.UnitOfMeasurementId);
+        $('#contract-manage-residue-modal [name="_MinimumPrice"]').val(data == null ?  '': data._MinimumPrice);
+        $('#contract-manage-residue-modal [name="_MediumPrice"]').val(data == null ?  '': data._MediumPrice);
+        $('#contract-manage-residue-modal [name="_MaximumPrice"]').val(data == null ?  '': data._MaximumPrice);
+        $('#contract-manage-residue-modal [name="DeductFromFranchise"]').val(data == null ? $('#contract-manage-residue-modal [name="DeductFromFranchise"] option:first').val() : data.DeductFromFranchise.toString());
+
+        $('#contract-manage-residue-modal [name="edit-row-id"]').val(data == null ? '' : $('[data-residue-id="' + data.ResidueId + '"]').closest('[data-row-id]').data('row-id'));
+
+        if (data != null) {
+            $('#contract-manage-residue-modal [name="ResidueId"]').data('value', data.ResidueId);
+            loadResidues();
+        }
+
+        $('#contract-manage-residue-modal').modal('show');
+    }
+
+    function loadResidues() {
+        var faimlyId = $('#contract-manage-residue-modal [name="ResidueFamilyId"]').val();
+        var residueId = $('#contract-manage-residue-modal [name="ResidueId"]').data('value');
+        $('#contract-manage-residue-modal [name="ResidueId"]').data('value','');
+
+        $('#contract-manage-residue-modal [name="ResidueId"]').empty();
+        if (isNullOrWhiteSpace(faimlyId)) {
+            $('#contract-manage-residue-modal [name="ResidueId"]').append($('<option>', { value: '' }).append('Selecione'));
+            return;
+        }
+
+        $.post('@Url.Action("GetDataByFamilyId", "Residues")', { residueFamilyId: faimlyId }, function (d) {
+            var residuesSelecteds = $.map($('[data-residue-id]'), function (e, i) { return $(e).data('residue-id'); });
+
+            $('#contract-manage-residue-modal [name="ResidueId"]').append($('<option>', { value: '' }).append('Selecione'));
+
+            $.each(d, function (i, e) {
+                if (residuesSelecteds.indexOf(e.residueId) != -1 && e.residueId != residueId) return;
+
+                var option = $('<option>', { value: e.residueId }).append(e.name);
+                option.data('name', e.name);
+                option.data('ibamaCode', e.ibamaCode);
+
+                if (residueId == e.residueId) option.attr('selected', 'selected');
+
+                $('#contract-manage-residue-modal [name="ResidueId"]').append(option);
+            });
+
+            if ($('#contract-manage-residue-modal [name="ResidueId"] option').length <= 1) { //Caso a unica opção do select seja 'Selecione'
+                $('#contract-manage-residue-modal [name="ResidueId"]').empty().append($('<option>', { value: '' }).append('Nenhum resíduo encontrado.'));
+                return;
+            }
+        });
+    }
+
+    function loadPriceVariation(unitOfMeasurement) {
+        $.post('@Url.Action("GetPriceVariationByFamilyId", "ResiduePrice")', { residueFamilyId: $('#contract-manage-residue-modal [name="ResidueFamilyId"]').val(), unitOfMeasurement: (unitOfMeasurement == null ? $('#contract-manage-residue-modal [name="UnitOfMeasurementId"]').val() : unitOfMeasurement) }, setResiduePriceVariation);
+    }
+
+    function setResiduePriceVariation(data) {
+        data = data == null ? {} : data;
+
+        $('#contract-manage-residue-modal [name="_MinimumPrice"]').val(isNull(data._MinimumPrice, '-'));
+        $('#contract-manage-residue-modal [name="_MediumPrice"]').val(isNull(data._MediumPrice, '-'));
+        $('#contract-manage-residue-modal [name="_MaximumPrice"]').val(isNull(data._MaximumPrice, '-'));
+    }
+
+    $('#contract-manage-residue-modal-add-button').click(function () {
+        if (!validateInputs('contract-manage-residue-modal')) return;
+
+        var edit_row_id = $('#contract-manage-residue-modal [name="edit-row-id"]').val();
+        var rowId = isNullOrWhiteSpace(edit_row_id) ? contractResiduesDatatables.rows()[0].length + 1 : edit_row_id;
+
+        var data = {
+            ResidueFamilyId: $('#contract-manage-residue-modal [name="ResidueFamilyId"]').val(),
+            ResidueFamilyName: $('#contract-manage-residue-modal [name="ResidueFamilyId"] option:selected').data('name'),
+            ResidueId: $('#contract-manage-residue-modal [name="ResidueId"]').val(),
+            IbamaCode: $('#contract-manage-residue-modal [name="ResidueId"] option:selected').data('ibamaCode'),
+            Name: $('#contract-manage-residue-modal [name="ResidueId"] option:selected').data('name'),
+            Charge: $('#contract-manage-residue-modal [name="Charge"]').val(),
+            _Price: $('#contract-manage-residue-modal [name="Price"]').val(),
+            UnitOfMeasurementId: $('#contract-manage-residue-modal [name="UnitOfMeasurementId"]').val(),
+            UnitOfMeasurementName: $('#contract-manage-residue-modal [name="UnitOfMeasurementId"] option:selected').data('name'),
+            DeductFromFranchise: $('#contract-manage-residue-modal [name="DeductFromFranchise"]').val(),
+            _MinimumPrice: $('#contract-manage-residue-modal [name="_MinimumPrice"]').val(),
+            _MediumPrice: $('#contract-manage-residue-modal [name="_MediumPrice"]').val(),
+            _MaximumPrice: $('#contract-manage-residue-modal [name="_MaximumPrice"]').val(),
+        }
+
+        var row = {
+            0: rowId,
+            1: data.ResidueFamilyName,
+            2: data.IbamaCode,
+            3: data.Name,
+            4: '<div class="text-center">' + (data.Charge == 'true' ? 'Sim' : 'Não') + '</div>',
+            5: data._Price,
+            6: data.UnitOfMeasurementName,
+            7: '<div class="text-center">' + (data.DeductFromFranchise == 'true' ? 'Sim' : 'Não') + '</div>',
+            8: '<div class="text-center"><a data-row-id="' + rowId + '" data-residue-id="' + data.ResidueId + '" href=\'javascript:void(0)\' onclick=\'openResidueModel(' + JSON.stringify(data) + ')\' title="Editar"><span class="badge badge-pill badge-success"><i class="simple-icon-trash"></i>&nbsp;Editar</span></a>&nbsp;' +
+                '<a data-row-id="' + rowId + '" data-residue-id="' + data.ResidueId + '" href=\'javascript:removeContractResidue(' + data.ResidueId + ')\' title="Excluir"><span class="badge badge-pill badge-danger"><i class="simple-icon-trash"></i>&nbsp;Excluir</span></a></div>'
+        };
+
+        if (!isNullOrWhiteSpace(edit_row_id)) { // update row
+            contractResiduesDatatables.row(parseInt(edit_row_id) - 1).data(row);
+
+            // remove old hidden inputs for this row id
+            $('.row-id-' + edit_row_id).remove();
+            $('.row-index-' + edit_row_id).remove();
+        }
+        else contractResiduesDatatables.row.add(row); // add row
+
+        insertContractResidueHiddenInputs(rowId, data);
+
+        contractResiduesDatatables.draw();
+        $('#contract-manage-residue-modal').modal('hide');
+    });
+
+    function insertContractResidueHiddenInputs(rowId, data) {
+        var Class = 'row-id-' + rowId + ' contract-residues-' + data.ResidueId;
+
+        $('#form-contract-manage').append($('<input>', { type: 'hidden', name: 'contractResidues.Index', value: rowId, class: 'row-index-' + rowId }));
+        $('#form-contract-manage').append($('<input>', { type: 'hidden', name: 'contractResidues[' + rowId + '].Residue.ResidueFamilyId', value: data.ResidueFamilyId, class: Class }));
+        $('#form-contract-manage').append($('<input>', { type: 'hidden', name: 'contractResidues[' + rowId + '].ResidueId', value: data.ResidueId, class: Class }));
+        $('#form-contract-manage').append($('<input>', { type: 'hidden', name: 'contractResidues[' + rowId + '].Charge', value: data.Charge, class: Class }));
+        $('#form-contract-manage').append($('<input>', { type: 'hidden', name: 'contractResidues[' + rowId + ']._Price', value: data._Price, class: Class }));
+        $('#form-contract-manage').append($('<input>', { type: 'hidden', name: 'contractResidues[' + rowId + '].UnitOfMeasurementId', value: data.UnitOfMeasurementId, class: Class }));
+        $('#form-contract-manage').append($('<input>', { type: 'hidden', name: 'contractResidues[' + rowId + '].DeductFromFranchise', value: data.DeductFromFranchise, class: Class }));
+        $('#form-contract-manage').append($('<input>', { type: 'hidden', name: 'contractResidues[' + rowId + ']._MinimumPrice', value: data._MinimumPrice, class: Class }));
+        $('#form-contract-manage').append($('<input>', { type: 'hidden', name: 'contractResidues[' + rowId + ']._MediumPrice', value: data._MediumPrice, class: Class }));
+        $('#form-contract-manage').append($('<input>', { type: 'hidden', name: 'contractResidues[' + rowId + ']._MaximumPrice', value: data._MaximumPrice, class: Class }));
+    }
+
+    function removeContractResidue(residueId) {
+        var rowId = $('[data-residue-id="' + residueId + '"]').closest('[data-row-id]').data('row-id');
+        $('.row-id-' + rowId).remove();
+        $('.row-index-' + rowId).remove();
+
+        var row = contractResiduesDatatables.row($('[data-residue-id="' + residueId + '"]').parents('tr'));
+        row.remove();
+
+        contractResiduesDatatables.draw();
+    }
+
+@*Carregar os dados já salvos de residuos em hidden inputs*@
+    $(document).ready(function () {
+    @for (int i = 0; i < Model.Count; i++)
+    {
+        var rowId = i + 1;
+        var serializeData = Newtonsoft.Json.JsonConvert.SerializeObject(Model[i]);
+        var _serializeData = Html.Raw(serializeData);
+
+        <text>
+        insertContractResidueHiddenInputs(@rowId, @_serializeData);
+        </text>
+    }
+});
+</script>
+

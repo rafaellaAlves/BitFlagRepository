@@ -1,0 +1,52 @@
+﻿@model List<Web.DTO.Benefits.BenefitsViewModel>
+@{
+    ViewData["Title"] = "Benefícios";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style type="text/css">
+    .card-style .card-body {
+        background: linear-gradient(to top, #c8d4e6, transparent);
+    }
+
+    .card-style {
+        box-shadow: 1px 9px 8px 4px #afafaf;
+    }
+</style>
+
+@foreach (var item in Model)
+{
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card card-style">
+                <div class="card-body card-body-benefit">
+                    <div class="row align-items-center">
+                        <div class="col-md-3 align-self-center text-center">
+                            <img class="img-fluid" src="@item.Image" height="50" />
+                        </div>
+                        <div class="col-md-7">
+                            <span style="font-size: 25px">@Html.Raw(item.Title)</span>
+                            <p style="font-size: 20px; font-weight: bold;">@Html.Raw(item.Discount)</p>
+                            @Html.Raw(item.Text)
+                        </div>
+                        <div class="col-md-2 align-self-center text-center">
+                            <a href="@item.Link" target="_blank" class="btn btn-success" style="padding: 11px 25px;"><i class="fa fa-link"></i>&nbsp;Acessar</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<script type="text/javascript">
+    $(function () {
+        var heights = $(".card-body-benefit").map(function () { return $(this).height(); }).get();
+
+        var maxHeight = Math.max.apply(null, heights) + 40;//40 - padding
+
+        $('.card-body-benefit').css('height', maxHeight + 'px');
+        $('.card-body-benefit .row.align-items-center').css('height', (maxHeight - 40) + 'px'); //40 - padding
+
+    });
+</script>

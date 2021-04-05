@@ -1,0 +1,40 @@
+﻿@model DTO.Client.ClientViewModel
+@inject Services.Client.ClientServices clientServices
+@{ DTO.Client.ClientViewModel userClient = null;
+
+@if (User.IsClient())
+{
+    userClient = await clientServices.GetViewModelByIdAsync(await clientServices.GetClientIdByLoggedUser(Context));
+} }
+<div class="card">
+    <div class="card-header">
+        <div class="row">
+            @await Html.PartialAsync("../Report/Heading.cshtml");
+        </div>
+        <div class="row">
+            <div class="col-12 text-center" style="font-size: 20px !important; color: black;">
+                Baixar Certificados
+            </div>
+        </div>
+    </div>
+</div>
+<div class="card-body">
+    <div class="w-100" id="client-report-collection-list-view-component">
+        <div class="card ">
+            <div class="card-header card-header-default card-header-destineja-green tx-uppercase justify-content-between  bg-gray-400">
+                <h6 class="mg-b-0 tx-14 tx-inverse"><i class="icon iconsminds-download-1"></i>&nbsp;Baixar</h6>
+                <div class="card-option">
+                    <a href="javascript:void(0)" class="tx-gray-600 hover-white mg-l-10" data-toggle="collapse" aria-expanded="true" data-target="#client-download-area"><i class="simple-icon-arrow-up lh-0"></i></a>
+                </div>
+            </div>
+            <div class="card-body bd collapse show" id="client-download-area">
+                @(await Component.InvokeAsync<Web.ViewComponents.Client.Report.DownloadViewComponent>())
+            </div>
+        </div>
+    </div>
+</div> </div>
+
+@section Scripts{
+    <script asp-paste-key="download"></script>
+    <script asp-paste-key="download-destination"></script>
+}

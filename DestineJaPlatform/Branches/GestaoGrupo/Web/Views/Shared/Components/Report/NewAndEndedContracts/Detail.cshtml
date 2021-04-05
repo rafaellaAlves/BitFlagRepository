@@ -1,0 +1,78 @@
+﻿@model DTO.Shared.EntityViewMode<DTO.Report.NewAndEndedContractDetailViewModel>
+
+<table class="table table-bordered table-striped tablesizeline w-100" id="new-contract-table">
+    <thead>
+        <tr>
+            <th colspan="5" class="text-center">Novos Contratos</th>
+        </tr>
+        <tr>
+            <th>Código</th>
+            <th>Gerador</th>
+            <th>Início</th>
+            <th>Vencimento</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var contract in Model.Model.NewContract)
+        {
+            <tr>
+                <td>@contract.Code</td>
+                <td>@contract.ClientName</td>
+                <td>@contract._StartContract</td>
+                <td>@contract._DueDate</td>
+                <td>@contract.ContractStatusName</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<hr />
+<table class="table table-bordered table-striped tablesizeline w-100" id="ended-contract-table">
+    <thead>
+        <tr>
+            <th colspan="5" class="text-center">Contratos Encerrados</th>
+        </tr>
+        <tr>
+            <th>Código</th>
+            <th>Gerador</th>
+            <th>Início</th>
+            <th>Vencimento</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var contract in Model.Model.EndedContract)
+        {
+            <tr>
+                <td>@contract.Code</td>
+                <td>@contract.ClientName</td>
+                <td>@contract._StartContract</td>
+                <td>@contract._DueDate</td>
+                <td>@contract.ContractStatusName</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<script type="text/javascript" asp-cut-key="new-ended-contracts-detail" asp-cut-key-load-from-controller="@Model.LoadFromController">
+    $(document).ready(function () {
+        $('#new-contract-table').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            dom: 'tip',
+            //ordering: false,
+            pageLength: 5
+        });
+
+        $('#ended-contract-table').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            dom: 'tip',
+            //ordering: false,
+            pageLength: 5
+        });
+    });
+</script>

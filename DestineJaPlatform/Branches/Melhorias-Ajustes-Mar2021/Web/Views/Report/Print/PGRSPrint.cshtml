@@ -1,0 +1,314 @@
+﻿@model PrintListViewModel<DTO.Client.Report.ClientReportPGRSViewModel>
+
+@inject Services.Residue.UnitOfMeasurementServices unitOfMeasurementServices
+@inject Services.Client.ClientServices clientServices
+@{DTO.Client.ClientViewModel userClient = null;
+
+@if (User.IsClient())
+{
+    userClient = await clientServices.GetViewModelByIdAsync(await clientServices.GetClientIdByLoggedUser(Context));
+} }
+@{
+    Layout = "~/Views/Shared/_LayoutClean.cshtml";
+
+    int totalMonth = 0;
+    double totalKg = 0, totalLt = 0, totalUn = 0;
+
+    var quilogramaID = (await unitOfMeasurementServices.GetDataByExternalCode("KILOGRAMA")).UnitOfMeasurementId;
+    var unidadeID = (await unitOfMeasurementServices.GetDataByExternalCode("UNIDADE")).UnitOfMeasurementId;
+    var litroID = (await unitOfMeasurementServices.GetDataByExternalCode("LITRO")).UnitOfMeasurementId;
+}
+
+<style type="text/css">
+    body, body * {
+        -webkit-print-color-adjust: exact;
+    }
+
+    table {
+        border: 1px solid #f1f1f1 !important;
+    }
+
+    th {
+        background-color: #989898 !important;
+        color: white !important;
+        border: 1px solid #f1f1f1 !important;
+    }
+
+    td {
+        background-color: white !important;
+        border: 1px solid #f1f1f1 !important;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .w-100 {
+        width: 100%;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 0.25em 0.4em;
+        font-size: 75%;
+        font-weight: bold;
+        line-height: 1;
+        color: #fff;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: baseline;
+        border-radius: 8px;
+    }
+
+    .badge-pill {
+        padding-right: 0.6em;
+        padding-left: 0.6em;
+    }
+
+    .badge-success {
+        color: #fff;
+        background-color: #23BF08;
+    }
+
+    .badge-danger {
+        color: #fff;
+        background-color: #dc3545;
+    }
+
+    .table {
+        background-color: #e9ecef;
+        border-collapse: separate;
+        border-spacing: 0;
+        width: 100%;
+        max-width: 100%;
+        margin-bottom: 1rem;
+        background-color: transparent;
+        color: #212529;
+    }
+
+    table {
+        border: 1px solid #f1f1f1 !important;
+    }
+
+    .table thead > tr > th, .table thead > tr > td, .table tfoot > tr > th, .table tfoot > tr > td {
+        border-top: 0;
+        border-bottom: 0;
+        font-weight: 700;
+        font-size: 12px;
+        text-transform: uppercase;
+        background-color: #dee2e6;
+        color: #343a40;
+        letter-spacing: 0.5px;
+    }
+
+    .table th, .table td {
+        padding: 0.75rem;
+        vertical-align: top;
+        border-top: 1px solid #dee2e6;
+    }
+
+    .card {
+        border: 0;
+        border-radius: 0;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        word-wrap: break-word;
+        background-color: #fff;
+        background-clip: border-box;
+        border: 1px solid rgba(0, 0, 0, 0.125);
+        border-radius: 3px;
+        position: relative;
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-box-orient: vertical;
+        -webkit-box-direction: normal;
+        -ms-flex-direction: column;
+        flex-direction: column;
+        min-width: 0;
+        word-wrap: break-word;
+        background-color: #fff;
+        background-clip: border-box;
+        border: 1px solid rgba(0,0,0,0.125);
+        border-radius: 10px;
+    }
+
+    .card-header {
+        margin-bottom: 0;
+        background-color: rgba(0, 0, 0, 0.03);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    }
+
+    .card-header-default {
+        background-color: #384250;
+        color: #fff;
+        padding: 0 20px;
+        height: 40px;
+        display: flex;
+        line-height: 40px;
+        align-items: center;
+    }
+
+    .card-body {
+        flex: 1 1 auto;
+        padding: 20px;
+    }
+
+    table tr td {
+        font-size: 11px;
+    }
+
+    td, th {
+        padding: 8px !important;
+    }
+</style>
+
+@if (!ViewData.ContainsKey("PDF"))
+{
+    <div style="margin-bottom:5em; margin-top:3em;" class="no-print">
+        <a class="no-print btn btn-primary" style="padding: 10px 30px 10px 30px;" href="@Url.Action("PGRS", "Report")"><i class="simple-icon-arrow-left"></i>&nbsp;Voltar</a>
+        <a class="no-print btn btn-success float-right" style="padding: 10px 30px 10px 30px;" href="javascript:window.print();"><i class="simple-icon-printer"></i>&nbsp;Imprimir</a>
+    </div>
+}
+<div style="width:100%; text-align:center;">
+    @{
+        var bytes = System.IO.File.ReadAllBytes(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "wwwroot", "Imagens", "logo2.png"));
+        var base64 = Convert.ToBase64String(bytes);
+
+        <img src="@($"data:image/png;base64, {base64}")" width="500" />
+    }
+</div>
+<div class="row">
+    @if (User.IsClient())
+    {
+        var client = await clientServices.GetViewModelByIdAsync(await clientServices.GetClientIdByLoggedUser(Context));
+        @await Html.PartialAsync("../Heading.cshtml");
+    }
+
+</div>
+<div class="w-100 text-center" style="font-weight: bold; font-weight: bold; font-size: 20px; margin-bottom: 1em;">
+    PLANO DE GERENCIAMENTO DE RESÍDUOS SÓLIDOS (PGRS)
+</div>
+@if (Model.Filters.Count(x => !string.IsNullOrWhiteSpace(x.Value)) > 0)
+{
+    <div class="w-100 text-center" style="font-weight: bold; font-weight: bold; font-size: 20px;">
+        Filtros:
+    </div>
+    <div class="w-100 text-center" style="font-weight: bold; font-weight: bold; font-size: 20px; margin-bottom: 1em;">
+        @{
+            var filters = Model.Filters.Where(x => !string.IsNullOrWhiteSpace(x.Value)).ToList();
+
+            for (int j = 0; j < filters.Count; j++)
+            {
+                @($"{(j == 0? "" : " | ")}{filters[j].FilterName}: {filters[j].Value}")
+            }
+        }
+    </div>
+}
+
+@{
+    var dateGroups = Model.Items.GroupBy(x => x._Month);
+    totalMonth = dateGroups.Count();
+
+    foreach (var dateGroup in dateGroups)
+    {
+        <div class="card">
+            <div class="card-header card-header-default" style="font-size: 14px;">
+                @dateGroup.Key
+            </div>
+            <div class="card-body bd collapse show" id="@dateGroup.Key.Replace("/", "")">
+                <div class="row mb-4">
+                    <div class="col">
+                        <table class="table nowrap table-condensed table-bordered w-100 tablesizeline">
+                            <thead>
+                                <tr>
+                                    <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;">IBAMA</th>
+                                    <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;">Resíduo</th>
+                                    <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;">Família</th>
+                                    <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;" class="text-center">Geração Total</th>
+                                    <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;">Classe</th>
+                                    <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;">Acondicionamento</th>
+                                    <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;">Tratamento / Destino Final</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var UnitOfMeasurementGroup in dateGroup.GroupBy(x => x.UnitOfMeasurementName))
+                                {
+                                    <tr class="tr-dark-alt">
+                                        <td style="text-align:center;" colspan="7">@UnitOfMeasurementGroup.Key</td>
+                                    </tr>
+                                    int i = 0;
+                                    @foreach (var item in UnitOfMeasurementGroup)
+                                    {
+                                        if (item.UnitOfMeasurementId == quilogramaID) { totalKg += item.Weight; }
+                                        else if (item.UnitOfMeasurementId == litroID) { totalLt += item.Weight; }
+                                        else if (item.UnitOfMeasurementId == unidadeID) { totalUn += item.Weight; }
+
+
+                                        <tr class="@(i % 2 == 0 ? "tr-pair" : "tr-odd")">
+                                            <td>@item.IBAMACode</td>
+                                            <td>@item.ResidueName</td>
+                                            <td>@item.ResidueFamilyName</td>
+                                            <td class="text-center">@item._Weight</td>
+                                            <td class="text-center">@item.ResidueFamilyClassName</td>
+                                            <td class="text-center">@item.PackingName</td>
+                                            <td>@item.ResidueDestinationTypeName.IfNullChange("-")</td>
+                                        </tr>
+                                        i++;
+                                    }
+                                    <tr>
+                                        <td style="border-right: 0;" class="bg-light-green">Total</td>
+                                        <td style="border-left: 0;" class="bg-light-green">@UnitOfMeasurementGroup.Sum(x => x.Weight).ToWeightPtBr()</td>
+                                        <td colspan="6"></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br />
+    }
+}
+
+@if (Model.Items.Count == 0)
+{
+    <div class="row">
+        <div class="col text-center mb-5 mt-5">
+            <i style="font-size: 30px;">Nenhum item encontrado</i>
+        </div>
+    </div>
+}
+else
+{
+
+    <hr />
+    <table class="w-100" style="border:none !important;">
+        @{
+            var items = Model.Items.GroupBy(x => new { x.ResidueId, x.ResidueName, x.UnitOfMeasurementInitials });
+
+            for (int i = 0; i < items.Count(); i++)
+            {
+                @(i % 4 == 0? Html.Raw("<tr>") : (object)"")
+
+                <td style="border: none !important; width:25%">@items.ElementAt(i).Key.ResidueName: @items.ElementAt(i).Sum(x => x.Weight).ToWeightPtBr() (@items.ElementAt(i).Key.UnitOfMeasurementInitials)</td>
+
+                @(i + 1 % 4 == 0 ? Html.Raw("</tr>") : (object)"")
+            }
+        }
+        <tr>
+        </tr>
+    </table>
+    <hr />
+    <table class="w-100" style="border:none !important;">
+        <tr>
+            <td style="border: none !important; width:25%">Total de Meses: @totalMonth</td>
+            <td style="border: none !important; width:25%">Total de Quilogramas: @totalKg.ToWeightPtBr()</td>
+            <td style="border: none !important; width:25%">Total de Litros: @totalLt.ToWeightPtBr()</td>
+            <td style="border: none !important; width:25%">Total de Unidades: @totalUn.ToWeightPtBr()</td>
+        </tr>
+    </table>
+}

@@ -1,0 +1,66 @@
+﻿@model int?
+@{
+    ViewData["Title"] = "Gerenciar usuário";
+}
+
+<div class="card">
+    <div class="card-body">
+        <div id="UserManageError" class="alert alert-danger" role="alert" style="display: none;">
+            <b>Houve um erro ao salvar o usuário:</b> <span id="UserManageErrorMessage">Teste</span>
+        </div>
+        <form id="UserManageForm" method="post">
+            <div id="UserManageViewComponent">
+                @(await Component.InvokeAsync<Web.ViewComponents.User.UserManageViewComponent>(new { id = Model }))
+            </div>
+        </form>
+    </div>
+    <div class="card-footer">
+        <div class="row">
+            <div class="col">
+                <a href="@Url.Action("Index","User")" class="btn btn-secondary float-left"><i class="simple-icon-action-undo"></i>&nbsp;Voltar</a>
+            </div>
+            <div class="col">
+                <button type="button" id="UserManageSubmitButton" class="btn btn-success float-right"><i class="simple-icon-cloud-upload"></i>&nbsp;Criar Usuário</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script asp-paste-key="user-manage"></script>
+
+    <script type="text/javascript">
+        $('#UserManageSubmitButton').click(function () {
+            $('#UserManageError').hide();
+            $.post('@Url.Action("Manage", "User")', $('#UserManageForm').serializeArray(), function (d) {
+                if (d.hasError) {
+                    $('#UserManageError').show();
+                    $('#UserManageError').html(d.message);
+                } else {
+                    @if (!User.IsClient()) {
+                        <text>
+                        if ($('#RoleName').val() == "Cliente")
+                            document.location.href = "@Url.Action("Index", "User")?success=true&userType=@((int)DTO.User.UserType.Client)";
+                        else
+                            document.location.href = "@Url.Action("Index", "User")?success=true&userType=@((int)DTO.User.UserType.Adminsitrator)";
+                        </text>
+                    } else {
+                        <text>
+                            document.location.href = "@Url.Action("Index", "User")?success=true";
+                        </text>
+                    }
+                }
+            });
+        });
+
+    </script>
+    @if (Model.HasValue)
+    {
+        <text>
+            <script type="text/javascript">
+                $('#UserManageSubmitButton').html('<i class="simple-icon-cloud-upload"></i>&nbsp;Atualizar Usuário');
+                $('#UserManageCardHeaderTitle').text('Atualizar usuário');
+            </script>
+        </text>
+    }
+}

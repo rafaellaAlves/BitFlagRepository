@@ -1,0 +1,203 @@
+﻿@model PrintListViewModel<DTO.Client.Report.ClientReportCollectionMovementViewModel>
+
+@{
+    Layout = "~/Views/Shared/_LayoutClean.cshtml";
+}
+
+<style type="text/css">
+    body, body * {
+        -webkit-print-color-adjust: exact;
+    }
+
+    table {
+        border: 1px solid #f1f1f1 !important;
+    }
+
+    th {
+        background-color: #989898 !important;
+        color: white !important;
+        border: 1px solid #f1f1f1 !important;
+    }
+
+    td {
+        background-color: white !important;
+        border: 1px solid #f1f1f1 !important;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .w-100 {
+        width: 100%;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 0.25em 0.4em;
+        font-size: 75%;
+        font-weight: bold;
+        line-height: 1;
+        color: #fff;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: baseline;
+        border-radius: 8px;
+    }
+
+    .badge-pill {
+        padding-right: 0.6em;
+        padding-left: 0.6em;
+    }
+
+    .badge-success {
+        color: #fff;
+        background-color: #23BF08;
+    }
+
+    .badge-danger {
+        color: #fff;
+        background-color: #dc3545;
+    }
+
+    .table {
+        background-color: #e9ecef;
+        border-collapse: separate;
+        border-spacing: 0;
+        width: 100%;
+        max-width: 100%;
+        margin-bottom: 1rem;
+        background-color: transparent;
+        color: #212529;
+    }
+
+    table {
+        border: 1px solid #f1f1f1 !important;
+    }
+
+    .table thead > tr > th, .table thead > tr > td, .table tfoot > tr > th, .table tfoot > tr > td {
+        border-top: 0;
+        border-bottom: 0;
+        font-weight: 700;
+        font-size: 12px;
+        text-transform: uppercase;
+        background-color: #dee2e6;
+        color: #343a40;
+        letter-spacing: 0.5px;
+    }
+
+    .table th, .table td {
+        padding: 0.75rem;
+        vertical-align: top;
+        border-top: 1px solid #dee2e6;
+    }
+</style>
+
+
+@if (!ViewData.ContainsKey("PDF"))
+{
+    <div style="margin-bottom:5em; margin-top:3em;" class="no-print">
+        <a class="no-print btn btn-primary" style="padding: 10px 30px 10px 30px;" href="@Url.Action("ReportCollectionMovement", "Client")"><i class="simple-icon-arrow-left"></i>&nbsp;Voltar</a>
+        <a class="no-print btn btn-success float-right" style="padding: 10px 30px 10px 30px;" href="javascript:window.print();"><i class="simple-icon-printer"></i>&nbsp;Imprimir</a>
+    </div>
+}
+
+<div style="width:100%; text-align:center;">
+    @{
+        var bytes = System.IO.File.ReadAllBytes(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "wwwroot", "Imagens", "logo2.png"));
+        var base64 = Convert.ToBase64String(bytes);
+
+        <img src="@($"data:image/png;base64, {base64}")" width="500" />
+    }
+</div>
+<div class="w-100 text-center" style="font-weight: bold; font-weight: bold; font-size: 20px; margin-bottom: 1em;">
+    MOVIMENTAÇÃO DE COLETA
+</div>
+@if (Model.Filters.Count(x => !string.IsNullOrWhiteSpace(x.Value)) > 0)
+{
+    <div class="w-100 text-center" style="font-weight: bold; font-weight: bold; font-size: 20px;">
+        Filtros:
+    </div>
+    <div class="w-100 text-center" style="font-weight: bold; font-weight: bold; font-size: 20px; margin-bottom: 1em;">
+        @{
+            var filters = Model.Filters.Where(x => !string.IsNullOrWhiteSpace(x.Value)).ToList();
+
+            for (int j = 0; j < filters.Count; j++)
+            {
+                @($"{(j == 0? "" : " | ")}{filters[j].FilterName}: {filters[j].Value}")
+            }
+        }
+    </div>
+}
+<div style="width:100%; text-align: right;">@Model.Items.GroupBy(x => x.ResidueFamilyName).Count() Registros</div>
+<table class="table table-bordered table-condensed">
+    <thead>
+        <tr>
+            <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;" class="text-center">Data</th>
+            <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;" class="text-center">MTR</th>
+            <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;" class="text-center">Peso</th>
+            <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;" class="text-center">Família de Resíduos</th>
+            <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;" class="text-center">Cert. de Coleta</th>
+            <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;" class="text-center">Destinador</th>
+            <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;" class="text-center">MTR Destinação</th>
+            <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;" class="text-center">Destinado em</th>
+            <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;" class="text-center">Cert. de Dest.</th>
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            var i = 0;
+
+            var demandGroups = Model.Items.GroupBy(x => x.DemandId);
+            foreach (var demandGroup in demandGroups)
+            {
+                var count = demandGroup.Count();
+                int j = 0;
+                foreach (var item in demandGroup)
+                {
+
+                    <tr class="@(i % 2 == 0? "tr-pair" : "tr-odd")">
+                        @if (j == 0)
+                        {
+                            <td class="text-center" style="vertical-align: middle;" rowspan="@count">@item._DemandVisitedDate.IfNullChange("-")</td>
+                            <td class="text-center" style="vertical-align: middle;" rowspan="@count">@item.DestineJaDemandId</td>
+                        }
+                        <td class="text-center">@item._Weight</td>
+                        <td class="text-center">@item.ResidueFamilyName</td>
+                        @if (j == 0)
+                        {
+                            <td style="vertical-align: middle;" class="text-center" rowspan="@count">@item.DestineJaCertificateId</td>
+                        }
+                        <td class="text-center">@item.RecipientName</td>
+                        <td class="text-center">@item.DestineJaDemandDestinationId</td>
+                        <td class="text-center">@item._DemandDestinationArrivedDate</td>
+                        <td class="text-center">@item.CDF.IfNullChange("AGUARDANDO")</td>
+                    </tr>
+                    j++;
+                }
+                if (i < demandGroups.Count() - 1)
+                {
+                    <tr>
+                        <td colspan="9" style="background: white; border:0;"></td>
+                    </tr>
+                }
+
+                i++;
+            }
+            if (Model.Items.Count == 0)
+            {
+                <tr>
+                    <td class="text-center" colspan="9">Nenhum dado encontrado</td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+<hr />
+<table class="w-100" style="border:none !important;">
+    <tr>
+        <td style="border: none !important; width:50%; text-align: center;">Total de MTRs: @Model.Items.Count</td>
+        <td style="border: none !important; width:50%; text-align: center;">Quantidade coletada: @Model.Items.Sum(x => x.Weight).ToWeightPtBr() Kg</td>
+    </tr>
+</table>

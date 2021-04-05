@@ -1,0 +1,48 @@
+﻿@model DTO.Shared.AddressBaseViewModel
+
+@inject Web.Helpers.DropDownListHelper dropDownListHelper
+
+<div class="row">
+    <div class="col-md-2">
+        <div class="form-group">
+            <label class="control-label">CEP</label>
+            <input class="form-control cep" placeholder="CEP" name="CEP" value="@Model.CEP" onblur="getAddress('@Model.FormId [name=\'CEP\']', '@Model.FormId [name=\'Address\']', '@Model.FormId [name=\'Neighborhood\']', '@Model.FormId [name=\'City\']', '@Model.FormId [name=\'State\']')" />
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="form-group">
+            <label class="control-label">Endereço</label>
+            <input class="form-control" placeholder="Endereço" name="Address" value="@Model.Address" />
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="form-group">
+            <label class="control-label">Número</label>
+            <input class="form-control" placeholder="Número" name="Number" value="@Model.Number" />
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="form-group">
+            <label class="control-label">Complemento</label>
+            <input class="form-control" placeholder="Complemento" name="Complement" value="@Model.Complement" />
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="form-group">
+            <label class="control-label">Bairro</label>
+            <input class="form-control" placeholder="Bairro" name="Neighborhood" value="@Model.Neighborhood" />
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="form-group">
+            <label class="control-label">Cidade</label>
+            <input class="form-control" placeholder="Cidade" name="City" value="@Model.City" />
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="form-group">
+            <label class="control-label">Estado</label>
+            @Html.DropDownList("State", dropDownListHelper.GetStates(Model.State), "Selecione", new { Class = "form-control w-100" })
+        </div>
+    </div>
+</div>

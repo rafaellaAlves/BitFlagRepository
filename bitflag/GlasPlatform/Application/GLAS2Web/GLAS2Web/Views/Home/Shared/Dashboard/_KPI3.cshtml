@@ -1,0 +1,85 @@
+﻿<div class="card shadow">
+    <div class="card-header">@translationFunctions.GetTranslation("Requisitos Legais Aplicáveis", User.FindFirstValue("CultureInfo"))</div>
+    <div class="card-body">
+        <div id="kpi3" style="margin: 0 auto; height: 220px; line-height: 220px; text-align: center;"></div>
+        <small id="kpi3_Total"></small>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function ShowKPI3(_companyId) {
+        $.ajax({
+            url: '@Url.Action("GetKPI3", "Home")',
+            type: 'GET',
+            data: { companyId: _companyId },
+            contentType: 'application/json; charset=utf-8',
+            success: function (_data) {
+                var data = JSON.parse(_data)[0];
+                if (data.Total == 0) {
+                    $('#kpi3').html('<i>Nenhum requisito legal associado.</i>');
+                    return false;
+                }
+
+                $('#kpi3_Total').text('Total: ' + data.Total);
+
+                Highcharts.chart('kpi3', {
+
+                    chart: {
+                        type: 'pie'
+                    },
+
+                    title: {
+                        text: null
+                    },
+
+                    credits: {
+                        enabled: false
+                    },
+
+                    exporting: {
+                        enabled: false
+                    },
+
+                    yAxis: {
+                        min: 0,
+                        max: data.Total,
+                        lineWidth: 0,
+                        tickPositions: []
+                    },
+
+                    legend: {
+                        align: 'center',
+                        verticalAlign: 'bottom',
+                        x: 0,
+                        y: 0
+                    },
+
+                    plotOptions: {
+                        pie: {
+                            shadow: false,
+                            center: ['50%', '50%'],
+                            dataLabels: {
+                                enabled: false
+                            },
+                            showInLegend: true
+                        }
+                    },
+
+                    series: [
+                        {
+                            name: 'Requisitos Legais Aplicáveis',
+                            size: '100%',
+                            innerSize: '60%',
+                            data: [{ name: '@Html.Raw(translationFunctions.GetTranslation("Concluído", User.FindFirstValue("CultureInfo")))', y: data.Concluido, color: '#9bd220' }
+                                , {
+                                    name: '@Html.Raw(translationFunctions.GetTranslation("Não concluído", User.FindFirstValue("CultureInfo")))', y: data.NaoConcluido, color: '#fb7035'
+                                }]
+                        }]
+                });
+            },
+            error: function () {
+                alert('Desculpe, houve um erro ao executar a consulta.');
+            }
+        });
+    }
+</script>

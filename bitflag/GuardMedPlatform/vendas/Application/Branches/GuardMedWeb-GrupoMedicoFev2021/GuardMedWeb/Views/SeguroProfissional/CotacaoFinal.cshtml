@@ -1,0 +1,457 @@
+﻿@{ Html.RenderPartial("~/Views/SeguroProfissional/Shared/_StepCotacao.cshtml"); }
+@model GuardMedWeb.Models.SeguradoProfissionalViewModel
+
+@{
+
+    GuardMedWeb.Models.EspecialidadePrecoViewModel precos = (GuardMedWeb.Models.EspecialidadePrecoViewModel)ViewData["Precos"];
+    GuardMedWeb.DAL.PlanoSeguroProfissional planoSeguroProfissional = (GuardMedWeb.DAL.PlanoSeguroProfissional)ViewData["PlanoSeguroProfissional"];
+    double desconto = (double)ViewData["desconto"];
+}
+
+@inject GuardMedWeb.DAL.GuardMedWebContext context
+@{
+    ViewData["Title"] = "GuardMed";
+
+    var planoSeguroProfissionalFunctions = new GuardMedWeb.BLL.SeguradoProfissional.PlanoSeguroProfissionalFunctions(context);
+
+    var especialidadeFunctions = new GuardMedWeb.BLL.SeguradoProfissional.EspecialidadeFunctions(context);
+
+
+    var PrecoMensalTotalComDesconto = precos.PrecoMensal * desconto;
+    var PrecoMensalTotalMenosAdm = precos.PrecoMensal - precos.PrecoAdmMensal;
+    var PrecoMensalAdm = (PrecoMensalTotalComDesconto - PrecoMensalTotalMenosAdm).ToString("#,##0.00");
+
+    var PrecoAnualTotalComDesconto = precos.PrecoAnual * desconto;
+    var PrecoAnualTotalMenosAdm = precos.PrecoAnual - precos.PrecoAdmAnual;
+    var PrecoAnualAdm = (PrecoAnualTotalComDesconto - PrecoAnualTotalMenosAdm).ToString("#,##0.00");
+
+    double coberturaExtraMensalDiretor = 0;
+    double coberturaExtraAnualDiretor = 0;
+    double coberturaExtraMensalJuridica = 0;
+    double coberturaExtraAnualJuridica = 0;
+
+    if (Model.DiretorChefeEquipe == true || Model.CoberturaAdicionalDiretorChefeEquipe == true)
+    {
+        coberturaExtraMensalDiretor = PrecoMensalTotalComDesconto / 100 * 10;
+        coberturaExtraAnualDiretor = PrecoAnualTotalComDesconto / 100 * 10;
+    }
+
+    if (Model.SocioEmpresaAreaMedica == true || Model.CoberturaAdicionalSocioEmpresaAreaMedica == true)
+    {
+        coberturaExtraMensalJuridica = PrecoMensalTotalComDesconto / 100 * 10;
+        coberturaExtraAnualJuridica = PrecoAnualTotalComDesconto / 100 * 10;
+    }
+
+
+    double mensalLiquido = (PrecoMensalTotalComDesconto + coberturaExtraMensalDiretor + coberturaExtraMensalJuridica) * 0.9262;
+    double iof = PrecoMensalTotalComDesconto + coberturaExtraMensalDiretor + coberturaExtraMensalJuridica - mensalLiquido;
+    double anualLiquido = (PrecoAnualTotalComDesconto + coberturaExtraAnualDiretor + coberturaExtraAnualJuridica) * 0.9262;
+    double iofAnual = PrecoAnualTotalComDesconto + coberturaExtraAnualDiretor + coberturaExtraAnualJuridica - anualLiquido;
+
+
+    double valorTotalMensal = PrecoMensalTotalComDesconto + coberturaExtraMensalDiretor + coberturaExtraMensalJuridica;
+    double valorTotalAnual = PrecoAnualTotalComDesconto + coberturaExtraAnualDiretor + coberturaExtraAnualJuridica;
+
+
+
+}
+
+
+<div id="divtoprint">
+    <div style="width: 100%; text-align: center;">
+        <strong class="impressao-titulo guardmed-blue">COTAÇÃO INDIVIDUAL DE SEGURO Nº @Model.Referencia</strong><br />
+
+        <label class="impressao-subtitulo control-label"> ESTA COTAÇÃO INDIVIDUAL DE SEGURO É EMITIDO PELA A MAIS AFINIDADES SERVIÇOS ADMINISTRATIVOS LTDA</label>
+    </div>
+
+    <a href="javascript:void(0)" class="btn btn-primary no-print float-right" id="Imprimir"><i class="fas fa-print"></i>&nbsp;Imprimir</a>
+
+    <br />
+    <br />
+    <table style="width: 100%;">
+        <tr>
+            <td colspan="3" class="bgguardmed-blue" style="border-radius: 15px 15px 0px 0px;">
+                <small style="color:white">DADOS DO SEGURADO</small>
+            </td>
+        </tr>
+        <tr>
+            <td><small><b>NOME DO SEGURADO:</b> @Model.Nome</small></td>
+            <td><small><b>DATA DE NASCIMENTO:</b> @(Model.DataNascimento.HasValue ? Model.DataNascimento.Value.ToString("dd/MM/yyyy") : "-")</small></td>
+        </tr>
+        <tr>
+
+            <td><small><b>CRM Nº:</b> @Model.CRM</small></td>
+            <td><small><b>E-MAIL:</b> @Model.Email</small></td>
+        </tr>
+        <tr>
+            <td>
+                <small>
+                    <b>TELEFONE:</b> @if (string.IsNullOrWhiteSpace(Model.Telefone))
+                    {<text>-</text> }
+                else
+                { <text>@Model.Telefone</text>}
+                </small>
+            </td>
+            <td><small><b>CELULAR:</b> @Model.Celular</small></td>
+
+        </tr>
+        <tr>
+            <td colspan="3"><small><b>ESPECIALIDADES: </b> @(string.Join(", ", Model.EspecialidadeProfissional.Select(x => especialidadeFunctions.GetDataByID(x.EspecialidadeId).Nome))).</small></td>
+        </tr>
+        <tr>
+            <td colspan="3" class="bgguardmed-blue" style="border-radius: 0px 0px 15px 15px;">
+                &nbsp;
+            </td>
+        </tr>
+    </table>
+    <br />
+
+
+    <table style="width: 100%;">
+        <tr>
+            <td class="bgguardmed-blue" style=" border-radius: 15px 15px 0px 0px; padding: 8px;" colspan="5"><small style="color:white">Proteção Profissional para a Área de Saúde GuardMed</small></td>
+        </tr>
+
+        <tr>
+            <td class="bgguardmed-grey" style="padding: 8px;" colspan="2"><small style="color:white">Serviços</small></td>
+            <td class="bgguardmed-grey" style="padding: 8px; text-align: center;"><small style="color:white">limite máximo de indenização (Básica)</small></td>
+            <td class="bgguardmed-grey" style="border-left: 1px solid black; padding: 8px; text-align: center;"><small style="color:white">Anuidade</small></td>
+            <td class="bgguardmed-grey" style="border-left: 1px solid black; padding: 8px; text-align: center;"><small style="color:white">ou Mensais</small></td>
+        </tr>
+        <tr>
+            <td style="border-bottom: 1px solid black;" colspan="2">
+                <small class="smallFont">
+                    <strong>Serviço de Administração, Prevenção e Gerenciamento de Risco da Atividade Profissional na Área da Saúde</strong>
+                    <br />Intermediação de conflitos no âmbito extrajudicial;
+                    <br />Pesquisa Jurisprudencial no tribunal competente e elabração de relatório;
+                    <br />Disponibilização de lista de documentos básicos que poderão ser reunidos e utilizados em eventual defesa judicial;
+                    <br />Disponibilização de modelos de documentos e contratos relacionados a atividade médica, além de orientação quanto ao seu preenchimento;
+                    <br />Resguardo e orientação de ações difamatórias em redes sociais
+                </small>
+            </td>
+            <td style="border-bottom: 1px solid black; text-align: center; white-space: nowrap">
+                <small class="smallFont">  Ilimitado</small>
+            </td>
+            <td style="border-left: 1px solid black; text-align: center; white-space: nowrap"><small class="smallFont"> R$ @PrecoAnualTotalComDesconto</small></td>
+            <td style="border-left: 1px solid black; text-align: center; white-space: nowrap"><small class="smallFont">R$ @PrecoMensalTotalComDesconto</small></td>
+        </tr>
+        <tr>
+            <td style="border-bottom: 1px solid black;" colspan="2">
+                <small class="smallFont">
+                    <strong>Seguro de Responsabilidade Civil Profissional área Médica</strong><br />Pos / Franquia de R$
+                    @if (Model.PlanoSeguroProfissionalId == 1)
+                    {<text>3.000,00</text>}
+                else if (Model.PlanoSeguroProfissionalId == 2)
+                {<text>3.000,00</text>}
+            else if (Model.PlanoSeguroProfissionalId == 3)
+            {<text>5.000,00</text>}
+                </small>
+            </td>
+            <td style="text-align: center; white-space: nowrap; border-bottom: 1px solid black;">
+                <small class="smallFont">
+                    R$
+                    @if (Model.PlanoSeguroProfissionalId == 1)
+                    {<text>200.000,00</text>}
+                else if (Model.PlanoSeguroProfissionalId == 2)
+                {<text>350.000,00</text>}
+            else if (Model.PlanoSeguroProfissionalId == 3)
+            {<text>500.000,00</text>}<br />
+                </small>
+            </td>
+            <td style="border-bottom: 1px solid black; border-left: 1px solid black;"></td>
+            <td style="border-bottom: 1px solid black; border-left: 1px solid black;"></td>
+        </tr>
+    </table>
+
+    <br />
+
+    <table style="width: 100%; margin-top:.5em;">
+        <tr>
+            <td class="bgguardmed-blue" style=" border-radius: 15px 15px 0px 0px; padding: 8px;" colspan="5"><small style="color:white">Serviços adicionais GuardMed</small></td>
+        </tr>
+        <tr>
+            <td class="bgguardmed-grey" style="padding: 8px;" colspan="2"><small style="color:white">Serviços</small></td>
+            <td class="bgguardmed-grey" style="padding: 8px; text-align: center;"><small style="color:white">limite máximo de indenização</small></td>
+            <td class="bgguardmed-grey" style="border-left: 1px solid black; padding: 8px; text-align: center;"><small style="color:white">Anuidade</small></td>
+            <td class="bgguardmed-grey" style="border-left: 1px solid black; padding: 8px; text-align: center;"><small style="color:white">ou Mensais</small></td>
+        </tr>
+        <tr>
+            <td style="border-bottom: 1px solid black;" colspan="2">
+                <small class="smallFont">
+                    <strong>Cobertura adicional para Diretor Médico e/ou Chefe de Equipe</strong> <br /> Pos / Franquia de R$
+                    @if (Model.PlanoSeguroProfissionalId == 1)
+                    {<text>3.000,00</text>}
+                else if (Model.PlanoSeguroProfissionalId == 2)
+                {<text>3.000,00</text>}
+            else if (Model.PlanoSeguroProfissionalId == 3)
+            {<text>5.000,00</text>}
+                </small>
+            </td>
+            <td style="text-align: center; white-space: nowrap; border-bottom: 1px solid black;">
+                <small class="smallFont">
+                    R$
+                    @if (Model.PlanoSeguroProfissionalId == 1)
+                    {<text>200.000,00</text>}
+                else if (Model.PlanoSeguroProfissionalId == 2)
+                {<text>350.000,00</text>}
+            else if (Model.PlanoSeguroProfissionalId == 3)
+            {<text>500.000,00</text>}<br />
+                    (agregado a básica)
+                </small>
+            </td>
+            <td style="border-left: 1px solid black; border-bottom: 1px solid black; text-align: center; white-space: nowrap;">
+                <small class="smallFont">
+                    @if (Model.DiretorChefeEquipe == true && Model.CoberturaAdicionalDiretorChefeEquipe == true)
+                    {
+                        <text>R$</text> @coberturaExtraAnualDiretor.ToString("#,##0.00");
+                    }
+                    else
+                    {
+                        <span>-</span>
+                    }
+                </small>
+            </td>
+            <td style="border-left: 1px solid black; border-bottom: 1px solid black; text-align: center; white-space: nowrap;">
+                <small>
+                    @if (Model.DiretorChefeEquipe == true && Model.CoberturaAdicionalDiretorChefeEquipe == true)
+                    {
+                        <text>R$</text> @coberturaExtraMensalDiretor.ToString("#,##0.00");
+                    }
+                    else
+                    {
+                        <span>-</span>
+                    }
+                </small>
+            </td>
+        </tr>
+    </table>
+    <br />
+
+    <table style="width: 100%; margin-top:.5em;">
+        <tr>
+            <td class="bgguardmed-blue" style=" border-radius: 15px 15px 0px 0px; padding: 8px;" colspan="5"><small style="color:white">Serviços adicionais GuardMed</small></td>
+        </tr>
+        <tr>
+            <td class="bgguardmed-grey" style="padding: 8px;" colspan="2"><small style="color:white">Serviços</small></td>
+            <td class="bgguardmed-grey" style="padding: 8px; text-align: center;"><small style="color:white">limite máximo de indenização</small></td>
+            <td class="bgguardmed-grey" style="border-left: 1px solid black; padding: 8px; text-align: center;"><small style="color:white">Anuidade</small></td>
+            <td class="bgguardmed-grey" style="border-left: 1px solid black; padding: 8px; text-align: center;"><small style="color:white">ou Mensais</small></td>
+        </tr>
+
+        <tr>
+            <td style="border-bottom: 1px solid black;" colspan="2">
+                <small class="smallFont">
+                    <strong>Cobertura Adicional para Pessoa Jurídica</strong><br />Pos / Franquia de R$
+                    @if (Model.PlanoSeguroProfissionalId == 1)
+                    {<text>3.000,00</text>}
+                else if (Model.PlanoSeguroProfissionalId == 2)
+                {<text>3.000,00</text>}
+            else if (Model.PlanoSeguroProfissionalId == 3)
+            {<text>5.000,00</text>}
+                </small>
+            </td>
+            <td style="text-align: center; white-space: nowrap; border-bottom: 1px solid black;">
+                <small class="smallFont">
+                    R$
+                    @if (Model.PlanoSeguroProfissionalId == 1)
+                    {<text>200.000,00</text>}
+                else if (Model.PlanoSeguroProfissionalId == 2)
+                {<text>350.000,00</text>}
+            else if (Model.PlanoSeguroProfissionalId == 3)
+            {<text>500.000,00</text>}<br />
+                    (agregado a básica)
+                </small>
+            </td>
+            <td style="border-left: 1px solid black; text-align: center; white-space: nowrap; border-bottom: 1px solid black;">
+                <small class="smallFont">
+                    @if (Model.DiretorChefeEquipe == true && Model.CoberturaAdicionalDiretorChefeEquipe == true)
+                    {
+                        <text>R$</text> @coberturaExtraAnualDiretor.ToString("#,##0.00");
+                    }
+                    else
+                    {
+                        <span>-</span>
+                    }
+                </small>
+            </td>
+            <td style="border-left: 1px solid black; text-align: center; white-space: nowrap; border-bottom: 1px solid black;">
+                <small class="smallFont">
+                    @if (Model.DiretorChefeEquipe == true && Model.CoberturaAdicionalDiretorChefeEquipe == true)
+                    {
+                        <text>R$</text> @coberturaExtraMensalDiretor.ToString("#,##0.00");
+                    }
+                    else
+                    {
+                        <span>-</span>
+                    }
+                </small>
+            </td>
+        </tr>
+
+    </table>
+    <br />
+    <table>
+        <tr>
+            <td colspan="5" class="bgguardmed-blue" style="padding: 8px;"><small style="color:white">Chubb Seguros S.A.  -  Responsabilidade Civil Profissional - Processo SUSEP 15414000218/2006-82</small></td>
+        </tr>
+        <tr>
+            <td class="bgguardmed-grey" style="width: 40%;"><small style="color:white;">Limite Máximo de Indenização  (LMI)</small></td>
+            <td class="bgguardmed-grey" style="width: 40%; border-left: 1px solid black;"><small style="color:white;">POS/ Franquia (Deduzidas por Prejuízos Indenizáveis)</small></td>
+            <td class="bgguardmed-grey" style="border-left: 1px solid black; padding: 8px; width: 20%; text-align: center;"><small style="color:white">Prêmio Líquido</small></td>
+        </tr>
+        <tr style="border-bottom:1px solid black">
+            <td>
+                <small class="smallFont">
+                    R$
+                    @if (Model.PlanoSeguroProfissionalId == 1)
+                    {<text>200.000,00</text>}
+                else if (Model.PlanoSeguroProfissionalId == 2)
+                {<text>350.000,00</text>}
+            else if (Model.PlanoSeguroProfissionalId == 3)
+            {<text>500.000,00</text>}
+                </small>
+            </td>
+            <td style="border-left: 1px solid black;">
+                <small class="smallFont">
+                    R$
+                    @if (Model.PlanoSeguroProfissionalId == 1)
+                    {<text>3.000,00</text>}
+                else if (Model.PlanoSeguroProfissionalId == 2)
+                {<text>3.000,00</text>}
+            else if (Model.PlanoSeguroProfissionalId == 3)
+            {<text>5.000,00</text>}
+                </small>
+            </td>
+            <td style="text-align: center; border-left: 1px solid black;white-space: nowrap;">
+                <small class="smallFont">
+                    R$ @if (Model.VezesPagamento > 1)
+                    {<text>@PrecoMensalTotalMenosAdm.ToString("#,##0.00")/Mês <strong>ou</strong> @PrecoAnualTotalMenosAdm.ToString("#,##0.00")/Ano</text>}
+                else
+                {<text>@PrecoMensalTotalMenosAdm.ToString("#,##0.00")/Mês <strong>ou</strong> @PrecoAnualTotalMenosAdm.ToString("#,##0.00")/Ano</text>}
+                </small>
+            </td>
+        </tr>
+
+        <tr>
+            <td class="bgguardmed-blue" colspan="@if (!Model.SeguradoClinicaVeterinariaId.HasValue) {<text>2</text>} else {<text>1</text>}" style=" text-align: right;">
+                <small style="color:white;">Prêmio/Valor</small>
+            </td>
+            <td class="bgguardmed-blue" style="text-align: center; border-left: 1px solid black; white-space: nowrap;" @if (Model.SeguradoClinicaVeterinariaId.HasValue) { <text> colspan="1" </text> }>
+                <small style="color:white;">
+                    R$ @mensalLiquido.ToString("#,##0.00")/Mês <strong>ou</strong> @anualLiquido.ToString("#,##0.00")/Ano
+                </small>
+            </td>
+        </tr>
+        <tr>
+            <td class="bgguardmed-blue" colspan="@if (!Model.SeguradoClinicaVeterinariaId.HasValue) {<text>2</text>} else {<text>1</text>}" style=" text-align: right;">
+                <small style="color:white;">IOF</small>
+            </td>
+            <td class="bgguardmed-blue" style="text-align: center; border-left: 1px solid black; white-space: nowrap;" @if (Model.SeguradoClinicaVeterinariaId.HasValue) { <text> colspan="1" </text> }>
+                <small style="color:white;">
+                    R$ @iof.ToString("#,##0.00")/Mês <strong>ou</strong> @iofAnual.ToString("#,##0.00")/Ano
+                </small>
+            </td>
+        </tr>
+        <tr>
+            <td class="bgguardmed-blue" style="border-radius: 0px 0px 0px 15px; text-align: right;" colspan="@if (!Model.SeguradoClinicaVeterinariaId.HasValue) {<text>2</text>} else {<text>1</text>}">
+                <small style="color:white;">Prêmio/Valor Total</small>
+            </td>
+            <td class="bgguardmed-blue" style="text-align: center; border-left: 1px solid black; border-radius: 0px 0px 15px 0px; white-space: nowrap;" @if (Model.SeguradoClinicaVeterinariaId.HasValue) { <text> colspan="1" </text> }>
+                <small style="color:white;">
+                    R$ @valorTotalMensal.ToString("#,##0.00")/Mês <strong>ou</strong> @valorTotalAnual.ToString("#,##0.00")/Ano
+                </small>
+            </td>
+        </tr>
+    </table>
+    <div style="page-break-after: always;">&nbsp;</div>
+    <table style="width: 100%;">
+        <tr>
+            <td class="bgguardmed-blue" style="border-top-left-radius: 15px; border-top-right-radius:15px; padding: 8px;" colspan="2"><small style="color:white">Abrangência da indenização e Coberturas</small></td>
+        </tr>
+        <tr>
+            <td class="bgguardmed-grey" style="width: 75%; padding: 8px;"><small style="color:white">Abrangência da Indenização</small></td>
+            <td class="bgguardmed-grey" style="width: 25%; border-left: 1px solid black; padding: 8px; text-align: center;"><small style="color:white">Limite Máximo de Indenização (LMI) -R$</small></td>
+        </tr>
+        <tr>
+            <td style="border-bottom: 1px solid black;"><small class="smallFont">a. Condenações pecuniárias provenientes de sentenças judiciais transitadas em julgado ou decisões arbitrais finais proferidas contra o Segurado.</small></td>
+            <td style="text-align: center; border-left: 1px solid black; border-bottom: 1px solid black;"><small class="smallFont">Até o limite Máximo</small></td>
+        </tr>
+        <tr>
+            <td style="border-bottom: 1px solid black;"><small class="smallFont">b. Acordos judiciais ou extrajudiciais negociados com o consentimento prévio e por escrito da Seguradora.</small></td>
+            <td style="text-align: center; border-left: 1px solid black; border-bottom: 1px solid black;"><small class="smallFont">Até o limite Máximo</small></td>
+        </tr>
+        <tr>
+            <td style="border-bottom: 1px solid black;"><small class="smallFont">c. Custos de Defesa referentes a reclamações cobertas.</small></td>
+            <td style="text-align: center; border-left: 1px solid black; border-bottom: 1px solid black;"><small class="smallFont">Até o limite Máximo</small></td>
+        </tr>
+        <tr>
+            <td style="border-bottom: 1px solid black;"><small class="smallFont">d. Processos judiciais civis e/ou procedimentos propostos por terceiros em face do visando responsabilizá-lo civilmente por materiais e/ou danos estéticos e/ou danos e/ou danos corporais.</small></td>
+            <td style="text-align: center; border-left: 1px solid black; border-bottom: 1px solid black;"><small class="smallFont">Até o limite Máximo</small></td>
+        </tr>
+        <tr>
+            <td style="border-bottom: 1px solid black;"><small class="smallFont">e. Custos de defesa, exclusivamente destinados ao de defesa do Segurado, desde que de um fato gerador descrito na “d” acima.</small></td>
+            <td style="text-align: center; border-left: 1px solid black; border-bottom: 1px solid black;"><small class="smallFont">Até o limite Máximo</small></td>
+        </tr>
+        <tr>
+            <td style="border-bottom: 1px solid black;"><small class="smallFont">f. A Seguradora responderá também, pelos custos de na esfera disciplinar, em defesas e perante os respectivos conselhos, que relacionada a um risco coberto por este Seguro.</small></td>
+            <td style="text-align: center; border-left: 1px solid black; border-bottom: 1px solid black;"><small class="smallFont">Até o limite Máximo</small></td>
+        </tr>
+        <tr>
+            <td style="border-bottom: 1px solid black;"><small class="smallFont">g. A Seguradora responderá também, pelos custos de na esfera criminal, exclusivamente por atos incidentais causados a terceiros e cobertos presente apólice.</small></td>
+            <td style="text-align: center; border-left: 1px solid black; border-bottom: 1px solid black;"><small class="smallFont">Até o limite Máximo</small></td>
+        </tr>
+        <tr>
+            <td style="border-bottom: 1px solid black;"><small class="smallFont">h. Fica entendido e acordado que, em complemento descrito, a presente apólice cobrirá os custos de contratação de Empresa Especializada em Serviços de e Assessoria de Imagem, em comum acordo e mediante prévia autorização da Seguradora, quando houver comprovado prejuízo à imagem, à honra ou reputação de qualquer pessoa Segurada sob esta apólice, causada pela de notícia, reportagem ou vazamento de sigilosas, desde que os fatos ou acontecimentos estejam relacionados à prestação de serviço profissional do Segurado e cobertos pela presente apólice.</small></td>
+            <td style="text-align: center; border-left: 1px solid black; border-bottom: 1px solid black;"><small class="smallFont">Até o limite Máximo</small></td>
+        </tr>
+    </table>
+
+    <table style="width: 100%; margin-top:1em;">
+        <tr>
+            <td class="bgguardmed-blue" style="border-top-left-radius: 15px; border-top-right-radius:15px; padding: 8px;"><small style="color:white">Principais riscos excluídos</small></td>
+        </tr>
+        <tr>
+            <td>
+                <small class="smallFont">Além das exclusões constantes das Condições Gerais e Especiais, esse seguro não cobre:</small>
+                <ul style="list-style:disc;">
+                    <li><small class="smallFont">Reclamações baseadas em, resultantes de ou como consequência de qualquer ato ou fato relacionado a prestação de serviços médicos que não sejam realizadas por profissionais da área médica, com especilidades devidamente reconhecidas pelo conselho federal de medicina (CFM), associação médica brasileira (AMB) e comissão nacional de residência médica (CNRM);</small></li>
+                    <li><small class="smallFont">Reclamações baseadas em, resultantes de ou como consequência de qualquer ato ou fato relacionado a prestação de serviços médicos quando o segurado figurar na ação como Operadora de Plano de Saúde;</small></li>
+                    <li><small class="smallFont">Estão excluídas da presente apólice reclamações decorrentes de cirurgias plásticas estéticas;</small></li>
+                    <li><small class="smallFont">Estão excluídas da presente apólice reclamações decorrentes de procedimentos estéticos que envolvam toxina botulínica;</small></li>
+                    <li><small class="smallFont">Estão excluídas reclamações por fatos já conhecidos pelo Segurado, bem como reclamações em andamento e/ou em processo de regulação de sinistro.</small></li>
+                </ul>
+            </td>
+        </tr>
+    </table>
+    <div style="page-break-after: always;">&nbsp;</div>
+    <table style="width: 100%; margin-top:.5em;">
+        <tr>
+            <td class="bgguardmed-blue" style="border-top-left-radius: 15px; border-top-right-radius:15px; padding: 8px;"><small style="color:white">Base de Contratação e âmbito de cobertura</small></td>
+        </tr>
+        <tr>
+            <td>
+                <small class="smallFont">
+                    Seguro à base de Reclamações com Notificação;<br />
+                    Retroatividade a partir do início de vigência da apólice;<br />
+                    Em todo território nacional;
+                </small>
+            </td>
+        </tr>
+    </table>
+</div>
+<br />
+<form method="post" id="formToFormulario">
+    <div class="row no-print">
+        <div class="col-md-12 mx-auto" style="text-align: center">
+            <button type="submit" id="proxima" class="btn btn-primary float-right no-print">Aderir&nbsp;<i class="fas fa-arrow-right"></i></button>
+            <a href="@Url.Action("CoberturasAdicionais", "SeguroProfissional")?reference=@Model.Referencia" class="btn btn-secondary float-left no-print"><i class="fas fa-arrow-left"></i>&nbsp;Voltar</a>
+        </div>
+    </div>
+</form>
+
+
+<script type="text/javascript">
+    $('#Imprimir').click(function () {
+        window.print();
+    });
+</script>

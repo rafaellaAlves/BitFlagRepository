@@ -1,0 +1,290 @@
+﻿@model AMaisImob_WEB.Models.CompanyViewModel
+@inject AMaisImob_DB.Models.AMaisImob_HomologContext context
+@{
+    var companyTypeFunctions = new AMaisImob_WEB.BLL.CompanyTypeFunctions(context);
+    var imobiliariaTypeId = companyTypeFunctions.GetData().Single(c => c.ExternalCode == "IMOBILIARIA").CompanyTypeId;
+}
+<script type="text/javascript">
+    _MaskData();
+</script>
+
+<div class="row">
+    <div class="col-md-10">
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text"><i class="fa fa-search"></i></span>
+            </div>
+            <input id="_CompanyIndexSearch" type="text" class="form-control" placeholder="Procurar..." />
+        </div>
+    </div>
+    <div class="col-md-2">
+        <a href="@Url.Action("Manage", "Company")?companyTypeId=@Model.CompanyTypeId@if (Model.ParentCompanyId.HasValue) {<text>&parentCompanyId=@Model.ParentCompanyId</text>}" class="btn btn-success pull-right w-100"><i class="fas fa-plus-circle"></i>&nbsp;Novo</a>
+    </div>
+</div>
+<hr />
+
+<div class="table-wrapper">
+    <table id="_CompanyIndexTable" class="table display responsive" style="border-collapse: collapse !important; width:100%;">
+        <thead>
+            <tr>
+                @if (!Model.ParentCompanyId.HasValue && Model.CompanyTypeId == imobiliariaTypeId)
+                {
+                    <th>Corretora</th>
+}
+                <th>Razão social/Nome</th>
+                <th>Nome</th>
+                <th>CNPJ/CPF</th>
+                <th>CPF</th>
+                <th>Cidade</th>
+                <th>UF</th>
+                @if (Model.CompanyTypeId != imobiliariaTypeId)
+                {
+                    <th>Ativo</th>
+                }
+                @if (Model.CompanyTypeId == imobiliariaTypeId)
+                {
+                    <th>Termo Aceito</th>
+                }
+                <th>&nbsp;</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+<script type="text/javascript">
+
+    var _CompanyIndexTypingTimer;
+    var _CompanyIndexDoneTypingInterval = 500;
+    var increaseIndex = @if (!Model.ParentCompanyId.HasValue && Model.CompanyTypeId == imobiliariaTypeId) {<text>1</text>} else {<text>0</text>};
+    var datatables = $('#_CompanyIndexTable').DataTable({
+        "columnDefs": [
+
+            {
+                "targets": [1 + increaseIndex],
+                "visible": false
+            },
+            {
+                "targets": [3 + increaseIndex],
+                "visible": false
+            }
+        ],
+        proccessing: true,
+        serverSide: false,
+        searching: true,
+        lengthChange: false,
+        dom: 'tip',
+        ajax: {
+            url: '@Url.Action("List", "Company")',
+            data: function (d) {
+                d.companyTypeId = '@Model.CompanyTypeId',
+                    d.parentCompanyId = '@Model.ParentCompanyId'
+            },
+            type: 'POST'
+        },
+        columns: [
+            @if(!Model.ParentCompanyId.HasValue && Model.CompanyTypeId == imobiliariaTypeId)
+            {
+            <text>
+            {
+                data: 'ParentCompany',
+                render: function (data, type, row) {
+                    if (row.parentRazaoSocial != null)
+                        return '<i>' + row.parentRazaoSocial + '</i>';
+                    else
+                        return '<i>' + row.parentFirstName + ' ' + row.parentLastName + '</i>';
+                }
+            },
+            </text>
+            }
+            {
+                data: 'firstName',
+                render: function (data, type, row) {
+                    if (row.razaoSocial != null)
+                        return '<a href="@Url.Action("Manage", "Company")?id=' + row.companyId + '">' + row.razaoSocial + '</a>';
+                    else
+                        return '<a href="@Url.Action("Manage", "Company")?id=' + row.companyId + '">' + row.firstName + " " + row.lastName + '</a>';
+                }
+            },
+            {
+                data: 'FirstName',
+                render: function (data, type, row) {
+                    return row.firstName;
+                }
+            },
+            {
+                data: 'CNPJ',
+                render: function (data, type, row) {
+                    if (row.cnpj != null)
+                        return '<span class="cnpj">' + row.cnpj + '</span>';
+                    else
+                        return '<span class="cpf">' + row.cpf + '</span>';
+                }
+            },
+            {
+                data: 'Cpf',
+                render: function (data, type, row) {
+                    return row.cpf;
+                }
+            },
+            {
+                data: 'Cidade',
+                render: function (data, type, row) {
+                    return row.cidade;
+                }
+            },
+            {
+                data: 'UF',
+                render: function (data, type, row) {
+                    return row.uf;
+                }
+            },
+
+            @if (Model.CompanyTypeId != imobiliariaTypeId)
+            {
+            <text>
+            {
+                orderable: false,
+                data: 'IsActive',
+                render: function (data, type, row) {
+                    return row.isActive ? '<span class="badge badge-pill badge-success text-center">Sim</span>' : "<span class='badge badge-pill badge-danger text-center'>Não</span>";
+                }
+            },
+            </text>
+            }
+
+            @if (Model.CompanyTypeId == imobiliariaTypeId)
+            {
+                if (User.IsInRole("Administrator"))
+                {
+                <text>
+            {
+                orderable: false,
+                data: 'IsActive',
+                render: function (data, type, row) {
+                    return row.termAccepted ? '<span class="badge badge-pill badge-success text-center">Sim</span>' : "<a href='javascript:void(0)' data-copy-to-clipboard data-text='@($"{ Context.Request.Scheme}://{Context.Request.Host}{Url.Action("AcceptTerm", "Company")}")?companyId=" + row.companyId + "&token=" + row.termAcceptToken + "' class='badge badge-pill badge-danger text-center'>Não</a>";
+                }
+            },
+                </text>
+                }
+                else
+                {
+                <text>
+            {
+                orderable: false,
+                data: 'TermAccepted',
+                render: function (data, type, row) {
+                    return row.termAccepted ? '<span class="badge badge-pill badge-success text-center">Sim</span>' : '<span class="badge badge-pill badge-danger text-center">Não</span>';
+                }
+            },
+                </text>
+                    }
+                }
+            {
+                data: null,
+                render: function (data, type, row) {
+                    var hasParent = false;
+                    var isAdmin = false;
+                        @if (!Model.ParentCompanyId.HasValue && Model.CompanyTypeId != imobiliariaTypeId) { <text> hasParent = true; </text> }
+
+                    var r = '<div class="text-center" style="white-space:nowrap;"><a href="javascript:void(0)" onclick="RemoveCompany(' + row.companyId + ')" title="Excluir" ><i class="far fa-trash-alt"></i></a>';
+
+                        @if (User.IsInRole("Administrator")) { <text>
+                    r += '&nbsp;<a href="javascript: OpenModal(' + row.companyId + ')" title="usuário x empresa"><i class="fas fa-users"></i></a>';
+                    </text> }
+
+                    if (hasParent) {
+                        r += "&nbsp;<a href='@Url.Action("Imobiliaria", "Company")?parentCompanyId=" + row.companyId + "' title='Imobiliária'><i class='fas fa-building'></i></a>";
+                        r += "&nbsp;<a href='javascript:void(0)' data-copy-to-clipboard data-text='@($"{Context.Request.Scheme}://{Context.Request.Host}{Url.Action("New", "Company")}")?reference=" + row.companyReference + "' title='copiar link de nova imobiliária'><i class='fas fa-external-link-alt'></i></a>";
+                    }
+                    r += '</div>';
+
+                    return r;
+                }
+            }
+        ],
+        initComplete: function () {
+            _MaskData();
+        },
+        drawCallback: function () {
+            initializeCopyToClipboard();
+        }
+    });
+
+    function _CompanyIndexDoneTyping() {
+        if ($.fn.DataTable.isDataTable('#_CompanyIndexTable')) {
+            datatables.search($('#_CompanyIndexSearch').val()).draw();
+        }
+    }
+    $('#_CompanyIndexSearch').keyup(function () {
+        clearTimeout(_CompanyIndexDoneTypingInterval);
+        _CompanyIndexTypingTimer = setTimeout(_CompanyIndexDoneTyping, _CompanyIndexDoneTypingInterval);
+    });
+    $('#_CompanyIndexSearch').keydown(function () {
+        clearTimeout(_CompanyIndexDoneTyping);
+    });
+
+    function RemoveCompany(companyId) {
+		if (confirm("Deseja realmente excluir esta empresa?")) {
+            _RemoveCompany(companyId, function (data) {
+                if(!data.hasError)
+                    $('#_CompanyIndexTable').DataTable().ajax.reload();
+                alert(data.message);
+			});
+		}
+	}
+
+    function _RemoveCompany(_CompanyId, callback) {
+        var d = { id: _CompanyId };
+		$.ajax({
+			url: '@Url.Action("RemoveCompany", "Company")',
+			type: 'POST',
+			data: d,
+            dataType: 'Json',
+            success: function (data) {
+                callback(data)
+            }
+		});
+    }
+</script>
+
+
+<div class="modal fade" id="UserCompanyModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" style="width:100%;" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold">Associação de Usuários</h6>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="_UserCompanyManageViewComponent"></div>
+            </div>
+            <div class="modal-footer">
+                <div class="col-md-6">
+                    <button type="submit" aria-label="Close" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-times"></i>&nbsp;Fechar</button>
+                </div>
+                <div class="col-md-6">
+                    <a href="javacsropt:void(0)" id="_UserCompanyManageButtonSubmit" class="btn btn-success float-right"><i class="fas fa-cloud-upload-alt"></i>&nbsp;Salvar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@if (User.IsInRole("Administrator"))
+{
+    <script type="text/javascript">
+    function OpenModal(companyId) {
+        $('#_UserCompanyManageViewComponent').load('@Url.Action("UserCompanyManageComponent", "UserCompany")', { "companyId": companyId });
+        $('#UserCompanyModal').modal('show');
+    }
+
+    $('#_UserCompanyManageButtonSubmit').click(function () {
+        _UserCompanyManageSave();
+    });
+
+    function _UserCompanyManageCallBack(data) {
+        $('#UserCompanyModal').modal('hide');
+    }
+    </script>
+}

@@ -1,0 +1,23 @@
+﻿@model DTO.Account.LoginViewModel
+@{
+    ViewData["Title"] = "Login";
+    Layout = "~/Views/Shared/_LayoutLogin.cshtml";
+}
+
+    <div class="login-wrapper wd-300 wd-xs-350 pd-25 pd-xs-40 bg-white">
+        <img src="/Imagens/logo3.png" style="width: 260px;" class="mb-5">
+        <form method="post" action="@Url.Action("Login", "Account")">
+            @if (ViewData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger" role="alert">@ViewData["ErrorMessage"]</div>
+            }
+            <div class="form-group">
+                <input class="form-control" name="Email" id="Email" value="@Model.Email" placeholder="Insira seu e-mail">
+            </div><!-- form-group -->
+            <div class="form-group">
+                <input class="form-control" name="Password" id="Password" type="password" value="@Model.Password" placeholder="Insira sua senha">
+                @*<a href="" class="tx-info tx-12 d-block mg-t-10">Forgot password?</a>*@
+            </div><!-- form-group -->
+            <button type="submit" class="btn btn-info btn-block">Fazer Login</button>
+        </form>
+    </div><!-- login-wrapper -->

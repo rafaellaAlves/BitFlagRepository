@@ -1,0 +1,196 @@
+﻿@model int?
+@inject DAL.GLAS2Context context
+@inject Microsoft.AspNetCore.Identity.UserManager<DAL.Identity.User> userManager
+@{
+    var companyUserRoleFunctions = new BLL.Permission.CompanyUserRoleFunctions(context);
+    var user = await userManager.GetUserAsync(User);
+
+    bool isMaster = User.IsInRole(BLL.User.ProfileNames.Administrator) || User.IsInRole(BLL.User.ProfileNames.Master);
+    bool isBioteraConsultor = companyUserRoleFunctions.CompanyUserHasRole(Model.Value, user.Id, new List<string>() { BLL.User.ProfileNames.BioteraConsultor });
+
+    bool isClienteAdministrador = companyUserRoleFunctions.CompanyUserHasRole(Model.Value, user.Id, new List<string>() { BLL.User.ProfileNames.ClienteAdministrador }); ;
+    bool isClienteSupervisor = companyUserRoleFunctions.CompanyUserHasRole(Model.Value, user.Id, new List<string>() { BLL.User.ProfileNames.ClienteSupervisor }); ;
+    bool isClienteOperador = companyUserRoleFunctions.CompanyUserHasRole(Model.Value, user.Id, new List<string>() { BLL.User.ProfileNames.ClienteOperador }); ;
+}
+<div class="card shadow">
+    <div class="card-header">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="input-group">
+                    <span class="input-group-addon"><i class="fa fa-search"></i></span>
+                    <input id="companyLawSearch" type="text" class="form-control" placeholder="Procurar..." />
+                </div>
+            </div>
+        </div>
+        <hr />
+        <div class="row">
+            <div class="col-md-3">
+                <label>@translationFunctions.GetTranslation("Tipo", User.FindFirstValue("CultureInfo")):</label>
+                <select id="companyLawTipo" multiple="multiple" class="form-control" style="width:100%;">
+                    @foreach (var potentiality in (List<DAL.LawType>)ViewData["Tipo"])
+                    {
+                        <option value="@potentiality.LawTypeId">@potentiality.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label>@translationFunctions.GetTranslation("Segmento", User.FindFirstValue("CultureInfo")):</label>
+                <select id="companyLawSegmento" multiple="multiple" class="form-control" style="width:100%;">
+                    @foreach (var segmento in (List<DAL.Segmento>)ViewData["Segmento"])
+                    {
+                        <option value="@segmento.SegmentoId">@segmento.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label>@translationFunctions.GetTranslation("Aplicabilidade", User.FindFirstValue("CultureInfo")):</label>
+                <select id="companyLawAplicabilidade" multiple="multiple" class="form-control" style="width:100%;">
+                    @foreach (var potentiality in (List<DAL.LawApplicationType>)ViewData["Aplicabilidade"])
+                    {
+                        <option value="@potentiality.LawApplicationTypeId">@translationFunctions.GetTranslation(potentiality.Name, User.FindFirstValue("CultureInfo"))</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label>@translationFunctions.GetTranslation("Status", User.FindFirstValue("CultureInfo")):</label>
+                <select id="companyLawStatus" multiple="multiple" class="form-control" style="width:100%;">
+                    @foreach (var status in (List<DAL.LawConclusionStatus>)ViewData["Status"])
+                    {
+                        <option value="@status.LawConclusionStatusId">@translationFunctions.GetTranslation(status.Name, User.FindFirstValue("CultureInfo"))</option>
+                    }
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <table id="companyLawTable" class="datatable table table-sm table-condensed table-bordered table-striped" style="border-collapse: collapse !important; width: 100%;">
+            <thead>
+                <tr>
+                    <th>@translationFunctions.GetTranslation("Tipo", User.FindFirstValue("CultureInfo"))</th>
+                    <th>@translationFunctions.GetTranslation("Órgão", User.FindFirstValue("CultureInfo"))</th>
+                    <th>@translationFunctions.GetTranslation("Número", User.FindFirstValue("CultureInfo"))</th>
+                    <th>@translationFunctions.GetTranslation("Título", User.FindFirstValue("CultureInfo"))</th>
+                    <th>@translationFunctions.GetTranslation("Esfera", User.FindFirstValue("CultureInfo"))</th>
+                    <th>@translationFunctions.GetTranslation("Aplicabilidade", User.FindFirstValue("CultureInfo"))</th>
+                    <th>@translationFunctions.GetTranslation("Segmento", User.FindFirstValue("CultureInfo"))</th>
+                    <th>@translationFunctions.GetTranslation("Status", User.FindFirstValue("CultureInfo"))</th>
+                    <th id="LawKeywords" name="LawKeywords" style="display:none;">@translationFunctions.GetTranslation("Tag", User.FindFirstValue("CultureInfo"))</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+<script type="text/javascript">
+    var companyLawTypingTimer;
+    var companyLawDoneTypingInterval = 500;
+    var datatables = $('#companyLawTable').DataTable({
+        columnDefs: [
+            { targets: [2], orderData: [2] }
+        ]
+        , proccessing: true
+        , serverSide: true
+        , searching: true
+        , lengthChange: false
+        , dom: 'tip'
+        , bInfo: false
+        , pagingType: 'simple'
+        , ajax: {
+            url: '@Url.Action("List", "CompanyLawManagement")'
+            , type: 'POST'
+            , data: function (d) {
+                d.companyId = @Model,
+                    d.tipo = $('#companyLawTipo').val(),
+                    d.segmento = $('#companyLawSegmento').val(),
+                    d.aplicabilidade = $('#companyLawAplicabilidade').val(),
+                    d.status = $('#companyLawStatus').val()
+            }
+        }, columns: [
+            {
+                data: 'LawTypeName'
+                , render: function (data, type, row) {
+					return row.LawTypeName == null ? '' : '<span style="white-space: nowrap">' + row.LawTypeName + '</span>';
+                }
+            }
+			, { data: 'LawOrgaoName' }
+			, {
+                data: 'LawNumberOrdering',
+                render: function (data, type, row) {
+                    return row.LawNumber == null ? '' : row.LawNumber
+				}
+			}
+			, {
+                data: 'LawTitle', render: function (data, type, row, meta) {
+						return '<a href="javascript: void(0);" onclick="_CompanyLawSelectCallback(' + meta.row + ')">' + row.LawTitle + '</a>';
+                    }
+			}
+			, { data: 'LawEsferaName' }
+            , {
+                data: 'CompanyLawApplicationTypeName'
+                , render: function (data, type, row) {
+                    return row.CompanyLawApplicationTypeName == null ? '' : '<span style="white-space: nowrap">' + row.CompanyLawApplicationTypeName + '</span>';
+                }
+            }
+            , {
+                data: 'LawSegmentoName'
+                , render: function (data, type, row) {
+					return row.LawSegmentoName == null ? '' : '<span style="white-space: nowrap">' + row.LawSegmentoName + '</span>';
+                }
+			}
+			, {
+				data: 'CompanyLawConclusionStatusId'
+                , render: function (data, type, row) {
+                    var companyLawConclusionStatusName = row.CompanyLawConclusionStatusName;
+                    if (row.CompanyLawConclusionStatusExternalCode == 'NOTCOMPLETED' && row.CompanyLawApplicationTypeId == 1) {
+                        companyLawConclusionStatusName = 'Não Aplica';
+                    }
+
+                    return row.CompanyLawConclusionStatusName == null ? '' : '<span style="white-space: nowrap">' + companyLawConclusionStatusName + '</span>';
+				}
+			}
+
+			, { data: 'LawKeywords' }
+            , { data: 'LawNumber', visible: false }
+            , { data: '_LawNumberOrdering', visible: false }
+        ]
+	});
+
+    datatables.column(8).visible(false);
+        function companyLawDoneTyping() {
+            if ($.fn.DataTable.isDataTable('#companyLawTable')) {
+                datatables.search($('#companyLawSearch').val()).draw();
+            }
+        }
+    $('#companyLawSearch').keyup(function () {
+            clearTimeout(companyLawTypingTimer);
+            companyLawTypingTimer = setTimeout(companyLawDoneTyping, companyLawDoneTypingInterval);
+        });
+    $('#companyLawSearch').keydown(function () {
+            clearTimeout(companyLawTypingTimer);
+        });
+    function _CompanyLawSelectCallback(rowIndex)
+        {
+            if (typeof (CompanyLawSelectCallback) === 'undefined') {
+                alert('Implement "CompanyLawSelectCallback"!');
+                return;
+            }
+            CompanyLawSelectCallback(datatables.row(rowIndex).data());
+    }
+    $('#companyLawTipo').select2();
+    $('#companyLawSegmento').select2();
+    $('#companyLawAplicabilidade').select2();
+    $('#companyLawStatus').select2();
+
+     $('#companyLawTipo').change(function () {
+        companyLawDoneTyping();
+    });
+    $('#companyLawSegmento').change(function () {
+        companyLawDoneTyping();
+    });
+    $('#companyLawAplicabilidade').change(function () {
+        companyLawDoneTyping();
+    });
+    $('#companyLawStatus').change(function () {
+        companyLawDoneTyping();
+    });
+</script>

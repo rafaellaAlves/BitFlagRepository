@@ -1,0 +1,274 @@
+﻿@model DTO.Company.CompanyLawActionViewModel
+@{
+	ViewData["Title"] = "Manage";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{ Html.RenderPartial("~/Views/Shared/_TopMessages.cshtml"); }
+<script type="text/javascript">
+	function MoreInfo() {
+		$('#moreInfo').hide();
+		$('#divMoreInfo').show();
+	}
+	function LessInfo() {
+		$('#moreInfo').show();
+		$('#divMoreInfo').hide();
+	}
+	function Create() {
+		var d = $('form').serializeArray();
+	}
+</script>
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-md-12">
+			<div id="alertFormErrorCompanyLaw" class="alert alert-danger fade show" role="alert" style="display: none;">
+				<strong>Atenção!</strong> O formulário contém erros. Por favor, revise as informações abaixo.
+			</div>
+			<form id="CompanyLawActionForm" action="@Url.Action("Manage", "CompanyLawActionManagement")" method="post">
+				<input type="hidden" id="CompanyLawActionId" name="CompanyLawActionId" value="@Model.CompanyLawActionId" />
+				<input type="hidden" id="CompanyLawId" name="CompanyLawId" value="@Model.CompanyLawId" />
+				<div id="divRequiredInfo">
+					<div class="form-row">
+						<div class="form-group col-md-3">
+							<label class="control-label" for="Name">Nome</label>
+							<input type="text" class="form-control" id="Name" name="Name" value="@Model.Name" placeholder="Nome">
+						</div>
+						<div class="form-group col-md-3">
+							<label class="control-label" for="RegistrationDate">Data de Cadastro</label>
+							<input type="text" class="form-control date" id="RegistrationDate" name="RegistrationDate" value="@Model.RegistrationDate" placeholder="Data de Registro">
+						</div>
+						<div class="form-group col-md-3">
+							<label class="control-label" for="TargetDate">Data de Conclusão</label>
+							<input type="text" class="form-control date" id="TargetDate" name="TargetDate" value="@Model.TargetDate" placeholder="Data de Renovação">
+						</div>
+						<div class="form-group col-md-3">
+							<label class="control-label">&nbsp;Comentários</label>
+							<br />
+							<button type="button" class="btn btn-default" style="width: 100%" data-toggle="modal" data-target="#companyLawActionCommentModal"><i class="fa fa-comments"></i></button>
+						</div>
+					</div>
+					<div class="form-row">
+						<div class="form-group col-md-3">
+							<label class="control-label" for="CompanyLawActionStatusId">Status</label>
+							<select class="form-control" name="CompanyLawActionStatusId" id="CompanyLawActionStatusId">
+								<option></option>
+								@foreach (var item in ((IEnumerable<DAL.CompanyLawActionStatus>)ViewData["CompanyLawActionStatus"]).ToList())
+								{
+									<option value="@item.CompanyLawActionStatusId">@item.Name</option>
+								}
+							</select>
+							<script type="text/javascript">
+                                $('#CompanyLawActionStatusId').val('@Model.CompanyLawActionStatusId');
+							</script>
+						</div>
+						<div class="form-group col-md-3">
+							<label class="control-label" for="CompanyLawActionTypeId">Tipo</label>
+							<select class="form-control" name="CompanyLawActionTypeId" id="CompanyLawActionTypeId">
+								<option></option>
+								@foreach (var item in ((IEnumerable<DAL.CompanyLawActionType>)ViewData["CompanyLawActionType"]).ToList())
+								{
+									<option value="@item.CompanyLawActionTypeId">@item.Name</option>
+								}
+							</select>
+							<script type="text/javascript">
+                                $('#CompanyLawActionTypeId').val('@Model.CompanyLawActionTypeId');
+							</script>
+						</div>
+						<div class="form-group col-md-3">
+							<label class="control-label" for="SupervisorId">Supervisor</label>
+							<input type="hidden" class="form-control" id="SupervisorId" name="SupervisorId" value="@Model.SupervisorId" />
+							<div class="input-group">
+								<span class="input-group-btn">
+									<button class="btn btn-secondary" type="button" onclick="OpenModalUserSearch('Supervisor')"><i class="fa fa-search"></i></button>
+								</span>
+								<input type="text" class="form-control" id="SupervisorName" name="SupervisorName" value="@Model.SupervisorName" disabled="disabled" />
+								<span class="input-group-btn">
+									<script type="text/javascript">
+										function ClearSupervisor() {
+											$('#SupervisorName').val('');
+											$('#SupervisorId').val('');
+										}
+									</script>
+									<button class="btn btn-secondary" type="button" onclick="ClearSupervisor()"><i class="fa fa-times"></i></button>
+								</span>
+							</div>
+						</div>
+						<div class="form-group col-md-3">
+							<label class="control-label" for="ResponsibleId">Responsável</label>
+							<input type="hidden" id="ResponsibleId" name="ResponsibleId" value="@Model.ResponsibleId" />
+							<div class="input-group">
+								<span class="input-group-btn">
+									<button class="btn btn-secondary" type="button" onclick="OpenModalUserSearch('Responsible')"><i class="fa fa-search"></i></button>
+								</span>
+								<input type="text" class="form-control" id="ResponsibleName" name="ResponsibleName" value="@Model.ResponsibleName" disabled="disabled" />
+								<span class="input-group-btn">
+									<script type="text/javascript">
+										function ClearResponsible() {
+											$('#ResponsibleName').val('');
+											$('#ResponsibleId').val('');
+										}
+									</script>
+									<button class="btn btn-secondary" type="button" onclick="ClearResponsible()"><i class="fa fa-times"></i></button>
+								</span>
+							</div>
+						</div>
+					</div>
+				</div>
+				<a id="moreInfo" href="javascript: MoreInfo();">Mais Informações...</a>
+				<div id="divMoreInfo" style="display: none;">
+					<div class="form-row">
+						<div class="form-group col-md-4">
+							<label class="control-label" for="FinalProjectCost">Custo Final do Projeto</label>
+							<input type="text" class="form-control money" name="FinalProjectCost" id="FinalProjectCost" value="@Model.FinalProjectCost" />
+						</div>
+						<div class="form-group col-md-4">
+							<label class="control-label" for="RenewDate">Data de Renovação</label>
+							<input type="text" class="form-control date" name="RenewDate" id="RenewDate" value="@Model.RenewDate" />
+						</div>
+						<div class="form-group col-md-4">
+							<label class="control-label" for="WarningDate">Data de Aviso</label>
+							<input type="text" class="form-control date" name="WarningDate" id="WarningDate" value="@Model.WarningDate" />
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="control-label" for="Evidence">Evidência Objetiva</label>
+						<textarea class="form-control" id="Evidence" name="Evidence" placeholder="Evidência Objetiva">@Model.Evidence</textarea>
+					</div>
+					<a id="lessInfo" href="javascript: LessInfo();">Menos Informações...</a>
+				</div>
+				<div id="divControls">
+					<hr />
+					<a href="@Url.Action("Actions", "CompanyLawManagement")?id=@Model.CompanyLawId" class="btn btn-secondary float-left"><i class="fa fa-arrow-left"></i>&nbsp;Voltar</a>
+					<button type="button" id="buttonSubmit" class="btn btn-success float-right"><i class="fa fa-plus"></i>&nbsp;Criar</button>
+					<script type="text/javascript">
+						$('#buttonSubmit').click(function () {
+							
+							var hasError = false;
+							$('#CompanyLawActionForm .invalid-feedback').remove();
+							$('#alertFormErrorCompanyLaw').hide();
+
+							// Renew Date
+							if (moment($('#WarningDate').val(), 'DD/MM/YYYY').isAfter(moment($('#RenewDate').val(), 'DD/MM/YYYY'))) {
+								$('#WarningDate').after('<div class="invalid-feedback">Data de aviso deve ser anterior a data de renovação.</div>');
+								hasError = true;
+							}
+
+							if (!(IsNullOrWhiteSpace($('#WarningDate').val())) && IsNullOrWhiteSpace($('#RenewDate').val())) {
+								$('#RenewDate').after('<div class="invalid-feedback">Preencha a data de Renovação.</div>');
+								hasError = true;
+							}
+
+							if (hasError) {
+								$('#alertFormErrorCompanyLaw').show();
+								$('#CompanyLawActionForm .invalid-feedback').show();
+							} else {
+								$('#CompanyLawActionForm').submit();
+							}
+						});
+					</script>
+					@if (Model.CompanyLawActionId != null)
+					{
+						<script type="text/javascript">
+							$('#buttonSubmit').removeClass('btn-success');
+							$('#buttonSubmit').addClass('btn-primary');
+							$('#buttonSubmit').html('<i class="fa fa-cloud-upload-alt"></i>&nbsp;Salvar');
+							MoreInfo();
+						</script>
+					}
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="companyLawActionCommentModal" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-lg" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="exampleModalLabel">Comentários do Requisito legal</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<div id="newComment" style="display: none;">
+					<div class="form-group">
+						<label for="Text">Comentário</label>
+						<textarea class="form-control" id="newCommentText" name="newCommentText" rows="2"></textarea>
+					</div>
+					<button class="btn btn-success" id="newCommentButton"><i class="fa fa-plus"></i>&nbsp;Adicionar Comentário</button>
+					<script type="text/javascript">
+                        $('#newCommentButton').click(function () {
+                            var d = { CompanyLawActionId: @Model.CompanyLawActionId, Text: $('#newCommentText').val() };
+                            $.ajax({
+                                url: '@Url.Action("Manage", "CompanyLawActionCommentManagement")',
+                                type: 'POST',
+                                data: d,
+                                dataType: 'json',
+                                success: function (data) {
+                                    $('#newComment').hide();
+                                    $('#newCommentLink').show();
+                                    _CompanyLawActionCommentsDoneTyping(@Model.CompanyLawActionId);
+                                }
+                            });
+                        });
+					</script>
+				</div>
+				<div style="width: 100%;" class="text-right"><a href="javascript:void(0)" id="newCommentLink">Novo Comentário</a></div>
+				<script type="text/javascript">
+					$('#newCommentLink').click(function () {
+						$('#newComment').show();
+						$('#newCommentText').val('');
+						$('#newCommentLink').hide();
+					});
+				</script>
+				<hr />
+				@{ Html.RenderPartial("~/Views/Shared/_CompanyLawActionComment.cshtml"); }
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+    $('#companyLawActionCommentModal').on('shown.bs.modal', function () {
+        $('#newComment').hide();
+        $('#newCommentLink').show();
+        _CompanyLawActionCommentsClearSearch();
+        _CompanyLawActionCommentsDoneTyping(@Model.CompanyLawActionId);
+    });
+</script>
+
+
+<!-- Modal -->
+<input type="hidden" id="SupervisorOrResponsible" value="Supervisor" />
+<div class="modal fade" id="modalUserSearch" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-lg" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="exampleModalLabel">Selecionar Usuário</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				@{ Html.RenderPartial("~/Views/Shared/_UserSearch.cshtml"); }
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+			</div>
+		</div>
+	</div>
+</div>
+<script>
+	function OpenModalUserSearch(supervisorOrResponsible) {
+		$('#SupervisorOrResponsible').val(supervisorOrResponsible);
+		$('#modalUserSearch').modal('show');
+	}
+	function _UserSearchSelectCallBack(d) {
+		$('#' + $('#SupervisorOrResponsible').val() + 'Id').val(d.UserId);
+		$('#' + $('#SupervisorOrResponsible').val() + 'Name').val(d.FirstName + ' ' + d.LastName);
+		$('#modalUserSearch').modal('hide');
+	}
+</script>

@@ -1,0 +1,134 @@
+﻿@model int
+
+<form id="form-transporter-vehicle">
+    <input type="hidden" name="TransporterId" value="@Model" />
+    <input type="hidden" name="TransporterVehicleId" />
+    <div class="row">
+        <div class="col-md-6 form-group">
+            <label>Placa</label>
+            <input class="form-control" placeholder="Placa" name="LicensePlate" maxlength="7" />
+        </div>
+        <div class="col-md-6 form-group">
+            <label>Arquivo Placa</label>
+           <input class="form-control" type="file" name="LicensePlateArchive">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4 form-group">
+            <label>Modelo</label>
+            <input class="form-control" placeholder="Modelo" name="Model" />
+        </div>
+        <div class="col-md-4 form-group">
+            <label>Fabricante</label>
+            <input class="form-control" placeholder="Fabricante" name="Manufacturer" />
+        </div>
+        <div class="col-md-4 form-group">
+            <label>Ano de Fabricação</label>
+            <input class="form-control number" placeholder="Ano de Fabricação" name="ManufacturingDate" />
+        </div>
+    </div>
+    <hr />
+    <div class="row">
+        <div class="col-md-6 form-group">
+            <label>Número DUT</label>
+            <input class="form-control" placeholder="Número DUT" name="DUT" />
+        </div>
+        <div class="col-md-6 form-group">
+            <label>Arquivo DUT</label>
+           <input class="form-control" type="file" name="DUTArchive">
+        </div>
+    </div>
+    <hr />
+    <div class="row">
+        <div class="col-md-6 form-group">
+            <label>Número CIV</label>
+            <input class="form-control" placeholder="Número CIV" name="CIV" />
+        </div>
+        <div class="col-md-6 form-group">
+            <label>Arquivo CIV</label>
+           <input class="form-control" type="file" name="CIVArchive">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6 form-group">
+            <label>Data de Vencimento</label>
+            <input class="form-control date" placeholder="Data de Vencimento" name="_CIVDueDate" />
+        </div>
+        <div class="col-md-6 form-group">
+            <label>Dias para o Vencimento</label>
+            <input class="form-control number" placeholder="Dias para o Vencimento" id="CIV-days-for-due-date" />
+        </div>
+    </div>
+    <hr />
+    <div class="row">
+        <div class="col-md-6 form-group">
+            <label>Modelo CIPP</label>
+            <input class="form-control" placeholder="Modelo CIPP" name="CIPPModel" />
+        </div>
+        <div class="col-md-6 form-group">
+            <label>Arquivo CIPP</label>
+           <input class="form-control" type="file" name="CIPPArchive">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6 form-group">
+            <label>Data de Vencimento</label>
+            <input class="form-control date" placeholder="Data de Vencimento" name="_CIPPDueDate" />
+        </div>
+        <div class="col-md-6 form-group">
+            <label>Dias para o Vencimento</label>
+            <input class="form-control number" placeholder="Dias para o Vencimento" id="CIPP-days-for-due-date" />
+        </div>
+    </div>
+</form>
+
+
+<script asp-cut-key="transporter-vehicle-manage">
+    $('#form-transporter-vehicle input[name=\'_CIPPDueDate\'], #CIPP-days-for-due-date').on('change', function () {
+
+        if ($(this).is($('#form-transporter-vehicle input[name=\'_CIPPDueDate\']'))) {
+            if (isNullOrWhiteSpace($('#form-transporter-vehicle input[name=\'_CIPPDueDate\']').val())) {
+                $('#CIPP-days-for-due-date').val('');
+                return;
+            }
+
+            var days = getDaysFromToday(moment($('#form-transporter-vehicle input[name=\'_CIPPDueDate\']').val(), 'DD/MM/YYYY')._d);
+            if (days == null || isNaN(days)) {
+                $(this).val('');
+                $('#CIPP-days-for-due-date').val('');
+            }
+
+            $('#CIPP-days-for-due-date').val(parseInt(days));
+        }
+        else {
+            var now = new Date();
+            now.setHours(0, 0, 0, 0);
+
+            $('#form-transporter-vehicle input[name=\'_CIPPDueDate\']').val(moment(now).add($(this).val(), 'days').format('DD/MM/YYYY'));
+        }
+    });
+
+    $('#form-transporter-vehicle input[name=\'_CIVDueDate\'], #CIV-days-for-due-date').on('change', function () {
+
+        if ($(this).is($('#form-transporter-vehicle input[name=\'_CIVDueDate\']'))) {
+            if (isNullOrWhiteSpace($('#form-transporter-vehicle input[name=\'_CIVDueDate\']').val())) {
+                $('#CIV-days-for-due-date').val('');
+                return;
+            }
+
+            var days = getDaysFromToday(moment($('#form-transporter-vehicle input[name=\'_CIVDueDate\']').val(), 'DD/MM/YYYY')._d);
+            if (days == null || isNaN(days)) {
+                $(this).val('');
+                $('#CIV-days-for-due-date').val('');
+            }
+
+            $('#CIV-days-for-due-date').val(parseInt(days));
+        }
+        else {
+            var now = new Date();
+            now.setHours(0, 0, 0, 0);
+
+            $('#form-transporter-vehicle input[name=\'_CIVDueDate\']').val(moment(now).add($(this).val(), 'days').format('DD/MM/YYYY'));
+        }
+    });
+</script>

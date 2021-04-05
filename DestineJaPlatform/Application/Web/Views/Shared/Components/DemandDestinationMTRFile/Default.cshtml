@@ -1,0 +1,175 @@
+﻿@model DTO.DemandDestination.DemandDestinationMTRFileViewModel
+
+@inject Services.Residue.ResidueFamilyServices residueFamilyServices
+@inject Services.Residue.ResidueFamilyClassService residueFamilyClassService
+
+<div style="width:100%;">
+    <table class="table-b w-100 bb-0">
+        <tbody>
+            <tr>
+                <td style="width: 25%">
+                    <img src="~/Imagens/logo2.png" height="120" />
+                </td>
+                <td style="width: 75%; font-size: 23px; color: black;" class="green-bg">MTR - MANIFESTO PARA TRANSPORTE DE RESÍDUOS</td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table-b w-100 bb-0">
+        <tbody>
+            <tr class="text-center">
+                <td colspan="2" style="font-size: 18px; font-weight: bold;">Via @Model.Via</td>
+                <td colspan="5" style="font-size: 18px; font-weight: bold; color: #f6a841;">SEQUÊNCIAL Nº @Model.DemandDestination.DestineJaDemandDestinationId</td>
+            </tr>
+            <tr class="text-center green-bg">
+                <td>Origem</td>
+                <td>Família</td>
+                <td>Classe</td>
+                <td>Estado Físico</td>
+                <td>Quantidade</td>
+                <td>Acondicionamento</td>
+                <td>Nº ONU</td>
+            </tr>
+            @foreach (var item in Model.Residues.GroupBy(x => x.Residue.ResidueFamilyId))
+            {
+                var family = await residueFamilyServices.GetDataByIdAsync(item.Key);
+
+                <tr class="text-center">
+                    <td></td>
+                    <td>@family.Name</td>
+                    <td>@item.First().Residue.ResidueFamilyClassName</td>
+                    <td>@(item.Select(x => x.Residue.PhysicalStateName).Distinct().Count() > 1? "Sólido" : item.First().Residue.PhysicalStateName)</td>
+                    <td></td>
+                    <td>@(item.Select(x => x.Residue.PackagingName).Distinct().Count() > 1? "Outras Formas" : item.First().Residue.PackagingName)</td>
+                    <td>@family.ONUCode</td>
+                </tr>
+            }
+            @if (Model.Residues.Count == 0)
+            {
+                var family = await residueFamilyServices.GetDataByIdAsync(Model.DemandDestination.ResidueFamilyId);
+                var familyClass = family.ResidueFamilyClassId.HasValue? await residueFamilyClassService.GetDataByIdAsync(family.ResidueFamilyClassId.Value) : new ApplicationDbContext.Models.ResidueFamilyClass();
+
+                <tr class="text-center">
+                    <td></td>
+                    <td>@family.Name</td>
+                    <td>@familyClass.Name</td>
+                    <td>Sólido</td>
+                    <td></td>
+                    <td>Outras Formas</td>
+                    <td>@family.ONUCode</td>
+                </tr>
+            }
+        </tbody>
+        <tr>
+            <td colspan="7" class="green-bg">1. GERADOR:</td>
+        </tr>
+        <tr>
+            <td colspan="5">Razão Social: DESTINE JÁ PRESTAÇÃO DE SERVIÇOS AMBIENTAIS LTDA</td>
+            <td colspan="2" style="width: 25%;" rowspan="7" class="text-center">@Model.DemandDestination.ArrivedDate?.ToString("/MM/yyyy")</td>
+        </tr>
+        <tr>
+            <td colspan="5">CNPJ: 27.191.617/0001-98</td>
+        </tr>
+        <tr>
+            <td colspan="5">Inscrição: ISENTO</td>
+        </tr>
+        <tr>
+            <td colspan="5">Endereço: Rua Marins Alvarino, 150, Bloco 1, ITARARÉ –VITORIA– ES</td>
+        </tr>
+        <tr>
+            <td colspan="5">Em caso de emergência entra em contado:  RUAN GUASTI</td>
+        </tr>
+        <tr>
+            <td colspan="5">Telefone: (27) 99873-4438 | 3042-2657</td>
+        </tr>
+        <tr>
+            <td colspan="5">e-mail: contato@destineja.com.br</td>
+        </tr>
+        <tr>
+            <td colspan="7" class="green-bg">2. TRANSPORTADOR:</td>
+        </tr>
+        <tr>
+            <td colspan="5">Razão Social: @Model.Transporter.CompanyName.IfNullChange(Model.Transporter.FullName)</td>
+            <td colspan="2" rowspan="7" class="text-center">@Model.DemandDestination.ArrivedDate?.ToString("/MM/yyyy")</td>
+        </tr>
+        <tr>
+            <td colspan="5">CNPJ/CPF: @Model.Transporter.CNPJ.IfNullChange(Model.Transporter.CPF).CNPJOrCPFmask()</td>
+        </tr>
+        <tr>
+            <td colspan="5">Inscrição: @Model.Transporter.IE</td>
+        </tr>
+        <tr>
+            <td colspan="5">Endereço: @Model.Transporter.Address, @Model.Transporter.Number, @Model.Transporter.Complement, @Model.Transporter.Neighborhood – @Model.Transporter.City – @Model.Transporter.State</td>
+        </tr>
+        <tr><td colspan="5" class="bb-0">&nbsp;</td></tr>
+        <tr><td colspan="5" class="bb-0 bt-0">&nbsp;</td></tr>
+        <tr><td colspan="5" class="bt-0">&nbsp;</td></tr>
+        <tr>
+            <td colspan="7" class="green-bg">3. RECEPTOR:</td>
+        </tr>
+        <tr>
+            <td colspan="5">Razão Social: @Model.Recipient.CompanyName.IfNullChange(Model.Recipient.FullName)</td>
+            <td colspan="2" rowspan="7" class="text-center">@Model.DemandDestination.ArrivedDate?.ToString("/MM/yyyy")</td>
+        </tr>
+        <tr>
+            <td colspan="5">CNPJ/CPF: @Model.Recipient.CNPJ.IfNullChange(Model.Recipient.CPF).CNPJOrCPFmask()</td>
+        </tr>
+        <tr>
+            <td colspan="5">Inscrição: @Model.Recipient.IE</td>
+        </tr>
+        <tr>
+            <td colspan="5">Endereço: @Model.Recipient.Address, @Model.Recipient.Number, @Model.Recipient.Complement, @Model.Recipient.Neighborhood – @Model.Recipient.City – @Model.Recipient.State</td>
+        </tr>
+        <tr><td colspan="5" class="bb-0">&nbsp;</td></tr>
+        <tr><td colspan="5" class="bb-0 bt-0">&nbsp;</td></tr>
+        <tr><td colspan="5" class="bt-0">&nbsp;</td></tr>
+    </table>
+    <table class="table-b w-100 bb-0">
+        <tbody>
+            <tr>
+                <td colspan="4" class="green-bg">4. RESPONSÁVEIS:</td>
+            </tr>
+            <tr>
+                <td style="width: 25%; font-size: 20px;" rowspan="2" class="text-center">a) GERADOR:</td>
+                <td style="width: 25%;" class="text-center">Nome</td>
+                <td style="width: 25%;" class="text-center">Assinatura</td>
+                <td style="width: 25%;" rowspan="2" class="text-center">@*<img style="height: 135px;" src="~/Imagens/DestineJa_Carimbo.jpg" />*@</td>
+            </tr>
+            <tr>
+                <td style="width: 25%; font-size: 15px;" class="text-center">DESTINE JÁ PRESTAÇÃO DE SERVIÇOS AMBIENTAIS LTDA ME</td>
+                <td style="width: 25%; height: 135px;" class="text-center">@*<img style="height: 135px;" src="~/Imagens/Assin_Ruan.jpg" />*@</td>
+            </tr>
+            <tr>
+                <td style="width: 25%; font-size: 20px;" rowspan="2" class="text-center">b) TRANSPORTADOR:</td>
+                <td style="width: 25%;" class="text-center">Nome</td>
+                <td style="width: 25%;" class="text-center">Assinatura</td>
+                <td style="width: 25%;" rowspan="2" class="text-center"></td>
+            </tr>
+            <tr>
+                <td style="width: 25%; font-size: 15px;" class="text-center">@Model.Transporter.CompanyName.IfNullChange(Model.Transporter.FullName)</td>
+                <td style="width: 25%; height: 135px;" class="text-center"></td>
+            </tr>
+            <tr>
+                <td style="width: 25%; font-size: 20px;" rowspan="2" class="text-center">c) RECEPTOR:</td>
+                <td style="width: 25%;" class="text-center">Nome</td>
+                <td style="width: 25%;" class="text-center">Assinatura</td>
+                <td style="width: 25%;" rowspan="2" class="text-center"></td>
+            </tr>
+            <tr>
+                <td style="width: 25%; font-size: 15px;" class="text-center">@Model.Recipient.CompanyName.IfNullChange(Model.Recipient.FullName)</td>
+                <td style="width: 25%; height: 135px;" class="text-center"></td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table-b w-100 bb-0">
+        <tbody>
+            <tr>
+                <td style="width: 20%; font-size: 20px;" class="text-center">PESO LÍQUIDO:</td>
+                <td style="width: 20%; font-size: 20px;"></td>
+                <td style="width: 20%; font-size: 20px;" class="text-center">PESO (UNIDADES):</td>
+                <td style="width: 20%; font-size: 20px;"></td>
+                <td style="width: 10%;" class="text-center">NF</td>
+                <td style="width: 10%;" class="text-center"></td>
+            </tr>
+        </tbody>
+    </table>
+</div>

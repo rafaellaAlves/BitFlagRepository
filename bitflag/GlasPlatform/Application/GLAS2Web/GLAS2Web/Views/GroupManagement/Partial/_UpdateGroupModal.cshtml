@@ -1,0 +1,60 @@
+﻿<!-- ************ -->
+<!-- UPDATE GROUP -->
+<!-- ************ -->
+<div class="modal fade" tabindex="-1" role="dialog" id="updateGroupModal" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Atualizar Grupo</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="updateGroupName">Nome</label>
+                    <input type="text" class="form-control" id="updateGroupName" placeholder="Nome do grupo" />
+                </div>
+                <div class="form-group">
+                    <label for="updateGroupDescription">Descrição</label>
+                    <textarea type="text" class="form-control" id="updateGroupDescription" placeholder="Descrição do grupo"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" id="updateGroupButtonSave"><i class="fa fa-cloud-upload-alt" aria-hidden="true"></i>&nbsp;Salvar</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-ban" aria-hidden="true"></i>&nbsp;Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $('#updateGroupModal').on('shown.bs.modal', function () {
+        var node = $('#tree').tree('getSelectedNode');
+        $('#updateGroupName').val(node.Name);
+        $('#updateGroupDescription').val(node.Description);
+    });
+    $('#updateGroupButtonSave').click(function () {
+        if ($('#updateGroupName').val() == '' || $('#updateGroupName').val().length == 0) {
+            alert('Por favor, preencha o nome do grupo.');
+            return;
+        }
+        var node = $('#tree').tree('getSelectedNode');
+        if (node == false || node.IsCompany) {
+            alert('Por favor, selecione um grupo.');
+            return;
+        }
+        var d = { ParentId: node.ParentId, GroupId: node.GroupId, Name: $('#updateGroupName').val(), Description: $('#updateGroupDescription').val() };
+        $.ajax({
+            url: '@Url.Action("Manage", "GroupManagement")',
+            type: 'POST',
+            data: d,
+            dataType: 'json',
+            success: function (data) {
+                $('#tree').tree('updateNode', node, { Name: data.Name, name: data.name, Description: data.Description, description: data.description });
+                UpdateTreeNode(node);
+                $('#updateGroupModal').modal('hide');
+            }
+        });
+     });
+</script>
+<!-- ************ -->

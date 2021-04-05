@@ -1,0 +1,1173 @@
+﻿
+@model GuardMedWeb.Models.SeguradoProfissionalViewModel
+@inject GuardMedWeb.DAL.GuardMedWebContext context;
+@{
+    ViewData["Title"] = "GuarMed";
+
+    var especialidadeFunctions = new GuardMedWeb.BLL.SeguradoProfissional.EspecialidadeFunctions(context);
+    bool hasToken = Context.Request.Query.ContainsKey("token");
+    int i = 1;
+}
+@{ Html.RenderPartial("~/Views/SeguroProfissional/Shared/_StepCotacao.cshtml"); }
+<br />
+<script type="text/javascript">
+    @if (Context.Request.Query.ContainsKey("fileError")) {
+        <text>
+        alert("@Html.Raw(Context.Request.Query["fileError"])");
+        </text>
+    }
+
+    var idade = @Model.Idade;
+
+    function ValidacaoDeFormulario() {
+        $('.text-danger').remove();
+        var FormularioErro = false;
+
+
+        if (IsNullOrWhiteSpace($('#Nome').val())) {
+            $('#Nome').after('<div class="text-danger">Insire o nome!</div>');
+            FormularioErro = true;
+
+        }
+
+        if (IsNullOrWhiteSpace($('#EstadoCRM').val())) {
+            $('#EstadoCRM').after('<div class="text-danger">Insire o estado do CRM!</div>');
+            FormularioErro = true;
+
+        }
+
+        if (IsNullOrWhiteSpace($('#CPF').val())) {
+            $('#CPF').after('<div class="text-danger">Insire o CPF!</div>');
+            FormularioErro = true;
+
+        }
+        else if (!TestaCPF($('#CPF').cleanVal())) {
+            $('#CPF').after('<div class="text-danger">CPF Inválido!</div>');
+            FormularioErro = true;
+
+        }
+
+        if (IsNullOrWhiteSpace($('#CEP').val())) {
+            $('#CEP').after('<div class="text-danger CEPError">Insire o CEP!</div>');
+            FormularioErro = true;
+
+        }
+
+        if (IsNullOrWhiteSpace($('#Estado').val())) {
+            $('#Estado').after('<div class="text-danger">Insire o estado!</div>');
+            FormularioErro = true;
+
+        }
+        if (IsNullOrWhiteSpace($('#Cidade').val())) {
+            $('#Cidade').after('<div class="text-danger">Insire a cidade!</div>');
+            FormularioErro = true;
+
+        }
+        if (IsNullOrWhiteSpace($('#Bairro').val())) {
+            $('#Bairro').after('<div class="text-danger">Insire o bairro!</div>');
+            FormularioErro = true;
+
+        }
+        if (IsNullOrWhiteSpace($('#Endereco').val())) {
+            $('#Endereco').after('<div class="text-danger">Insire o endereço!</div>');
+            FormularioErro = true;
+
+        }
+        if (IsNullOrWhiteSpace($('#EnderecoNumero').val())) {
+            $('#EnderecoNumero').after('<div class="text-danger">Insire o número!</div>');
+            FormularioErro = true;
+
+        }
+
+        if (IsNullOrWhiteSpace($('#DataNascimento').val())) {
+            $('#DataNascimento').after('<div class="text-danger">Insire a data de nascimento!</div>');
+            FormularioErro = true;
+
+        }
+
+        if (IsNullOrWhiteSpace($('#Celular').val()) && IsNullOrWhiteSpace($('#Telefone').val())) {
+            $('#Celular').after('<div class="text-danger">Insire pelo menos um numero!</div>');
+            $('#Telefone').after('<div class="text-danger">Insire pelo menos um numero!</div>');
+            FormularioErro = true;
+
+        }
+
+
+        if (IsNullOrWhiteSpace($('#Email').val())) {
+            $('#Email').after('<div class="text-danger">Insire o e-mail!</div>');
+            FormularioErro = true;
+
+        } else if ($('#Email').val().indexOf("@@") < 1 ||
+            $('#Email').val().indexOf(".") < 1) {
+            FormularioErro = true;
+            $('#Email').after('<div class="text-danger">E-mail incorreto!</div>');
+        }
+
+
+
+        if ($('#AcceptTermCheckbox').length > 0 && !$('#AcceptTermCheckbox')[0].checked) {
+            FormularioErro = true;
+            $('#AcceptTermCheckboxArea').after('<div class="text-danger">Leia o Contrato de Prestação de Serviços e assinale o campo acima</div>');
+        }
+
+
+        if (FormularioErro == true) {
+        $([document.documentElement, document.body]).animate({
+        scrollTop: $("#_ErroShow").offset().top
+        }, 1000);
+            $('#_ErroShow').show().fadeOut(7000);
+            alert(numero);
+        }
+
+        return (!FormularioErro);
+    }
+
+    function SalvarFormulario() {
+        $('#FormularioForm').submit();
+    }
+
+
+</script>
+@{ Html.RenderPartial("~/Views/Shared/_ProdutoSelecionado.cshtml", new ViewDataDictionary(this.Vi‌​ewData) { { "model", Model } }); }
+<br />
+<div class="alert alert-danger" style="display: none" role="alert" id="_ErroShow">Atenção preencha os dados corretamente.</div>
+<form id="FormularioForm" method="post" enctype="multipart/form-data">
+    <input value="@Model.Referencia" name="reference" type="hidden" />
+    <div class="card bg-light">
+        <div class="card-header">
+            <h5 class="amaisvet-green">Dados Cadastrais</h5>
+        </div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group col-md-7">
+                    <label>Nome:</label>
+                    <input class="form-control" value="@Model.Nome" name="Nome" id="Nome" type="text" placeholder="Nome" />
+                </div>
+                <div class="form-group col-md-2">
+                    <label>CRM:</label>
+                    <input class="form-control" value="@Html.Raw(Model.CRM)" type="text" placeholder="CRM" disabled />
+                </div>
+                <div class="form-group col-md-3">
+                    <label>Estado do CRM:</label>
+                    <select class="form-control" id="EstadoCRM" name="EstadoCRM" value="@Model.EstadoCRM" disabled>
+                        <option value="">Selecione</option>
+                        @foreach (var item in GuardMedWeb.BLL.Utils.Utils.GetEstados())
+                        {
+                            <option value="@item.EstadoId">@item.Description</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group col-md-2">
+                    <label>CPF:</label>
+                    <input class="form-control cpf" id="CPF" name="CPF" value="@Model.CPF" type="text" placeholder="CPF" />
+                </div>
+                <div class="col-md-2 form-group">
+                    <label>Data de nascimento:</label>
+                    <input class="form-control date" id="DataNascimento" name="_DataNascimento" value="@Model._DataNascimento" type="text" placeholder="Data de nascimento" disabled />
+                </div>
+                <div class="col-md-2 form-group">
+                    <label>Celular:</label>
+                    <input class="form-control mobile" name="Celular" id="Celular" value="@Model.Celular" type="text" placeholder="Celular" />
+                </div>
+                <div class="col-md-2 form-group">
+                    <label>Telefone:</label>
+                    <input class="form-control phone" name="Telefone" id="Telefone" value="@Model.Telefone" type="text" placeholder="Telefone" />
+                </div>
+                <div class="col-md-4 form-group">
+                    <label>E-mail:</label>
+                    <input class="form-control" id="Email" name="Email" type="email" value="@Model.Email" placeholder="E-mail" />
+                </div>
+                <div class="col-md-2 form-group">
+                    <label>CEP:</label>
+                    <input class="form-control cep" id="CEP" name="CEP" value="@Model.CEP" type="text" placeholder="CEP" />
+                </div>
+                <div class="col-md-6 form-group">
+                    <label>Endereço:</label>
+                    <input class="form-control" id="Endereco" name="Endereco" value="@Model.Endereco" type="text" placeholder="Endereço" />
+                </div>
+                <div class="col-md-2 form-group">
+                    <label>Número:</label>
+                    <input class="form-control" id="EnderecoNumero" name="EnderecoNumero" value="@Model.EnderecoNumero" type="text" placeholder="Numero" />
+                </div>
+                <div class="col-md-2 form-group">
+                    <label>Complemento:</label>
+                    <input class="form-control" id="Complemento" name="Complemento" value="@Model.Complemento" type="text" placeholder="Complemento" />
+                </div>
+                <div class="col-md-4 form-group">
+                    <label>Bairro:</label>
+                    <input class="form-control" id="Bairro" name="Bairro" value="@Model.Bairro" type="text" placeholder="Bairro" />
+                </div>
+                <div class="col-md-4 form-group">
+                    <label>Cidade:</label>
+                    <input class="form-control" id="Cidade" name="Cidade" value="@Model.Cidade" type="text" placeholder="Cidade" />
+                </div>
+                <div class="col-md-4 form-group">
+                    <label>Estado:</label>
+                    <select class="form-control" id="Estado" name="Estado">
+                        <option value="">Selecione</option>
+                        @foreach (var item in GuardMedWeb.BLL.Utils.Utils.GetEstados())
+                        {
+                            <option value="@item.EstadoId">@item.Description</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (!Context.Request.Query.ContainsKey("RenewToken"))
+    {
+        <br />
+        <div class="card bg-light">
+            <div class="card-header">
+                <h5 class="amaisvet-green">Histórico do Seguro</h5>
+            </div>
+            <div class="card-body">
+                <div class="row" style="width:100%;">
+                    <div class="col-md-6"> <b>O profissional possui apólice de seguro vigente ou a renovar?</b> </div>
+                    <div class="row col-md-6">
+                        <div class="col-md-5 text-center">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="HistoricoSeguro" id="HistoricoSeguroSim" value="true">
+                                <label class="form-check-label" for="inlineRadio3"><strong>Sim</strong></label>
+                                <br />
+                            </div>
+                        </div>
+                        <div class="col-md-5 text-center">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="HistoricoSeguro" id="HistoricoSeguroNao" value="false">
+                                <label class="form-check-label" for="inlineRadio4"><strong>Não</strong></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row" id="DivDatasHistoricoSeguro" style="display:none;">
+                    <div class="form-group col-md-4">
+                        <label>Data de Vencimento da Apólice:</label>
+                        @*<input name="DataVencimentoSeguro" id="DataVencimentoSeguro" type="hidden" />*@
+                        <input class="form-control date" id="DataVencimentoSeguro" name="_DataVencimentoSeguro" type="text" placeholder="Data de Vencimento da Apólice" value="@Model._DataVencimentoSeguro" />
+                    </div>
+                    <div class="col-md-1"></div>
+                    <div class="form-group col-md-4">
+                        <label>Data de Retroatividade:</label>
+                        @*<input name="Retroatividade" id="Retroatividade" type="hidden" />*@
+                        <input class="form-control date" id="DataRetroatividade" name="_DataRetroatividade" type="text" placeholder="Data de Retroatividade" value="@Model._DataRetroatividade" />
+                    </div>
+                    <div>&nbsp;&nbsp;&nbsp;&nbsp;</div>
+                    <div class="form-group col-md-4">
+                        <label>Apólices Anteriores:</label>
+                        <input type="file" id="BotaoUpload" name="file" />
+
+                    </div>
+                    <div class="col-md-12">
+                        <small style="color:grey;">*Arquivos devem ser remetidos em até 72 horas para o email : contato@guardmed.com.br</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <br />
+    <div class="card bg-light">
+        <div class="card-header">
+            <h5 class="amaisvet-green">Dados Técnicos</h5>
+        </div>
+        <div class="card-body">
+            <div id="dadosTecnicos" style="width:100%;">
+                @foreach (var especialidade in Model.EspecialidadeProfissional)
+                {
+                    <div id="especilidadeProfissionalArea@(i)" class="form-row">
+                        <input id="EspecialidadeProfissionalId@(i)" type="hidden" value="@especialidade.EspecialidadeProfissionalId" />
+                        <h5 class="col-md-12">
+                            Especialidade @(i)
+                        </h5>
+                        <div class="form-group col-md-12">
+                            <label>Especialidade:</label>
+                            <select class="form-control" id="EspecialidadeId@(i)" disabled>
+                                <option value="">Selecione</option>
+                                @foreach (var _item in especialidadeFunctions.GetData())
+                                {
+                                    if (_item.EspecialidadeId == especialidade.EspecialidadeId)
+                                    {
+                                        <option value="@_item.EspecialidadeId" selected>@_item.Nome</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@_item.EspecialidadeId">@_item.Nome</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        @*<div class="form-group col-md-4">
+                                <label>Invasivo: </label>
+                                <select class="form-control" id="Invasivo@(i)">
+                                    <option value="">Selecione</option>
+                                    @if (especialidade.Invasivo == true)
+                                    {
+                                        <option value="true" selected>Sim</option>
+                                        <option value="false">Não</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="true">Sim</option>
+                                        <option value="false" selected>Não</option>
+                                    }
+                                </select>
+                            </div>*@
+                        @if (i != Model.EspecialidadeProfissional.Count)
+                        {
+                            <hr />
+                        }
+                    </div>
+                    i++;
+                }
+                @*@if (i == 1)
+                    {
+                        <div id="especilidadeProfissionalArea@(i)" class="form-row">
+                            <input id="EspecialidadeProfissionalId@(i)" type="hidden" value="" />
+                            <h5 class="col-md-12">
+                                Especialidade @(i)
+                            </h5>
+                            <div class="form-group col-md-8">
+                                <label>Especialidade:</label>
+                                <select class="form-control" id="EspecialidadeId@(i)">
+                                    <option value="">Selecione</option>
+                                    @foreach (var _item in especialidadeFunctions.GetData())
+                                    {
+                                        <option value="@_item.EspecialidadeId">@_item.Nome</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label>Invasivo: </label>
+                                <select class="form-control" id="Invasivo@(i)">
+                                    <option value="">Selecione</option>
+                                    <option value="true">Sim</option>
+                                    <option value="false">Não</option>
+                                </select>
+                            </div>
+                        </div>
+                        i++;
+                    }*@
+            </div>
+            @*<div class="form-row">
+                    <div class="col-md-6">
+                        <a href="javascript:void(0)" id="DiminuirEspecialidade"><i class="fas fa-minus-circle"></i>&nbsp; Especialidade</a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="javascript:void(0)" id="AumentarEspecialidade" class="float-right"><i class="fas fa-plus-circle"></i>&nbsp; Especialidade</a>
+                    </div>
+                </div>*@
+        </div>
+    </div>
+
+    @if (!Context.Request.Query.ContainsKey("RenewToken"))
+    {
+        <br />
+        <div class="card bg-light">
+            <div class="card-header">
+                <h5 class="amaisvet-green">Contrato de Prestação de Serviços</h5>
+            </div>
+            <div class="card-body">
+                <div class="row" style="height:300px; overflow-y:auto;">
+                    <div class="col-md-12" style="line-height:30px;">
+                        <p>
+                            Pelo presente instrumento particular, e na melhor forma de direito, de um lado
+                        </p>
+                        <p>
+                            <strong>(i) </strong>
+                            <strong>GUARDMED APOIO ADMINISTRATIVO LTDA</strong>
+                            , inscrita no CNPJ nº 34.787.252/000124, com sede na Cidade de São
+                            Paulo/SP, na Rua Manuel da Nóbrega, nº 354, 8º andar, Bairro Paraíso, CEP
+                            04001-000, devidamente representada nos termos de seu contrato social,
+                            doravante denominada <strong>GUARDMED</strong>, e de outro lado,
+                        </p>
+                        <p>
+                            <strong>(ii) </strong>
+                            <strong>CONTRATANTE</strong>
+                            , com a qualificação completa envolvendo nome, documentos, especialidade e
+                            endereço, preenchidos no momento do cadastro e contratação através da
+                        </p>
+                        <p>
+                            PLATAFORMA GUARDMED, e
+                        </p>
+                        <p>
+                            Considerando que:
+                        </p>
+                        <p>
+                            - a <strong>GUARDMED</strong> é uma empresa voltada a prestação de serviços
+                            administrativos e comercialização de benefícios próprios e de terceiros,
+                            proprietária e desenvolvedora de uma plataforma online voltados para
+                            médicos e profissionais da saúde em todo território nacional doravante
+                            denominada <strong>PLATAFORMA GUARDMED (www.guardmed.com.br)</strong>;
+                        </p>
+                        <p>
+                            RESOLVEM as PARTES, em face das considerações acima, na melhor forma de
+                            direito celebrar o presente<strong>CONTRATO DE PRESTAÇÃO DE SERVIÇOS</strong>, doravante denominado    <strong>CONTRATO</strong>, que se regerá pela legislação aplicável e pelas
+                            seguintes cláusulas e condições que mutuamente acordam e aceitam, a saber
+                        </p>
+                        <p>
+                            1. Cláusula Primeira – Do Objeto
+                        </p>
+                        <p align="left">
+                            <strong> </strong>
+                        </p>
+                        <p>
+                            <strong>1.1.</strong>
+                            <strong> </strong>
+                            O presente <strong>CONTRATO</strong> tem como objeto a prestação dos
+                            serviços administrativos que compõem a <strong>PLATAFORMA GUARDMED</strong>
+                            , por parte da <strong>GUARDMED</strong> descritos a seguir:
+                        </p>
+                        <p>
+                            <strong>1.1.1.</strong>
+                            <strong> </strong>
+                            Disponibilização de lista de documentos básicos, modelos de documentos e
+                            contratos relacionados à atividade do profissional da área de saúde;
+                        </p>
+                        <p>
+                            <strong>1.1.2.</strong>
+                            <strong> </strong>
+                            Pesquisa nos tribunais competentes, limitado a 20 (vinte) decisões que
+                            serão disponibilizadas em forma de relatório, sem, contudo, emitir parecer,
+                            opinião ou orientação jurídica de qualquer natureza;
+                        </p>
+                        <p>
+                            <strong>1.1.3.</strong>
+                            <strong> </strong>
+                            Mediação entre o paciente/reclamante e o <strong>CONTRATANTE</strong>,
+                            através da realização dos contatos necessários para formalização de acordo
+                            extrajudicial, excluindo análises de mérito e negociações, apenas atuando
+                            na interface entre as partes.
+                        </p>
+                        <p>
+                            1.1.4 No caso de <strong>GRUPOS MÉDICOS</strong>, auxílio ao gestor do
+                            grupo quanto a movimentação de profissionais dentro da<strong>PLATAFORMA GUARDMED</strong> e junto aos    <strong>PARCEIROS.</strong>
+                        </p>
+                        <p>
+                            <strong>1.2.</strong>
+                            <strong> </strong>
+                            Para efeitos de definição dos serviços que englobam o objeto da cláusula
+                            1.1 temos que:
+                        </p>
+                        <p>
+                            <strong>(i) </strong>
+                            <strong><u>Plataforma Guardmed</u></strong>
+                            – Sistema disponibilizado na nuvem de propriedade da
+                        </p>
+                        <p>
+                            <strong>GUARDMED</strong>
+                            , na qual é feita a comercialização e contratação dos serviços e produtos
+                            desse <strong>CONTRATO</strong>.
+                        </p>
+                        <p>
+                            <strong>(ii) </strong>
+                            <strong><u>Profissional da Área de Saúde</u></strong>
+                            – Trata-se de médico devidamente habilitado e inscrito junto ao Conselho
+                            Federal de Medicina.
+                        </p>
+                        <p>
+                            <strong>(iii) </strong>
+                            <strong><u>Seguro de Responsabilidade Civil</u></strong>
+                            – Modalidade de seguro que garante ao Segurado, responsável por danos
+                            causados a terceiros, o pagamento e/ou reembolso das reparações que for
+                            condenado a pagar, atendidas as disposições contratadas, além do reembolso
+                            de despesas emergenciais efetuadas para tentar evitar e/ou minorar os
+                            danos. <strong>(iv)</strong><strong> </strong>    <strong><u>Corretora de Seguros</u></strong> – Trata-se da corretora A MAIS
+                            ADMINISTRADORA E CORRETORA DE SEGUROS S/S LTDA ME, CNPJ nº
+                            12.939.904/0001-66, legalmente constituída na foram da legislação em vigor,
+                            autorizada a angariar e promover o    <strong>SEGURO DE RESPONSABILIDADE CIVIL</strong>, remunerado mediante
+                            comissões estabelecidas junta a <strong>SEGURADORA</strong>.
+                        </p>
+                        <p>
+                            <strong>(v) </strong>
+                            <strong><u>Seguradora</u></strong>
+                            - Sociedade seguradora devidamente autorizada junto a SUSEP a operar o<strong>SEGURO DE RESPONSABILIDADE CIVIL</strong> oferecido na<strong>PLATAFORMA GUARDMED</strong> e comercializado pela    <strong>CORRETORA DE SEGUROS</strong>.
+                        </p>
+                        <p>
+                            <strong>(vi) </strong>
+                            <strong><u>Sinistro ou Evento Adverso</u></strong>
+                            - Ocorrência verificada de erro médico relacionado à atividade profissional
+                            do médico devidamente habilitado, durante o período de vigência do plano de
+                            Seguro de Responsabilidade Civil.
+                        </p>
+                        <p>
+                            <strong>(vii) </strong>
+                            <strong><u>Mediação e Conciliação</u></strong>
+                            - Forma de solução de conflitos em que a equipe Guardmed, neutra e
+                            imparcial, busca facilitar o diálogo entre as partes, para que elas
+                            construam, com autonomia e solidariedade, a melhor solução para o conflito.    <strong> </strong>
+                        </p>
+                        <p>
+                            <strong>(viii) </strong>
+                            <strong><u>Benefícios</u></strong>
+                            – Conjunto de descontos e facilidades disponibilizadas na    <strong>PLATAFORMA </strong>
+                        </p>
+                        <p>
+                            GUARDMED à CONTRANTE pelos PARCEIROS da GUARDMED
+                        </p>
+                        <p align="left">
+                            <strong>(ix)</strong>
+                            <strong> </strong>
+                            <strong><u>Parceiros</u></strong>
+                            – Empresas que disponibilizam na <strong>PLATAFORMA GUARDMED</strong>
+                            produtos e
+                        </p>
+                        <p>
+                            serviços por eles comercializados com condições de preço e prazos especiais
+                        </p>
+                        <p>
+                            (x) <u>Planos GM</u> – Planos descritos na PLATAFORMA GUARDMED
+                        </p>
+                        <p>
+                            <strong>(xi)</strong>
+                            <strong> </strong>
+                            <strong><u>Grupos Médicos</u></strong>
+                            – Grupo de profissionais médicos de uma única ou diversas especialidades,
+                            que realiza a contratação dos serviços prestados pela    <strong>GUARDMED</strong> e/ou pelos <strong>PARCEIROS</strong> de forma
+                            coletiva, através de tipo societário constituído para tanto.
+                        </p>
+                        <p>
+                            <strong>1.3.</strong>
+                            <strong> </strong>
+                            Todos os serviços e conteúdo disponibilizado ao    <strong>CONTRATANTE</strong> deverão ser acessado através de seu login e
+                            senha dentro da <strong>PLATAFORMA GUARDMED</strong>. O    <strong>CONTRATANTE</strong> deverá acessar a área de cliente inserindo seu
+                            login e senha recebidos por e-mail no ato da contratação.
+                        </p>
+                        <p>
+                            <strong>1.4.</strong>
+                            <strong> </strong>
+                            Para a prestação dos serviços anteriormente descritos, o    <strong>CONTRATANTE</strong> deverá fornecer com precisão, através de seu
+                            cadastro na <strong>PLATAFORMA GUARDMED,</strong> todos seus dados,
+                            informações e documentos requisitados, dentro do prazo que será informado
+                            no momento da solicitação, mantendo tais informações atualizadas durante
+                            toda a sua vigência, sob pena da <strong>CONTRATANTE</strong> responder,
+                            nos termos da lei, pela veracidade, certeza, suficiência e consistência
+                            destas informações; .
+                        </p>
+                        <p>
+                            <strong>1.4.1.</strong>
+                            <strong> </strong>
+                            Em caso de <strong>GRUPOS MÉDICOS</strong>, a <strong>CONTRATANTE</strong>
+                            deverá manter atualizada a lista de participantes que farão jus aos
+                            serviços prestados pela <strong>GUARDMED</strong>, comunicando no prazo
+                            máximo de <strong>48 (quarenta e oito) horas</strong>, qualquer
+                            movimentação de inclusão ou exclusão destes profissionais, e sempre antes
+                            do 15º (décimo quinto dia) de cada mês;
+                        </p>
+                        <p>
+                            <strong>1.5.</strong>
+                            <strong> </strong>
+                            Todos os serviços ou produtos que envolvem todos os<strong>PARCEIROS</strong> da <strong>GUARDMED</strong>, a    <strong>CORRETORA DE SEGURO</strong> e a <strong>SEGURADORA</strong>, serão
+                            prestados diretamente e exclusivamente com os mesmos e sob a
+                            responsabilidade de cada um deles, e quando possível e dentro do escopo
+                            aqui contratado com o auxílio da <strong>GUARDMED</strong>.
+                        </p>
+                        <p>
+                            <strong>1.5.1.</strong>
+                            <strong> </strong>
+                            Caso optem por alguns dos serviços descritos na clausula 1.5, a    <strong>CONTRATANTE</strong> desde já autoriza que a cobrança seja
+                            realizada diretamente pela <strong>GUARDMED</strong> através de boleto
+                            bancário / débito automático / cobrança via cartão de crédito os valores
+                            desses serviços adicionais, responsabilizando-se essa neste caso pelo
+                            repasse ao parceiro contratado.
+                        </p>
+                        <p>
+                            <strong>1.5.2.</strong>
+                            <strong> </strong>
+                            As Notas Fiscais dos produtos e serviços, certificados, apólices,
+                            contratos, etc.. serão emitidas diretamente pelos    <strong>PARCEIROS</strong> quando relacionadas aos benefícios por eles
+                            disponibilizados e pela <strong>GUARDMED </strong>no que se referir aos
+                            serviços por ela prestados.
+                        </p>
+                        <p align="left">
+                            <strong>1.6.</strong>
+                            <strong> </strong>
+                            Verificada a contratação posterior a um Sinistro ou Evento Adverso, neste
+                            caso a
+                        </p>
+                        <p>
+                            <strong>CONTRATANTE</strong>
+                            não poderá utilizar dos serviços disponibilizados pelos parceiros da    <strong>GUARDMED</strong> no que se trata de orientação e defesa judicial,
+                            bem como não será possível realizar a contratação de cobertura do<strong>SEGURO DE RESPONSABILIDADE CIVIL</strong> junto a    <strong>SEGURADORA </strong>para o respectivo evento, uma vez que se trata
+                            de fato pretérito.
+                        </p>
+                        <p>
+                            2. Cláusula Segunda – Da Licença de Uso da PLATAFORMA GUARDMED
+                        </p>
+                        <p align="left">
+                            <strong> </strong>
+                        </p>
+                        <p>
+                            <strong>2.1.</strong>
+                            <strong> </strong>
+                            A <strong>CONTRATANTE</strong> declara, aceita e reconhece que a    <strong>PLATAFORMA GUARDMED</strong> e o todo o material disponível nela, e
+                            ainda quaisquer modificações, atualizações e novas versões são protegidas
+                            pela legislação.<strong> </strong>
+                        </p>
+                        <p align="left">
+                            <strong> </strong>
+                        </p>
+                        <p>
+                            <strong>2.2.</strong>
+                            <strong> </strong>
+                            O uso da <strong>PLATAFORMA GUARDMED</strong> ficará condicionado à
+                            contratação e consequente cadastro da <strong>CONTRATANTE</strong> no
+                            domínio <a href="http://www.guardmed.com.br/">www.guardmed.com.br</a>    <a href="http://www.guardmed.com.br/">,</a> e à quantidade de usuários e/ou
+                            acessos estará restrita à informada no momento da contratação por ocasião
+                            deste <strong>CONTRATO</strong>.<strong> </strong>
+                        </p>
+                        <p align="left">
+                            <strong> </strong>
+                        </p>
+                        <p>
+                            <strong>2.3.</strong>
+                            <strong> </strong>
+                            O presente <strong>CONTRATO</strong> não gera direitos de aquisição ou
+                            quaisquer outros direitos para além do uso na forma estabelecida no item
+                            anterior ou nos termos do aqui contratado sobre a    <strong>PLATAFORMA GUARDMED</strong>, sendo expressamente proibida por
+                            parte da <strong>CONTRATANTE</strong> ou de terceiros <strong>(i)</strong>
+                            a sua transferência, cópia total ou parcial, comercialização,
+                            sublicenciamento, empréstimo, aluguel, arrendamento, ou de qualquer outra
+                            forma, alienação da <strong>PLATAFORMA GUARDMED</strong>, salvo expressa
+                            autorização da <strong>GUARDMED</strong> <strong>(II)</strong> efetuem
+                            modificações, acréscimos ou derivações da    <strong>PLATAFORMA GUARDMED</strong>, por si próprio ou através da
+                            contratação de terceiros <strong>(iii)</strong> realização de engenharia
+                            reversa ou qualquer outra maneira de desmonte da    <strong>PLATAFORMA GUARDMED</strong>, ou tome ainda qualquer outra medida
+                            que possibilite o acesso ou modificação do código fonte, sem o
+                            consentimento prévio ou por escrito da <strong>GUARDMED</strong>.    <strong> </strong>
+                        </p>
+                        <p align="left">
+                            <strong> </strong>
+                        </p>
+                        <p>
+                            <strong>2.4.</strong>
+                            <strong> </strong>
+                            A <strong>CONTRATANTE</strong> declara sua ciência e concordância no fato
+                            de que para seu acesso e funcionamento adequado da    <strong>PLATAFORMA GUARDMED</strong> dependerá de sistemas operacionais e
+                            de infraestrutura, tais como acesso à internet e serviços de
+                            telecomunicação fornecidos por terceiros, cuja contratação será de
+                            responsabilidade da CONTRATANTE.<strong> </strong>
+                        </p>
+                        <p align="left">
+                            <strong> </strong>
+                        </p>
+                        <p>
+                            <strong>2.5.</strong>
+                            <strong> </strong>
+                            A <strong>GUARDMED</strong> envidará seus melhores esforços para resolver,
+                            interromper ou cessar, problema decorrentes de modificações, acréscimos,
+                            atualizações, customizações e novas versões da<strong>PLATAFORMA GUARDMED</strong>, concordando e reconhecendo a    <strong>CONTRATANTE</strong> que eventuais problemas decorrentes de
+                            paralisações, vírus, ataques de programas de terceiros à<strong>PLATAFORMA GUARDMED</strong>, não serão de responsabilidade da    <strong>GUARDMED</strong>.<strong> </strong>
+                        </p>
+                        <p align="left">
+                            <strong> </strong>
+                        </p>
+                        <p>
+                            3. Cláusula Terceira – Prazo e Rescisão
+                        </p>
+                        <p align="left">
+                            <strong> </strong>
+                        </p>
+                        <p>
+                            <strong>3.1.</strong>
+                            <strong> </strong>
+                            O presente <strong>CONTRATO</strong> terá vigência por tempo indeterminado,
+                            iniciando a partir da contratação e confirmação de pagamento da<strong>CONTRATANTE</strong> em um dos planos da    <strong>PLATAFORMA GUARDMED (</strong>
+                            <a href="http://www.guardmed.com.br/">
+                                <strong>www.guardmed.com.br</strong>
+                            </a>
+                            <a href="http://www.guardmed.com.br/"><strong>)</strong></a>
+                            .<strong> </strong>
+                        </p>
+                        <p align="left">
+                            <strong> </strong>
+                        </p>
+                        <p align="left">
+                            <strong>3.2.</strong>
+                            <strong> </strong>
+                            As partes poderão rescindi-lo em razão de:<strong> </strong>
+                        </p>
+                        <p align="left">
+                            <strong> </strong>
+                        </p>
+                        <p>
+                            <strong>(i) </strong>
+                            inadimplemento da outra parte em relação a quaisquer das obrigações ora
+                            ajustadas observado o prazo da cláusula 3.3; e
+                        </p>
+                        <p>
+                            <strong>(ii) </strong>
+                            recuperação judicial, decretação de falência ou processo de liquidação
+                            judicial ou extrajudicial da outra parte.
+                        </p>
+                        <p align="left">
+                            <strong> </strong>
+                        </p>
+                        <p>
+                            <strong>3.3. </strong>
+                            O não pagamento em até <strong>20 (vinte) dias</strong> da data de
+                            vencimento de qualquer parcela (mensal/semestral/anual) por conta do aceite
+                            deste <strong>CONTRATO</strong>, gera a    <strong>RESCISÃO AUTOMÁTICA</strong>, independente de notificação,
+                            declarando a <strong>CONTRATANTE</strong> expressamente que tem ciência
+                            que, nesse caso, a <strong>GUARDMED</strong> ou seus    <strong>PARCEIROS</strong>, não se responsabilizarão pelos danos causados
+                            durante o período de inadimplência, exonerando tanto a    <strong>GUARDMED</strong> e seus <strong>PARCEIROS</strong> de qualquer
+                            responsabilidade técnica pelos serviços ou produtos desde a data em que se
+                            conste o inadimplemento.
+                        </p>
+                        <p>
+                            <strong>3.4. </strong>
+                            Em caso de rescisão ou término deste <strong>CONTRATO</strong> por qualquer
+                            motivo, a
+                        </p>
+                        <p>
+                            <strong>GUARDMED</strong>
+                            poderá manter os dados e histórico das transações realizadas pelo    <strong>CONTRATANTE</strong> arquivados por tempo indeterminado, o que
+                            desde já fica aqui expressamente autorizado.
+                        </p>
+                        <p align="left">
+                            <strong> </strong>
+                        </p>
+                        <p>
+                            4. Cláusula Quarta – Dos Planos e Características
+                        </p>
+                        <p align="left">
+                            <strong> </strong>
+                        </p>
+                        <p>
+                            <strong>4.1.</strong>
+                            <strong> </strong>
+                            A <strong>CONTRATANTE</strong> optará por uma das modalidades de<strong>PLANOS GM</strong> descritos na<strong>PLATAFORMA GUARDMED</strong> através do domínio<a href="http://www.guardmed.com.br/">www.guardmed.com.br</a>    <a href="http://www.guardmed.com.br/">,</a> optando pelo preço e forma de
+                            pagamento no momento da contratação.<strong> </strong>
+                        </p>
+                        <p align="left">
+                            <strong> </strong>
+                        </p>
+                        <p>
+                            <strong>4.2.</strong>
+                            <strong> </strong>
+                            Os valores devidos por conta desse <strong>CONTRATO</strong> serão cobrados
+                            de forma adiantada pela <strong>GUARDMED</strong>, e quando envolverem os<strong>PARCEIROS</strong> a eles repassados. No caso dos valores devidos à<strong>SEGURADORA</strong> por conta do<strong>SEGURO DE RESPONSABILIDADE CIVIL</strong>, caberá à    <strong>GUARDMED</strong> repassar o valor do prêmio para cobertura nos
+                            termos da Apólice. (?) <strong> </strong>
+                        </p>
+                        <p align="left">
+                            <strong> </strong>
+                        </p>
+                        <p>
+                            <strong>4.3.</strong>
+                            <strong> </strong>
+                            Os <strong>PLANOS GM</strong> poderão variar de preço de acordo com<strong>(i)</strong> forma de pagamento mensal, semestral ou anual    <strong>(ii)</strong> pessoa física ou grupo médico <strong>(iii)</strong>
+                            localidade <strong>(iv)</strong> especialidade médica <strong>(v)</strong>
+                            entre outros previamente comunicados no momento da contratação.    <strong> </strong>
+                        </p>
+                        <p align="left">
+                            <strong> </strong>
+                        </p>
+                        <p>
+                            <strong>4.4.</strong>
+                            <strong> </strong>
+                            É facultado à <strong>CONTRATANTE</strong>, estando adimplente com suas
+                            obrigações contratuais, requerer, a qualquer tempo, a alteração de plano,
+                            dentre os disponíveis, mediante o pagamento da respectiva diferença de
+                            valor, aumentando-se ou reduzindo-se, conforme o caso, o preço de sua
+                            mensalidade, de acordo com a tabela de valores vigentes à época da mudança
+                            e respeitadas todas as condições previstas nesse <strong>CONTRATO</strong>.
+                        </p>
+                        <p>
+                            4.4.1 Caso a alteração de plano seja por um de menor valor, todos os
+                            serviços disponíveis serão ajustados de acordo com o novo plano contratado,
+                            a contar da data da migração.
+                        </p>
+                        <p>
+                            <strong>4.5.</strong>
+                            <strong> </strong>
+                            A <strong>GUARDMED</strong> se reserva o direito de criar, alterar ou
+                            modificar e excluir modalidades e planos a qualquer tempo, sem prejuízo dos
+                            direitos garantidos à <strong>CONTRATANTE</strong> por lei e aqui
+                            pactuados.
+                        </p>
+                        <p>
+                            <strong>4.6.</strong>
+                            <strong> </strong>
+                            Na hipótese de ocorrer alguma mudança legislativa, regulatória,
+                            governamental, no nosso sistema ou em nossa operação ou de nossos
+                            Parceiros, que influencie em custos ou torne inviável economicamente a
+                            continuidade na manutenção dos preços praticados no(s)    <strong>PLANO(S) GM</strong> contratado(s), a <strong>GUARDMED</strong>
+                            poderá reajustar os valores dos planos, ou até mesmo extingui-los.
+                        </p>
+                        <p>
+                            <strong>4.6.1.</strong>
+                            <strong> </strong>
+                            Nesses casos, o <strong>CONTRATANTE</strong> será informado com
+                            antecedência mínima de 30(trinta) dias pela    <strong>PLATAFORMA GUARDMED</strong>, possibilitando assim exercer sua
+                            opção de migrar para um novo plano existente.
+                        </p>
+                        <p>
+                            <strong>4.6.2.</strong>
+                            <strong> </strong>
+                            Informado o <strong>CONTRATANTE</strong> acerca das novas condições e não
+                            havendo qualquer manifestação expressa, este concorda aqui que a    <strong>GUARDMED</strong> proceda a migração de acordo com o melhor plano
+                            que se enquadre a situação do <strong>CONTRATANTE</strong>, sendo permitido
+                            ao mesmo a faculdade de rescindir o presente <strong>CONTRATO</strong> caso
+                            não esteja de acordo.
+                        </p>
+                        <p align="left">
+                            <strong> </strong>
+                        </p>
+                        <p>
+                            5. Cláusula Quinta – Das Comunicações entre as Partes
+                        </p>
+                        <p align="left">
+                            <strong> </strong>
+                        </p>
+                        <p>
+                            <strong>5.1.</strong>
+                            <strong> </strong>
+                            Toda e qualquer comunicação entre as partes, para que seja válida, deverá
+                            ser manifestada por escrito através da <strong>PLATAFORMA GUARDMED</strong>
+                            , ou via e-mail no endereço indicado <u>contato@guardmed.com.br</u>.
+                        </p>
+                        <p>
+                            <strong>5.2.</strong>
+                            <strong> </strong>
+                            Ao realizar o cadastro ou adesão de um <strong>Plano GM</strong>, a<strong>CONTRATANTE</strong> consente e concorda expressamente com que a    <strong>GUARDMED</strong> envie todas as Comunicações em formato eletrônico
+                            ao endereço de e-mail primário por ela informado. É de responsabilidade da    <strong>CONTRATANTE</strong> manter o endereço de e-mail primário sempre
+                            atualizado.
+                        </p>
+                        <p align="left">
+                            <strong> </strong>
+                        </p>
+                        <p>
+                            6. Cláusula Sexta – Da Política de Privacidade e Lei Geral de Proteção de
+                            Dados
+                        </p>
+                        <p align="left">
+                            <strong> </strong>
+                        </p>
+                        <p>
+                            <strong>6.1.</strong>
+                            <strong> </strong>
+                            A <strong>GUARDMED</strong> se compromete a manter protegidos e em
+                            confidencialidade todos os dados cadastrais, incluindo e-mail informado,
+                            número de IP (<em>Internet Protocol</em>) de acesso e outras informações
+                            pessoais que não sejam necessárias à execução do presente    <strong>CONTRATO</strong>, mantendo atualizada sua Política de Privacidade
+                            no endereço
+                            <a href="http://www.guardmed.com.br/politica-de-privacidade/">
+                                www.guardmed.com.br/politica
+                            </a>
+                            <a href="http://www.guardmed.com.br/politica-de-privacidade/">-</a>
+                            <a href="http://www.guardmed.com.br/politica-de-privacidade/">de</a>
+                            <a href="http://www.guardmed.com.br/politica-de-privacidade/">-</a>
+                            <a href="http://www.guardmed.com.br/politica-de-privacidade/">
+                                privacidade/
+                            </a>
+                            <a href="http://www.guardmed.com.br/politica-de-privacidade/"> </a>
+                            para consulta por parte da <strong>CONTRATANTE</strong>.
+                        </p>
+                        <p>
+                            <strong>6.2.</strong>
+                            <strong> </strong>
+                            A <strong>GUARDMED </strong>poderá coletar os seguintes dados pessoais da<strong>CONTRATANTE</strong> <strong>(i)</strong> nome completo    <strong>(ii)</strong> data de nascimento <strong>(iii)</strong>
+                            nacionalidade <strong>(iv)</strong> número de telefone fixo e celular<strong>(v)</strong> estado civil <strong>(vi)</strong> endereço    <strong>(vii)</strong> email <strong>(viii)</strong> dados e imagens da
+                            Carteira de Identidade RG<strong> (ix)</strong> dados e imagens do Cadastro
+                            de Pessoas Físicas CPF <strong>(x)</strong> dados e imagens da Carteira de
+                            Identidade Profissional <strong>(xi)</strong> Organização ou empresa a qual
+                            pertence ou esteja relacionado e informações relacionadas    <strong>(xii)</strong> Informações técnicas, como endereço de IP,
+                            identificação de dispositivo, dados de localização (baseados no endereço
+                            IP), informações sobre cookies, quando a <strong>CONTRATANTE</strong>
+                            acessa o site ou outras propriedades eletrônicas da    <strong>GUARDMED</strong> e <strong>(xiii) </strong>Comunicação, verbal ou
+                            escrita, mantida entre a <strong>CONTRATANTE</strong> e a    <strong>GUARDMED</strong>.
+                        </p>
+                        <p>
+                            <strong>6.3.</strong>
+                            <strong> </strong>
+                            A <strong>GUARDMED</strong> adota todas as medidas possíveis para proteger
+                            e garantir as informações prestadas pela <strong>CONTRATANTE</strong>, do
+                            ponto de vista organizacional, técnico e administrativo, sendo necessário
+                            para proteção de privacidade que a <strong>CONTRATANTE</strong> se
+                            responsabilize em manter a segurança de sua senha e informações de conta em
+                            todos os instantes e para todas as transações efetuadas à partir da criação
+                            de sua conta. Cabe a <strong>CONTRATANTE</strong> não repassar a terceiros
+                            estranhos a este <strong>CONTRATO</strong> o login e senha de acesso a    <strong>PLATAFORMA GUARDMED (</strong>
+                            <a href="http://www.guardmed.com.br/">
+                                <strong>www.guardmed.com.br</strong>
+                            </a>
+                            <a href="http://www.guardmed.com.br/"><strong>)</strong></a>
+                            .
+                        </p>
+                        <p align="left">
+                            <strong> </strong>
+                        </p>
+                        <p>
+                            <strong>6.4.</strong>
+                            <strong> </strong>
+                            A <strong>GUARDMED</strong> se reserva o direito de reter informações pelo
+                            período que entender necessário para o bom cumprimento de seus negócios,
+                            mesmo após o encerramento deste <strong>CONTRATO</strong>, salvo
+                            manifestação expressa da <strong>CONTRATANTE</strong> em sentido contrário.
+                            Em algumas circunstâncias, a <strong>GUARDMED</strong> poderá tornar
+                            anônimos os dados fornecidos pela <strong>CONTRATANTE</strong>, de maneira
+                            que não possam mais ser associados, nesse caso não serão mais consideradas
+                            como Dados Pessoais.
+                        </p>
+                        <p>
+                            7. Cláusula Sétima - Das Disposições Gerais
+                        </p>
+                        <p align="left">
+                            <strong> </strong>
+                        </p>
+                        <p>
+                            <strong>7.1.</strong>
+                            <strong> </strong>
+                            As partes reconhecem e declaram expressamente que as cláusulas e
+                            disposições estabelecidas neste <strong>CONTRATO</strong> prevalecem sobre
+                            quaisquer cláusulas ou condições estabelecidas em outros documentos,
+                            unilaterais ou não, firmados anteriormente pelas partes.<strong> </strong>
+                        </p>
+                        <p align="left">
+                            <strong> </strong>
+                        </p>
+                        <p>
+                            <strong>7.2.</strong>
+                            <strong> </strong>
+                            O presente <strong>CONTRATO</strong> não gera obrigações entre as partes
+                            estranhas ao seu objeto.<strong> </strong>
+                        </p>
+                        <p align="left">
+                            <strong> </strong>
+                        </p>
+                        <p>
+                            <strong>7.3.</strong>
+                            <strong> </strong>
+                            <strong>A GUARDMED</strong>
+                            não se responsabiliza pelos entendimentos dados por órgãos representativos
+                            de classe ou regulatórios quanto às atividades exercidas pela    <strong>CONTRATANTE</strong>.<strong> </strong>
+                        </p>
+                        <p align="left">
+                            <strong> </strong>
+                        </p>
+                        <p>
+                            <strong>7.4.</strong>
+                            <strong> </strong>
+                            Todas as cláusulas anteriormente descritas só poderão ser alteradas por
+                            instrumento aditivo expresso e devidamente firmado entre as partes.    <strong> </strong>
+                        </p>
+                        <p align="left">
+                            <strong> </strong>
+                        </p>
+                        <p>
+                            <strong>7.5.</strong>
+                            <strong> </strong>
+                            Caberá à <strong>CONTRATANTE</strong> em caso de necessidade de qualquer
+                            recolhimento de taxas perante todo e qualquer órgão para a prestação dos
+                            serviços objeto deste <strong>CONTRATO</strong> ou pelos    <strong>PARCEIROS</strong> da <strong>GUARDMED</strong>.<strong> </strong>
+                        </p>
+                        <p align="left">
+                            <strong> </strong>
+                        </p>
+                        <p>
+                            <strong>7.6.</strong>
+                            <strong> </strong>
+                            A eventual tolerância de qualquer das partes na hipótese de descumprimento,
+                            por parte da outra, de qualquer cláusula ou dispositivo deste    <strong>CONTRATO</strong>, não importará em novação ou alteração
+                            contratual, nem a impedirá de exercer, a qualquer tempo, todos os direitos
+                            ou prerrogativas que, através do presente <strong>CONTRATO</strong> ou da
+                            lei, lhe são assegurados.
+                        </p>
+                        <p align="left">
+                            <strong> </strong>
+                        </p>
+                        <p>
+                            8. Cláusula Oitava - Do Foro
+                        </p>
+                        <p align="left">
+                            <strong> </strong>
+                        </p>
+                        <p>
+                            <strong>8.1.</strong>
+                            <strong> </strong>
+                            As Partes elegem o Foro da Comarca de São Paulo/SP como sendo o único
+                            competente para dirimir quaisquer litígios e/ou demandas que venham a
+                            envolver as Partes em relação a este <strong>CONTRATO</strong>, renunciando
+                            a outro foro, por mais privilegiado que seja.
+                        </p>
+                        <p>
+                            E por estarem de pleno acordo, justas e contratadas, após terem LIDO e
+                            ACEITO o presente CONTRATO, nada tendo a OPOR ou RESSALVAR, as Partes
+                            firmam o presente confirmando por meio de aceite eletrônico da    <strong>CONTRATANTE</strong>. A versão eletrônica em formato PDF estará
+                            disponível para download no site<a href="http://www.guardmed.com.br/">www.guardmed.com.br</a>    <a href="http://www.guardmed.com.br/"> </a>após o aceite e cadastro dos
+                            dados da <strong>CONTRATANTE</strong> no sistema da    <strong>GUARDMED</strong>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            @if (!hasToken)
+            {
+                <div class="card-footer">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-check" id="AcceptTermCheckboxArea">
+                                <input type="hidden" value="@if (Model.AcceptTerm) {<text>true</text>} else {<text>false</text>}" id="AcceptTermHidden" name="AcceptTerm" />
+                                <input type="checkbox" class="form-check-input" style="margin-left:0;" @if (Model.AcceptTerm) { <text> checked</text>} id="AcceptTermCheckbox">
+                                <label class="form-check-label" for="exampleCheck1">Declaro que li e aceito os termos do contrato</label>
+                            </div>
+                        </div>
+                    </div>
+                    <br />
+                    <a href="@Url.Action("Cotacao", "SeguroProfissional")?reference=@Model.Referencia" class="btn btn-secondary"><i class="fas fa-arrow-left"></i>&nbsp;Voltar</a>
+                    <button type="button" id="FormularioSubmitButton" class="btn btn-primary float-right">Avançar&nbsp;<i class="fas fa-arrow-right"></i></button>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <br />
+        <a href="@Url.Action("QuoteRenew", "SeguroProfissional")?reference=@Model.Referencia&RenewToken=@Context.Request.Query["RenewToken"]" class="btn btn-secondary"><i class="fas fa-arrow-left"></i>&nbsp;Voltar</a>
+        <button type="button" id="FormularioSubmitButton" class="btn btn-primary float-right">Avançar&nbsp;<i class="fas fa-arrow-right"></i></button>
+    }
+</form>
+<script type="text/javascript">
+    $('#AcceptTermCheckbox').change(function () {
+        $('#AcceptTermHidden').val($('#AcceptTermCheckbox')[0].checked);
+    });
+    var i = @i;
+    $('#FormularioSubmitButton').click(function () {
+        if (ValidacaoDeFormulario()) {
+            SalvarFormulario();
+        }
+    });
+    @if (!string.IsNullOrWhiteSpace(Model.EstadoCRM))
+    {
+        <text>
+    $('#EstadoCRM').find('[value=' + "@Model.EstadoCRM" + ']').attr('selected', true);
+        </text>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Model.Estado))
+    {
+        <text>
+    $('#Estado').find('[value=' + "@Model.Estado" + ']').attr('selected', true);
+        </text>
+    }
+
+    $('#AumentarEspecialidade').click(function () {
+        if (i <= 4) {
+            $('#dadosTecnicos').append(
+                '<div id="especilidadeProfissionalArea' + i + '" class="form-row">' +
+                '<div class="col-md-12">' +
+                '<hr />' +
+                '</div>' +
+                '<input id="EspecialidadeProfissionalId' + i + '" type="hidden" value="" />' +
+                '<h5 class="col-md-12">Especialidade ' + i + '</h5>' +
+                '<div class="form-group col-md-8">' +
+                '<label>Especialidade:</label>' +
+                '<select class="form-control" id="EspecialidadeId' + i +'">' +
+                '<option value="">Selecione</option>' +
+                @foreach (var _item in especialidadeFunctions.GetData())
+                {
+                    <text>
+                    '<option value="@_item.EspecialidadeId">@_item.Nome</option>' +
+                    </text>
+                }
+                '</select>' +
+                '</div>' +
+                '<div class="form-group col-md-4">' +
+                '<label>Invasivo: </label>' +
+                '<select class="form-control" id="Invasivo' + i +'">' +
+                '<option value="">Selecione</option>' +
+                '<option value="true">Sim</option>' +
+                '<option value="false">Não</option>' +
+                '</select>' +
+                '</div>' +
+                '</div>');
+            i++;
+        } else {
+            alert('Não é possível adicionar mais especialidades.');
+        }
+    });
+    $('#DiminuirEspecialidade').click(function () {
+        if (i > 2) {
+            $('#especilidadeProfissionalArea' + (i - 1)).remove();
+            i--;
+        } else {
+            alert('Não é possível remover mais especialidades.');
+        }
+    });
+
+</script>
+<script type="text/javascript">
+
+
+    $("#HistoricoSeguroSim").change(function () {
+        $("#DivDatasHistoricoSeguro").show();
+    });
+    $("#HistoricoSeguroNao").change(function () {
+        $("#DivDatasHistoricoSeguro").hide();
+    });
+
+    @if (Model.HistoricoSeguro == true)
+    {
+        <text>
+            $("#HistoricoSeguroSim").prop("checked", true);
+        </text>
+    }
+    @if (Model.HistoricoSeguro == false)
+    {
+        <text>
+            $("#HistoricoSeguroNao").prop("checked", true);
+        </text>
+    }
+
+
+    function Validar() {
+        var error = false;
+
+        if ($('#HistoricoSeguroSim').length > 0 && $('#HistoricoSeguroSim').is(':checked') == false && $('#HistoricoSeguroNao').is(':checked') == false) {
+            error = true;
+        }
+        else if ($('#HistoricoSeguroSim').is(':checked')) {
+            if (IsNullOrWhiteSpace($('#DataVencimentoSeguro').val()) || IsNullOrWhiteSpace($('#DataRetroatividade').val())) {
+                error = true;
+            }
+        }
+
+        return (!error);
+    }
+
+    $('#FormularioForm').submit(function () {
+        if (!Validar()) {
+            alert("Por favor, preencher os campos de Histórico do Seguro");
+            return false;
+        }
+        else {
+            return true;
+        }
+    });
+
+    $('[name="HistoricoSeguro"]').click(function () {
+        if ($('[name="HistoricoSeguro"]:checked').val() == 'true') {
+            $('#DivDatasHistoricoSeguro').show();
+        } else {
+            $('#DivDatasHistoricoSeguro').hide();
+        }
+    });
+
+    $(document).ready(function () {
+        @if (Model.HistoricoSeguro.HasValue)
+        {
+            if (Model.HistoricoSeguro.Value)
+            {
+            <text>
+        $('#HistoricoSeguroSim').click();
+            </text>
+            }
+            else
+            {
+            <text>
+        $('#HistoricoSeguroNao').click();
+            </text>
+            }
+        }
+    });
+</script>

@@ -1,0 +1,169 @@
+﻿@model DTO.Shared.EntityViewMode<DTO.Service.ServiceViewModel>
+
+@{
+    ViewData["Title"] = "Gerenciar Serviços";
+}
+
+<input type="hidden" id="service-editable" value="@(Model.CanEdit()? "true" : "false")" />
+<div class="card bg-light" id="main-service-manage-card">
+    <div class="card-body">
+        @(await Component.InvokeAsync<Web.ViewComponents.Service.ServiceManageViewComponent>(Model.Model.ServiceId))
+    </div>
+    <div class="card-footer">
+        <div class="row">
+            <div class="col-md-6">
+                <a data-disabledAll="false" href="@Url.Action("Index", "Service")" class="btn btn-secondary"><i class="simple-icon-arrow-left"></i>&nbsp;Voltar</a>
+            </div>
+            <div class="col-md-6">
+                @if (!Model.CanEdit())
+                {
+                    <a href="@Url.Action("Manage", "Service", new { id = Model.Model.ServiceId })" data-disabledAll="false" data-disabled="false" class="btn btn-primary float-right"><i class="simple-icon-note"></i>&nbsp;Editar</a>
+                }
+                else
+                {
+                    <button id="service-save-button" type="submit" class="btn btn-success float-right"><i class="simple-icon-cloud-upload"></i>&nbsp;Salvar</button>
+                }
+                @if (Model.Model.ServiceId.HasValue)
+                {
+                    <a href="@Url.Action("Print", "Service", new { id = Model.Model.ServiceId })" target="_blank" data-disabledAll="false" data-disabled="false" class="btn btn-primary float-right mr-1"><i class="simple-icon-printer"></i>&nbsp;Visualizar/Imprimir</a>
+                    <a href="javascript:openSendServiceEmailModal()" data-disabledAll="false" data-disabled="false" class="btn btn-primary float-right mr-1"><i class="simple-icon-envelope-letter"></i>&nbsp;<span id="service-open-email-modal-button-text">@(Model.Model.AcceptTermEmailSended? "O.S Enviada" : "Enviar O.S por E-mail")</span></a>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Modals
+{
+    @if (Model.Model.ServiceId.HasValue)
+    {
+        <modal id="service-email-modal" title-id="service-email-modal-title" title="Envio de Serviço por E-mail" modal-lg="true">
+            @(await Component.InvokeAsync<Web.ViewComponents.Service.ServiceEmailViewComponent>(new { Id = Model.Model.ServiceId }))
+        </modal>
+    }
+}
+
+@section Scripts
+{
+    <script type="text/javascript">
+        $(document).ready(InitializeFunctions);
+
+
+        //function validate() {
+        //    if (serviceResidueFamiliesDatatables.row()[0].length == 0) {
+        //        $('#service-manage-residue-families-table').after($('<div>', { class: 'text-danger' }).append('Insira ao menos uma família.'));
+        //        v = false;
+        //    }
+
+        //    if (v && !$('#contact-client-address-table').is(':visible')) {
+
+        //    }
+
+        //    if ($('[data-address-id]').length == 0) {
+        //        $('#contact-client-address-table').after($('<div>', { class: 'text-danger' }).append('Defina ao menos um endereço de coleta.'));
+        //        v = false;
+        //    }
+
+        //    return v;
+        //}
+
+        //$('#service-save-button').click(function () {
+        //    $('.text-danger').remove();
+
+        //    var v = validateInputs('form-service-manage');
+        //    if (validate()) {
+        //        $('#form-service-manage').submit();
+        //    }
+        //});
+
+
+
+        $('#service-save-button').click(function () {
+            $('.text-danger').remove();
+
+            var v = validateInputs('form-service-manage');
+            if (serviceResidueFamiliesDatatables.row()[0].length == 0) {
+                $('#service-manage-residue-families-table').after($('<div>', { class: 'text-danger' }).append('Insira ao menos uma família.'));
+                v = false;
+            }
+
+            if (v && !$('#contact-client-address-table').is(':visible')) {
+
+            }
+
+            if ($('[data-address-id]').length == 0) {
+                $('#contact-client-address-table').after($('<div>', { class: 'text-danger' }).append('Defina ao menos um endereço de coleta.'));
+                v = false;
+            }
+
+            if (!v) return;
+
+            @*@if (!Model.Model.ServiceId.HasValue) {
+                <text>
+                    bootboxConfirm('Ao salvar este serviço, poucos dados poderão ser modificados futuramente.<br />Deseja Continuar?', function (r) {
+                if (!r) return;*@
+
+                $('#form-service-manage').submit();
+            //});
+            //</text>
+            //}
+            //else {
+            //    <text>
+            //    $('#form-service-manage').submit();
+            //</text>
+            //}
+        });
+
+
+            @*@if (!Model.Model.ServiceId.HasValue) {
+            <text>
+            bootboxConfirm('Ao salvar este serviço, poucos dados poderão ser modificados futuramente.<br />Deseja Continuar?', function (r) {
+                if (!r) return;
+
+                $('#form-service-manage').submit();
+            });
+            </text>
+            }
+            else {
+            <text>*@
+
+            @*</text>
+            }*@
+        //});
+
+        $(document).ready(function () {
+            if ($('#service-editable').val() == 'false') disableAllFields('#main-service-manage-card', true);
+        });
+
+        function openSendServiceEmailModal() {
+            $('#service-email-modal').modal('show');
+        }
+
+        function emailSendedCallback() {
+            //$('#service-email-modal').modal('hide');
+            //$('#service-open-email-modal-button-text').text('O.S Enviada');
+           window.location.href = '@Url.Action("Manage", "Service", new { id = Model.Model.ServiceId})';
+
+
+        }
+    </script>
+
+
+    @if (Context.Request.Query.ContainsKey("creation") && Model.Model.ServiceId.HasValue)
+    {
+        <script type="text/javascript">
+            $(document).ready(function () {
+                if (typeof openSendServiceEmailModal == 'function') {
+                    setTimeout(openSendServiceEmailModal, 1000);
+                }
+            });
+        </script>
+    }
+
+    <script asp-paste-key="contract-client"></script>
+    <script asp-paste-key="service-manage"></script>
+    <script asp-paste-key="service-residue-family"></script>
+    <script asp-paste-key="script-client-collection-address"></script>
+    <script asp-paste-key="service-historic-index"></script>
+    <script asp-paste-key="service-email"></script>
+}

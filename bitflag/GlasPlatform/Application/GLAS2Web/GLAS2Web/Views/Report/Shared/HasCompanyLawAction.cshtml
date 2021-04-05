@@ -1,0 +1,8 @@
+﻿<div class="form-group">
+    <label class="control-label" for="HasCompanyLawAction">@translationFunctions.GetTranslation("Possui Ação?", User.FindFirstValue("CultureInfo"))</label>
+    <select class="form-control ReportParameter" style="width: 100%;" data-hidden-parameter="HasCompanyLawAction">
+        <option value="">Selecione</option>
+        <option value="True">@translationFunctions.GetTranslation("Sim", User.FindFirstValue("CultureInfo"))</option>
+        <option value="False">@translationFunctions.GetTranslation("Não", User.FindFirstValue("CultureInfo"))</option>
+    </select>
+</div>

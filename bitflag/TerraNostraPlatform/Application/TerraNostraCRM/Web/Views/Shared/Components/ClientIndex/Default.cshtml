@@ -1,0 +1,627 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Web.Utils
+
+@model Web.Utils.ViewComponentType
+@inject UserManager<TerraNostraIdentityDbContext.User> userManager
+@inject FUNCTIONS.Client.ClientStatusFunctions clientStatusFunctions
+
+@{
+    var user = await userManager.GetUserAsync(User);
+
+
+}
+<script type="text/javascript">
+    _MaskData();
+</script>
+<div class="row">
+    @if(User.ClientCanAccessEdition()){
+    }
+
+    <div class="col-md-@if (Model == Web.Utils.ViewComponentType.List && !User.IsInRole("Salesman")) {<text>4</text>}else{<text>7</text>}">
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text"><i class="simple-icon-magnifier"></i></span>
+            </div>
+            <input id="_ClientIndexSearch" type="text" class="form-control" placeholder="Procurar..." />
+        </div>
+    </div>
+    <div class="col-md-3">
+        <select id="ClientStatusFilter" class="form-control">
+            <option value="">Todos os Status</option>
+            <option value="-1">Aguardando Primeiro Contato</option>
+            @foreach (var item in clientStatusFunctions.GetData())
+            {
+                <option value="@item.ClientStatusId">@item.Name</option>
+            }
+        </select>
+    </div>
+    @if (Model == Web.Utils.ViewComponentType.List && !User.IsInRole("Salesman"))
+    {
+        <div class="col-md-3">
+            <select id="ResponsibleId" class="form-control" name="ResponsibleId">
+                <option>Todos os Responsáveis</option>
+                @foreach (var item in (List<TerraNostraIdentityDbContext.User>)ViewBag.Responsibles)
+                {
+                    <option data-full-name="@item.FirstName @item.LastName" value="@item.Id">@item.FirstName @item.LastName </option>
+                }
+            </select>
+        </div>
+
+    }
+    @if (User.ClientCanAccessEdition())
+    {
+        <div class="col-md-2">
+            <a href="@Url.Action("Manage", "Client")" class="btn btn-success pull-right w-100"><i class="simple-icon-plus"></i>&nbsp;Novo</a>
+        </div>
+    }
+</div>
+<hr />
+<div class="table-wrapper">
+    <table id="_ClientIndexTable" class="display table table-striped table-bordered table-condensed" style="border-collapse: collapse !important; width:100%;">
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Nome</th>
+                <th>CPF</th>
+                <th>Local</th>
+                <th>Responsável</th>
+                <th>Status</th>
+                @if (!User.IsInRole("Contact Manager"))
+                {
+                    <th style="max-width: 150px;">&nbsp;</th>
+                }
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+<script type="text/javascript">
+
+    var _ClientIndexTypingTimer;
+    var _ClientIndexDoneTypingInterval = 2000;
+    var _ClientIndexDatatables = $('#_ClientIndexTable').DataTable({
+        "order": [[0, "desc"]],
+        "columnDefs": [
+            {
+                "targets": [4],
+                "visible": false
+            }
+            @if (Model != Web.Utils.ViewComponentType.List)
+            {
+            <text>
+            , {
+                "targets": [8],
+                "visible": false
+            }
+            </text>
+            }
+        ],
+        proccessing: true,
+        serverSide: true,
+        searching: true,
+        lengthChange: false,
+        dom: 'tip',
+        ajax: {
+            url: '@Url.Action("List", "Client")',
+            data: function (d) {
+                d.responsibleId = $('#ResponsibleId').val()
+                , d.clientStatusFilter = $('#ClientStatusFilter').val()
+            },
+            type: 'POST'
+        },
+        columns: [
+            {
+                data: 'CreatedDate',
+                render: function (data, type, row) {
+                    return '<div class="text-center">' + row._CreatedDate + '</div>';
+                }
+            }
+            , {
+                data: 'ClientName',
+                render: function (data, type, row) {
+                @if (Model == Web.Utils.ViewComponentType.List)
+                {
+                <text>
+                    if (!row.isDeleted) {
+                        return '<a href="@Url.Action("Manage", "Client")?id=' + row.clientId + '" title="Editar Registro">' + row.clientName + '</a>';
+                    }
+                    else {
+                        return '<strike>' + row.clientName + '</strike>';
+                    }
+                </text>
+                }else if (Model == Web.Utils.ViewComponentType.ListOnlySelect)
+                {
+                <text>
+                    if (!row.isDeleted) {
+                        return row.clientName;
+                    }
+                    else {
+                        return '<strike>' + row.clientName + '</strike>';
+                    }
+                </text>
+                }
+                }
+            },
+            {
+                data: 'Cpf',
+                render: function (data, type, row) {
+                    var span = '-';
+                    if (row.cnpj != null || row.cpf != null) {
+                        if (!row.isDeleted) {
+                            if (row.cnpj != null)
+                                span = '<span class="cnpj">' + row.cnpj + '</span>';
+                            else if (row.cpf != null)
+                                span = '<span class="cpf">' + row.cpf + '</span>';
+                        } else {
+                            if (row.cnpj != null)
+                                span = '<strike><span class="cnpj">' + row.cnpj + '</span></strike>';
+                            else if (row.cpf != null)
+                                span = '<strike><span class="cpf">' + row.cpf + '</span></strike>';
+                        }
+                    }
+
+                    return '<div class="text-center">' + span + '</div>';
+                }
+            },
+            {
+                data: 'Local',
+                render: function (data, type, row) {
+                    var span = '-';
+                    if (row.cidade != null) {
+                        if (!row.isDeleted) {
+                            span = row.cidade + '/' + row.uf;
+                        }
+                        else {
+                            span = '<strike>' + row.cidade + '/' + row.uf + '</strike>';
+                        }
+                    }
+
+                    return '<div class="text-center">' + span + '</div>';
+                }
+            },
+            {
+                data: 'Responsible',
+                render: function (data, type, row) {
+                    var r = '<div class="text-center" style="white-space:nowrap;">';
+                    if (!row.isDeleted) {
+                        @if(User.IsInRole("Administrator") || User.IsInRole("Contact Manager"))
+                        {
+                            <text>
+                        r += '<a href="javascript:openReponsibleModal(' + row.clientId + ', ' + row.responsibleId + ')">' + (row.responsibleId == null ? '<i><i class="fas fa-search" title="Selecione"></i>&nbsp;Selecione</i>' : row.responsible) + '</a>';
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                        r += row.responsible;
+                            </text>
+                        }
+                    }
+                    else {
+                        r += '<strike>' + row.responsible + '</strike>';
+                    }
+                    r += '</div>';
+                    return r;
+                }
+            },
+            {
+                data: 'FirstContactedName',
+                render: function (data, type, row) {
+                    @if (User.ClientCanAccessEdition())
+                    {
+                        <text>
+                    var r = '<div class="text-center" style="white-space:nowrap;">';
+                    if (row.firstContacted != null && row.firstContacted) {
+                        r += '<a href="javascript:void(0)" onclick=\'openStatusModal(' + JSON.stringify(row) + ')\' >' + (row.clientStatusId == null ? '<i><i class="fas fa-search" title="Selecione"></i>&nbsp;Selecione</i>' : '<b>' + row.clientStatusName + '</b>') + '</a> ';
+                    }
+                    else {
+                        r += '<a href="javascript:void(0)" onclick=\'openFirstContactModal(' + JSON.stringify(row) + ')\'><i class="fas fa-star"></i> Aguardando Primeiro Contato</a>';
+                    }
+
+                    r += '</div>';
+                    return r;
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                    var r = '<div class="text-center" style="white-space:nowrap;">';
+                    r += '<b>' + (IsNullOrWhiteSpace(row.clientStatusName) ? '-' : row.clientStatusName) + '</b>';
+                    r += '</div>';
+                    return r;
+                        </text>
+                    }
+
+                }
+            },
+            @if(User.ClientCanAccessEdition() && !User.IsInRole("Contact Manager"))
+            {
+                <text>
+            {
+                data: null,
+                render: function (data, type, row) {
+                    var r = '<div class="text-center" style="white-space:nowrap; margin: -5px;">';
+                    if (row.isDeleted) {
+                        r += "<i class= 'fa fa-info-circle' data-toggle='tooltip' data-html='true' title='Excluído em " + row._DeletedOnlyDate + " às " + row._DeletedOnlyHour + " por " + row.deletedName + "'></i>";
+                    }
+                    if (!row.isDeleted) {
+                        r += '&nbsp;<a href="@Url.Action("Index", "Family")?clientId=' + row.clientId + '"  class="badge badge-primary" title="Genealogia"><i class="simple-icon-organization"></i></a>';
+                        r += '&nbsp;<a href="@Url.Action("Freeze", "Family")?clientId=' + row.clientId + '"  class="badge badge-primary" title="Gerar Árvore de Orçamento"><i class="simple-icon-list"></i></a>';
+                        r += '&nbsp;<a href="@Url.Action("Log", "Client")?id=' + row.clientId + '"  class="badge badge-primary" title="Histórico"><i class="simple-icon-reload"></i></a>';
+                        r += '&nbsp;<a href="@Url.Action("Archives","Client")?id=' + row.clientId + '" class="badge badge-primary" title="Arquivos"><i class="simple-icon-doc"></i></a>';
+                        r += '&nbsp;<a href="@Url.Action("ClientCalendar","Client")?clientId=' + row.clientId + '" class="badge badge-primary" title="Calendário"><i class="simple-icon-calendar"></i></a>';
+                        r += '&nbsp;<a href="javascript:void(0)" onclick="RemoveClient(' + row.clientId + ')" class="badge badge-danger" title="Excluir"><i class="simple-icon-trash"></i></a>';
+                    }
+                        r += '</div>';
+
+                    return r;
+                }
+            },
+                </text>
+            }
+            @if(User.FinancialCanAccessEdition() && User.IsInRole("Financial"))
+            {
+                <text>
+            {
+                data: null,
+                render: function (data, type, row) {
+                    var r = '<div class="text-center" style="white-space:nowrap; line-height:32px; vertical-align:middle;">';
+                    if (row.isDeleted) {
+                        r += "<i class= 'fa fa-info-circle' data-toggle='tooltip' data-html='true' title='Excluído em " + row._DeletedOnlyDate + " às " + row._DeletedOnlyHour + " por " + row.deletedName + "'></i>";
+                    }
+                    if (!row.isDeleted) {
+                        r += '&nbsp;<a href="@Url.Action("Archives","Client")?id=' + row.clientId + '" class="badge badge-primary" title="Arquivos"><i class="simple-icon-doc"></i></a>';
+                    }
+                        r += '</div>';
+                    return r;
+                }
+            },
+                </text>
+            }
+            { data: 'Telefone', render: function (data, type, row) { return row.telefone; }, visible: false },
+            { data: 'Celular', render: function (data, type, row) { return row.celular; }, visible: false },
+            { data: 'Email', render: function (data, type, row) { return row.email; }, visible: false },
+            { data: 'Family', render: function (data, type, row) { return row.family; }, visible: false },
+            { data: 'Occupation', render: function (data, type, row) { return row.occupation; }, visible: false },
+            { data: 'Rg', render: function (data, type, row) { return row.rg; }, visible: false },
+            { data: 'Cnpj', render: function (data, type, row) { return row.cnpj; }, visible: false },
+            { data: 'Cep', render: function (data, type, row) { return row.cep; }, visible: false },
+            { data: 'Endereco', render: function (data, type, row) { return row.endereco; }, visible: false },
+            { data: 'Numero', render: function (data, type, row) { return row.numero; }, visible: false },
+            { data: 'Complemento', render: function (data, type, row) { return row.complemento; }, visible: false },
+            { data: 'Bairro', render: function (data, type, row) { return row.bairro; }, visible: false },
+            { data: 'Cidade', render: function (data, type, row) { return row.cidade; }, visible: false },
+            { data: 'Uf', render: function (data, type, row) { return row.uf; }, visible: false },
+            { data: 'ClientStatusName', render: function (data, type, row) { return row.clientStatusName; }, visible: false },
+            { data: 'CivilStatusDescription', render: function (data, type, row) { return row.civilStatusDescription; }, visible: false }
+        ],
+        drawCallback: function () {
+            _MaskData();
+            $('[data-toogle="tooltip"]').tooltip({
+                placement: 'top'
+            });
+        }
+    });
+
+    function _ClientIndexDoneTyping() {
+        if ($.fn.DataTable.isDataTable('#_ClientIndexTable')) {
+            _ClientIndexDatatables.search($('#_ClientIndexSearch').val()).draw();
+        }
+    }
+    $('#_ClientIndexSearch').keyup(function () {
+        clearTimeout(_ClientIndexDoneTypingInterval);
+        _ClientIndexTypingTimer = setTimeout(_ClientIndexDoneTyping, _ClientIndexDoneTypingInterval);
+    });
+    $('#_ClientIndexSearch').keydown(function () {
+        clearTimeout(_ClientIndexDoneTyping);
+    });
+
+    $('#ResponsibleId').on('change', function() {
+        if ($.fn.DataTable.isDataTable('#_ClientIndexTable')) {
+            _ClientIndexDatatables.search($('#_ClientIndexSearch').val()).draw();
+        }
+    });
+    $('#ClientStatusFilter').on('change', function() {
+        if ($.fn.DataTable.isDataTable('#_ClientIndexTable')) {
+            _ClientIndexDatatables.search($('#_ClientIndexSearch').val()).draw();
+        }
+    });
+
+
+    function RemoveClient(clientId) {
+		if (confirm("Deseja realmente excluir este cliente e seu usuário?")) {
+            _RemoveClient(clientId, function (data) {
+                if(!data.hasError)
+                    $('#_ClientIndexTable').DataTable().ajax.reload();
+                alert(data.message);
+			});
+		}
+	}
+
+    function _RemoveClient(_ClientId, callback) {
+        var d = { id: _ClientId };
+		$.ajax({
+			url: '@Url.Action("RemoveClient", "Client")',
+			type: 'POST',
+			data: d,
+            dataType: 'Json',
+            success: function (data) {
+                callback(data)
+            }
+		});
+    }
+
+     function CreateUserModal(clientId) {
+        $('#CreateUserModal').modal('show');
+        $('#CreateUserModalClientId').val(clientId);
+    }
+
+    $('#send-wellcome-message-button').click(function () {
+        $('.text-danger').remove();
+        if (IsNullOrWhiteSpace($('#wellcome-message-text').val())) {
+            $('#wellcome-message-text-error-area').after($('<div>', { class: 'text-danger col-md-12' }).append('Escreva a mensagem para envia-la.'));
+            return;
+        }
+        if (IsNullOrWhiteSpace($('#wellcome-message-subject').val())) {
+            $('#wellcome-message-subject').after($('<div>', { class: 'text-danger col-md-12' }).append('Escreva o assunto'));
+            return;
+        }
+
+        $.ajax({
+            url: '@Url.Action("SendFirstContact", "Client")',
+            type: 'POST',
+            datatype: 'JSON',
+            data: {
+                responsibleId: $('#wellcome-message-responsible-id').val(),
+                clientId: $('#wellcome-message-clientId').val(),
+                message: $('#wellcome-message-text').val(),
+                subject: $('#wellcome-message-subject').val(),
+                plainText: $($("#wellcome-message-text").summernote("code").replace(/\<\//g, ' </')).text().substring(0, 70)
+            },
+            success: function (d) {
+                alert(d.message);
+                if (!d.hasError) {
+                    _ClientIndexDatatables.ajax.reload();
+                    $('#wellcome-message-modal').modal('hide');
+                }
+            }
+        });
+    });
+
+    $('#CreateUserButton').click(function () {
+        $.ajax({
+            url: '@Url.Action("CreateFromClient", "User")',
+            type: 'POST',
+            data: { clientId: $('#CreateUserModalClientId').val() },
+            dataType: 'Json',
+            success: function (data) {
+                if (!data.hasError) {
+                    $('#_ClientIndexTable').DataTable().ajax.reload();
+                }
+                alert(data.message);
+                $('#CreateUserModalClientId').val('');
+                $('#CreateUserModal').modal('hide');
+            }
+        });
+    });
+
+    @if (Model == Web.Utils.ViewComponentType.ListOnlySelect) {<text>
+    $('#_ClientIndexTable tbody').on('click', 'tr', function () {
+        _ClientIndexCallback(_ClientIndexDatatables.row(this).data());
+    });
+    </text>}
+</script>
+
+<div class="modal fade" id="CreateUserModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Criar usuário para cliente</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="CreateUserModalClientId" />
+                Deseja realmente criar um usuário no sistema para este cliente? A senha gerada será enviada automaticamente por e-mail.
+            </div>
+            <div class="modal-footer">
+                <div class="text-right">
+                    <button class="btn btn-success" id="CreateUserButton"><i class="simple-icon-plus"></i>&nbsp;Criar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="wellcome-message-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Mensagem de boas-vindas</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    @if (User.IsInRole("Administrator") || User.IsInRole("Contact Manager"))
+                    {
+                        <div class="col-md-6">
+                            <label><b class="control-label">Responsável</b></label>
+                            <select class="form-control" id="wellcome-message-responsible-id">
+
+                                @foreach (var item in (List<TerraNostraIdentityDbContext.User>)ViewBag.Responsibles)
+                                {
+                                    <option data-full-name="@item.FirstName @item.LastName" value="@item.Id">@item.FirstName @item.LastName (@item.Email)</option>
+                                }
+                            </select>
+                        </div>
+                    }
+                    <div class="col-md-6">
+                        <label>Destinatário:</label><input class="form-control" value="" id="wellcome-message-recipient" disabled />
+                    </div>
+                    <div class="col-md-12" style="margin-top:1em;">
+                        <label>Assunto:</label><input class="form-control" value="Terra Nostra - Boas Vindas" id="wellcome-message-subject" />
+                    </div>
+                </div>
+                <hr />
+                <div class="row">
+                    <div class="col-md-12">
+                        <input type="hidden" id="wellcome-message-clientId" />
+                        <textarea id="wellcome-message-text" cols="3" name="Text"></textarea>
+                        <div id="wellcome-message-text-error-area"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="text-right">
+                    <button class="btn btn-success" id="send-wellcome-message-button"><i class="fa fa-email"></i>&nbsp;Enviar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    $('#wellcome-message-text').summernote({
+        tabsize: 2,
+        height: 180,
+        lang: 'pt-BR'
+    });
+
+    function openFirstContactModal(row) {
+        var name = '';
+        if (row.razaoSocial != null)
+            name = row.razaoSocial;
+        else if (!IsNullOrWhiteSpace(row.firstName))
+            name = row.firstName + " " + row.lastName;
+
+        $("#wellcome-message-text").summernote("code", '<p>Olá <b>' + name + ',</b></p><br /><p>A Terra Nostra agradece o seu contato.</p><p>É importante destacar que todo descendente de italiano, independente do grau de parentesco tem direito a cidadania italiana. Para cada caso existe uma modalidade de processo.</p><p>Por esse motivo estamos encaminhando um formulário online, para entender melhor o seu caso, e poder indicar o melhor caminho para obtenção da sua cidadania italiana.</p><br /><p>Em breve, um representante entrará em contato.</p><br /><p><a href="@Context.Request.Scheme'+'://' + '@Context.Request.Host'+'@Url.Action("View", "Family")'+'?token='+row.token+'">Clique aqui</a> para acessar o formulário.</p><br /><p>Atenciosamente,</p><br /><p>Terra Nostra</p>');
+
+        $('#wellcome-message-recipient').val(row.email);
+        $('#wellcome-message-modal').modal('show');
+        $('#wellcome-message-clientId').val(row.clientId);
+    }
+</script>
+
+<div class="modal fade" id="responsible-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Selecione um Responsável</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="responsible-modal-client-id" />
+                <select id="responsible-modal-select" class="form-control">
+                    <option value="">Nenhum</option>
+                    @foreach (var item in (List<TerraNostraIdentityDbContext.User>)ViewBag.Responsibles)
+                    {
+                        <option value="@item.Id">@item.FirstName  @item.LastName</option>
+                    }
+                </select>
+            </div>
+            <div class="modal-footer">
+                <div class="text-right">
+                    <button class="btn btn-success" id="responsible-modal-save-button"><i class="simple-icon-check"></i>&nbsp;Selecionar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function openReponsibleModal(clientId, responsibleId)
+    {
+        $('#responsible-modal-client-id').val(clientId);
+        $('#responsible-modal-select').val(responsibleId);
+
+        $('#responsible-modal').modal('show');
+    }
+
+    $('#responsible-modal-save-button').click(function () {
+        $.post('@Url.Action("SaveResponsible", "Client")',
+            {
+                clientId: $('#responsible-modal-client-id').val()
+                @if(User.IsInRole("Administrator") || User.IsInRole("Contact Manager"))
+                {
+                    <text>
+                , responsibleId: $('#responsible-modal-select').val()
+                    </text>
+                }
+            },
+            function (d) {
+                alert(d.message);
+                if (!d.hasError) {
+                    $('#_ClientIndexTable').DataTable().ajax.reload();
+
+                    $('#responsible-modal').modal('hide');
+                }
+            });
+    });
+</script>
+
+
+
+<div class="modal fade" id="status-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Selecione um Status</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="status-modal-client-id" />
+                <select id="status-modal-select" class="form-control">
+                    <option value="">Nenhum</option>
+                    @foreach (var item in (List<DB.ClientStatus>)ViewBag.Status)
+                    {
+                        <option value="@item.ClientStatusId">@item.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="modal-footer">
+                <div class="text-right">
+                    <button class="btn btn-success" id="status-modal-save-button"><i class="simple-icon-check"></i>&nbsp;Selecionar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function openStatusModal(data)
+    {
+        $('#status-modal-client-id').val(data.clientId);
+        if (data.clientStatusId != null) {
+            $('#status-modal-select').val(data.clientStatusId);
+        } else {
+            $('#status-modal-select').val($($('#status-modal-select option')[0]).val());
+        }
+
+        $('#status-modal').modal('show');
+    }
+
+    $('#status-modal-save-button').click(function () {
+        $.post('@Url.Action("SaveStatus", "Client")',
+            {
+                clientId: $('#status-modal-client-id').val(),
+                statusId: $('#status-modal-select').val()
+            },
+            function (d) {
+                alert(d.message);
+                if (!d.hasError) {
+                    $('#_ClientIndexTable').DataTable().ajax.reload();
+
+                    $('#status-modal').modal('hide');
+                }
+            });
+    });
+</script>

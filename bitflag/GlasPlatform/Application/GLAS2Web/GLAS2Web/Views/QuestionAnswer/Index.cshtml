@@ -1,0 +1,129 @@
+﻿@model int
+
+@inject BLL.Question.QuestionFunctions questionFunctions
+@inject BLL.Question.QuestionThemeFunctions questionThemeFunctions
+
+@{
+    ViewData["Title"] = "Lista de Respostas";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var question = questionFunctions.GetDataByID(Model);
+    var questionTheme = questionThemeFunctions.GetDataByID(question.QuestionThemeId);
+}
+
+@if (Context.Request.Query.ContainsKey("deleted"))
+{
+    <div class="alert alert-primary alert-dismissible fade show" role="alert">
+        A Resposta foi removida com sucesso!
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+}
+@if (Context.Request.Query.ContainsKey("saved") && Context.Request.Query["saved"].ToString().ToLower() == "true")
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        A resposta foi salva com sucesso!
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+}
+
+//**Ticket 69 Permitir alterar as respostas, mesmo que ele já faça parte do questionário
+@*@if (Context.Request.Query.ContainsKey("alreadyUsed"))
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            Não é possível alterar a resposta por que ele já foi utilizada em um questionário.
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    }*@
+
+@if (Context.Request.Query.ContainsKey("deleted") || Context.Request.Query.ContainsKey("saved")|| Context.Request.Query.ContainsKey("alreadyUsed"))
+{
+<script type="text/javascript">
+    setTimeout(function () {
+        $('.alert.fade').alert('close');
+    }, 3000);
+</script>
+}
+
+<div class="card shadow">
+    <div class="card-header">
+        Respostas da Pergunta: <b>@question.QuestionText</b> | Tema: <b>@questionTheme.Name</b>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="input-group">
+                    <span class="input-group-addon"><i class="fa fa-search"></i></span>
+                    <input id="search" type="text" class="form-control" placeholder="Procurar..." data-toggle="search-datatable" data-target="#table-question-answer" />
+                    <span class="input-group-btn">
+                        <button type="button" id="question-answer-index-new-button" class="btn btn-success pull-right"><i class="fa fa-plus"></i>&nbsp;Nova Resposta</button>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <hr />
+        @(await Component.InvokeAsync<GLAS2Web.ViewComponents.Question.QuestionAnswerIndexViewComponent>(Model))
+    </div>
+    <div class="card-footer">
+        <button type="button" id="question-index-back-save-button" class="btn btn-secondary"><i class="fa fa-arrow-left"></i>&nbsp;Salvar e voltar</button>
+    </div>
+</div>
+
+<div class="modal fade" id="question-answer-index-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="question-answer-index-modal-title"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="question-answer-manage-view-component"></div>
+            </div>
+            <div class="modal-footer">
+                <div class="row">
+                    <div class="col-md-6 float-left">
+                        <button type="button" aria-label="Close" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-times"></i>&nbsp;Fechar</button>
+                    </div>
+                    <div class="col-md-6">
+                        <button type="button" class="btn btn-success" id="question-answer-index-modal-save-button"><i class="fa fa-upload"></i>&nbsp;Salvar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#question-answer-index-new-button').click(openQuestionAnswerModal);
+
+    function openQuestionAnswerModal(questionAnswerId) {
+        saveQuestionAnswerOrder(function () {
+            $('#question-answer-index-modal-title').text(questionAnswerId != null ? 'Editar Resposta' : 'Criar Resposta');
+
+            try {
+                $('#question-answer-manage-view-component').load('@Url.Action("LoadQuestionAnswerManageViewComponent", "QuestionAnswer")', { questionId: '@Model', questionAnswerId }, function () {
+                    $('#question-answer-index-modal').modal('show');
+                });
+            } catch{ }
+        });
+    }
+
+    $('#question-answer-index-modal-save-button').click(function () {
+        questionAnswerSave(function () {
+            $('#question-answer-index-modal-save-button').attr('disabled', '');
+        });
+    });
+
+    $('#question-index-back-save-button').click(function () {
+        saveQuestionAnswerOrder(function () {
+            window.location.href = '@Url.Action("Index", "Question")';
+        });
+    });
+</script>

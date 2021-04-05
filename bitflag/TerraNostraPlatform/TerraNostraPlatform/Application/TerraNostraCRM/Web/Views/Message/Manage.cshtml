@@ -1,0 +1,15 @@
+﻿@model int
+
+@{
+    ViewData["Title"] = "Conversa";
+}
+
+<div class="card ">
+    <div class="card-body" style="background-color: #f1f1f1;">
+        <div id="_MessageManageViewComponent"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#_MessageManageViewComponent').load('@Url.Action("MessageManageComponent", "Message")', { id: '@Model'});
+</script>

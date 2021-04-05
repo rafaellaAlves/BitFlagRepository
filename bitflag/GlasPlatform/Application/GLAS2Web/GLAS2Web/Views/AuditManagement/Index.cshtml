@@ -1,0 +1,37 @@
+﻿@model int?
+@{
+    ViewData["Title"] = "Auditorias";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var company = (DTO.Company.CompanyViewModel)ViewData["Company"];
+}
+<div class="card shadow">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <img class="rounded-circle" src="@Url.Action("GetCompanyLogo", "CompanyManagement", new { companyId = company.CompanyId })" data-holder-rendered="true" style="width: 75px; height: 75px;">
+            </div>
+            <div class="col-md-6 text-right">
+                <h5>
+                    <b>@company.NomeFantasia</b>
+                    <br />
+                    <small>@translationFunctions.GetTranslation("Auditoria", User.FindFirstValue("CultureInfo"))</small>
+                </h5>
+            </div>
+        </div>
+    </div>
+</div>
+<hr />
+<div class="card shadow">
+    <div class="card-header">
+        @translationFunctions.GetTranslation("Auditorias", User.FindFirstValue("CultureInfo"))
+    </div>
+    <div class="card-body">
+        <div id="AuditListViewComponent"></div>
+        <script type="text/javascript">
+            $('#AuditListViewComponent').load('@Url.Action("AuditListViewComponent", "AuditManagement")', { companyId: @Model });
+            function AuditNewCallback(companyId) {
+                document.location.href = '@Url.Action("Manage", "AuditManagement")?companyId=' + companyId;
+            }
+        </script>
+    </div>
+</div>

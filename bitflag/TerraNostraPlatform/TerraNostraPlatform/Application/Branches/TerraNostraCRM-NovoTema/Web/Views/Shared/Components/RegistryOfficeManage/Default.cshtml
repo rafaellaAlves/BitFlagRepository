@@ -1,0 +1,67 @@
+﻿@model DTO.RegistryOffice.RegistryOfficeViewModel
+
+<form id="RegistryOfficeManageForm">
+    <input type="hidden" name="RegistryOfficeId" value="@Model.RegistryOfficeId" />
+    <div id="RegistryOfficeManageError" style="display: none;" class="row">
+        <div class="col-md-12">
+            <div class="alert alert-danger">
+                Por favor, preencha um nome para o cartório.
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="form-group">
+                <label class="control-label">Nome do Cartório</label>
+                <input class="form-control" type="text" name="Name" value="@Model.Name" />
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label class="control-label">Cidade</label>
+                <input class="form-control" type="text" name="City" value="@Model.City" />
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="form-group">
+                <label class="control-label">UF</label>
+                <input class="form-control" type="text" name="State" value="@Model.State" />
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label class="control-label">País</label>
+                <input class="form-control" type="text" name="Country" value="@Model.Country" />
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label class="control-label">E-mail</label>
+                <input class="form-control" type="text" name="Email" value="@Model.Email" />
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label class="control-label">Telefone</label>
+                <input class="form-control" type="text" name="Phone" value="@Model.Phone" />
+            </div>
+        </div>
+    </div>
+</form>
+<script type="text/javascript">
+    function RegistryOfficeManageFormSave(success, error) {
+        $('#RegistryOfficeManageError').hide();
+
+        if (!$('#RegistryOfficeManageForm input[name="Name"]').val()) {
+            $('#RegistryOfficeManageError').show();
+            error();
+            return false;
+        }
+
+        $.post('@Url.Action("Manage", "RegistryOffice")', $('#RegistryOfficeManageForm').serializeArray(), function (d) {
+            success();
+        });
+    }
+</script>

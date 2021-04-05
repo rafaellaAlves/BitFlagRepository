@@ -1,0 +1,164 @@
+﻿@model AMaisImob_WEB.Models.LoginViewModel
+
+@{
+	ViewData["Title"] = "Login";
+	Layout = "~/Views/Shared/_LayoutLogin.cshtml";
+}
+
+@using (Html.BeginForm("Login", "Account", FormMethod.Post))
+{
+	<input type="hidden" name="returnUrl" value="@Context.Request.Query["ReturnUrl"]" />
+	<div class="row" style="margin-top: 1em; margin-bottom: 1em;">
+		<div class="col-md-12 text-center">
+			<img src="~/image/logo_AMaisImob.png" />
+		</div>
+		<div class="col-md-12 text-center" style="margin-top:1em;">
+			<h5>Restrito aos corretores/colaboradores e parceiros</h5>
+		</div>
+	</div>
+	<div class="card mx-auto shadow bg-light" style="max-width: 500px;">
+		<div class="card-body">
+			<div class="row">
+				<div class="form-group col-md-12">
+					<div id="AdherenceTermsError"></div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="form-group col-md-12">
+					<label for="Email">E-mail</label>
+					<div class="input-group mb-3" id="EmailArea">
+						<div class="input-group-prepend">
+							<span class="input-group-text"><i class="fas fa-envelope"></i></span>
+						</div>
+						<input class="form-control" type="text" name="Email" id="Email" placeholder="E-mail" />
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="form-group col-md-12">
+					<label for="Password">Senha</label>
+					<div class="input-group mb-3" id="PasswordArea">
+						<div class="input-group-prepend">
+							<span class="input-group-text"><i class="fas fa-key"></i></span>
+						</div>
+						<input class="form-control" type="password" name="Password" id="Password" placeholder="Password" />
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-6">
+					<div class="checkbox">
+						<label><input type="checkbox" name="RememberMe" value="false" id="RememberMe">&nbsp;Manter conectado</label>
+					</div>
+					<a href="javascript:void(0)" data-toggle="modal" data-target="#forgetPasswordModal">Esqueceu a senha?</a>
+				</div>
+				<div class="col-md-6 text-right" style="line-height:56px; vertical-align:middle;">
+					<button type="submit" class="btn btn-primary"><i class="fa fa-sign-in-alt"></i>&nbsp;Entrar</button>
+				</div>
+			</div>
+		</div>
+		@*<div class="card-footer">
+				<div style="width: 100%; text-align: center">
+					<button type="submit" class="btn btn-primary"><i class="fa fa-sign-in-alt"></i>&nbsp;Entrar</button>
+				</div>
+			</div>*@
+	</div>
+
+	<script type="text/javascript">
+		$('#RememberMe').change(function () {
+			$('#RememberMe').val($('#RememberMe')[0].checked);
+		});
+	</script>
+	@if (ViewData["ErroEmail"] != null)
+	{
+		string messageFile = (string)ViewData["ErroEmail"];
+		<script type="text/javascript">
+            $('#EmailArea').after('<div class="text-danger">@messageFile</div>');
+		</script>
+	}
+	@if (ViewData["ErroPassword"] != null)
+	{
+		string messageFile = (string)ViewData["ErroPassword"];
+		<script type="text/javascript">
+			$('#PasswordArea').after('<div class="text-danger">@messageFile</div>');
+		</script>
+	}
+	@if (ViewData["ErroAdherenceTerms"] != null)
+	{
+		string messageFile = (string)ViewData["ErroAdherenceTerms"];
+		<script type="text/javascript">
+            $('#AdherenceTermsError').after('<div class="text-danger">@messageFile</div>');
+		</script>
+	}
+}
+
+<div class="modal fade" id="forgetPasswordModal" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-md" style="width:400px" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Recuperação de senha</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<div id="alertSuccessPasswordRecovery" class="alert alert-success fade show text-center" role="alert" style="display: none;">
+					<strong>Um email foi enviado para você, verifique sua caixa de entrada!</strong>
+				</div>
+				<label>Digite seu e-mail no campo abaixo.</label>
+				<div class="form-group">
+					<input type="text" class="form-control" placeholder="E-mail" id="recoveryMail" />
+				</div>
+				<div class="form-group">
+					<button type="button" class="btn btn-success" id="SendMailButton"><i class="far fa-envelope"></i>&nbsp;Enviar e-mail</button>
+					<button type="submit" aria-label="Close" class="btn btn-secondary float-right" data-dismiss="modal"><i class="fa fa-times"></i>&nbsp;Fechar</button>
+				</div>
+				<script type="text/javascript">
+
+					$('#SendMailButton').click(function () {
+
+						var hasError = false;
+						$('#forgetPasswordModal .text-danger').remove();
+
+						if (IsNullOrWhiteSpace($('#recoveryMail').val())) {
+							hasError = true;
+							$('#recoveryMail').after('<div class="text-danger">Digite um e-mail!</div>');
+						}
+
+						if (!hasError) {
+							SendMail();
+						}
+					});
+				</script>
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+	$('#forgetPasswordModal').on('shown.bs.modal', function () {
+		$('#recoveryMail').val("");
+		$('#forgetPasswordModal .text-danger').remove();
+		$('#alertSuccessPasswordRecovery').hide();
+    });
+
+	function SendMail() {
+        var d = { 'mail': $('#recoveryMail').val() };
+		$.ajax({
+			url: '@Url.Action("SendRecoveryMail", "Account")',
+			type: 'POST',
+			dataType: 'json',
+			data: d,
+			success: function (data) {
+				$('#recoveryMail').val("");
+				if (data.hasError) {
+					$('#recoveryMail').after('<div class="text-danger">' + data.message + '</div>');
+					$('#alertSuccessPasswordRecovery').hide();
+				}
+				else {
+					$('#forgetPasswordModal .text-danger').remove();
+					$('#alertSuccessPasswordRecovery').show();
+				}
+			}
+		});
+	}
+</script>

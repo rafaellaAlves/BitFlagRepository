@@ -1,0 +1,40 @@
+﻿@model DTO.Question.QuestionAnswerViewModel
+
+@inject BLL.Question.QuestionSubThemeFunctions questionSubThemeFunctions
+
+@inject BLL.Question.QuestionFunctions questionFunctions
+
+@{
+    var question = questionFunctions.GetDataByID(Model.QuestionId);
+}
+
+<form id="question-answer-manage-form" method="post" action="@Url.Action("Manage", "QuestionAnswer")">
+    <input type="hidden" name="QuestionId" value="@Model.QuestionId" />
+    <input type="hidden" name="QuestionAnswerId" value="@Model.QuestionAnswerId" />
+    <div class="row">
+        <div class="col-md-4 form-group">
+            <label class="required">Subtema</label>
+            <select class="form-control" name="QuestionSubThemeId">
+                <option value="">Selecione</option>
+                @foreach (var item in questionSubThemeFunctions.GetDataAsNoTracking(x => (!x.IsDeleted || x.QuestionSubThemeId == Model.QuestionSubThemeId) && x.QuestionThemeId == question.QuestionThemeId))
+                {
+                    <option value="@item.QuestionSubThemeId" @(item.QuestionSubThemeId == Model.QuestionSubThemeId? "selected" : "")>@item.Name</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-8 form-group">
+            <label class="required">Resposta</label>
+            <input type="text" class="form-control uppercase" name="Answer" placeholder="Resposta" value="@Model.Answer" />
+        </div>
+    </div>
+</form>
+
+<script type="text/javascript">
+    function questionAnswerSave(callbackAfterValidation) {
+        if (!validateInputs('#question-answer-manage-form')) return;
+
+        typeof callbackAfterValidation == 'function' && callbackAfterValidation();
+
+        $('#question-answer-manage-form').submit();
+    }
+</script>

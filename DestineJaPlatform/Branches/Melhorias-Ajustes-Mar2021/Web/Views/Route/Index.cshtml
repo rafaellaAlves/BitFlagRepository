@@ -1,0 +1,13 @@
+﻿@{
+    ViewData["Title"] = "Rotas";
+}
+
+<div class="card">
+    <div class="card-body">
+        @(await Component.InvokeAsync("RouteIndex"))
+    </div>
+</div>
+
+@section Scripts{
+    <script asp-paste-key="route-index"></script>
+}

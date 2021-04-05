@@ -1,0 +1,582 @@
+﻿@model DTO.Shared.EntityViewMode<int?>
+
+@inject Web.Helpers.DropDownListHelper dropDownListHelper
+@inject Services.Contract.ContractSituationServices contractSituationServices
+@inject Services.Contract.ContractStatusServices contractStatusServices
+@inject Services.Contract.ContractListServices contractListServices
+@inject Services.Contract.ContractServices contractServices
+
+@{ var controller = this.ViewContext.RouteData.Values["controller"].ToString();
+    var action = this.ViewContext.RouteData.Values["action"].ToString();
+
+    var regularSituationId = (await contractSituationServices.GetDataByExternalCodeAsync("ADIMPLENTE")).ContractSituationId;
+    var suspensedSituationId = (await contractSituationServices.GetDataByExternalCodeAsync("SUSPENSO")).ContractSituationId;
+    var closedSituationId = (await contractSituationServices.GetDataByExternalCodeAsync("ENCERRADO")).ContractSituationId;
+    var defaultingSituationId = (await contractSituationServices.GetDataByExternalCodeAsync("INADIMPLENTE")).ContractSituationId;
+    var compliantSituationId = (await contractSituationServices.GetDataByExternalCodeAsync("ADIMPLENTE")).ContractSituationId;
+
+    var contractSignedStatusId = (await contractStatusServices.GetDataByExternalCode("CONTRATOASSINADO")).ContractStatusId;
+
+    var today = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
+
+    var allNearToRenew = await contractListServices.GetViewModelAsNoTrackingAsync(x => x.ToRenew && x.DueDate >= today && x.ContractStatusId == contractSignedStatusId && (!Model.Model.HasValue || Model.Model == x.ClientId));
+    var allOutOfVigency = await contractListServices.GetViewModelAsNoTrackingAsync(x => !x.UsedForRenew && x.DueDate < today && x.ContractSituationId != closedSituationId && x.ContractStatusId == contractSignedStatusId && (!Model.Model.HasValue || Model.Model == x.ClientId));
+    var allNewRenew = await contractListServices.GetViewModelAsNoTrackingAsync(x => x.NewRenew && x.ContractStatusId == contractSignedStatusId && (!Model.Model.HasValue || Model.Model == x.ClientId)); }
+<link href="~/assets/css/contract.css" rel="stylesheet" />
+<link href="~/assets/css/legend.css" rel="stylesheet" />
+
+<form id="contract-index-form">
+    <input type="hidden" value="false" name="IgnoreVigencyFilter" />@*Quando true não filtra os contratos q estão fora de vigencia*@
+    <div class="row">
+        <div class="col-md form-group">
+            <input type="text" class="form-control" placeholder="Pesquisar..." data-toggle="search-datatable" data-target="#contract-table" />
+        </div>
+        <div class="col-md-@(controller != "Contract" ? "auto" : "4") text-center form-group">
+            @Html.DropDownList("ContractSituationId", dropDownListHelper.ToSelectListItem<ApplicationDbContext.Models.ContractSituation, int, string>(await contractSituationServices.GetDataAsNoTrackingAsync(x => x.ExternalCode != "SEMCONTRATO" && x.ExternalCode != "AEXPIRAR"), x => x.ContractSituationId, x => x.Name, null), new { Class = "form-control w-100", multiple = "" })
+        </div>
+        <div class="col-md-auto text-center form-group">
+            <a href="javascript:openListPrint()" class="btn btn-primary"><i class="simple-icon-printer"></i>&nbsp;Imprimir</a>
+        </div>
+        @if (Model.CanEdit() && action.Equals("Proposal"))
+        {
+<div class="col-md-auto text-center form-group">
+    <a href="@Url.Action("Manage", "Contract")" class="btn btn-success"><i class="simple-icon-plus"></i>&nbsp;Nova Proposta</a>
+</div>}
+    </div>
+    @if (!action.Equals("Proposal"))
+    {
+<div class="row">
+    <div class="w-100"></div>
+    <div class="col-md-auto text-center form-group">
+        <button class="btn btn-warning p-1" style="border-radius: 5px; cursor: pointer; padding: 0.6rem 0.5rem; font-size: 10.5px;" type="button" data-toggle="modal" data-target="#contract-new-renew">Recentemente Renovado&nbsp;<span class="badge badge-light">@allNewRenew.Count</span></button>
+    </div>
+    <div class="col-md-auto text-center form-group">
+        <button class="btn btn-warning p-1" style="border-radius: 5px; cursor: pointer; padding: 0.6rem 0.5rem; font-size: 10.5px;" type="button" data-toggle="modal" data-target="#contract-waiting-renew">Vencidos&nbsp;<span class="badge badge-light">@allOutOfVigency.Count</span></button>
+    </div>
+    <div class="col-md-auto text-center form-group">
+        <button class="btn btn-warning p-1" style="border-radius: 5px; cursor: pointer; padding: 0.6rem 0.5rem; font-size: 10.5px;" type="button" data-toggle="modal" data-target="#contract-to-renew">A Renovar&nbsp;<span class="badge badge-light">@allNearToRenew.Count</span></button>
+    </div>
+</div>}
+</form>
+<hr />
+<div class="row">
+    @if (!action.Equals("Proposal"))
+    {
+<div class="col-12 text-center mb-1" style="font-size: 18px;">
+    <b>@(await contractServices.GetContractThisMonth())</b> Contrato(s) feitos este mês.
+</div>}
+    <div class="col">
+        <div class="table-responsive">
+            <table id="contract-table" class="display nowrap table table-striped table-bordered table-condensed w-100 tablesizeline" style="border-collapse: collapse !important; font-size:12px">
+                <thead>
+                    <tr>
+                        <th>Situação</th>
+                        <th>Data de Criação</th>
+                        <th>Código</th>
+                        <th>Gerador</th>
+                        <th>Início</th>
+                        <th>Vencimento</th>
+                        <th>Dia</th>
+                        @*<th>Data de Renovação</th>*@
+                        @*<th>Contrato Inicial</th>*@
+                        @if (action.Equals("Proposal"))
+                        {
+            <th>Status</th>
+ }
+        else
+        {
+<th>Situação</th>
+}
+                        @*<th>mtr de coleta</th>
+                            <th>mtr de destinação</th>*@
+                        <th>Observação</th>
+                        <th style="width:80px">&nbsp;</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<hr style="margin-top: .1rem; margin-bottom: .1rem;" />
+@if (!action.Equals("Proposal"))
+{
+<div class="row">
+    <div class="col-12">
+        <div class="row" style="padding: 5px;" id="row-total">
+            <div class="col-sm col-6 text-center">
+                <label onclick="searchFor(null, @compliantSituationId)">Adimplentes: <b id="contract-index-compliant-total">0</b></label>
+            </div>
+            <div class="col-sm col-6 text-center">
+                <label onclick="searchFor(null, @defaultingSituationId)">Inadimplentes: <b id="contract-index-defaulting-total">0</b></label>
+            </div>
+            <div class="col-sm col-6 text-center">
+                <label onclick="searchFor(null, @closedSituationId, true)">Encerrados: <b id="contract-index-closed-total">0</b></label>
+            </div>
+            <div class="col-sm col-6 text-center">
+                <label onclick="searchFor(null, @suspensedSituationId)">Suspensos: <b id="contract-index-suspensed-total">0</b></label>
+            </div>
+        </div>
+    </div>
+</div>}
+<div class="row">
+    <div class="col-12">
+        <div class="card card-body tx-mutted bd-0" style=" padding-bottom: 1px; padding-top: 7px;">
+            <div class="row" style="padding: 5px;">
+                <div class="col-12 col-md-3 legend" style="padding: 0;">
+                    <b style="display: inline-flex; margin-bottom: 20px;">Legendas</b>
+                    <br />
+                    <b style="margin-left:0; color: red;">Texto em vermelho</b>&nbsp;<b style="color: #495057;">- Inadimplente</b>
+                </div>
+                <div class="col-12 col-md-3 legend">
+                    <div style="background: #c4ffc4;"></div>
+                    <label style="margin-left:0;">Recém Renovado</label>
+                </div>
+                <div class="col-12 col-md-3 legend">
+                    <div style="background: #ff9898;"></div>
+                    <label>Fora de Vigência</label>
+                </div>
+                <div class="col-12 col-md-3 legend">
+                    <div style="background: #fdfda7;"></div>
+                    <label>Próximo da Renovação</label>
+                </div>
+            </div>
+        </div><!-- card -->
+    </div>
+</div>
+
+<script asp-cut-key="contract-index">
+    var totalSuspensed = 0, totalClosed = 0, totalDefaulting = 0, totalCompliant = 0, totalRegular = 0, totalNewRenew = 0, totalToRenew = 0;
+
+    function updateTotalLabels() {
+        $('#contract-index-compliant-total').text(totalCompliant);
+        $('#contract-index-closed-total').text(totalClosed);
+        $('#contract-index-defaulting-total').text(totalDefaulting);
+        $('#contract-index-suspensed-total').text(totalSuspensed);
+        $('#contract-index-regular-total').text(totalRegular);
+        $('#contract-index-new-renew-total').text(totalNewRenew);
+        $('#contract-index-to-renew-total').text(totalToRenew);
+    }
+
+    var contractDatatables;
+    $(document).ready(function () {
+        contractDatatables = $('#contract-table').DataTable({
+            order: [[2, "desc"]],
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            scrollX: true,
+            pageLength: 30,
+            dom: 'tip',
+            ajax: {
+                url: '@Url.Action("List", "Contract")',
+                data: function (d) {
+                    d.contractSituationId = $('#contract-index-form [name="ContractSituationId"]').val();
+                    d.clientId = '@Model.Model';
+                    d.onlyProposal = '@(action.Equals("Proposal")? "true" : "false")';
+                },
+                type: 'POST'
+            },
+            columnDefs: [{
+                targets: [2],
+                orderData: [17, 16, 18]
+            }],
+            createdRow: function (row, data, dataIndex) {
+                var today = ((new Date()).setHours(0, 0, 0, 0));
+                var pastDueDate = new Date(data["dueDate"]) < today;
+
+                if (data["newRenew"]) {
+                    $(row).addClass('lightGreen');
+                    totalNewRenew++;
+                }
+                else if (pastDueDate && !data["usedForRenew"]) {
+                    $(row).addClass('lightRed');
+                }
+                else if (data["toRenew"] && !pastDueDate) {
+                    $(row).addClass('lightYellow');
+                }
+
+                if (data['contractSituationId'] == @suspensedSituationId && ((!data["usedForRenew"] && !pastDueDate) || '@controller' != 'Contract'))
+                    totalSuspensed++;
+                if (data['contractSituationId'] == @closedSituationId && ((!data["usedForRenew"] && !pastDueDate) || '@controller' != 'Contract'))
+                    totalClosed++;
+                if (data['contractSituationId'] == @defaultingSituationId && ((!data["usedForRenew"] && !pastDueDate) || '@controller' != 'Contract'))
+                    totalDefaulting++;
+                if (data['contractSituationId'] == @compliantSituationId && ((!data["usedForRenew"] && !pastDueDate) || '@controller' != 'Contract'))
+                    totalCompliant++;
+                if (data['regular'])
+                    totalRegular++;
+                if (data['toRenew'])
+                    totalToRenew++;
+
+                updateTotalLabels();
+            },
+            columns: [
+                { visible: false, render: function (data, type, row) { return row.contractSituationId; } },
+                { visible: false, render: function (data, type, row) { return row.createdDate; } },
+                { render: function (data, type, row) { return row.code; } },
+                {
+                    render: function (data, type, row) {
+                        if (row.contractSituationId == @defaultingSituationId)
+                            return '<b style="color: red">' + row.clientName + ' <span style="font-size:15px;">$</span></b>';
+
+                        return row.clientName;
+                    }
+                },
+                { render: function (data, type, row) { return type === 'sort' ? row.startContract : row._StartContract; } },
+                { render: function (data, type, row) { return type === 'sort' ? row.dueDate : row._DueDate; } },
+                { render: function (data, type, row) { return '<div class="text-center">' + row.dueDay + '</div>'; } },
+                @if (action.Equals("Proposal"))
+                {
+                    <text>
+                    { render: function (data, type, row) { return isNull(row.contractStatusName, '-'); } },
+                    </text>
+                }
+                else
+                {
+                    <text>
+                    { render: function (data, type, row) { return isNull(row.contractSituationName, '-'); } },
+                    </text>
+                }
+                //{ render: function (data, type, row) { return isNull(row.demandIds, '-'); } },
+                //{ render: function (data, type, row) { return isNull(row.demandDestinationIds, '-'); } },
+                { render: function (data, type, row) { return row.remainingWeight < 0? 'Peso contratado foi excedido.' : '-'; } },
+                {
+                    render: function (data, type, row)
+                    {
+                    @if (Model.CanEdit())
+                    {
+                        <text>
+                        var r = '<div class="text-center">';
+                        if (row.hasFile) r += '&nbsp;<a href="@Url.Action("GetContractFile", "Contract")?id='+ row.contractId +'" target="_blank" title="Contrato Assinado"><span class="badge badge-pill badge-primary"><i class="simple-icon-docs"></i></span></a>';
+                        r += '&nbsp;<a href="@Url.Action("View", "Contract")?id='+ row.contractId +'" title="Visualizar"><span class="badge badge-pill badge-primary"><i class="simple-icon-magnifier"></i></span></a>';
+
+                        if (!row.usedForRenew) {
+                            r += '&nbsp;<a href="@Url.Action("Manage", "Contract")?id='+ row.contractId +'"  title="Editar"><span class="badge badge-pill badge-success"><i class="simple-icon-note"></i></span></a>';
+
+                            //passou do vencimento habilita o botão de renovação
+                            if (((new Date()).setHours(0, 0, 0, 0)) >= moment(row.dueDate)._d) {
+                                r += '&nbsp;<a href="@Url.Action("Renew", "Contract")?id='+ row.contractId +'" title="Renovar"><span class="badge badge-pill badge-info"><i class="simple-icon-reload"></i></span></a>';
+                            } else {
+                                r += '&nbsp;<a style="opacity: .6;" title="Renovar"><span class="badge badge-pill badge-info"><i class="simple-icon-reload"></i></span></a>';
+                            }
+                        }
+
+                        if (row.canDelete) {
+                            r += '&nbsp;<a href=\'javascript:removeContract(' + JSON.stringify({ code: row.code, contractId: row.contractId }) + ')\' title="Remover"><span class="badge badge-pill badge-danger"><i class="simple-icon-trash"></i></span></a>';
+                        }
+                        r += '</div>';
+
+                        return r;
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                        var r = '<div class="text-center">';
+                        if (row.hasFile) r += '&nbsp;<a href="@Url.Action("GetContractFile", "Contract")?id='+ row.contractId +'"  target="_blank" title="Visualizar Arquivo"><span class="badge badge-pill badge-primary"><i class="simple-icon-docs"></i></span></a>';
+                        if (row.hasFile) r += '&nbsp;<a href="@Url.Action("DownloadContractFile", "Contract")?id='+ row.contractId +'" target="_blank" title="Baixar Contrato"><span class="badge badge-pill badge-primary"><i class="simple-icon-cloud-download"></i></span></a>';
+                        r += '&nbsp;<a href="@Url.Action("View", "Contract")?id='+ row.contractId +'" title="Visualizar"><span class="badge badge-pill badge-primary"><i class="simple-icon-magnifier"></i></span></a>';
+                        r += '</div>';
+
+                        return r;
+                        </text>
+                    }
+                    }
+                },
+                { visible: false, render: function (data, type, row) { return row.usedForRenew; } },
+                { visible: false, render: function (data, type, row) { return row.regular; } },
+                { visible: false, render: function (data, type, row) { return row.toRenew; } },
+                { visible: false, render: function (data, type, row) { return row.newRenew; } },
+                { visible: false, render: function (data, type, row) { return row.startContract; } },
+                { visible: false, render: function (data, type, row) { return row.dueDate; } },
+                { visible: false, render: function (data, type, row) { return row.code.split('/')[0]; } },
+                {
+                    visible: false, render: function (data, type, row) {
+                        var split = row.code.split('/');
+                        if (split.length < 2) return null;
+
+                        return split[1];
+                    }
+                },
+                {
+                    visible: false, render: function (data, type, row) {
+                        var split = row.code.split('/');
+                        if (split.length < 3) return null;
+
+                        return split[2];
+                    }
+                },
+                { visible: false, render: function (data, type, row) { return row.tradeName; } },
+            ]
+        });
+
+        contractDatatables.on('search.dt', function (a, b) {
+            setTimeout(function () {
+                $('[name="IgnoreVigencyFilter"]').val('false');
+            }, 200);//Em alguns casos o filtro ocorre 3 vezes, isso força q o campo só seja limpo após os filtros
+        });
+    });
+
+    $.fn.dataTable.ext.search.push(
+        function (settings, data) {
+            if (settings.sInstance != "contract-table") return true;
+
+            var today = ((new Date()).setHours(0, 0, 0, 0));
+
+            var usedForRenew = data[10];
+            var endDate = new Date(data[15]);
+
+            var r = true, //validação de situação
+                r2 = true, // validação de já renovados
+                r3 = true; // validação quando não está sendo usado nenhum filtro
+
+            var situationId = $('#contract-index-form [name="ContractSituationId"]').val();
+            if (situationId != null) {
+                r = situationId.indexOf(data[0]) != -1;
+            }
+            else r = true;
+
+            @if (!action.Equals("Proposal"))
+            {
+                <text>
+
+            if ('@controller' != 'Contract') {//quando for outra pagina fora da listagem principal de contrato sempre mostra usados para renovar
+                r2 = true;
+            }
+            else
+            {
+                r2 = usedForRenew == "false";//apenas os itens q: não foram usados para renovados
+            }
+
+            if ($('[name="IgnoreVigencyFilter"]').val() == 'false' && (situationId == null || situationId.indexOf('@closedSituationId') == -1)) {
+                r3 = endDate >= today && data[0] != @closedSituationId;//apenas os itens q: estão dentro da data de vigencia/ não estão encerrados
+            } else {
+                r3 = true;
+            }
+
+                </text>
+            }
+
+            return r && r2 && r3;
+        }
+    );
+
+    function removeContract(contract) {
+        bootboxConfirm("Deseja realmente excluir o Contrato \"" + contract.code + "\"?", function(result){
+            if (!result) return;
+
+            $.post('@Url.Action("Delete", "Contract")', { id: contract.contractId }, function () {
+                alert("O Contrato \"" + contract.code + "\" foi excluído com sucesso!");
+                contractDatatables.ajax.reload();
+            });
+        });
+    }
+    
+    function openListPrint() {
+        var form = $('<form>', { target: "_blank", method: "post", action: '@Url.Action("ListPrint", "Contract")'});
+
+        form.append($('<input>', { type: 'hidden', value: $('[data-toggle="search-datatable"][data-target="#contract-table"]').val(), name: 'Search' }));
+        form.append($('<input>', { type: 'hidden', value: (isNullOrWhiteSpace($('[name="RenewStatusId"] option:selected').val()) ? "" : $('[name="RenewStatusId"] option:selected')[0].innerHTML), name: 'RenewStatus' }));
+        form.append($('<input>', { type: 'hidden', value: (isNullOrWhiteSpace($('[name="ContractSituationId"] option:selected').val()) ? "" : $('[name="ContractSituationId"] option:selected')[0].innerHTML), name: 'ContractSituation' }));
+
+        var i = 0;
+        contractDatatables.rows({ filter: 'applied' }).data().each(function (e) {
+            form.append($('<input>', { type: 'hidden', value: i, name: 'models.Index' }));
+            form.append($('<input>', { type: 'hidden', value: JSON.stringify(e), name: 'models[' + i + ']' }));
+
+            //$.each(e, function (key, d) {
+            //    form.append($('<input>', { type: 'hidden', value: d, name: 'models[' + i + '].' + key }));
+            //});
+
+            i++;
+        });
+
+        $('body').append(form);
+
+        form.submit();
+        form.remove();
+    }
+
+    function searchFor(search, situation, ignoreVigencyFilter) {
+        $('[data-toggle="search-datatable"][data-target="#contract-table"]').val(search);
+        $('[name="ContractSituationId"]').val(situation == null ? [] : situation);
+        $('[name="IgnoreVigencyFilter"]').val(ignoreVigencyFilter == null ? 'false' : ignoreVigencyFilter);
+
+
+        $('#contract-to-renew').modal('hide');
+        $('#contract-new-renew').modal('hide');
+        $('#contract-waiting-renew').modal('hide');
+
+        $('[name="ContractSituationId"]').trigger('change');
+        contractDatatables.search(isNull(search, '')).draw();
+    }
+
+    $('#contract-index-form [name="ContractSituationId"]').change(function () {
+        contractDatatables.draw();
+    });
+
+    $(document).ready(function () {
+        $('#contract-index-form [name="ContractSituationId"]').select2({
+            theme: "bootstrap",
+            placeholder: "Situação",
+            allowClear: true,
+            "language": {
+                "noResults": function () {
+                    return "Nenhum resultado encontrado.";
+                }
+            }
+        });
+    });
+</script>
+
+<div class="modal fade" id="contract-to-renew" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content" style="max-width: 650px;">
+            <div class="modal-header">
+                <h5 class="modal-title tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold" id="contract-to-renew-title">Contratos a Renovar</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col" style="max-height: 300px; overflow-y: auto;">
+                        <table class="table table-striped table-condensed table-bordered">
+                            <thead>
+                                <tr>
+                                    <td>Código</td>
+                                    <td>Gerador</td>
+                                    <td>Início</td>
+                                    <td>Vencimento</td>
+                                    <td>Observação</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in allNearToRenew)
+                                {
+                    <tr>
+                        <td><a href="javascript:searchFor('@item.Code')" title="Editar">@item.Code</a></td>
+                        <td>@item.ClientName</td>
+                        <td>@item._StartContract</td>
+                        <td>@item._DueDate</td>
+                        <td>@(item.DayToEndDate == 0? "Último dia de vigência." : item.DayToEndDate > 0? $"{item.DayToEndDate} dias para vencer." : $"{Math.Abs(item.DayToEndDate)} dias desde o vencimento.")</td>
+                    </tr>
+}
+                                @if (allNearToRenew.Count == 0)
+                                {
+                    <tr>
+                        <td colspan="5">Nenhum contrato a renovar</td>
+                    </tr>
+}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="col-md-12">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="simple-icon-close"></i>&nbsp;Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="contract-new-renew" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content" style="max-width: 550px;">
+            <div class="modal-header">
+                <h5 class="modal-title tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold" id="contract-new-renew-title">Contratos Recentemente Renovado</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col" style="max-height: 300px; overflow-y: auto;">
+                        <table class="table table-striped table-condensed table-bordered">
+                            <thead>
+                                <tr>
+                                    <td>Código</td>
+                                    <td>Gerador</td>
+                                    <td>Início</td>
+                                    <td>Vencimento</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in allNewRenew)
+                                {
+                    <tr>
+                        <td><a href="javascript:searchFor('@item.Code', '')" title="Editar">@item.Code</a></td>
+                        <td>@item.ClientName</td>
+                        <td>@item._StartContract</td>
+                        <td>@item._DueDate</td>
+                    </tr>
+}
+                                @if (allNewRenew.Count == 0)
+                                {
+                    <tr>
+                        <td colspan="4">Nenhum contrato recentemente renovado</td>
+                    </tr>
+}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="col-md-12">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="simple-icon-close"></i>&nbsp;Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="contract-waiting-renew" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content" style="max-width: 550px;">
+            <div class="modal-header">
+                <h5 class="modal-title tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold" id="contract-waiting-renew-title">Contratos Aguardando Renovação</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col" style="max-height: 300px; overflow-y: auto;">
+                        <table class="table table-striped table-condensed table-bordered">
+                            <thead>
+                                <tr>
+                                    <td>Código</td>
+                                    <td>Gerador</td>
+                                    <td>Início</td>
+                                    <td>Vencimento</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in allOutOfVigency)
+                                {
+                    <tr>
+                        <td><a href="javascript:searchFor('@item.Code', '', true)" title="Editar">@item.Code</a></td>
+                        <td>@item.ClientName</td>
+                        <td>@item._StartContract</td>
+                        <td>@item._DueDate</td>
+                    </tr>
+}
+                                @if (allOutOfVigency.Count == 0)
+                                {
+                    <tr>
+                        <td colspan="4">Nenhum contrato recentemente renovado</td>
+                    </tr>
+}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="col-md-12">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="simple-icon-close"></i>&nbsp;Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,319 @@
+﻿@model int
+
+<div class="row">
+    <div class="col-md form-group">
+        <div class="input-group">
+            <div class="input-group-addon">
+                <i class="simple-icon-magnifier"></i>
+            </div>
+            <input type="text" class="form-control" id="transporter-vehicle-index-search" placeholder="Pesquisar..." data-toggle="search-datatable" data-target="#transporter-vehicle-index-table">
+        </div>
+    </div>
+    <div class="col-md-auto col form-group">
+        <a href="javascript:openTransporterVehicleEditModal()" class="btn btn-primary text-nowrap w-100"><i class="simple-icon-plus"></i>&nbsp;Adicionar Documento</a>
+    </div>
+</div>
+<hr />
+<div id="success-area-transporter-vehicle-index"></div>
+<div class="row">
+    <div class="col-md-12 table-responsive">
+        <table id="transporter-vehicle-index-table" class="display nowrap table table-striped table-bordered table-condensed" style="border-collapse: collapse !important; min-width: 100%;">
+            <thead>
+                <tr>
+                    <th>Placa</th>
+                    <th>DUT</th>
+                    <th>Modelo</th>
+                    <th>Fabricante</th>
+                    <th>CIV</th>
+                    <th>Vencimento</th>
+                    <th>Dias para o Vencimento</th>
+                    <th>CIPP</th>
+                    <th>Vencimento</th>
+                    <th>Dias para o Vencimento</th>
+                    <th>&nbsp;</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="transporter-vehicle-index-modal" tabindex="-1" role="dialog" aria-labelledby="transporter-vehicle-index-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-lg w-100" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold" id="transporter-vehicle-index-modal-title"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @(await Component.InvokeAsync("TransporterVehicleManage", new { transporterId = Model }))
+            </div>
+            <div class="modal-footer">
+                <div class="col-md-6">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="simple-icon-close"></i>&nbsp;Fechar</button>
+                </div>
+                <div class="col-md-6">
+                    <button type="button" class="btn btn-success float-right" id="transporter-vehicle-index-modal-save-button"><i class="simple-icon-cloud-upload"></i>&nbsp;Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script asp-cut-key="transporter-vehicle-index">
+    var transporterVehicleDatatables;
+    $(document).ready(function () {
+        transporterVehicleDatatables = $('#transporter-vehicle-index-table').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            dom: 'tip',
+            scrollX: true,
+            ajax: {
+                url: '@Url.Action("List", "TransporterVehicle")',
+                data: function (d) {
+                    d.transporterId = '@Model'
+                },
+                type: 'POST'
+            },
+            columns: [
+                { render: function (data, type, row) { return row.licensePlate + getDownloadIconVehicle(row, 'LicensePlate'); } },
+                { render: function (data, type, row) { return isNull(row.dut, '-') + getDownloadIconVehicle(row, 'DUT'); } },
+                { render: function (data, type, row) { return isNull(row.model, '-'); } },
+                { render: function (data, type, row) { return isNull(row.manufacturer, '-'); } },
+                { render: function (data, type, row) { return isNull(row.civ, '-') + getDownloadIconVehicle(row, 'CIV'); } },
+                { render: function (data, type, row) { return isNull(formatDate(row.civDueDate), '-'); } },
+                { render: function (data, type, row) { return isNullOrWhiteSpace(row.civDueDate)? '-' : getDaysFromToday(moment(row.civDueDate)._d); } },
+                { render: function (data, type, row) { return isNull(row.cippModel, '-') + getDownloadIconVehicle(row, 'CIPP'); } },
+                { render: function (data, type, row) { return isNull(formatDate(row.cippDueDate), '-') } },
+                { render: function (data, type, row) { return isNullOrWhiteSpace(row.cippDueDate)? '-' : getDaysFromToday(moment(row.cippDueDate)._d); } },
+                @*{ render: function (data, type, row) { return '<a target="_blank" href="@Url.Action("GetArchive", "TransporterVehicle")?id=' + row.transporterVehicleId + '">' + row.fileName + '</a>'; } },*@
+                {
+                    render: function (data, type, row)
+                    {
+                        var r = `<div class="text-center text-nowrap">
+                            &nbsp;<a href=\'javascript:openTransporterVehicleEditModal(` + JSON.stringify(row) + `)\' title="Editar"><span class="badge badge-pill badge-success"><i class="simple-icon-note"></i></span></a>`;
+
+                        if (row.isActive) r += '&nbsp;<a href=\'javascript:inactiveTransporterVehicle(' + JSON.stringify(row) + ')\' title="Inativar"><span class="badge badge-pill badge-warning"><i class="fa fa-unlock"></i></span></a>';
+                        else r += '&nbsp;<a href=\'javascript:activeTransporterVehicle(' + JSON.stringify(row) + ')\' title="Ativar"><span class="badge badge-pill badge-danger"><i class="simple-icon-lock"></i></span></a>';
+
+                        r += '&nbsp;<a href=\'javascript:removeTransporterVehicle(' + JSON.stringify(row) + ')\' title="Excluir"><span class="badge badge-pill badge-danger"><i class="simple-icon-trash"></i></span></a>' +
+                        '</div>';
+
+                        return r;
+                    }
+                }
+            ]
+        });
+    });
+
+    function getDownloadIconVehicle(transporterVehicle, archive)
+    {
+        var success = false;
+        var fileName = "", mimeType = "";
+
+        if (archive == 'LicensePlate' && transporterVehicle.licensePlateGuidName != null) { success = true; fileName = transporterVehicle.licensePlateFileName; mimeType = transporterVehicle.licensePlateMimeType; }
+        if (archive == 'DUT' && transporterVehicle.dutGuidName != null) { success = true; fileName = transporterVehicle.dutFileName; mimeType = transporterVehicle.dutMimeType; }
+        if (archive == 'CIPP' && transporterVehicle.cippGuidName != null) { success = true; fileName = transporterVehicle.cippFileName; mimeType = transporterVehicle.cippMimeType; }
+        if (archive == 'CIV' && transporterVehicle.civGuidName != null) { success = true; fileName = transporterVehicle.civFileName; mimeType = transporterVehicle.civMimeType; }
+
+        if (success) return ' <a href=\'javascript:vehicleDownloadBootbox(' + JSON.stringify({ transporterVehicleId: transporterVehicle.transporterVehicleId, archive, fileName, mimeType  }) + ')\' class="simple-icon-cloud-download"></a>'
+
+        return '';
+    }
+
+    function vehicleDownloadBootbox(d) {
+        var size = 'medium';
+
+        var message = $('<div>');
+        message.append($('<h4>').append('Arquivo <b>(' + d.fileName + ')</b>'));
+
+
+        if (d.mimeType.indexOf('image') != -1) {
+            var row = $('<div>', { class: 'row mt-3' });
+            var col = $('<div>', { class: 'col-md-12 text-center' });
+            var img = $('<img>', { class: 'transporter-vehicle-image', src: '@Url.Action("GetArchive", "TransporterVehicle")?id=' + d.transporterVehicleId + '&archive=' + d.archive, style: 'min-height:150px; max-height: 400px; max-width: 750px;' });
+            img.on("error", function () { imageNotFound('.transporter-vehicle-image') });
+
+            message.append(row.append(col.append(img)));
+
+            size = 'large';
+        }
+
+         bootbox.dialog({
+            message: message.html(),
+             size: size,
+            buttons: {
+                delete: {
+                    label: "<i class=\"simple-icon-close\"></i> Excluir",
+                    className: 'btn-danger mr-auto float-left',
+                    callback: function () {
+                        deleteVehicleFile(d)
+                    }
+                },
+                download: {
+                    label: "<i class=\"simple-icon-cloud-download\"></i> Download",
+                    className: 'btn-success',
+                    callback: function () {
+                        window.location.href = '@Url.Action("GetArchive", "TransporterVehicle")?id=' + d.transporterVehicleId + '&archive=' + d.archive;
+                    }
+                }
+            }
+        });
+    }
+
+    function deleteVehicleFile(d) {
+        bootboxConfirm("Deseja realmente excluir o arquivo \"" + d.fileName + "\"?", function(result){
+            if (!result) {
+                vehicleDownloadBootbox(d)
+                return;
+            }
+
+            $.post('@Url.Action("RemoveFile", "TransporterVehicle")', { id: d.transporterVehicleId, archive: d.archive }, function () {
+                bootbox.alert("Arquivo \"" + d.fileName + "\" excluído com sucesso!");
+                transporterVehicleDatatables.ajax.reload();
+            });
+        });
+    }
+
+    function removeTransporterVehicle(transporterVehicle) {
+        bootboxConfirm("Deseja realmente excluir o veículo de placa \"" + transporterVehicle.licensePlate + "\"?", function(result){
+            if (!result) return;
+
+            $.post('@Url.Action("DeleteDefinitively", "TransporterVehicle")', { id: transporterVehicle.transporterVehicleId }, function () {
+
+                bootbox.alert("Veículo de placa \"" + transporterVehicle.licensePlate + "\" excluído com sucesso!");
+                transporterVehicleDatatables.ajax.reload();
+            });
+        });
+    }
+
+    function inactiveTransporterVehicle(transporterVehicle) {
+        bootboxConfirm("Deseja realmente desativar o veículo de placa \"" + transporterVehicle.licensePlate + "\"?", function(result){
+            if (!result) return;
+
+            $.post('@Url.Action("Inactive", "TransporterVehicle")', { id: transporterVehicle.transporterVehicleId }, function () {
+
+                bootbox.alert("Veículo de placa \"" + transporterVehicle.licensePlate + "\" desativado com sucesso!");
+                transporterVehicleDatatables.ajax.reload();
+            });
+        });
+    }
+
+    function activeTransporterVehicle(transporterVehicle) {
+        bootboxConfirm("Deseja realmente ativar o veículo de placa \"" + transporterVehicle.licensePlate + "\"?", function(result){
+            if (!result) return;
+
+            $.post('@Url.Action("Active", "TransporterVehicle")', { id: transporterVehicle.transporterVehicleId }, function () {
+
+                bootbox.alert("Veículo de placa \"" + transporterVehicle.licensePlate + "\" ativado com sucesso!");
+                transporterVehicleDatatables.ajax.reload();
+            });
+        });
+    }
+
+    function openTransporterVehicleEditModal(data) {
+        $('#form-transporter-vehicle [name=\'TransporterVehicleId\']').val(data == null? '' : data.transporterVehicleId);
+
+        $('#form-transporter-vehicle [name=\'LicensePlate\']').val(data == null? '' : data.licensePlate);
+        $('#form-transporter-vehicle [name=\'DUT\']').val(data == null? '' : data.dut);
+        $('#form-transporter-vehicle [name=\'ActivityName\']').val(data == null? '' : data.activityName);
+        $('#form-transporter-vehicle [name=\'Model\']').val(data == null? '' : data.model);
+        $('#form-transporter-vehicle [name=\'Manufacturer\']').val(data == null? '' : data.manufacturer);
+        $('#form-transporter-vehicle [name=\'ManufacturingDate\']').val(data == null? '' : data.manufacturingDate);
+        $('#form-transporter-vehicle [name=\'CIV\']').val(data == null? '' : data.civ);
+        $('#form-transporter-vehicle [name=\'_CIVDueDate\']').val(data == null? '' : moment(data.civDueDate).format('DD/MM/YYYY'));
+        $('#form-transporter-vehicle [name=\'CIPPModel\']').val(data == null? '' : data.cippModel);
+        $('#form-transporter-vehicle [name=\'_CIPPDueDate\']').val(data == null? '' : moment(data.cippDueDate).format('DD/MM/YYYY'));
+        $('#form-transporter-vehicle [name=\'LicensePlateArchive\']').val('');
+        $('#form-transporter-vehicle [name=\'DUTArchive\']').val('');
+        $('#form-transporter-vehicle [name=\'CIVArchive\']').val('');
+        $('#form-transporter-vehicle [name=\'CIPPArchive\']').val('');
+
+        var r = getDaysToDueDate(moment($('#form-transporter-vehicle input[name=\'_CIVDueDate\']').val(), 'DD/MM/YYYY')._d);
+        $('#CIV-days-for-due-date').val(data == null ? '' : parseInt(r));
+
+        r = getDaysToDueDate(moment($('#form-transporter-vehicle input[name=\'_CIPPDueDate\']').val(), 'DD/MM/YYYY')._d);
+        $('#CIPP-days-for-due-date').val(data == null? '' : parseInt(r));
+
+        //remove arquivos selecionado no FilePound
+        $('.filepond--file-action-button.filepond--action-remove-item').click();
+
+        $('#transporter-vehicle-index-modal-title').text(data == null ? 'Novo Veículo' : 'Editar Veículo');
+
+        $('#transporter-vehicle-index-modal').modal('show');
+
+        InitializeFunctions();
+    }
+
+    $('#transporter-vehicle-index-modal-save-button').click(function () {
+        if(!validateInputs('form-transporter-vehicle')) return;
+
+        var formData = new FormData();
+
+        $('#form-transporter-vehicle').serializeArray().forEach(function (e) {
+            formData.append(e.name, e.value);
+        });
+
+
+        if ($('#form-transporter-vehicle [name=\'LicensePlateArchive\']')[0].files.length > 0) {
+            formData.append('LicensePlate', $('#form-transporter-vehicle [name=\'LicensePlateArchive\']')[0].files[0]);
+        }
+        if ($('#form-transporter-vehicle [name=\'DUTArchive\']')[0].files.length > 0) {
+            formData.append('DUT', $('#form-transporter-vehicle [name=\'DUTArchive\']')[0].files[0]);
+        }
+        if ($('#form-transporter-vehicle [name=\'CIVArchive\']')[0].files.length > 0) {
+            formData.append('CIV', $('#form-transporter-vehicle [name=\'CIVArchive\']')[0].files[0]);
+        }
+
+        if ($('#form-transporter-vehicle [name=\'CIPPArchive\']')[0].files.length > 0) {
+            formData.append('CIPP', $('#form-transporter-vehicle [name=\'CIPPArchive\']')[0].files[0]);
+        }
+
+        $('#success-area-transporter-vehicle-index').empty();
+
+        $.ajax({
+            url: '@Url.Action("ManageAjax", "TransporterVehicle")',
+			type: 'POST',
+			contentType: false,
+			processData: false,
+            data: formData,
+            success: function (d) {
+                if (!d.success) {
+                    var div = $('<div>');
+                    var row = $('<div>', { class: 'row' });
+                    var title = $('<div>', { class: 'col-md-12' }).append($('<h5>').append('O arquivo foi salvo com sucesso, porem os seguintes arquivos não foram inseridos.'));
+
+                    var table = $('<table>', { class: 'table table-bordered table-striped' });
+                    var tHead = $('<thead>').append($('<tr>').append($('<td>').append('Arquivo'), $('<td>').append('Motivo')));
+                    var tBody = $('<tbody>');
+
+                    $.each(e.erros, function (i, e) {
+                        tBody.append($('<tr>').append($('<td>').append(e.item), $('<td>').append(e.message)));
+                    });
+
+                    div.append(row.append(title, $('<div>', { class: 'col-md-12' }).append(table.append(tHead, tBody))));
+
+                    bootbox.alert(div.html());
+                    return;
+                }
+
+                formDataTransporterVehicle = new FormData();
+
+                transporterVehicleDatatables.ajax.reload();
+                transporterVehicleDatatables.search($('#transporter-vehicle-index-search').val()).draw();
+
+                $('#success-area-transporter-vehicle-index').empty().append(successMessage());
+
+                $('#transporter-vehicle-index-modal').modal('hide');
+            }
+        });
+    })
+
+    $('.nav-link').on('shown.bs.tab', function () {
+        $('#transporter-vehicle-index-table').DataTable().columns.adjust();
+    });
+</script>

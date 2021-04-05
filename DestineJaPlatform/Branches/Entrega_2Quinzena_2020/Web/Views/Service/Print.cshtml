@@ -1,0 +1,149 @@
+﻿@model DTO.Service.ServicePrintViewModel
+@using DTO.Utils;
+@{
+    Layout = "~/Views/Shared/_LayoutClean.cshtml";
+}
+
+@if (Model.UsingForPdf)
+{
+    <style type="text/css">
+        p {
+            line-height: 1.2em !important;
+            font-size: 15px;
+        }
+    </style>
+}
+else
+{
+    <style type="text/css">
+        p {
+            line-height: 1em !important;
+            font-size: 25px;
+        }
+
+        @@media print {
+            .no-print, .no-print * {
+                display: none !important;
+            }
+        }
+    </style>
+}
+
+@if (Context.Request.Query.ContainsKey("creation"))
+{
+    <div class="row" id="success-alert">
+        <div class="col-md-12">
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <span>Suas informações foram salvas com <strong>sucesso</strong>.</span>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span></button>
+            </div>
+        </div>
+    </div>
+
+    @section Scripts{
+        <script type="text/javascript">
+            $(document).ready(function () { setTimeout(function () { $('#success-alert').fadeOut(2000); }, 8000); });
+        </script>
+    }
+}
+
+@if (!Model.UsingForEmail && !Model.UsingForPdf)
+{
+    <div style="margin-bottom:5em; margin-top:3em;" class="no-print">
+        <a class="btn btn-primary" style=" padding: 10px 30px 10px 30px;" href="@Url.Action("Manage", "Service", new { id = Model.Service.ServiceId })"><i class="simple-icon-arrow-left"></i>&nbsp;Voltar</a>
+        <a class="btn btn-success float-right" style="padding: 10px 30px 10px 30px;" href="javascript:window.print();"><i class="simple-icon-printer"></i>&nbsp;Imprimir</a>
+    </div>
+}
+@if (Context.Request.Query.ContainsKey("creation"))
+{
+    <div class="row">
+        <div class="col text-center">
+            <h4 class="text-danger">Para enviar a ordem de serviço via e-mail, primeiro leia e faça a conferência, logo após, clique no botão abaixo do CPF do responsável.</h4>
+        </div>
+    </div>
+}
+
+<div style="width:100%; text-align:center;">
+    @if (Model.UsingForEmail)
+    {
+        <img src="cid:Logo" style="width:80%;" />
+    }
+    else if (Model.UsingForPdf)
+    {
+        var bytes = System.IO.File.ReadAllBytes(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "wwwroot", "Imagens", "logo2.png"));
+        var base64 = Convert.ToBase64String(bytes);
+
+        <img src="@($"data:image/png;base64, {base64}")" width="500" />
+    }
+    else
+    {
+        <img src="~/Imagens/logo2.png" style="width:80%;" />
+    }
+</div>
+<div style="text-align:center; @(Model.UsingForPdf? "" : "margin-top:-3em;") margin-bottom:2em;">
+    <label style="@(Model.UsingForPdf? "font-size:25px;" : "font-size:40px;") font-weight:bold;">ORDEM DE SERVIÇO PARA COLETA DE RESÍDUOS</label>
+</div>
+<div>
+    <p><b>Razão Social/Nome:</b> @Model.Client.CompanyName.IfNullChange(Model.Client.FullName)</p>
+    <p><b>CNPJ/CPF:</b>&nbsp;<span class="cnpj">@Model.Client._CNPJ.IfNullChange(Model.Client._CPF).CNPJOrCPFmask()</span></p>
+    <p><b>Endereço da Empresa:</b> @($"{Model.Client.Address}{(", " + Model.Client.Number).IfNullChange("", ", ")}{(", " + Model.Client.Complement).IfNullChange("", ", ")}{(", " + Model.Client.Neighborhood).IfNullChange("", ", ")}{(", " + Model.Client.City).IfNullChange("", ", ")}{(", " + Model.Client.State).IfNullChange("", ", ")}")</p>
+    <p><b>Nome do Responsável:</b> @Model.Service.ContactName.IfNullChange("-")</p>
+    <p><b>Cargo do Responsável:</b> @Model.Service.ContactRole.IfNullChange("-")</p>
+</div>
+<div style="margin-top: 3em; margin-bottom: 3em;">
+    <p style="text-indent: 50px; text-align: justify;">
+        <i>
+            Autorizo o serviço de Coleta dos Resíduos a ser realizado pela solução empresarial <b>DESTINE JÁ PRESTAÇÃO DE SERVIÇOS AMBIENTAIS LTDA</b>, inscrita no <b>CNPJ: 27.191.617/0001-98</b>. Os valores negociados estão descritos abaixo.
+        </i>
+    </p>
+    <p style="text-indent: 50px; text-align: justify;">
+        <i>
+            A data da prestação de serviços será informada pelo setor operacional no prazo de 24 horas após receber esta documento assinado.
+        </i>
+    </p>
+</div>
+<div>
+    <p><b>Valor do Frete em reais (moeda brasileira):</b> @Model.Service._FreightPrice</p>
+    <p><b>Tipologia dos Resíduos e Valores em reais (R$):</b></p>
+    <ul style="list-style:lower-latin; font-size: 15px;">
+        @foreach (var item in Model.ResidueFamilyPrice)
+        {
+            <li>
+                <b>@item.ResidueFamily.Name</b> – PREÇO: <b>R$ @item._Price (@item.Price.DinheiroExtenso())</b> por @item.UnitOfMeasurementName.
+            </li>
+        }
+    </ul>
+    <p><b>Prazo de Pagamento do Frete (em dias):</b> @Model.ServiceFreightPaymentTermDays</p>
+    <p><b>Prazo de Pagamento do Resíduo (em dias): </b> @Model.ServiceResidueFamilyPriceDays</p>
+    <p><b>Observação: </b> @Html.Raw(Model.Service.Observation.IfNullChange("-").Replace("\n", "<br />"))</p>
+</div>
+
+
+<div @(Model.UsingForPdf ? Html.Raw("style=\"width:100%; margin-top: 7em;text-align: center;\"") : Html.Raw("style=\"width:75%; margin-left: 12.5%; margin-top: 10em;text-align: center;\""))>
+    @if (!Model.UsingForEmail && !Model.UsingForPdf && Model.Service.TermAccepted)
+    {
+        <p style="font-size: 20px;">Assinado dia @Model.Service._TermAcceptedDate por @Model.Service.ContactName as @Model.Service.TermAcceptedDateTime pelo e-mail @Model.Service.ContactEmail.</p>
+    }
+    <hr style=" margin-top: .3rem;" />
+</div>
+<div style="width:100%; text-align:center;">
+    <p>CPF: @(string.IsNullOrWhiteSpace(Model.Service.ContactCpf) ? "-" : Model.Service.ContactCpf.CPFMask())</p>
+</div>
+
+@if (Model.UsingForEmail)
+{
+    <div style="width:100%; margin-top:3em; text-align:center; margin-bottom: 1em;">
+        <a style="border: 1px solid #f1f1f1; padding: 10px; border-radius: 4px; background: #49a76a; color: white; text-decoration: none;" href="@($"{Context.Request.Scheme}://{Context.Request.Host}{Url.Action("AcceptTerm", "Service")}?token={Model.Service.AcceptTermToken}")">Aceitar os Termos</a>
+    </div>
+    <div style="width:100%; text-align:center; margin-bottom: 1em;">
+        <small>Esse link irá expirar em @Model.Service.AcceptTermEmailSendedDate.Value.AddDays(7).ToBrazilianDateFormat()</small>
+    </div>
+}
+
+
+@if (Context.Request.Query.ContainsKey("creation"))
+{
+    <div style="width:100%; margin-top:3em; text-align:center; margin-bottom: 1em;">
+        <a style="border: 1px solid #f1f1f1; padding: 10px; border-radius: 4px; background: #49a76a; color: white; text-decoration: none;" href="@Url.Action("CreationConfirm", "Service", new { id = Model.Service.ServiceId })">Confirmar e Enviar E-mail</a>
+    </div>
+}

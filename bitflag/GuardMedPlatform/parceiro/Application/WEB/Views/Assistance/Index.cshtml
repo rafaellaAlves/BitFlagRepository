@@ -1,0 +1,13 @@
+﻿@{
+    ViewData["Title"] = "Assistências";
+}
+
+<div class="card shadow bg-light">
+    <div class="card-body">
+        <div id="_AssistanceIndexViewComponent"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#_AssistanceIndexViewComponent').load('@Url.Action("AssistanceIndexComponent", "Assistance")');
+</script>

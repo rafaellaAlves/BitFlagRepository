@@ -1,0 +1,254 @@
+﻿@model DTO.Subscription.SubscriptionDetailViewModel
+@{
+
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Atualização de Plano";
+}
+@section Styles {
+    <style type="text/css">
+        #menu {
+            background-image: url('@Url.Content("~/assets/image/home-background-cover.jpeg")');
+            background-repeat: no-repeat;
+            background-size: cover;
+            min-height: 100%;
+        }
+  
+    </style>
+}
+<div class="row">
+    <div class="col-md-6">
+        <div id="menu" class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12 text-center">
+                        @*@{
+            if (Model.Type == 1)
+            {
+                @await Html.PartialAsync("../Shared/_LayoutMenuAdmin.cshtml");
+            }
+            else if (Model.Type == 2)
+            {
+                @await Html.PartialAsync("../Shared/_LayoutMenuSaller.cshtml");
+            }
+            else
+            {
+                @await Html.PartialAsync("../Shared/_LayoutMenuHome.cshtml");
+            }
+        }*@
+                        @await Html.PartialAsync("../Shared/_LayoutMenuHome.cshtml");
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="row">
+            <div class="col-12">
+                <div class="mb-2">
+                    <h2>
+                        Olá Dr(a). Aqui você pode obter a 2° via do seu certificado ou fazer um upgrade do seu plano.
+                    </h2>
+                </div>
+                <hr />
+            </div>
+        </div>
+        <div id="not-found" style="display: none;" class="row">
+            <div class="col-md-12">
+                <div class="alert alert-danger">
+                    <p>Seu certificado não foi encontrado!</p>
+                </div>
+            </div>
+        </div>
+
+        <form id="UpgradeSubscription">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="mb-2">
+                                        <p>
+                                            Digite seus dados ou insira a referência do seu certificado atual.
+                                        </p>
+                                    </div>
+                                    <hr />
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <div class="form-group">
+                                        <label class="control-label">Nome</label>
+                                        <input name="FullName" type="text" class="form-control" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label">Data de Nascimento</label>
+                                        <input name="BirthDate" id="birthdate" min='1899-01-01' type="date" class="form-control" />
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label">CPF</label>
+                                        <input name="Cpf" type="text" class="form-control" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label ">CRMV</label>
+                                        <input name="Crmv" type="text" class="form-control" />
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label">Referência</label>
+                                        <input name="Reference" type="text" class="form-control" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12 text-right">
+                                    <button type="button" onclick="validateButton()" class="btn btn-primary">Validar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr />
+                    
+                </div>
+            </div>
+        </form>
+        <br />
+        <div class="row" id="hiddenPlanClient" style="display: none;">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-sm-5">
+                                <div class="form-group">
+                                    <label class="control-label">Plano Atual</label>
+                                    <input name="PlanNameClient" @*value="@Model.PlanName"*@ type="text" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="col-sm-5">
+                                <div class="form-group">
+                                    <label class="control-label">Valor da Assinatura</label>
+                                    <input name="PriceClient" @*value="@Model.Price"*@ type="text" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="col-sm-2">
+                                <div class="row">
+                                    <div class=" pt-4 pb-4">
+                                        <a><span><i class="fa fa-print fa-3x"></i></span></a>
+                                        <a><span><i class="fas fa-envelope fa-3x pl-1"></i></span></a>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                        <hr />
+                        <div class="row">
+                            <div class="col-sm-5">
+                                <div class="form-group">
+                                    <input name="PlanName1" type="text" placeholder="Plano I" class="form-control" disabled />
+                                </div>
+                            </div>
+                            <div class="col-sm-5">
+                                <div class="form-group">
+                                    <input name="Price1" placeholder="R$ 44,52" type="text" class="form-control " disabled />
+                                </div>
+                            </div>
+                            <div class="col-sm-2 pl-0">
+                                <div class="form-group">
+                                    <a name="Upgrade" href="@Url.Action("PlansUpgradeChoose", "Subscription", new {planId = 2})" id="upgrade" type="button" class="btn btn-success">Upgrade</a>
+                                </div>
+                            </div>
+                        </div> 
+                        <div class="row">
+                            <div class="col-sm-5">
+                                <div class="form-group">
+                                    <input name="PlanName2" type="text" placeholder="Plano I" class="form-control" disabled />
+                                </div>
+                            </div>
+                            <div class="col-sm-5">
+                                <div class="form-group">
+                                    <input name="Price2" placeholder="R$ 44,52" type="text" class="form-control" disabled />
+                                </div>
+                            </div>
+                            <div class="col-sm-2 pl-0">
+                                <div class="form-group">
+                                    <a name="Upgrade" href="@Url.Action("PlansUpgradeChoose", "Subscription", new {planId = 2})" id="upgrade2" type="button" class="btn btn-success">Upgrade</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-5">
+                                <div class="form-group">
+                                    <input name="PlanName3" type="text" placeholder="Plano I" class="form-control " disabled />
+                                </div>
+                            </div>
+                            <div class="col-sm-5">
+                                <div class="form-group">
+                                    <input name="Price3" placeholder="R$ 44,52" type="text" class="form-control " disabled />
+                                </div>
+                            </div>
+                            <div class="col-sm-2 pl-0">
+                                <div class="form-group">
+                                    <a name="Upgrade" href="@Url.Action("PlansUpgradeChoose", "Subscription", new {planId = 2})" id="upgrade3" type="button" class="btn btn-success">Upgrade</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script type="text/javascript" src="~/js/ValidateSubscription.js"></script>
+    <script type="text/javascript" src="~/js/Subscription.js"></script>
+    <script type="text/javascript">
+        function validateSubscription(o, callback) {
+        $.ajax({
+            type: "POST",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            url: '@Url.Action("Validate", "Subscription")',
+            data: JSON.stringify(o),
+            success: callback,
+        })
+            .done(function (name, price) {
+                $('input[name="PlanNameClient"]').val("Plano Básico"),
+                    $('input[name="PriceClient"]').val("R$ 29,37");
+            });
+        }
+
+        function validateButton() {
+            $('#not-found').hide();
+            $('#hiddenPlanClient').hide();
+
+            validateSubscription({
+                "FullName": "",
+                "Reference": $('input[name="Reference"]').val()
+            }, function (d) {
+
+                if (d) {
+                    $('#hiddenPlanClient').show();
+
+                } else {
+                    $('#not-found').show();
+                }
+            });
+        }
+    </script>
+
+}

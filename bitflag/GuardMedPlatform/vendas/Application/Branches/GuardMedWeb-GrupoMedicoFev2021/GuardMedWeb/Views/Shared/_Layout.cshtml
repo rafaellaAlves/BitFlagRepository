@@ -1,0 +1,128 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<link rel="icon" type="image/png" href="@Url.Content("~/assets/images/favicon.png")" />
+	<title>@ViewData["Title"] | Proteção Médica</title>
+
+	<!-- Jquery -->
+	<script src="~/assets/lib/jquery/jquery.min.js"></script>
+	<!-- Bootstrap CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous" />
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+
+	<!-- BOOTSTRAP DATEPICKER -->
+	<link rel="stylesheet" href="https://yhnavein.github.io/pure-bootstrap-datepicker/css/datepicker.css">
+
+	<!-- Jquery Mask -->
+	<script src="https://igorescobar.github.io/jQuery-Mask-Plugin/js/jquery.mask.min.js"></script>
+
+	<!-- DataTables -->
+	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap4.min.css" />
+	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/select/1.2.4/css/select.bootstrap4.min.css" />
+
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+	<script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap4.min.js"></script>
+	<script type="text/javascript" src="https://cdn.datatables.net/select/1.2.4/js/dataTables.select.min.js"></script>
+
+	<!-- MOMENT.JS -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min.js" integrity="sha256-ABVkpwb9K9PxubvRrHMkk6wmWcIHUE9eBxNZLXYQ84k=" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/locale/pt-br.js" integrity="sha256-nTjn4xdIoNcfZLulbFhB8WGMkFbY7QhYwvz5Lh5Wu7o=" crossorigin="anonymous"></script>
+
+	<!--BOOTBOX-->
+	<script src="@Url.Content("~/assets/lib/bootbox/bootbox.all.min.js")"></script>
+
+	<style type="text/css">
+        @@font-face {
+            font-family: 'Avenir';
+            src: url('@Url.Content("~/assets/fonts/0078f486-8e52-42c0-ad81-3c8d3d43f48e.woff2")'), url('@Url.Content("~/assets/fonts/bc176270-17fa-4c78-a343-9fe52824e501.woff")'), url('@Url.Content("~/assets/fonts/d513e15e-8f35-4129-ad05-481815e52625.woff2")');
+        }
+	</style>
+	<link rel="stylesheet" href="@Url.Content("~/assets/css/site.css")" />
+
+
+	<!-- BOOTSTRAP DATEPICKER -->
+	<script src="https://yhnavein.github.io/pure-bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+	<script src="https://yhnavein.github.io/pure-bootstrap-datepicker/js/locales/bootstrap-datepicker.pt-BR.js"></script>
+
+	<script src="@Url.Content("~/assets/js/utils.js")"></script>
+
+	<script type="text/javascript">
+		$.extend(true, $.fn.dataTable.defaults, {
+			"iDisplayLength": 10,
+			'language': {
+				"sEmptyTable": "Nenhum registro encontrado",
+				"sInfo": "Mostrando de _START_ até _END_ de _TOTAL_ registros",
+				"sInfoEmpty": "Mostrando 0 até 0 de 0 registros",
+				"sInfoFiltered": "(Filtrados de _MAX_ registros)",
+				"sInfoPostFix": "",
+				"sInfoThousands": ".",
+				"sLengthMenu": "_MENU_ resultados por página",
+				"sLoadingRecords": "Carregando...",
+				"sProcessing": "Processando...",
+				"sZeroRecords": "Nenhum registro encontrado",
+				"sSearch": "Pesquisar",
+				"oPaginate": {
+					"sNext": "Próximo",
+					"sPrevious": "Anterior",
+					"sFirst": "Primeiro",
+					"sLast": "Último"
+				},
+				"oAria": {
+					"sSortAscending": ": Ordenar colunas de forma ascendente",
+					"sSortDescending": ": Ordenar colunas de forma descendente"
+				}
+			}
+		});
+	</script>
+
+	<script>
+		!function (f, b, e, v, n, t, s) {
+			if (f.fbq) return; n = f.fbq = function () {
+				n.callMethod ?
+					n.callMethod.apply(n, arguments) : n.queue.push(arguments)
+			};
+
+			if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = '2.0';
+			n.queue = []; t = b.createElement(e); t.async = !0;
+			t.src = v; s = b.getElementsByTagName(e)[0];
+			s.parentNode.insertBefore(t, s)
+		}
+			(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+
+		fbq('init', '1767588956899888');
+		fbq('track', 'PageView');
+	</script>
+
+	<noscript>
+		<img height="1" width="1" src="https://www.facebook.com/tr?id=1767588956899888&ev=PageView&noscript=1" />
+	</noscript>
+
+	@RenderSection("head", false)
+</head>
+<body>
+    <div class="container-fluid BackgorundColorHeader shadow no-print" style="padding-top:1em;">
+        <div class="row">
+            <div class="col-md-12 text-center" style=" margin-bottom:1em;">
+                <img src="@Url.Content("~/assets/images/logo.png")" class="img-circle" width="240" height="80">
+                @*<h2 class="mx-auto guardmed-blue">@ViewData["Title"]<small>&#174;</small></h2>*@
+            </div>
+        </div>
+    </div>
+    <div class="container body-content" style="padding-top: 3em; margin-bottom:2em;" id="body">
+        @RenderBody()
+    </div>
+    <footer>
+        <div class="no-print footer" id="footer" style="text-align: center; vertical-align: middle;">
+            <small class="text-muted">Precisa de Ajuda? Entre em contato com a nossa equipe. <a href="mailto:contato@guardmed.com.br">contato@guardmed.com.br</a> | WhatsApp <a target="_blank" href="https://api.whatsapp.com/send?phone=5511995663535">(11) 99566-3535</a>. Horário de funcionamento: 9h às 18h de segunda a sexta-feira.</small>
+        </div>
+    </footer>
+
+    <!-- Font-Awesome -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
+
+</body>
+</html>

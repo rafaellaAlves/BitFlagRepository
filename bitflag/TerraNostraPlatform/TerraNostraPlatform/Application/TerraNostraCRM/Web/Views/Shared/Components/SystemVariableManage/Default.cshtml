@@ -1,0 +1,56 @@
+﻿@model DB.SystemVariable
+
+<script type="text/javascript">
+    _MaskData();
+
+    function _SystemVariableManageValidate() {
+	    var hasError = false;
+	    $('#_SystemVariableManageForm .text-danger').remove();
+
+        if (IsNullOrWhiteSpace($('#_SystemVariableManageKey').val())) {
+            $('#_SystemVariableManageKey').after('<div class="text-danger">Preencha a Chave.</div>');
+            hasError = true;
+        }
+
+        if (IsNullOrWhiteSpace($('#_SystemVariableManageValue').val())) {
+            $('#_SystemVariableManageValue').after('<div class="text-danger">Preencha o Valor.</div>');
+            hasError = true;
+        }
+
+        if (hasError) {
+            $('#_SystemVariableManageAlertErrorSystemVariable').show();
+        }
+        else {
+            $('#_SystemVariableManageForm .text-danger').remove();
+            $('#_SystemVariableManageAlertErrorSystemVariable').hide();
+        }
+
+	    return (!hasError);
+    }
+
+    function _SystemVariableManageSave() {
+        var d = $('#_SystemVariableManageForm').submit();
+	}
+
+</script>
+<form id="_SystemVariableManageForm" method="get" action="@Url.Action("Manage", "SystemVariable")" enctype="multipart/form-data">
+    <div id="_SystemVariableManageAlertErrorSystemVariable" class="alert alert-danger fade show text-center" role="alert" style="display: none;">
+        <strong>Atenção!</strong> O Formulário contém erros.
+    </div>
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label>Chave*</label>
+                <input class="form-control" name="Key" value="@Model.Key" id="_SystemVariableManageKey" type="text" placeholder="Chave" />
+            </div>
+            <div class="form-group col-md-6">
+                <label>Valor*</label>
+                <input class="form-control" name="Value" value="@Model.Value" id="_SystemVariableManageValue" type="text" placeholder="Valor" />
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-12">
+                <label class="control-label" for="PhoneNumber">Descrição</label>
+                <textarea type="text" class="form-control" id="_SystemVariableManageDescription" name="Description" placeholder="Descrição">@Model.Description</textarea>
+            </div>
+        </div>
+</form>

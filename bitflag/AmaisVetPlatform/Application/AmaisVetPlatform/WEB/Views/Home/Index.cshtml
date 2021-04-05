@@ -1,0 +1,331 @@
+﻿@model DTO.Admin.LoginViewModel
+@inject Services.OccupationArea.OccupationAreaService occupationAreaService
+@inject Services.ProfessionalSpecialty.ProfessionalSpecialtyService professionalSpecialtyService
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Página Inicial";
+}
+@section Styles {
+    <style type="text/css">
+        #menu {
+            background-image: url('@Url.Content("~/assets/image/home-background-cover.jpeg")');
+            background-repeat: no-repeat;
+            background-size: cover;
+            min-height: 100%;
+        }
+        .form_error{
+            color: red;
+            display: none;
+        }
+    </style>
+}
+<div class="row">
+    <div class="col-md-6">
+        <div id="menu" class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12 text-center">
+                        @*@{
+                                if (Model.Type == 1)
+                                {
+                                    @await Html.PartialAsync("../Shared/_LayoutMenuAdmin.cshtml");
+                                }
+                                else if (Model.Type == 2)
+                                {
+                                    @await Html.PartialAsync("../Shared/_LayoutMenuSaller.cshtml");
+                                }
+                                else
+                                {
+                                    @await Html.PartialAsync("../Shared/_LayoutMenuHome.cshtml");
+                                }
+                            }*@
+                        @await Html.PartialAsync("../Shared/_LayoutMenuHome.cshtml")
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="mb-2">
+                    <h2>
+                        Olá Dr(a), essas informações são necessárias para acesso aos planos!
+                    </h2>
+                </div>
+                <hr />
+            </div>
+        </div>
+        <form id="form-subscribe" method="post" action="@Url.Action("Start", "Subscription")">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card card-blue">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label">Nome</label>
+                                        <input name="FullName" id="FullName" type="text" class="form-control" />
+                                        <span class="form_error">Campo obrigatório</span>
+                                        <span class="form_error" id="invalid-name">Digite um nome entre 5 e 30 caracteres</span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label">E-mail</label>
+                                        <input name="Email" id="Email" type="email" class="form-control" />
+                                        <span class="form_error">Campo obrigatório</span>
+                                        <span class="form_error" id="invalid-email">Digite um E-mail válido</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label">Telefone</label>
+                                        <input name="PhoneNumber" id="PhoneNumber" type="text" class="form-control" />
+                                        <span class="form_error">Digite um número de telefone válido</span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label">Celular</label>
+                                        <input name="MobileNumber" id="MobileNumber" type="text" class="form-control" />
+                                        <span class="form_error">Campo obrigatório</span>
+                                        <span class="form_error" id="invalid-mobilenumber">Digite um número de celular válido</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label">Data de Nascimento</label>
+                                        <input name="BirthDate" id="BirthDate" type="text" class="form-control" />
+                                        <span class="form_error">Campo obrigatório</span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label">CRMV</label>
+                                        <input name="Crmv" id="Crmv" type="text" class="form-control" />
+                                        <span class="form_error">Campo obrigatório</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label">Área de Atuação</label>
+                                        <select name="OccupationAreaId" id="OccupationAreaId" class="form-control">
+                                            <option value="">Selecione</option>
+                                            @foreach (var item in await occupationAreaService.GetActiveAsync())
+                                            {
+                                                <option value="@item.OccupationAreaId">@item.Name</option>
+                                            }
+                                        </select>
+                                        <span class="form_error" id="error1">Campo obrigatório</span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label">Especialidade</label>
+                                        <select name="ProfessionalSpecialtyId" id="ProfessionalSpecialtyId" class="form-control">
+                                            <option value="">Selecione</option>
+                                            @foreach (var item in await professionalSpecialtyService.GetActiveAsync())
+                                            {
+                                                <option value="@item.ProfessionalSpecialtyId">@item.Name</option>
+                                            }
+                                        </select>
+                                        <span class="form_error" id="error2">Campo obrigatório</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label">Ano de Formação</label>
+                                        <select class="form-control" id="GraduationYear" name="GraduationYear">
+                                            <option value="">Selecione</option>
+                                            @for (int i = DateTime.Now.Year; i >= 1940; i--)
+                                            {
+                                                <option value="@i">@i</option>
+                                            }
+                                        </select>
+                                        <span class="form_error" id="error3">Campo obrigatório</span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label">Estado do CRMV</label>
+                                        <select name="Crmvstate" id="Crmvstate" class="form-control">
+                                            <option value="">Selecione</option>
+                                            @foreach (var item in Services.Utils.UtilsService.GetStates())
+                                            {
+                                                <option value="@item.Code">@item.Description</option>
+                                            }
+                                        </select>
+                                        <span class="form_error" id="error4">Campo obrigatório</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr />
+                    <div class="row">
+                        <div class="col-md-12 text-right">
+                            <button type="submit" id="button-submit" value="enviar" class="btn btn-primary"><i class="fa fa-arrow-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script src="~/assets/js/Utils.js"></script>
+    <script type="text/javascript">
+        function validateForm() {
+            var name = $('#FullName').val();
+            var email = $('#Email').val();
+            var telefone = $('#PhoneNumber').val();
+            var celular = $('#MobileNumber').val();
+            var data = $('#BirthDate').val();
+            var crmv = $('#Crmv').val();
+            var area = $('#OccupationAreaId').val();
+            var especialidade = $('#ProfessionalSpecialtyId').val();
+            var ano = $('#GraduationYear').val();
+            var estado = $('#Crmvstate').val();
+            var cont = 0;
+
+            //NOME
+            if (name == '') {
+                $('#FullName').next().show();
+                $('#invalid-name').hide();
+                focus('#FullName');
+                cont = cont + 1;
+            } else if (name.length < 5 || name.length > 30) {
+                $('#invalid-name').show();
+                $('#FullName').next().hide();
+                focus('#FullName');
+                cont = cont + 1;
+            } else {
+                forceFocus('#FullName');
+                $('#FullName').next().hide();
+                $('#invalid-name').hide();
+            }
+
+            //EMAIL
+            if (email == '') {
+                $('#Email').next().show();
+                $('#invalid_email').hide();
+                focus('#Email');
+                cont = cont + 1;
+
+            } else {
+                forceFocus('#Email');
+                $('#Email').next().hide();
+                $('#invalid-email').hide();
+            }
+            //TELEFONE
+            if (telefone == '') {
+                forceFocus('#PhoneNumber');
+                $('#PhoneNumber').next().hide();
+            } else {
+                forceFocus('#PhoneNumber');
+                $('#PhoneNumber').next().hide();
+            }
+
+            //CELULAR
+            if (celular == '') {
+                $('#MobileNumber').next().show();
+                $('#invalid_mobilenumber').hide();
+                focus('#MobileNumber');
+                cont = cont + 1;
+            } else {
+                forceFocus('#MobileNumber');
+                $('#MobileNumber').next().hide();
+                $('#invalid-mobilephone').hide();
+            }
+
+            //DATA
+            if (data == '') {
+                $('#BirthDate').next().show();
+                focus('#BirthDate');
+                cont = cont + 1;
+
+            } else {
+                $('#BirthDate').next().hide();
+                forceFocus('#BirthDate');
+            }
+
+            //CRMV E INFORMAÇÕES VET
+            if (crmv == '') {
+                $('#Crmv').next().show();
+                focus('#Crmv');
+                cont = cont + 1;
+
+            } else {
+                forceFocus('#Crmv');
+                $('#Crmv').next().hide();
+            }
+            if (area == '') {
+                $('#error1').show();
+                focus('#OccupationAreaId');
+                cont = cont + 1;
+
+            } else {
+                forceFocus('#OccupationAreaId');
+                $('#error1').hide();
+            }
+            if (especialidade == '') {
+                $('#error2').show();
+                focus('#ProfessionalSpecialtyId');
+                cont = cont + 1;
+
+            } else {
+                forceFocus('#ProfessionalSpecialtyId');
+                $('#error2').hide();
+            }
+            if (ano == '') {
+                $('#error3').show();
+                focus('#GraduationYear');
+                cont = cont + 1;
+
+            } else {
+                forceFocus('#GraduationYear');
+                $('#error3').hide();
+            }
+            if (estado == '') {
+                $('#error4').show();
+                focus('#Crmvstate');
+                cont = cont + 1;
+
+            } else {
+                forceFocus('#Crmvstate');
+                $('#error4').hide();
+            }
+
+            return cont == 0;
+        }
+
+        $(document).ready(function () {
+            //document.getElementById('BirthDate').max = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split("T")[0];
+            $('#BirthDate').datepicker({ language: 'pt-BR', autoclose: true });
+            $('#BirthDate').mask('99/99/9999');
+            $('#form-subscribe').on('submit', function (e) {
+                $('#button-submit').html('<i class="fa fa-spinner fa-spin"></i> Processando...');
+                $('#button-submit').prop('disabled', true);
+                if (!validateForm()) {
+                    $('#button-submit').html('<i class="fa fa-arrow-right"></i>');
+                    $('#button-submit').prop('disabled', false);
+                    e.preventDefault();
+                    return false;
+                }
+                return true;
+            });
+        });
+
+    </script>
+}

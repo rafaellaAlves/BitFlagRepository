@@ -1,0 +1,159 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Unsubscribe";
+}
+@section Styles {
+    <style type="text/css">
+        #menu {
+            background-image: url('@Url.Content("~/assets/image/home-background-cover.jpeg")');
+            background-repeat: no-repeat;
+            background-size: cover;
+            min-height: 100%;
+        }
+
+    </style>
+}
+<div class="row">
+    <div class="col-md-6">
+        <div id="menu" class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12 text-center">        
+      
+                        @await Html.PartialAsync("../Shared/_LayoutMenuAdmin.cshtml");
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div id="not-found" style="display: none;" class="row">
+            <div class="col-md-12">
+                <div class="alert alert-danger">
+                    <p>Seu CPF não foi encontrado!</p>
+                </div>
+            </div>
+        </div>      
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="row pt-2">
+                            <div class="col-sm-6">
+                                <label class="control-label ">CPF</label>
+                                <input name="Cpf" type="text" class="form-control" />
+                            </div>
+                            <div class="col-sm-6">
+                                <label style="visibility: visible;" class="control-label">botão</label>
+                                <button type="submit" id="valid" class="btn btn-primary">Validar</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body" id="Unsubscribe" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <input name="SubscriptionId" type="hidden" id="SubscriptionId" @*value="@Model.SubscriptionId*@ />
+                                <input name="PlanId" type="hidden" id="PlanId" @*value="@Model.SubscriptionId*@ />
+                                <div class="row">
+                                    <div class="col-sm-12">
+                                        <label class="control-label ">Nome</label>
+                                        <input name="FullName" @*value="@Model.FullName"*@ type="text" class="form-control" />
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <label class="control-label">Data de Nascimento</label>
+                                        <input name="BirthDate" id="BirthDate" type="date" class="form-control" />
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <label class="control-label">CRMV</label>
+                                        <input name="Crmv" id="Crmv" type="text" class="form-control" />
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <label class="control-label">Plano Atual</label>
+                                        <input name="PlanNameClient" @*value="@Model.PlanName"*@ type="text" class="form-control" />
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <label class="control-label">Valor da Assinatura</label>
+                                        <input name="PriceClient" @*value="@Model.Price"*@ type="text" class="form-control" />
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-12 text-right">
+                                        <button type="submit" id="confirm" data-toggle="modal" data-target="#modal-alert" class="btn btn-success">Confirmar Cancelamento</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="modal-alert">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="exampleModalLabel">Cancelamento de Assinatura</h4>
+            </div>
+            <div class="modal-body">
+                Deseja realmente cancelar assinatura?.
+            </div>
+            <div class="modal-footer">
+                <div class="col-6">
+                    <a class="btn btn-danger" data-dismiss="modal" >Não</a>
+                </div>
+                <div class="col-6 text-right">
+                    <button class="btn btn-success" data-toggle="modal" data-target="#modal-alert-confirm" name="submitModal" type="submit">Sim</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="modal-alert-confirm">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="exampleModalLabel">Cancelamento de Assinatura</h4>
+            </div>
+            <div class="modal-body">
+                Assinatura cancelada com sucesso!
+            </div>
+            <div class="modal-footer">
+                <div class="col-12">
+                    <a class="btn btn-success">Fechar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            $('button#valid').click(function () {
+                $('#not-found').hide();
+                $('#hiddenRow').hide();
+                Validate({
+                    "Cpf": $('input[name="Cpf"]').val()
+                }, function (d) {
+                    /* *** APOS A REQUISICAO AJAX *** */
+                    if (d) {
+
+                        $('#hiddenRow').show();
+                    } else {
+                        $('#not-found').show();
+                    }
+                });
+
+            });
+        });
+    </script>
+}

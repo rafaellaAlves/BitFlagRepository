@@ -1,0 +1,660 @@
+﻿@using GLAS2Web.Utils;
+
+@inject BLL.Utils.SegmentoFunctions segmentoFunctions
+@inject BLL.Utils.OrgaoFunctions orgaoFunctions
+@inject BLL.Utils.EsferaFunctions esferaFunctions
+@inject BLL.Law.LawTypeFunctions lawTypeFunctions
+@inject BLL.Law.LawApplicationTypeFunctions lawApplicationTypeFunctions
+@inject BLL.Question.QuestionThemeFunctions questionThemeFunctions
+@inject BLL.Question.QuestionSubThemeFunctions questionSubThemeFunctions
+
+@{
+    ViewData["Title"] = "Administração de Requisitos Legais";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+
+    int _page = -1;
+    if (Context.Request.Query.ContainsKey("page"))
+    {
+        int.TryParse(Context.Request.Query["page"], out _page);
+    }
+
+    int _row = -1;
+    if (Context.Request.Query.ContainsKey("row"))
+    {
+        int.TryParse(Context.Request.Query["row"], out _row);
+    }
+}
+
+<style type="text/css">
+    .tooltip-inner {
+        max-width: 300px;
+        width: 300px;
+    }
+
+    .arrow::before {
+        border-top-color: #f1f1f1 !important;
+    }
+
+    .tooltip > .tooltip-inner {
+        background-color: #f1f1f1;
+        color: black;
+        border: 1px solid #afafaf;
+    }
+
+    .text-black {
+        color: #565656 !important
+    }
+</style>
+
+<div class="card shadow">
+    <div class="card-header">
+        Administração de Requisitos Legais
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md">
+                <div class="input-group">
+                    <span class="input-group-addon"><i class="fa fa-search"></i></span>
+                    <input id="search" type="text" class="form-control" placeholder="Procurar..." value="@ViewContext.GetSessionListFilter("search[value]")" />
+                    <span class="input-group-btn">
+                        <a href="@Url.Action("Manage", "LawManagement")" class="btn btn-success pull-right"><i class="fa fa-plus"></i>&nbsp;Novo Requisito Legal</a>
+                    </span>
+                </div>
+            </div>
+            <div class="col-md-1">
+                <a href="javascript:openExportModal('overall')" class="btn btn-primary w-100"><i class="fas fa-file-excel"></i>&nbsp;Exportar</a>
+            </div>
+            @*<div class="col-md-2">
+                    <a href="javascript:openExportModal('altered-revoked')" class="btn btn-primary w-100"><i class="fas fa-file-excel"></i>&nbsp;Exportar Alterado/Revogado</a>
+                </div>*@
+        </div>
+        <hr />
+        <table id="tableLaws" class="datatable display table table-sm table-bordered table-striped" style="border-collapse: collapse !important; width: 100%">
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Número</th>
+                    <th>Título</th>
+                    <th>Orgão</th>
+                    <th>Esfera</th>
+                    <th>País</th>
+                    <th>Estado</th>
+                    <th>Cidade</th>
+                    <th>Data de Vigor</th>
+                    <th>Palavra Chave</th>
+                    <th style="width:160px !important">&nbsp;</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+<script type="text/javascript">
+    var typingTimer;
+    var doneTypingInterval = 500;
+    var datatables = $('#tableLaws').DataTable({
+        columnDefs: [
+            { "visible": false, "targets": 9 },
+            { targets: [1], orderData: [1, 12] }
+        ]
+        , proccessing: true
+        , serverSide: true
+        , searching: true
+        , lengthChange: false
+        //, select: true
+        @if(_page != -1)
+        {
+        <text>
+        , displayStart: @_page * $.fn.dataTable.defaults.iDisplayLength
+        </text>
+        }
+        else
+        {
+        <text>
+        , "displayStart": "@(string.IsNullOrWhiteSpace(ViewContext.GetSessionListFilter("start"))?"0" : ViewContext.GetSessionListFilter("start"))"
+        </text>
+        }
+        , "oSearch": { "sSearch": "@Html.Raw(ViewContext.GetSessionListFilter("search[value]"))" }
+        , dom: 'tip'
+        , ajax: {
+              url: '@Url.Action("List", "LawManagement")'
+            , type: 'POST'
+        }
+		, columns: [
+            { data: 'LawTypeName' }
+			, {
+            data: 'LawNumberOrdering',
+			render: function (data, type, row) {
+                return row._LawNumber
+
+                }
+            }
+			, {
+                data: 'LawTitle',
+                render: function (data, type, row, meta) {
+
+                    if (row.LawRevokedDate != null || row.LawRevokedBy != null || row.LawAlteredDate != null || row.LawAlteredBy != null) {
+                        var info = '', style = '';
+
+                        if (row.LawRevokedDate != null || row.LawRevokedBy != null) {
+                            info = '<b>(Revogada em ' + (row._LawRevokedDate ?? "-") + ' por ' + (row.LawRevokedBy ?? "-") + ')</b>';
+                            style = 'color: red; text-decoration: line-through;';
+                        }
+                        if (row.LawAlteredDate != null || row.LawAlteredBy != null)
+                            info += ' <b>(Última alteração em ' + (row._LawAlteredDate ?? "-") + ' por ' + (row.LawAlteredBy ?? "-") + ')</b>';
+
+                        return '<span style="' + style + '">' + row.LawTitle + '</span>&nbsp;' + info;
+                    }
+
+                    return row.LawTitle;
+                }
+            }
+			, { data: 'LawOrgaoName' }
+            , { data: 'LawEsferaName' }
+            , {
+                data: 'LawCountryExternalCode',
+                render: function (data, type, row) {
+                    return !row.LawCountryExternalCode ? '-' : row.LawCountryExternalCode;
+                }
+            }
+            , {
+                data: 'LawStateExternalCode',
+                render: function (data, type, row) {
+                    return !row.LawStateExternalCode ? '-' : row.LawStateExternalCode;
+                }
+            }
+            , {
+                data: 'LawCityName', render: function (data, type, row) {
+                    return !row.LawCityName ? '-' : row.LawCityName;
+                }
+            }
+			, {
+                    data: 'LawForceDate'
+				, render: function (data, type, row) {
+                    return '<div>' + row._LawForceDate + '</div>';
+                }
+            }
+			, { data: 'LawKeywords' }
+            , {
+                data: null
+                , sortable: false
+                , searchable: false
+                , render: function (data, type, row, meta) {
+                    return '<div class="text-center"><a href="@Url.Action("Manage", "LawManagement")/' + row.LawId + '" title="Editar"><i class="far fa-edit"></i></a>&nbsp; '+
+                    '&nbsp;<a href=\'javascript:showLawAttachments(' + row.LawId + ')\' title="Anexos"><i class="fas fa-paperclip"></i></a>&nbsp; ' +
+                    '&nbsp;<a href =\'javascript:goToCompanyAttachments(' + row.LawId + ', ' + datatables.page.info().page + ', ' + meta.row + ')\'title="Anexos"><i class="far fa-file"></i></a>&nbsp; ' +
+                    '&nbsp;<a href="@Url.Action("Get", "LawVerificationListManagement")?lawId=' + row.LawId + '&page=' + datatables.page.info().page + '&row=' + meta.row +'" title="Obrigações"><i class="fas fa-tasks"></i></a>&nbsp; ' +
+                    '&nbsp;<a style="white-space: nowrap;" title="Associar" href="@Url.Action("Associate", "LawManagement")?lawId=' + row.LawId + '&page=' + datatables.page.info().page + '&row=' + meta.row + '"><i class="fas fa-sitemap"></i></a>&nbsp; ' +
+                    '&nbsp;<a style="white-space: nowrap;" title="Alterações" href="javascript:openLawChagesModal(' + row.LawId + ')"><i class="fas fa-redo-alt"></i></a>&nbsp; ' +
+                    '&nbsp;<a style="white-space: nowrap;" title="Excluir" href="javascript:void(0)" onclick="RemoveLaw(' + row.LawId + ')" title="Excluir"><i class="far fa-trash-alt"></i></a></div>';
+                }
+            }
+            , { data: 'LawNumber', visible: false }
+            , { data: '_LawNumberOrdering', visible: false }
+        ],
+        drawCallback: function () {
+            //$('.attachment-link-tooltip').tooltip({
+            //    trigger: 'click',
+            //    title: '<a class="text-black" href="javascript:getFullLawAttachment()"><i class="fa fa-download"></i>&nbsp;Lei na Integra</a>&nbsp|&nbsp;<a class="text-black" href="javascript:goToCompanyAttachments()"><i class="fa fa-external-link-alt"></i>&nbsp;Anexos das Unidades de Negócio</a>',
+            //    html: true
+            //});
+        }
+    });
+    @if (_row != -1)
+    {
+        <text>
+    datatables.on('draw', function () {
+        datatables.row(@_row).select();
+    });
+        </text>
+    }
+
+    function doneTyping() {
+        if ($.fn.DataTable.isDataTable('#tableLaws')) {
+            datatables.search($('#search').val()).draw();
+        }
+    }
+    $('#search').keyup(function () {
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(doneTyping, doneTypingInterval);
+    });
+    $('#search').keydown(function () {
+        clearTimeout(typingTimer);
+	});
+
+	function RemoveLaw(_lawId) {
+		if (confirm('Deseja realmente remover esse requisito legal?')) {
+			_RemoveLaw(_lawId, function (d) {
+                alert(d.message);
+
+                if (d.success) $('#tableLaws').DataTable().ajax.reload();
+			});
+		}
+	}
+	function _RemoveLaw(_lawId, callback) {
+		var d = { lawId: _lawId };
+		$.ajax({
+			url: '@Url.Action("RemoveLaw", "LawManagement")',
+			type: 'POST',
+			data: d,
+			dataType: 'json',
+			success: callback
+		});
+	}
+</script>
+
+<div class="modal fade" id="modal-export" tabindex="-1" role="dialog" aria-labelledby="modal-export-title" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal-export-title">Exportar Requisitos Legais</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form action="@Url.Action("Export")" target="_blank" method="post" id="form-export">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="law-type" class="control-label">Tipo:</label>
+                                <select type="text" class="form-control" id="law-type" name="lawType">
+                                    <option value="">Selecione</option>
+                                    @foreach (var item in lawTypeFunctions.GetData())
+                                    {
+                                        <option value="@item.LawTypeId">@item.Name</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="orgao" class="control-label">Orgão:</label>
+                                <select type="text" class="form-control" id="orgao" name="orgao">
+                                    <option value="">Selecione</option>
+                                    @foreach (var item in orgaoFunctions.GetData())
+                                    {
+                                        <option value="@item.OrgaoId">@item.Name</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="segmento" class="control-label">Segmento:</label>
+                                <select type="text" class="form-control" id="segmento" name="segmento">
+                                    <option value="">Selecione</option>
+                                    @foreach (var item in segmentoFunctions.GetData())
+                                    {
+                                        <option value="@item.SegmentoId">@item.Name</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="date" class="control-label">Data de Criação:</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control date" name="StartCreatedDate" placeholder="Data Inicial" />
+                                    <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+                                    <input type="text" class="form-control date" name="EndCreatedDate" placeholder="Data Final" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="aplicabilidade" class="control-label">Aplicabilidade:</label>
+                                <select type="text" class="form-control" id="aplicabilidade" name="aplicabilidade">
+                                    <option value="">Selecione</option>
+                                    @foreach (var item in lawApplicationTypeFunctions.GetData())
+                                    {
+                                        <option value="@item.LawApplicationTypeId">@item.Name</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6 ResizeEsferaField">
+                            <div class="form-group">
+                                <label for="esfera" class="control-label">Esfera:</label>
+                                <select type="text" class="form-control" id="esfera" name="esfera">
+                                    <option value="">Selecione</option>
+                                    @foreach (var item in esferaFunctions.GetData())
+                                    {
+                                        <option id="@item.Name" value="@item.EsferaId">@item.Name</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-3 ResizeEsferaField" id="CountryId">
+                            <div class="form-group">
+                                <label class="control-label" for="">País:</label>
+                                <select class="form-control" id="CountrySelect" name="CountryId">
+                                    <option value="">Escolha um país</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3 ResizeEsferaField" id="StateId">
+                            <div class="form-group">
+                                <label class="control-label" for="">Estado:</label>
+                                <select class="form-control" id="StateSelect" name="StateId">
+                                    <option value="">Escolha um estado</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3 ResizeEsferaField" id="CityId">
+                            <div class="form-group">
+                                <label class="control-label" for="">Município:</label>
+                                <select class="form-control" id="CitySelect" name="CityId">
+                                    <option value="">Escolha um município</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group col-md-6">
+                            <label>Tema</label>
+                            <select type="text" class="form-control" name="QuestionThemeId" onchange="loadQuestionSubThemeSelect()">
+                                <option value="">Selecione</option>
+                                @foreach (var item in questionThemeFunctions.GetDataAsNoTracking())
+                                {
+                                    <option value="@item.QuestionThemeId">@item.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label>Subtema:</label>
+                            <select type="text" class="form-control" name="QuestionSubThemeId">
+                                <option value="">Selecione</option>
+                            </select>
+                            <script type="text/javascript">
+                                function loadQuestionSubThemeSelect() {
+                                    $('[name="QuestionSubThemeId"]').empty();
+                                    $('[name="QuestionSubThemeId"]').append(new Option('Selecione', ''));
+
+                                    var questionThemeId = $('[name="QuestionThemeId"]').val();
+
+                                    if (questionThemeId == null) return;
+
+                                    $.post('@Url.Action("GetDataByTheme", "QuestionSubTheme")', { questionThemeId }, function (d) {
+                                        $.each(d, function (i, e) {
+                                            $('[name="QuestionSubThemeId"]').append(new Option(e.Name, e.QuestionSubThemeId));
+                                        });
+                                    });
+                                }
+                            </script>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <div class="col-md-6">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fas fa-times"></i>&nbsp;Fechar</button>
+                </div>
+                <div class="col-md-6">
+                    <button type="button" class="btn btn-success float-right" onclick="$('#form-export').submit();"><i class="fas fa-file-excel"></i>&nbsp;Exportar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#esfera').change(VerificaEsfera);
+
+    function openExportModal(exportType) {
+        $('#modal-export').data('export-type', exportType);
+        $('#modal-export').modal('show');
+    }
+
+    function VerificaEsfera() {
+        $('#CitySelect').val('');
+        $('#StateSelect').val('');
+        $('#CountrySelect').val('');
+
+        $('#StateId').hide();
+        $('#CityId').hide();
+        $('#CountryId').hide();
+
+        if ($('#Estadual')[0].selected) {
+            $('#CountryId').show();
+            $('#StateId').show();
+            $('.ResizeEsferaField').removeClass().addClass('col-md-4 ResizeEsferaField');
+
+            if (!IsNullOrWhiteSpace($('#CountrySelect').val())) GetStates();
+        }
+        else if ($('#Municipal')[0].selected) {
+            $('#CountryId').show();
+            $('#StateId').show();
+            $('#CityId').show();
+            $('.ResizeEsferaField').removeClass().addClass('col-md-3 ResizeEsferaField');
+
+            if (!IsNullOrWhiteSpace($('#CountrySelect').val()) && IsNullOrWhiteSpace($('#StateSelect').val())) GetStates();
+            if (!IsNullOrWhiteSpace($('#StateSelect').val())) GetCities();
+        }
+        else if ($('#Federal')[0].selected) {
+            $('#CountryId').show();
+            $('.ResizeEsferaField').removeClass().addClass('col-md-6 ResizeEsferaField');
+        }
+        else {
+            $('.ResizeEsferaField').removeClass().addClass('col-md-6 ResizeEsferaField');
+        }
+    }
+    VerificaEsfera();
+
+    $('#CountrySelect').change(function () {
+		GetStates();
+	});
+
+	function GetStates() {
+		$.ajax({
+			url: '@Url.Action("GetStates", "Utils")',
+            type: 'POST',
+            data: { countryId: $('#CountrySelect').val() },
+			dataType: 'json',
+			success: function (d) {
+				$('#StateSelect').empty();
+				$('#StateSelect').append($('<option>', { value: "", text: "Selecione" }));
+                $.each(d, function (i, e) {
+                    $('#StateSelect').append($('<option>', { value: e.StateId, text: e.Name }));
+				});
+
+                $('#StateSelect').val('');
+			}
+		});
+	}
+
+	$('#StateSelect').change(function () {
+		GetCities();
+	});
+
+	function GetCities() {
+		if ($('#Municipal')[0].selected) {
+			$.ajax({
+				url: '@Url.Action("GetCities", "Utils")',
+				type: 'POST',
+				data: { stateId: $('#StateSelect').val() },
+				dataType: 'json',
+				success: function (d) {
+					$('#CitySelect').empty();
+					$('#CitySelect').append($('<option>', { value: "", text: "Selecione" }));
+					$.each(d, function (i, e) {
+						$('#CitySelect').append($('<option>', {value: e.CityId, text: e.Name}));
+                    });
+
+					$('#CitySelect').val('');
+				}
+			});
+		}
+    }
+
+	$(document).ready(function () {
+		$.ajax({
+			url: '@Url.Action("GetCountries", "Utils")',
+			type: 'POST',
+			dataType: 'json',
+			success: function (d) {
+				$('#CountrySelect').empty();
+				$('#CountrySelect').append($('<option>', { value: "", text: "Selecione" }));
+				$.each(d, function (i, e) {
+					$('#CountrySelect').append($('<option>', { value: e.CountryId, text: e.NiceName}));
+                });
+
+				$('#CountrySelect').val('');
+			}
+        });
+    });
+
+    function goToCompanyAttachments(lawId, page, row) {
+        window.location.href = '@Url.Action("CompanyAttachments", "LawManagement")?lawId=' + lawId + '&page=' + page + '&row=' + row;
+    }
+</script>
+
+<div class="modal fade" id="LawAttachmentModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Anexos do Requisito Legal</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" value="" id="LawAttachmentModalLawId" />
+                <div id="alertErrorAttachment" class="alert alert-danger fade show text-center" role="alert" style="display: none;">
+                    <strong>Atenção!</strong> O Formulário contém erros.
+                </div>
+                <div id="alertSuccessAttachment" class="alert alert-success fade show text-center" role="alert" style="display: none;">
+                    <strong>O Arquivo foi adicionado com sucesso!</strong>
+                </div>
+                <div id="LawNewAttachment" style="display: none;">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group" id="LawAttachmentGroup">
+                                <label for="Anexo">Nome</label>
+                                <input type="text" class="form-control" id="AttachmentName" placeholder="Nome" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Arquivo</label>
+                                <input type="file" class="form-control" name="Anexo" id="Anexo" />
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-success" id="LawNewAttachmentButton"><i class="fa fa-plus"></i>&nbsp;Adicionar Anexo</button>
+                    <script type="text/javascript">
+							var files = null;
+							var datafile = new FormData();
+
+							$('#Anexo').on('change', function (e) {
+								files = e.target.files;
+								datafile.append("Lawfile", files[0]);
+							});
+
+							$('#LawNewAttachmentButton').click(function () {
+
+								if (IsNullOrWhiteSpace($('#AttachmentName').val())) {
+									$('#alertErrorAttachment').show();
+									$('#alertSuccessAttachment').hide();
+									$('#AttachmentName').after('<div class="text-danger">Digite o nome.</div>');
+								}
+
+								if (files != null && !IsNullOrWhiteSpace($('#AttachmentName').val())) {
+									datafile.append('Name', $('#AttachmentName').val());
+                                    datafile.append('LawId', $('#LawAttachmentModalLawId').val());
+									$('.invalid-feedback').remove();
+									$('#alertErrorAttachment').hide();
+									$('#alertSuccessAttachment').hide();
+									$('.text-danger').remove();
+
+									$.ajax({
+										url: '@Url.Action("Manage", "LawAttachmentManagement")',
+										type: 'POST',
+										contentType: false,
+										processData: false,
+										data: datafile,
+										success: function (data) {
+											datafile = new FormData();
+											files = null;
+											$('#Anexo').val("");
+											$('#AttachmentName').val("");
+											if (data == -1) {
+												$('#alertErrorAttachment').show();
+												$('#alertSuccessAttachment').hide();
+												$('#Anexo').after('<div class="text-danger">Nome do arquivo incorreto.</div>');
+											}
+											else {
+												$('#alertSuccessAttachment').show();
+												$('#alertErrorAttachment').hide();
+												$('.text-danger').remove();
+												_ListLawAttachments($('#LawAttachmentModalLawId').val());
+											}
+										}
+									});
+								}
+							});
+                    </script>
+                </div>
+                <div style="width: 100%;" class="text-right"><a href="javascript:void(0)" id="LawManagementNewAttachmentLink">Novo Anexo</a></div>
+                <script type="text/javascript">
+                    $('#LawManagementNewAttachmentLink').click(function () {
+                        $('#LawNewAttachment').show();
+                        $('#LawManagementNewAttachmentLink').hide();
+                    });
+                </script>
+                <hr />
+                @{ Html.RenderPartial("~/Views/Shared/_LawAttachment.cshtml"); }
+            </div>
+            <div class="modal-footer">
+                <button type="button" aria-label="Close" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-times"></i>&nbsp;Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    function showLawAttachments(lawId) {
+        files = null;
+        $('#LawAttachmentModalLawId').val(lawId);
+        $('#Anexo').val("");
+        $('#alertErrorAttachment').hide();
+        $('.text-danger').remove();
+        $('#alertSuccessAttachment').hide();
+        $('#LawNewAttachment').hide();
+        $('#LawManagementNewAttachmentLink').show();
+        _LawAttachmentsClearSearch();
+        _ListLawAttachments(lawId);
+
+        $('#LawAttachmentModal').modal('show');
+    }
+</script>
+
+
+<div class="modal fade" id="law-changes-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Alterações do Requisito Legal</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="law-change-quick-view-view-component"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" aria-label="Close" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-times"></i>&nbsp;Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    function openLawChagesModal(lawId) {
+        $('#law-change-quick-view-view-component').load('@Url.Action("LoadLawChangeQuickView", "LawManagement")', { lawId }, function () {
+            $('#law-changes-modal').modal('show');
+        });
+    }
+</script>

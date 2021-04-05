@@ -1,0 +1,119 @@
+﻿@model List<AMaisImob_WEB.Models.CategoryGuarantorProductTaxViewModel>
+@inject AMaisImob_WEB.BLL.PaymentTypeFunctions paymentTypeFunctions
+@{
+    double value = 0;
+    var hasValue = double.TryParse(ViewData["Price"]?.ToString(), out value);
+
+    bool.TryParse(ViewData["OnlyReadable"]?.ToString(), out bool onlyReadable);
+
+    var annualTypeId = paymentTypeFunctions.GetByExternalCode("ANUAL").PaymentTypeId;
+
+    int i = 1;
+}
+
+@if (!onlyReadable)
+{
+    <div class="row w-100">
+        @foreach (var item in Model.OrderBy(x => x.TaxaMes))
+        {
+            var offset = "";
+
+            if (Model.Count == i && (i + 2) % 3 == 0) { offset = "offset-md-4"; }
+            if (Model.Count == i + 1 && (i + 2) % 3 == 0) { offset = "offset-md-2"; }
+
+            var valor = (hasValue && value != 0 ? (item.TaxaMes * value / 100d) : 0);
+            bool isAnnual = item.GuarantorPaymentTypeId == annualTypeId;
+            if (isAnnual)
+            {
+                valor *= 12;
+            }
+            var _valor = valor.ToString("#,##0.00");
+
+            var img = Convert.ToBase64String(item.GuarantorLogoTipo ?? System.IO.File.ReadAllBytes(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "wwwroot", "image", "noimage.png")));
+
+            <div class="@offset col-md-4 text-center mt-4">
+                <div class="card h-100 box-shadow">
+                    <div class="card-header" style="background: white;">
+                        <label style="position: absolute; left: 8px; top: 6px; text-transform: uppercase;">@item.GuarantorTypeName</label>
+                        <img src="data:@(item.GuarantorLogoTipoMimeType ?? "image/png");base64, @img" height="75" style="max-width: 100%;" />
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <input class="valor-final" data-guarantor-id="@item.GuarantorId" data-product-id="@item.GuarantorProductId" data-category-guarantor-product-tax-id="@item.CategoryGuarantorProductTaxId" type="hidden" value="@valor" />
+                            <div class="col-md-12 text-center">
+                                <h4 class="w-100 mb-1 font-bold">@item.GuarantorProductName</h4>
+                                <hr class="mt-1" />
+                                @Html.Raw(item.Description)
+                                <label class="w-100"><b style="font-size: 16px;">R$ @_valor</b><small>@(isAnnual ? "/Ano" : "/Mês")</small></label>
+                            </div>
+                        </div>
+                    </div>
+                    @if (!User.IsInRole("ImobiliariaVendas"))
+                    {
+                        <div class="card-footer text-center category-guarantor-product-tax-select-button-footer">
+                            <button type="button" class="btn btn-success" onclick="Contract(@item.CategoryGuarantorProductTaxId, @item.GuarantorProductId)"><i class="fas fa-check"></i> Solicitar Análise</button>
+                        </div>
+                    }
+                </div>
+            </div>
+            i++;
+        }
+    </div>
+}
+else
+{
+    string offsetAndWidth = "w-100", tdWidth = "33%";
+    if (Model.Count == 2) { offsetAndWidth = "w-80 offset-md-2"; tdWidth = "50%"; }
+    if (Model.Count == 1) { offsetAndWidth = "w-40 offset-md-4"; tdWidth = "100%"; }
+
+    <table class="@offsetAndWidth mediumFont" style="padding:0;" cellspacing="0">
+        <thead>
+            <tr>
+                @foreach (var item in Model.OrderBy(x => x.TaxaMes))
+                {
+                    var imgBytes = item.GuarantorLogoTipo ?? System.IO.File.ReadAllBytes(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "wwwroot", "image", "noimage.png"));
+                    var img = Convert.ToBase64String(imgBytes);
+                    System.Drawing.Image image = System.Drawing.Image.FromStream(new System.IO.MemoryStream(imgBytes));
+                    <th style="width:@tdWidth; padding: 10px;">
+                        <img src="data:@(item.GuarantorLogoTipoMimeType ?? "image/png");base64, @img" height="75" @(image.Width > 150 ? Html.Raw("width=\"150\"") : (object)"") />
+                    </th>
+                    i++;
+                }
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                @{ i = 1; }
+                @foreach (var item in Model.OrderBy(x => x.TaxaMes))
+                {
+                    var valor = (hasValue && value != 0 ? (item.TaxaMes * value / 100d) : 0);
+                    bool isAnnual = item.GuarantorPaymentTypeId == annualTypeId;
+                    if (isAnnual)
+                    {
+                        valor *= 12;
+                    }
+                    var _valor = valor.ToString("#,##0.00");
+                    <td class="text-center" style="width:@tdWidth; padding:5px;">
+                        <div class="w-100 text-center" style="min-height: 175px;">
+                            @if (item.GuarantorProductId == 2)
+                            {
+                                <div style="height:220px; padding-bottom:20px"> @Html.Raw(item.Description)</div>
+                            }
+                            else
+                            {
+                                <div style="height:140px; padding-bottom:20px"> @Html.Raw(item.Description)</div>
+                            }
+                            <br />
+                            <div style="position: relative; bottom: 0; width: 100%;">
+                                <div class="bgamaisimob-green" style="padding-top: 5px; color: white; width: 125px; margin:auto;">
+                                    <label class="w-100"><b style="font-size: 16px;">R$ @_valor</b><small>@(isAnnual ? "/Ano" : "/Mês")</small></label>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    i++;
+                }
+            </tr>
+        </tbody>
+    </table>
+}

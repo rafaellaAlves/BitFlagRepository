@@ -1,0 +1,1868 @@
+﻿@model GuardMedWeb.Models.SeguradoClinicaVeterinariaViewModel
+@{
+    ViewData["Title"] = "Seguro para Clínica, PetShop e Hospital Veterinário AmaisVet";
+
+    double precoMV = 0;
+    precoMV += Convert.ToDouble(Model.PlanoExtensaoCobertura20PrecoTotal) + Convert.ToDouble(Model.PlanoExtensaoCobertura30PrecoTotal) + Convert.ToDouble(Model.PlanoExtensaoCobertura40PrecoTotal) + Convert.ToDouble(Model.PlanoExtensaoCobertura50PrecoTotal);
+}
+
+<style type="text/css">
+    .tableToResize, .show-when-small {
+        display: none;
+    }
+    #InfoCard, #_MVInfoCard, .hide-when-small {
+        display: block;
+    }
+
+    @@media screen and (max-width: 575px) {
+        .colToResize, .hide-when-small, #InfoCard, #_MVInfoCard {
+            display: none;
+        }
+
+        .tableToResize, .show-when-small {
+            display: block;
+        }
+
+        .card {
+            margin-top: .5em;
+        }
+
+        .tableFont12 td small{
+            font-size:12px;
+        }
+    }
+</style>
+
+<script type="text/javascript">
+
+    var IsSeguroClinicaSelected = false;
+    var IsSeguroTecnicoSelected = false;
+    var IsSeguroMVSelected = false;
+
+    var planoExtensaoCoberturaPreco = "";
+    var planoRTPreco = "";
+
+    function _SeguroClinicaVeterinariaCotacaoSalvar() {
+        var d = $('#_SeguroClinicaVeterinariaCotacaoForm').serializeArray();
+        $.post('@Url.Action("Cotacao", "SeguroClinicaVeterinaria")', d, function (data) {
+            window.location.href = '@Url.Action("Formulario", "SeguroClinicaVeterinaria")?reference=@Model.Referencia';
+		});
+    }
+
+    function CalcularPreco() {
+        var d = {
+            PlanoClinicaVeterinariaId: $('#PlanoClinicaVeterinariaId').val(),
+            planoRTPreco: planoRTPreco == undefined ? '0' : planoRTPreco.replace('.', ','),
+            planoExtensaoCoberturaPreco: planoExtensaoCoberturaPreco.replace('.',','),
+            QtdFuncionarios: $('#QtdFuncionarios').val()
+        }
+        $.ajax({
+			url: '@Url.Action("ConsultarPreco", "SeguroClinicaVeterinaria")',
+			type: 'POST',
+			data: d,
+			dataType: 'Json',
+            success: function (data) {
+                $('#_SeguroClinicaVeterinariaCotacaoPreco').text(data.toFixed(2).replace('.', ','));
+                $('#PrecoTotal').val(data.toFixed(2).replace('.', ','));
+            }
+        });
+    }
+
+    function _SeguroClinicaVeterinariaCotacaoValidacao() {
+        $('.text-danger').remove();
+        var _seguroClinicaVeterinariaCotacaoErro = false;
+
+
+        if (IsNullOrWhiteSpace($('#PlanoClinicaVeterinariaId').val())) {
+            $('#CardGeral').after('<div class="text-danger text-right">Escolha um plano para sua clínica!</div>');
+            _seguroClinicaVeterinariaCotacaoErro = true;
+        }
+        if ($('#planoRTInfoSelecionado').css('display') == 'none') {
+            $('#RTMessageError').after('<div class="text-danger text-right">Escolha uma opção para o responsável técnico!</div>');
+            _seguroClinicaVeterinariaCotacaoErro = true;
+        }
+
+        if ($('#planoMVInfoSelecionado').css('display') == 'none') {
+            $('#_ExtensaoCoberturaCardGeral').after('<div class="text-danger text-right">Escolha um plano para extensão de cobertura!</div>');
+            _seguroClinicaVeterinariaCotacaoErro = true;
+        }
+
+        return (!_seguroClinicaVeterinariaCotacaoErro);
+    }
+
+    var qtdFunc20, qtdFunc30, qtdFunc40, qtdFunc50, precoBasico20, precoBasico30, precoBasico40, precoBasico50, precoProI20, precoProI30, precoProI40, precoProI50, precoProII20, precoProII30, precoProII40, precoProII50, precoProIII20, precoProIII30, precoProIII40, precoProIII50, precoTotalBasico, precoTotalProI, precoTotalProII, precoTotalProIII, totalFunc;
+
+    function ConsultarCusto() {
+        $.ajax({
+            url: '@Url.Action("Consulta", "SeguroProfissional")',
+			type: 'POST',
+			data: null,
+            dataType: 'json',
+            success: function (data) {
+                qtdFunc20 = IsNullOrWhiteSpace($('#QtdFuncionarios20').val()) ? 0 : parseInt($('#QtdFuncionarios20').val());
+                qtdFunc30 = IsNullOrWhiteSpace($('#QtdFuncionarios30').val()) ? 0 : parseInt($('#QtdFuncionarios30').val());
+                qtdFunc40 = IsNullOrWhiteSpace($('#QtdFuncionarios40').val()) ? 0 : parseInt($('#QtdFuncionarios40').val());
+                qtdFunc50 = IsNullOrWhiteSpace($('#QtdFuncionarios50').val()) ? 0 : parseInt($('#QtdFuncionarios50').val());
+                precoBasico20 = (data[0].custoAssociadoMensal * qtdFunc20).toFixed(2); precoBasico30 = (data[1].custoAssociadoMensal * qtdFunc30).toFixed(2);
+                precoBasico40 = (data[2].custoAssociadoMensal * qtdFunc40).toFixed(2); precoBasico50 = (data[3].custoAssociadoMensal * qtdFunc50).toFixed(2);
+                precoProI20 = (data[4].custoAssociadoMensal * qtdFunc20).toFixed(2); precoProI30 = (data[5].custoAssociadoMensal * qtdFunc30).toFixed(2);
+                precoProI40 = (data[6].custoAssociadoMensal * qtdFunc40).toFixed(2); precoProI50 = (data[7].custoAssociadoMensal * qtdFunc50).toFixed(2);
+                precoProII20 = (data[8].custoAssociadoMensal * qtdFunc20).toFixed(2); precoProII30 = (data[9].custoAssociadoMensal * qtdFunc30).toFixed(2);
+                precoProII40 = (data[10].custoAssociadoMensal * qtdFunc40).toFixed(2); precoProII50 = (data[11].custoAssociadoMensal * qtdFunc50).toFixed(2);
+                precoProIII20 = (data[12].custoAssociadoMensal * qtdFunc20).toFixed(2); precoProIII30 = (data[13].custoAssociadoMensal * qtdFunc30).toFixed(2);
+                precoProIII40 = (data[14].custoAssociadoMensal * qtdFunc40).toFixed(2); precoProIII50 = (data[15].custoAssociadoMensal * qtdFunc50).toFixed(2);
+                precoTotalBasico = (parseFloat(precoBasico20) + parseFloat(precoBasico30) + parseFloat(precoBasico40) + parseFloat(precoBasico50)).toFixed(2);
+                precoTotalProI = (parseFloat(precoProI20) + parseFloat(precoProI30) + parseFloat(precoProI40) + parseFloat(precoProI50)).toFixed(2);
+                precoTotalProII = (parseFloat(precoProII20) + parseFloat(precoProII30) + parseFloat(precoProII40) + parseFloat(precoProII50)).toFixed(2);
+                precoTotalProIII = (parseFloat(precoProIII20) + parseFloat(precoProIII30) + parseFloat(precoProIII40) + parseFloat(precoProIII50)).toFixed(2);
+                totalFunc = qtdFunc20 + qtdFunc30 + qtdFunc40 + qtdFunc50;
+
+                $('#totalFunc').empty().append(totalFunc); $('#_totalFunc').val(totalFunc);
+                $('.PrecoBasico20').empty().append(precoBasico20.replace('.', ',')); $('.PrecoBasico30').empty().append(precoBasico30.replace('.', ','));
+                $('.PrecoBasico40').empty().append(precoBasico40.replace('.', ',')); $('.PrecoBasico50').empty().append(precoBasico50.replace('.', ','));
+                $('.PrecoTotalBasico').empty().append(precoTotalBasico.replace('.', ',')); $('#_PrecoTotalBasico').val(precoTotalBasico);
+                $('.PrecoProI20').empty().append(precoProI20.replace('.', ',')); $('.PrecoProI30').empty().append(precoProI30.replace('.', ','));
+                $('.PrecoProI40').empty().append(precoProI40.replace('.', ',')); $('.PrecoProI50').empty().append(precoProI50.replace('.', ','));
+                $('.PrecoTotalProI').empty().append(precoTotalProI.replace('.', ',')); $('#_PrecoTotalProI').val(precoTotalProI);
+                $('.PrecoProII20').empty().append(precoProII20.replace('.', ',')); $('.PrecoProII30').empty().append(precoProII30.replace('.', ','));
+                $('.PrecoProII40').empty().append(precoProII40.replace('.', ',')); $('.PrecoProII50').empty().append(precoProII50.replace('.', ','));
+                $('.PrecoTotalProII').empty().append(precoTotalProII.replace('.', ',')); $('#_PrecoTotalProII').val(precoTotalProII);
+                $('.PrecoProIII20').empty().append(precoProIII20.replace('.', ',')); $('.PrecoProIII30').empty().append(precoProIII30.replace('.', ','));
+                $('.PrecoProIII40').empty().append(precoProIII40.replace('.', ',')); $('.PrecoProIII50').empty().append(precoProIII50.replace('.', ','));
+                $('.PrecoTotalProIII').empty().append(precoTotalProIII.replace('.', ',')); $('#_PrecoTotalProIII').val(precoTotalProIII);
+
+                if ($('#PlanoExtensaoCoberturaId').val() == 1) {
+                    planoExtensaoCoberturaPreco = $("#_PrecoTotalBasico").val();
+                    CalcularPreco();
+                    MVSelect(1, 'Profissional Básico', precoTotalBasico);
+                } else if ($('#PlanoExtensaoCoberturaId').val() == 2) {
+                    planoExtensaoCoberturaPreco = $("#_PrecoTotalProI").val();
+                    CalcularPreco();
+                    MVSelect(2, 'Profissional I', precoTotalProI);
+                } else if ($('#PlanoExtensaoCoberturaId').val() == 3) {
+                    planoExtensaoCoberturaPreco = $("#_PrecoTotalProII").val();
+                    CalcularPreco();
+                    MVSelect(3, 'Profissional II', precoTotalProII);
+                } else if ($('#PlanoExtensaoCoberturaId').val() == 4) {
+                    planoExtensaoCoberturaPreco = $("#_PrecoTotalProIII").val();
+                    CalcularPreco();
+                    MVSelect(4, 'Profissional III', precoTotalProIII);
+                }
+            }
+        });
+    }
+
+    var RTprecoProI, RTprecoProII, RTprecoProIII;
+
+    function ConsultarCustoRT() {
+        if (IsNullOrWhiteSpace($('#NascimentoTecnico').val())) {
+            $('#RTprecoProI').text('0,00');
+            $('#RTprecoProII').text('0,00');
+            $('#RTprecoProIII').text('0,00');
+            return;
+        }
+        var _idade = 0;
+        if ($('#NascimentoTecnico').val() == 1) _idade = 25;
+        if ($('#NascimentoTecnico').val() == 2) _idade = 35;
+        if ($('#NascimentoTecnico').val() == 3) _idade = 45;
+        if ($('#NascimentoTecnico').val() == 4) _idade = 55;
+        d = { idade: _idade };
+        $.ajax({
+            url: '@Url.Action("ConsultaRT", "SeguroProfissional")',
+            type: 'POST',
+            data: d,
+            dataType: 'json',
+            success: function (data) {
+                if (data == false && data.length != 0) {
+                    return;
+                }
+                if (data.length == 0) {
+                    alert('Nenhum plano para esta idade.');
+                    $('#_RTAdicionalCardGroup').hide();
+                    //return;
+                }
+                else if (!IsSeguroTecnicoSelected) {
+                    $('#_RTAdicionalCardGroup').show();
+                }
+                //pega preço
+                RTprecoProI = data[0].custo.toFixed(2);
+                $('#RTprecoProI').text(RTprecoProI.replace('.', ','));
+                RTprecoProII = data[1].custo.toFixed(2);
+                $('#RTprecoProII').text(RTprecoProII.replace('.', ','));
+                RTprecoProIII = data[2].custo.toFixed(2);
+                $('#RTprecoProIII').text(RTprecoProIII.replace('.', ','));
+
+                //verifica qual o plano utilizado
+                if ($('#PlanoResponsavelTecnicoId').val() == 2) {
+                    planoRTPreco = RTprecoProI;
+                    RTAdicionalSelect(2, 'Profissional I', RTprecoProI.replace('.', ','));
+                    CalcularPreco();
+                } else if ($('#PlanoResponsavelTecnicoId').val() == 3) {
+                    RTAdicionalSelect(3, 'Profissional II', RTprecoProII.replace('.', ','));
+                    planoRTPreco = RTprecoProII;
+                    CalcularPreco();
+                } else if ($('#PlanoResponsavelTecnicoId').val() == 4) {
+                    RTAdicionalSelect(4, 'Profissional III', RTprecoProIII.replace('.', ','));
+                    planoRTPreco = RTprecoProIII;
+                    CalcularPreco();
+                }
+            }
+        });
+        }
+
+</script>
+
+<div class="row">
+    <div class="col-sm-12 mx-auto">
+        <div class="row">
+            <div class="rectangle" id="retangle1" style="height: 10px; width:17%; margin-left:16%; background:lightgrey;"></div>
+            <div class="rectangle" id="retangle2" style="height: 10px; width:17%; background:lightgrey;"></div>
+            <div class="rectangle" id="retangle3" style="height: 10px; width:17%; background-color:lightgrey;"></div>
+            <div class="rectangle" id="retangle4" style="height: 10px; width:17%; background-color:lightgrey;"></div>
+        </div>
+        <div class="row">
+            <div class="col-md-1 col-1"></div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle shadow" id="circle1" style="background-color: lightgrey; ">
+                    <div style="padding-top:25px;">
+                        <div class="mx-auto smallcircle" id="smallCircle1" style="background: white; display:none;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="circle2" style="background-color: lightgrey;"></div>
+                <div class="mx-auto smallcircle" id="smallCircle2" style="background: white; display:none;"></div>
+            </div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="circle3" style="background-color: lightgrey;"></div>
+                <div class="mx-auto smallcircle" id="smallCircle3" style="background: white; display:none;"></div>
+            </div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="circle4" style=" background-color: lightgrey;"></div>
+                <div class="mx-auto smallcircle" id="smallCircle4" style="background: white; display:none;"></div>
+            </div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="circle5" style=" background-color: lightgrey;"></div>
+                <div class="mx-auto smallcircle" id="smallCircle5" style=" background: white; display:none;"></div>
+            </div>
+        </div>
+        <div class="row" style="margin-top:1em;">
+            <div class="col-md-1"></div>
+            <div class="col-sm-2 text-center">Simulação</div>
+            <div class="col-sm-2 text-center"><strong style="color:#40615f">Monte seu Plano</strong></div>
+            <div class="col-sm-2 text-center"><label>Proposta</label></div>
+            <div class="col-sm-2 text-center"> <label>Contratar</label></div>
+            <div class="col-sm-2 text-center"> <label>Impressão</label></div>
+        </div>
+    </div>
+</div>
+<br />
+
+<div class="row">
+    <div class="col-sm-12 mx-auto">
+        <div class="row">
+            <div class="rectangle" id="subRetangle1" style="height: 10px; width:17%; margin-left:33%; background:lightgrey;"></div>
+            <div class="rectangle" id="subRetangle2" style="height: 10px; width:17%; background:lightgrey;"></div>
+        </div>
+        <div class="row">
+            <div class="col-md-3 col-3"></div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle shadow" id="subCircle1" style="background-color: lightgrey; ">
+                    <div style="padding-top:25px;">
+                        <div class="mx-auto smallcircle" id="subSmallCircle1" style="background: white; display:none;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="subCircle2" style="background-color: lightgrey; ">
+                    <div style="padding-top:25px;">
+                        <div class="mx-auto smallcircle" id="subSmallCircle2" style="background: white; display:none;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="subCircle3" style="background-color: lightgrey; ">
+                    <div style="padding-top:25px;">
+                        <div class="mx-auto smallcircle" id="subSmallCircle3" style="background: white; display:none;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row" style="margin-top:1em;">
+            <div class="col-md-3"></div>
+            <div class="col-sm-2 text-center">Proteção para Empresa</div>
+            <div class="col-sm-2 text-center">Proteção Adicional RT</div>
+            <div class="col-sm-2 text-center"><label>Proteção Profissional MV's</label></div>
+        </div>
+    </div>
+</div>
+<br />
+<script type="text/javascript">
+    $('#circle1').css("background", "#0a754e");
+    $('#circle2').css("background", "#0a754e").addClass('shadow');
+    $('#retangle1').css("background", "#13D68F");
+    $('#smallCircle2').show();
+
+    $('#subCircle1').css("background", "#0a754e");
+    $('#subSmallCircle1').show();
+</script>
+<br />
+
+<div style="display:none;" id="ProdutosSelecionadosTabela">
+    <div class="row">
+        <div class=" col-md-12 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="amaisvet-green">Produto Selecionado</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-row" style="display: flex;align-items: center;">
+                        <div class="col-md-2 text-center">
+                            <div style=" font-size:3em;" class="amaisvet-green">
+                                <i style="vertical-align: middle;" class="fas fa-cart-plus"></i>
+                            </div>
+                        </div>
+                        <div class="col-md-10">
+                            <div class="form-row" id="planoClinicaInfoSelecionado" style="padding-top:10px; width:100%; display:none;">
+                                <div class="col-md-5" style="text-align:center;">
+                                    <strong>Etapa 1 -</strong> Proteção Empresarial
+                                </div>
+                                <div class="col-md-3" style="text-align:center;">
+                                    <strong id="planoClinicaNome"></strong>
+                                </div>
+                                <div class="col-md-2" style="text-align:center;">
+                                    <strong id="planoClinicaPreco"></strong>
+                                </div>
+                                <div class="col-md-2" style="text-align:center;">
+                                    <a href="javascript:void(0)" id="TrocarPlanoBtn" class="btn btn-primary text-left">Trocar de plano</a>
+                                </div>
+                            </div>
+                            <div class="form-row" id="planoRTInfoSelecionado" style="padding-top:10px; width:100%; display:none;">
+                                <div class="col-md-5" style="text-align:center;">
+                                    <strong>Etapa 2 - </strong>Cobertura Adicional de Proteção de Renda do RT
+                                </div>
+                                <div class="col-md-3" style="text-align:center;">
+                                    <strong id="planoRTNome"></strong>
+                                </div>
+                                <div class="col-md-2" style="text-align:center;">
+                                    <strong id="planoRTPreco">R$ <span class="money">@Model.PlanoResponsavelTecnicoPreco</span></strong>
+                                </div>
+                                <div class="col-md-2" style="text-align:center;">
+                                    <a href="javascript:void(0)" id="TrocarPlanoRTBtn" class="btn btn-primary text-left">Trocar de plano</a>
+                                </div>
+                            </div>
+                            <div class="form-row" id="planoMVInfoSelecionado" style="padding-top:10px; width:100%; display:none;">
+                                <div class="col-md-5" style="text-align:center;">
+                                    <strong>Etapa 3 - </strong>Cobertura Adicional de Proteção Profissional aos MVs Colaboradores
+                                </div>
+                                <div class="col-md-3" style="text-align:center;">
+                                    <strong id="planoExtensaoCoberturaNome"></strong>
+                                </div>
+                                <div class="col-md-2" style="text-align:center;">
+                                    <strong id="planoExtensaoCoberturaPreco">R$ <span class="money">@precoMV.ToString("0.00")</span></strong>
+                                </div>
+                                <div class="col-md-2" style="text-align:center;">
+                                    <a href="javascript:void(0)" id="TrocarPlanoExtensaoCoberturaBtn" class="btn btn-primary text-left">Trocar de plano</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br />
+</div>
+<br />
+<div id="TextoIntro">
+    <label>Olá <strong>@Model.NomeContato</strong>, o Seguro Empresarial para Clinicas e Petshops da AmaisVet é o mais completo do mercado. É o único seguro que protege a empresa contra danos financeiros, por meio da cobertura exclusiva de  Responsabilidade Civil Profissional da Medicina Veterinária, e os danos patrimoniais. Além de estender proteção aos Sócios, RT e os colaboradores.<br />Anote o número desta simulação para acessos futuros: <b># Referência @Model.Referencia.</b></label>
+    <br /><br />
+</div>
+<form id="_SeguroClinicaVeterinariaCotacaoForm" method="post" enctype="multipart/form-data">
+    <input type="hidden" id="PlanoClinicaVeterinariaId" name="PlanoClinicaVeterinariaId" value="@Model.PlanoClinicaVeterinariaId" />
+    <input type="hidden" id="SeguradoClinicaVeterinariaId" name="SeguradoClinicaVeterinariaId" value="@Model.SeguradoClinicaVeterinariaId" />
+    <input type="hidden" id="PlanoResponsavelTecnicoId" name="PlanoResponsavelTecnicoId" value="@Model.PlanoResponsavelTecnicoId" />
+    <input type="hidden" id="PlanoExtensaoCoberturaId" name="PlanoExtensaoCoberturaId" value="@Model.PlanoExtensaoCoberturaId" />
+
+    <div class="form-row" id="PlanoClinicaInfo">
+        <div class="form-group col-md-12" style="background-color:lightgrey;">
+            <div style="padding-top:5px;padding-left:5px;">
+                <i><strong>Etapa 1 - Proteção Empresarial</strong></i><br />
+                <small>As coberturas de Responsabilidade Civil Profissional RT e PJ garantem proteção financeira à empresa e ao RT em caso de reclamações judiciais que ocorram em decorrência das atividades profissionais realizadas dentro da clinica ou que envolvam o RT. Além disso, há a possibilidade de contratação de coberturas que protegerão a empresa em caso de incêndio, danos elétricos, vendaval e roubo/furto qualificado. Selecione a opção mais adequada às necessidades da empresa.</small>
+            </div>
+        </div>
+        <br />
+    </div>
+    <div id="CardGeral">
+        <div class="card-group">
+            <div class="card" id="InfoCard" style="flex-grow: 1.6">
+                <div class="card-header">
+                    <label class="card-title row"><strong class="mx-auto">Coberturas</strong></label>
+                </div>
+                <div class="card-body">
+                    <br />
+                    <div class="row">
+                        <div class="col-md-12"><small>Responsabilidade civil profissional PJ</small></div>
+                        <div class="col-md-12"><small>Responsabilidade civil profissional RT</small></div>
+                        <div class="col-md-12"><small>Incêndio | Raio | Explosão</small></div>
+                        <div class="col-md-12"><small>Danos Elétricos</small></div>
+                        <div class="col-md-12"><small>Perda pagamento de aluguel</small></div>
+                        <div class="col-md-12"><small>Resp. operações</small></div>
+                        <div class="col-md-12"><small>Roubo e furto qualificado</small></div>
+                        <div class="col-md-12"><small>Vendaval</small></div>
+                        <br /><br />
+                        <div class="col-md-12"><h5>&nbsp;<br />&nbsp;</h5></div>
+                    </div>
+                </div>
+            </div>
+            <div class="card" id="RCP50Card">
+                <div class="card-header">
+                    <label class="card-title row"><strong class="mx-auto amaisvet-green">Empresarial básico I</strong></label>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <table style="width:100%;" class="tableToResize tableFont12">
+                                <thead>
+                                    <tr>
+                                        <th>Cobertura</th>
+                                        <th class="text-center">Valores (R$)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><small>Responsabilidade civil profissional PJ</small></td>
+                                        <td class="text-center"><small>50.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Responsabilidade civil profissional RT</small></td>
+                                        <td class="text-center"><small>50.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Incêndio | Raio | Explosão</small></td>
+                                        <td class="text-center"><small>-</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Danos Elétricos</small></td>
+                                        <td class="text-center"><small>-</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Perda pagamento de aluguel</small></td>
+                                        <td class="text-center"><small>-</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Resp. operações</small></td>
+                                        <td class="text-center"><small>-</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Roubo e furto qualificado</small></td>
+                                        <td class="text-center"><small>-</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Vendaval</small></td>
+                                        <td class="text-center"><small>-</small></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-center colToResize" style="width:100%;">
+                            <div class="col-12"><small><b>Valores</b></small></div>
+                            <div class="col-12"><small class="card-text">R$50.000,00</small></div>
+                            <div class="col-12"><small class="card-text">R$50.000,00</small></div>
+                            <div class="col-12"><small class="card-text">-</small></div>
+                            <div class="col-12"><small class="card-text">-</small></div>
+                            <div class="col-12"><small class="card-text">-</small></div>
+                            <div class="col-12"><small class="card-text">-</small></div>
+                            <div class="col-12"><small class="card-text">-</small></div>
+                            <div class="col-12"><small class="card-text">-</small></div>
+                        </div>
+                        <div class="col-md-12 text-center" style="margin-top:1em;"><h5><strong>R$ 65,00 / Mês</strong></h5></div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="col-md-12 text-center"><a href="javascript:void(0)" id="_SeguroClinicaVeterinariaCotacaoSubmitButton1" class="btn btn-primary">Selecionar</a></div>
+                </div>
+            </div>
+            <div class="card" id="RCP100Card">
+                <div class="card-header">
+                    <label class="card-title row"><strong class="mx-auto amaisvet-green">Empresarial básico II</strong></label>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <table style="width:100%;" class="tableToResize tableFont12">
+                                <thead>
+                                    <tr>
+                                        <th>Cobertura</th>
+                                        <th class="text-center">Valores (R$)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><small>Responsabilidade civil profissional PJ</small></td>
+                                        <td class="text-center"><small>100.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Responsabilidade civil profissional RT</small></td>
+                                        <td class="text-center"><small>50.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Incêndio | Raio | Explosão</small></td>
+                                        <td class="text-center"><small>-</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Danos Elétricos</small></td>
+                                        <td class="text-center"><small>-</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Perda pagamento de aluguel</small></td>
+                                        <td class="text-center"><small>-</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Resp. operações</small></td>
+                                        <td class="text-center"><small>-</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Roubo e furto qualificado</small></td>
+                                        <td class="text-center"><small>-</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Vendaval</small></td>
+                                        <td class="text-center"><small>-</small></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-center colToResize" style="width:100%;">
+                            <div class="col-12"><small><b>Valores</b></small></div>
+                            <div class="col-md-12"><small class="card-text">R$100.000,00</small></div>
+                            <div class="col-md-12"><small class="card-text">R$50.000,00</small></div>
+                            <div class="col-md-12"><small class="card-text">-</small></div>
+                            <div class="col-md-12"><small class="card-text">-</small></div>
+                            <div class="col-md-12"><small class="card-text">-</small></div>
+                            <div class="col-md-12"><small class="card-text">-</small></div>
+                            <div class="col-md-12"><small class="card-text">-</small></div>
+                            <div class="col-md-12"><small class="card-text">-</small></div>
+                        </div>
+                        <div class="col-md-12 text-center" style="margin-top:1em;"><h5><strong>R$ 81,67 / Mês</strong></h5></div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="col-md-12 text-center"><a href="javascript:void(0)" id="_SeguroClinicaVeterinariaCotacaoSubmitButton2" class="btn btn-primary">Selecionar</a></div>
+                </div>
+            </div>
+            <div class="card" id="MaltesCard">
+                <div class="card-header">
+                    <label class="card-title row"><strong class="mx-auto amaisvet-green">Empresarial Maltês</strong></label>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <table style="width:100%;" class="tableToResize tableFont12">
+                                <thead>
+                                    <tr>
+                                        <th>Cobertura</th>
+                                        <th class="text-center">Valores (R$)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><small>Responsabilidade civil profissional PJ</small></td>
+                                        <td class="text-center"><small>50.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Responsabilidade civil profissional RT</small></td>
+                                        <td class="text-center"><small>50.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Incêndio | Raio | Explosão</small></td>
+                                        <td class="text-center"><small>100.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Danos Elétricos</small></td>
+                                        <td class="text-center"><small>5.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Perda pagamento de aluguel</small></td>
+                                        <td class="text-center"><small>5.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Resp. operações</small></td>
+                                        <td class="text-center"><small>5.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Roubo e furto qualificado</small></td>
+                                        <td class="text-center"><small>5.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Vendaval</small></td>
+                                        <td class="text-center"><small>5.000,00</small></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-center colToResize" style="width:100%;">
+                            <div class="col-12"><small><b>Valores</b></small></div>
+                            <div class="col-md-12"><small class="card-text">R$ 50.000,00</small></div>
+                            <div class="col-md-12"><small class="card-text">R$ 50.000,00</small></div>
+                            <div class="col-md-12"><small class="card-text">R$ 100.000,00</small></div>
+                            <div class="col-md-12"><small class="card-text">R$ 5.000,00</small></div>
+                            <div class="col-md-12"><small class="card-text">R$ 5.000,00</small></div>
+                            <div class="col-md-12"><small class="card-text">R$ 5.000,00</small></div>
+                            <div class="col-md-12"><small class="card-text">R$ 5.000,00</small></div>
+                            <div class="col-md-12"><small class="card-text">R$ 5.000,00</small></div>
+                        </div>
+                        <div class="col-md-12 text-center" style="margin-top:1em;"><h5><strong>R$ 99,23 / Mês</strong></h5></div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="col-md-12 text-center"><a href="javascript:void(0)" id="_SeguroClinicaVeterinariaCotacaoSubmitButton3" class="btn btn-primary">Selecionar</a></div>
+                </div>
+            </div>
+            <div class="card" id="BuldogCard">
+                <div class="card-header">
+                    <label class="card-title row"><strong class="mx-auto amaisvet-green">Empresarial Bulldog</strong></label>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <table style="width:100%;" class="tableToResize tableFont12">
+                                <thead>
+                                    <tr>
+                                        <th>Cobertura</th>
+                                        <th class="text-center">Valores (R$)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><small>Responsabilidade civil profissional PJ</small></td>
+                                        <td class="text-center"><small>50.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Responsabilidade civil profissional RT</small></td>
+                                        <td class="text-center"><small>50.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Incêndio | Raio | Explosão</small></td>
+                                        <td class="text-center"><small>250.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Danos Elétricos</small></td>
+                                        <td class="text-center"><small>10.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Perda pagamento de aluguel</small></td>
+                                        <td class="text-center"><small>10.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Resp. operações</small></td>
+                                        <td class="text-center"><small>10.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Roubo e furto qualificado</small></td>
+                                        <td class="text-center"><small>10.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Vendaval</small></td>
+                                        <td class="text-center"><small>10.000,00</small></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-center colToResize" style="width:100%;">
+                            <div class="col-12"><small><b>Valores</b></small></div>
+                            <div class="col-md-12"><small class="card-text">R$ 50.000,00</small></div>
+                            <div class="col-md-12"><small class="card-text">R$ 50.000,00</small></div>
+                            <div class="col-md-12"><small class="card-text">R$ 250.000,00</small></div>
+                            <div class="col-md-12"><small class="card-text">R$ 10.000,00</small></div>
+                            <div class="col-md-12"><small class="card-text">R$ 10.000,00</small></div>
+                            <div class="col-md-12"><small class="card-text">R$ 10.000,00</small></div>
+                            <div class="col-md-12"><small class="card-text">R$ 10.000,00</small></div>
+                            <div class="col-md-12"><small class="card-text">R$ 10.000,00</small></div>
+                        </div>
+                        <div class="col-md-12 text-center" style="margin-top:1em;"><h5><strong>R$ 134,23 / Mês</strong></h5></div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="col-md-12 text-center"><a href="javascript:void(0)" id="_SeguroClinicaVeterinariaCotacaoSubmitButton4" class="btn btn-primary">Selecionar</a></div>
+                </div>
+            </div>
+            <div class="card" id="MastiffCard">
+                <div class="card-header">
+                    <label class="card-title row"><strong class="mx-auto amaisvet-green">Empresarial Mastiff</strong></label>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <table style="width:100%;" class="tableToResize tableFont12">
+                                <thead>
+                                    <tr>
+                                        <th>Cobertura</th>
+                                        <th class="text-center">Valores (R$)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><small>Responsabilidade civil profissional PJ</small></td>
+                                        <td class="text-center"><small>100.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Responsabilidade civil profissional RT</small></td>
+                                        <td class="text-center"><small>50.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Incêndio | Raio | Explosão</small></td>
+                                        <td class="text-center"><small>400.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Danos Elétricos</small></td>
+                                        <td class="text-center"><small>10.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Perda pagamento de aluguel</small></td>
+                                        <td class="text-center"><small>10.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Resp. operações</small></td>
+                                        <td class="text-center"><small>10.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Roubo e furto qualificado</small></td>
+                                        <td class="text-center"><small>10.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Vendaval</small></td>
+                                        <td class="text-center"><small>10.000,00</small></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-center colToResize" style="width:100%;">
+                            <div class="col-12"><small><b>Valores</b></small></div>
+                            <div class="col-md-12"><small class="card-text">R$ 100.000,00</small></div>
+                            <div class="col-md-12"><small class="card-text">R$ 50.000,00</small></div>
+                            <div class="col-md-12"><small class="card-text">R$ 400.000,00</small></div>
+                            <div class="col-md-12"><small class="card-text">R$ 10.000,00</small></div>
+                            <div class="col-md-12"><small class="card-text">R$ 10.000,00</small></div>
+                            <div class="col-md-12"><small class="card-text">R$ 10.000,00</small></div>
+                            <div class="col-md-12"><small class="card-text">R$ 10.000,00</small></div>
+                            <div class="col-md-12"><small class="card-text">R$ 10.000,00</small></div>
+                        </div>
+                        <div class="col-md-12 text-center" style="margin-top:1em;"><h5><strong>R$ 168,75 / Mês</strong></h5></div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="col-md-12 text-center"><a href="javascript:void(0)" id="_SeguroClinicaVeterinariaCotacaoSubmitButton5" class="btn btn-primary">Selecionar</a></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="_RTAdicionalCardGroup" style="display:none;">
+        <div class="form-row">
+            <div class="form-group col-md-12" style="background-color:lightgrey;">
+                <div style="padding-top:5px;padding-left:5px;">
+                    <i><strong>Etapa 2 - Cobertura Adicional de Proteção de Renda do RT</strong></i>
+                    <br />
+                    <small>
+                        A proteção de renda garantirá ao profissional uma renda, até o limite mensal contratado, por até 1 ano em caso de afastamento por acidente ou doença. Informe a faixa etária do RT e selecione a opção de renda mais adequada.
+                    </small>
+                </div>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="col-md-12">
+                <label>Faixa de Idade do Técnico: </label>
+            </div>
+            <div class="col-md-3">
+                <input type="hidden" value="@Model.DataNascimentoTecnico" name="DataNascimentoTecnico" id="_NascimentoTecnico">
+                <select class="form-control" id="NascimentoTecnico">
+                    <option value="">Selecione uma faixa de idade.</option>
+                    <option value="1">20 ~ 29</option>
+                    <option value="2">30 ~ 39</option>
+                    <option value="3">40 ~ 49</option>
+                    <option value="4">50 ~ 59</option>
+                </select>
+                <script type="text/javascript">
+                    if (!IsNullOrWhiteSpace($('#_NascimentoTecnico').val())) {
+                        var date = $('#_NascimentoTecnico').val().split('/');
+                        var year = date[2].split(' ')[0];
+
+                        var _age = getAge(new Date(year + '/' + date[1] + '/' + date[0]));
+                        if (20 <= _age && _age <= 29)
+                            $('#NascimentoTecnico').val(1);
+                        else if (30 <= _age && _age <= 39)
+                            $('#NascimentoTecnico').val(2);
+                        else if (40 <= _age && _age <= 49)
+                            $('#NascimentoTecnico').val(3);
+                        else if (50 <= _age && _age <= 59)
+                            $('#NascimentoTecnico').val(4);
+                        ConsultarCustoRT();
+                    }
+                </script>
+            </div>
+        </div>
+        <br />
+        <div class="card-group">
+            <div class="card" id="_RTAdicionalInfoCard" style="flex-grow: 2">
+                <div class="card-header hide-when-small">
+                    <h5 class="card-title text-center"><strong>Coberturas</strong></h5>
+                </div>
+                <div class="card-body hide-when-small">
+                    <div class="row">
+                        <div class="col-md-12"><span class="card-text" style="white-space: nowrap;"><b>&nbsp;</b></span></div>
+                        <div class="col-md-12"><small class="card-text">Perda De Renda Por Doença</small><br /><small style="font-size:11px;" class="hide-when-small">Até 12 meses de afastamento</small></div>
+                        <div class="col-md-12"><small class="card-text">Perda De Renda Por Acidente</small><br /><small style="font-size:11px;" class="hide-when-small">Até 12 meses de afastamento</small></div>
+                        <div class="col-md-12"><small class="card-text">Morte Acidental</small></div>
+                        <div class="col-md-12"><small class="card-text">Invalidez Por Acidente</small></div>
+                        <div class="col-md-12"><small class="card-text">Assistência</small></div>
+                        <div class="col-md-12"><small class="card-text">Assistência Funeral</small></div>
+                        <br /><br />
+                        <div class="col-md-12"><h5>&nbsp;</h5></div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="col-md-12 text-center"><a href="javascript:void(0);" id="_RTAdicionalSubmitButton0" class="btn btn-primary">Não desejo contratar</a></div>
+                </div>
+            </div>
+            <div class="card" id="_RTAdicionalProI">
+                <div class="card-header">
+                    <h5 class="card-title text-center"><strong class="amaisvet-green">Profissional I</strong></h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <table style="width:100%; font-size:12px; margin-bottom:1em;" class="tableToResize tableFont12">
+                                <thead>
+                                    <tr>
+                                        <th style="width:80%;">Cobertura</th>
+                                        <th class="text-center">Valores (R$)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><small>Perda De Renda Por Doença</small><br /><small style="font-size:9px;" class="hide-when-small">* Até 12 meses de afastamento</small></td>
+                                        <td class="text-center"><small>2.500,00/mês*</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Perda De Renda Por Acidente</small><br /><small style="font-size:9px;" class="hide-when-small">* Até 12 meses de afastamento</small></td>
+                                        <td class="text-center"><small>2.500,00/mês*</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Morte Acidental</small></td>
+                                        <td class="text-center"><small>15.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Invalidez Por Acidente</small></td>
+                                        <td class="text-center"><small>15.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Assistência</small></td>
+                                        <td class="text-center"><small>Farmácia</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Assistência Funeral</small></td>
+                                        <td class="text-center"><small>4.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2"><small style="font-size:11px;">*Por até 12 meses de afastamento</small></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-center colToResize" style="width:100%; margin-bottom:1em;">
+                            <div class="col-md-12 text-center"><span class="card-text" style="white-space: nowrap;"><b>Valores</b></span></div>
+                            <div class="col-md-12 text-center"><small class="card-text" style="white-space: nowrap;">12x R$2.500/mês</small><br /><small style="font-size:11px;" class="hide-when-small">&nbsp;</small></div>
+                            <div class="col-md-12 text-center"><small class="card-text" style="white-space: nowrap;">12x R$2.500/mês</small><br /><small style="font-size:11px;" class="hide-when-small">&nbsp;</small></div>
+                            <div class="col-md-12 text-center"><small class="card-text">R$ 15.000,00</small></div>
+                            <div class="col-md-12 text-center"><small class="card-text">R$ 15.000,00</small></div>
+                            <div class="col-md-12 text-center"><small class="card-text">Farmácia</small></div>
+                            <div class="col-md-12 text-center"><small class="card-text">R$ 4.000,00</small></div>
+                        </div>
+                        <div class="col-md-12 text-center"><h5><strong>R$ <span class="money" id="RTprecoProI"></span> / Mês</strong></h5></div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="col-md-12 text-center"><a href="javascript:void(0)" id="_RTAdicionalSubmitButton1" class="btn btn-primary">Selecionar</a></div>
+                </div>
+            </div>
+            <div class="card" id="_RTAdicionalProII">
+                <div class="card-header">
+                    <h5 class="card-title text-center"><strong class="amaisvet-green">Profissional II</strong></h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <table style="width:100%; font-size:12px; margin-bottom:1em;" class="tableToResize tableFont12">
+                                <thead>
+                                    <tr>
+                                        <th style="width:80%;">Cobertura</th>
+                                        <th class="text-center">Valores (R$)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><small>Perda De Renda Por Doença</small><br /><small style="font-size:11px;" class="hide-when-small">* Até 12 meses de afastamento</small></td>
+                                        <td class="text-center"><small>3.500,00/mês*</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Perda De Renda Por Acidente</small><br /><small style="font-size:11px;" class="hide-when-small">* Até 12 meses de afastamento</small></td>
+                                        <td class="text-center"><small>3.500,00/mês*</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Morte Acidental</small></td>
+                                        <td class="text-center"><small>30.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Invalidez Por Acidente</small></td>
+                                        <td class="text-center"><small>30.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Assistência</small></td>
+                                        <td class="text-center"><small>Farmácia</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Assistência Funeral</small></td>
+                                        <td class="text-center"><small>4.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2"><small style="font-size:11px;">*Por até 12 meses de afastamento</small></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-center colToResize" style="width:100%; margin-bottom:1em;">
+                            <div class="col-md-12 text-center"><span class="card-text" style="white-space: nowrap;"><b>Valores</b></span></div>
+                            <div class="col-md-12 text-center"><small class="card-text" style="white-space: nowrap;">12x R$3.500,00/mês</small><br /><small style="font-size:11px;" class="hide-when-small">&nbsp;</small></div>
+                            <div class="col-md-12 text-center"><small class="card-text" style="white-space: nowrap;">12x R$3.500,00/mês</small><br /><small style="font-size:11px;" class="hide-when-small">&nbsp;</small></div>
+                            <div class="col-md-12 text-center"><small class="card-text">R$ 30.000,00</small></div>
+                            <div class="col-md-12 text-center"><small class="card-text">R$ 30.000,00</small></div>
+                            <div class="col-md-12 text-center"><small class="card-text">Farmácia</small></div>
+                            <div class="col-md-12 text-center"><small class="card-text">R$ 4.000,00</small></div>
+                        </div>
+                        <div class="col-md-12 text-center"><h5><strong>R$ <span class="money" id="RTprecoProII"></span> / Mês</strong></h5></div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="col-md-12 text-center"><a href="javascript:void(0)" id="_RTAdicionalSubmitButton2" class="btn btn-primary">Selecionar</a></div>
+                </div>
+            </div>
+            <div class="card" id="_RTAdicionalProIII">
+                <div class="card-header">
+                    <h5 class="card-title text-center"><strong class="amaisvet-green">Profissional III</strong></h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <table style="width:100%; font-size:12px; margin-bottom:1em;" class="tableToResize tableFont12">
+                                <thead>
+                                    <tr>
+                                        <th style="width:80%;">Cobertura</th>
+                                        <th class="text-center">Valores (R$)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><small>Perda De Renda Por Doença</small><br /><small style="font-size:11px;" class="hide-when-small">* Até 12 meses de afastamento</small></td>
+                                        <td class="text-center"><small>5.000,00/mês*</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Perda De Renda Por Acidente</small><br /><small style="font-size:11px;" class="hide-when-small">* Até 12 meses de afastamento</small></td>
+                                        <td class="text-center"><small>5.000,00/mês*</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Morte Acidental</small></td>
+                                        <td class="text-center"><small>45.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Invalidez Por Acidente</small></td>
+                                        <td class="text-center"><small>45.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Assistência</small></td>
+                                        <td class="text-center"><small>Farmácia</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Assistência Funeral</small></td>
+                                        <td class="text-center"><small>4.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2"><small style="font-size:11px;">*Por até 12 meses de afastamento</small></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-center colToResize" style="width:100%; margin-bottom:1em;">
+                            <div class="col-md-12 text-center"><span class="card-text" style="white-space: nowrap;"><b>Valores</b></span></div>
+                            <div class="col-md-12 text-center"><small class="card-text" style="white-space: nowrap;">12x R$5.000,00/mês</small><br /><small style="font-size:11px;" class="hide-when-small">&nbsp;</small></div>
+                            <div class="col-md-12 text-center"><small class="card-text" style="white-space: nowrap;">12x R$5.000,00/mês</small><br /><small style="font-size:11px;" class="hide-when-small">&nbsp;</small></div>
+                            <div class="col-md-12 text-center"><small class="card-text">R$ 45.000,00</small></div>
+                            <div class="col-md-12 text-center"><small class="card-text">R$ 45.000,00</small></div>
+                            <div class="col-md-12 text-center"><small class="card-text">Farmácia</small></div>
+                            <div class="col-md-12 text-center"><small class="card-text">R$ 4.000,00</small></div>
+                        </div>
+                        <div class="col-md-12 text-center"><h5><strong>R$ <span class="money" id="RTprecoProIII"></span> / Mês</strong></h5></div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="col-md-12 text-center"><a href="javascript:void(0)" id="_RTAdicionalSubmitButton3" class="btn btn-primary">Selecionar</a></div>
+                </div>
+            </div>
+        </div>
+        <br />
+        <div id="RTMessageError"></div>
+    </div>
+    <div id="CardGroup" style="display:none;">
+        <div class="form-row">
+            <div class="form-group col-md-12" style="background-color:lightgrey;">
+                <div style="padding-top:5px;padding-left:5px;">
+                    <i><strong>Etapa 3 - Extensão de Cobertura Profissional aos Médicos-Veterinários que Trabalham na Empresa</strong></i><br />
+                    <small>
+                        A empresa poderá contratar para os médicos-veterinários colaboradores, independente do regime de trabalho (Clínico, Plantonista, CLT, Prestador, Etc..), o seguro profissional AmaisVet. Em um único seguro, o médico-veterinário protege-se contra reclamações de terceiros em decorrência das atividades profissionais praticadas por ele, além de garantir uma renda mensal, pelo prazo de 1 ano, em decorrência de afastamentos das atividades laborais por conta de doença ou acidente.<br />
+                        Para contratar, basta informar a quantidade de médicos-veterinários por faixa etária e o plano escolhido para eles.
+                    </small>
+                </div>
+            </div>
+        </div>
+        <input id="QtdFuncionarios" name="QtdFuncionarios" type="hidden" value="@Model.QtdFuncionarios" />
+        <div class="card-group" id="_ExtensaoCoberturaCardGeral">
+            <div class="card" style="flex-grow: 2">
+                <div class="card-header">
+                    <h6 class="card-title text-center"><strong>Coberturas</strong></h6>
+                </div>
+                <div class="card-body">
+                    <div id="_MVInfoCard">
+                        <div class="row">
+                            <div class="col-md-12"><small class="card-text"><strong>&nbsp;</strong></small></div>
+                            <div class="col-md-12"><small>Responsabilidade Civil Profissional</small></div>
+                            <div class="col-md-12"><small style="font-size:12px;">Perda De Renda Por Doença</small><br /><small style="font-size:11px;">* Até 12 meses de afastamento</small></div>
+                            <div class="col-md-12"><small style="font-size:12px;">Perda De Renda Por Acidente</small><br /><small style="font-size:11px;">* Até 12 meses de afastamento</small></div>
+                            <div class="col-md-12"><small>Morte Acidental</small></div>
+                            <div class="col-md-12"><small>Invalidez Por Acidente</small></div>
+                            <div class="col-md-12"><small>Assistência</small></div>
+                            <br />
+                        </div>
+                        <hr />
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12 text-center"><h5><strong>Distribuição faixa etária</strong></h5></div>
+                        <div class="text-left form-group col-md-9 col-9"><h6><strong>Faixa de idade</strong></h6></div>
+                        <div class="text-center form-group col-md-3 col-3"><h6><strong>Qtde</strong></h6></div>
+                        <div class="col-md-9 col-9"><label style="padding: 1px 0px;">20 à 29 anos</label></div>
+                        <div class="form-group col-md-3 col-3"><input id="QtdFuncionarios20" name="QtdFuncionarios20" value="@Model.QtdFuncionarios20" style="padding: 1px 0px;" type="text" class="form-control text-center inputFunc" /></div>
+                        <div class="form-group col-md-9 col-9"><label style="padding: 1px 0px;">30 à 39 anos</label></div>
+                        <div class="form-group col-md-3 col-3"><input id="QtdFuncionarios30" name="QtdFuncionarios30" value="@Model.QtdFuncionarios30" style="padding: 1px 0px;" type="text" class="form-control text-center inputFunc" /></div>
+                        <div class="form-group col-md-9 col-9"><label style="padding: 1px 0px;">40 à 49 anos</label></div>
+                        <div class="form-group col-md-3 col-3"><input id="QtdFuncionarios40" name="QtdFuncionarios40" value="@Model.QtdFuncionarios40" style="padding: 1px 0px;" type="text" class="form-control text-center inputFunc" /></div>
+                        <div class="form-group col-md-9 col-9"><label style="padding: 1px 0px;">50 à 59 anos</label></div>
+                        <div class="form-group col-md-3 col-3"><input id="QtdFuncionarios50" name="QtdFuncionarios50" value="@Model.QtdFuncionarios50" style="padding: 1px 0px;" type="text" class="form-control text-center inputFunc" /></div>
+                        <div class="text-left form-group col-md-9 col-9"><h6><strong>Total mensal</strong></h6></div>
+                        <div class="text-center form-group col-md-3 col-3"><h6><strong id="totalFunc"></strong></h6></div>
+                        <input type="hidden" id="_totalFunc" />
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="text-center"><a href="javascript:void(0)" id="_ExtensaoCoberturaCotacaoSubmitButton0" class="btn btn-primary">Não desejo contratar</a></div>
+                </div>
+            </div>
+            <div class="card" id="ProBasicoCard">
+                <div class="card-header">
+                    <h6 class="card-title text-center amaisvet-green" id="CardTitle1"><strong>Profissional básico</strong></h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <table style="width:100%; font-size:12px;" class="tableToResize tableFont12">
+                                <thead>
+                                    <tr>
+                                        <th style="width:80%;">Cobertura</th>
+                                        <th class="text-center">Valores (R$)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><small>Responsabilidade Civil Profissional</small></td>
+                                        <td class="text-center"><small>50.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Perda De Renda Por Doença</small><br /><small style="font-size:11px;" class="hide-when-small">* Até 12 meses de afastamento</small></td>
+                                        <td class="text-center"><small>-</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Perda De Renda Por Acidente</small><br /><small style="font-size:11px;" class="hide-when-small">* Até 12 meses de afastamento</small></td>
+                                        <td class="text-center"><small>-</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Morte Acidental</small></td>
+                                        <td class="text-center"><small>-</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Invalidez Por Acidente</small></td>
+                                        <td class="text-center"><small>-</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Assistência</small></td>
+                                        <td class="text-center"><small>-</small></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-center colToResize" style="width:100%;">
+                            <div class="col-md-12"><small class="card-text"><strong>Valores</strong></small></div>
+                            <div class="col-md-12"><small class="card-text">R$50.000,00</small></div>
+                            <div class="col-md-12"><small class="card-text">-<br />&nbsp;</small></div>
+                            <div class="col-md-12"><small class="card-text">-<br />&nbsp;</small></div>
+                            <div class="col-md-12"><small class="card-text">-</small></div>
+                            <div class="col-md-12"><small class="card-text">-</small></div>
+                            <div class="col-md-12"><small class="card-text">-</small></div>
+                        </div>
+                        <br />
+                    </div>
+                    <hr />
+                    <div class="row text-center">
+                        <div class="col-md-12 show-when-small">
+                            <table style="width:100%;">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center">Faixa Etaria</th>
+                                        <th class="text-center">Valores</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-center">
+                                    <tr>
+                                        <td><small>20 ~ 29</small></td>
+                                        <td class="text-center"><small>R$ <span style="padding: 1px 0px;" class="PrecoBasico20"></span> / Mês</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>30 ~ 39</small></td>
+                                        <td class="text-center"><small>R$ <span style="padding: 1px 0px;" class="PrecoBasico30"></span> / Mês</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>40 ~ 49</small></td>
+                                        <td class="text-center"><small>R$ <span style="padding: 1px 0px;" class="PrecoBasico40"></span> / Mês</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>50 ~ 59</small></td>
+                                        <td class="text-center"><small>R$ <span style="padding: 1px 0px;" class="PrecoBasico50"></span> / Mês</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>total</small></td>
+                                        <td><small><b>R$ <span class="PrecoTotalBasico"></span> / Mês</b></small></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-center hide-when-small" style="width:100%;">
+                            <div class="col-md-12"><h5><strong>&nbsp;</strong></h5></div>
+                            <div class="text-center form-group col-md-12"><h6><strong>Valores</strong></h6></div>
+                            <div class="form-group col-md-12"><label>R$ <span style="padding: 1px 0px;" class="PrecoBasico20"></span> / Mês</label></div>
+                            <div class="form-group col-md-12"><label>R$ <span style="padding: 1px 0px;" class="PrecoBasico30"></span> / Mês</label></div>
+                            <div class="form-group col-md-12"><label>R$ <span style="padding: 1px 0px;" class="PrecoBasico40"></span> / Mês</label></div>
+                            <div class="form-group col-md-12"><label>R$ <span style="padding: 1px 0px;" class="PrecoBasico50"></span> / Mês</label></div>
+                            <div class="text-center form-group col-md-12"><h6><strong>R$ <span class="PrecoTotalBasico"></span> / Mês</strong></h6></div>
+                            <input type="hidden" id="_PrecoTotalBasico" />
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="text-center"><a href="javascript:void(0)" id="_ExtensaoCoberturaCotacaoSubmitButton1" class="btn btn-primary">Selecionar</a></div>
+                </div>
+            </div>
+            <div class="card" id="ProICard">
+                <div class="card-header">
+                    <h6 class="card-title text-center amaisvet-green" id="CardTitle2"><strong>Profissional I</strong></h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <table style="width:100%; font-size:12px;" class="tableToResize tableFont12">
+                                <thead>
+                                    <tr>
+                                        <th style="width:80%;">Cobertura</th>
+                                        <th class="text-center">Valores (R$)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><small>Responsabilidade Civil Profissional</small></td>
+                                        <td class="text-center"><small>50.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Perda De Renda Por Doença</small><br /><small style="font-size:11px;" class="hide-when-small">* Até 12 meses de afastamento</small></td>
+                                        <td class="text-center"><small>2.500,00/mês*</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Perda De Renda Por Acidente</small><br /><small style="font-size:11px;" class="hide-when-small">* Até 12 meses de afastamento</small></td>
+                                        <td class="text-center"><small>2.500,00/mês*</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Morte Acidental</small></td>
+                                        <td class="text-center"><small>15.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Invalidez Por Acidente</small></td>
+                                        <td class="text-center"><small>15.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Assistência</small></td>
+                                        <td class="text-center"><small>Farmácia</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2"><small style="font-size:11px;">*Por até 12 meses de afastamento</small></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-center colToResize" style="width:100%;">
+                            <div class="col-md-12"><small class="card-text"><strong>Valores</strong></small></div>
+                            <div class="col-md-12"><small class="card-text">R$ 50.000,00</small></div>
+                            <div class="col-md-12"><small class="card-text" style="white-space: nowrap;">12x R$2.500/mês<br />&nbsp;</small></div>
+                            <div class="col-md-12"><small class="card-text" style="white-space: nowrap;">12x R$2.500/mês<br />&nbsp;</small></div>
+                            <div class="col-md-12"><small class="card-text">R$ 15.000,00</small></div>
+                            <div class="col-md-12"><small class="card-text">R$ 15.000,00</small></div>
+                            <div class="col-md-12"><small class="card-text">Farmácia</small></div>
+                        </div>
+                        <br />
+                    </div>
+                    <hr />
+                    <div class="row text-center">
+                        <div class="col-md-12 show-when-small">
+                            <table style="width:100%;">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center">Faixa Etaria</th>
+                                        <th class="text-center">Valores</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-center">
+                                    <tr>
+                                        <td><small>20 ~ 29</small></td>
+                                        <td class="text-center"><small>R$ <span style="padding: 1px 0px;" class="PrecoProI20"></span> / Mês</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>30 ~ 39</small></td>
+                                        <td class="text-center"><small>R$ <span style="padding: 1px 0px;" class="PrecoProI30"></span> / Mês</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>40 ~ 49</small></td>
+                                        <td class="text-center"><small>R$ <span style="padding: 1px 0px;" class="PrecoProI40"></span> / Mês</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>50 ~ 59</small></td>
+                                        <td class="text-center"><small>R$ <span style="padding: 1px 0px;" class="PrecoProI50"></span> / Mês</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>total</small></td>
+                                        <td><small><b>R$ <span class="PrecoTotalProI"></span> / Mês</b></small></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <br />
+                        <div class="text-center hide-when-small" style="width:100%;">
+                            <div class="col-md-12"><h5><strong>&nbsp;</strong></h5></div>
+                            <div class="text-center form-group col-md-12"><h6><strong>Valores</strong></h6></div>
+                            <div class="form-group col-md-12"><label>R$ <span style="padding: 1px 0px;" class="PrecoProI20"></span> / Mês</label></div>
+                            <div class="form-group col-md-12"><label>R$ <span style="padding: 1px 0px;" class="PrecoProI30"></span> / Mês</label></div>
+                            <div class="form-group col-md-12"><label>R$ <span style="padding: 1px 0px;" class="PrecoProI40"></span> / Mês</label></div>
+                            <div class="form-group col-md-12"><label>R$ <span style="padding: 1px 0px;" class="PrecoProI50"></span> / Mês</label></div>
+                            <div class="text-center form-group col-md-12"><h6><strong>R$ <span class="PrecoTotalProI"></span> / Mês</strong></h6></div>
+                            <input type="hidden" id="_PrecoTotalProI" />
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="text-center"><a href="javascript:void(0)" id="_ExtensaoCoberturaCotacaoSubmitButton2" class="btn btn-primary">Selecionar</a></div>
+                </div>
+            </div>
+            <div class="card" id="ProIICard">
+                <div class="card-header">
+                    <h6 class="card-title text-center amaisvet-green" id="CardTitle3"><strong>Profissional II</strong></h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <table style="width:100%; font-size:12px;" class="tableToResize tableFont12">
+                                <thead>
+                                    <tr>
+                                        <th style="width:80%;">Cobertura</th>
+                                        <th class="text-center">Valores (R$)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><small>Responsabilidade Civil Profissional</small></td>
+                                        <td class="text-center"><small>50.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Perda De Renda Por Doença</small><br /><small style="font-size:11px;" class="hide-when-small">* Até 12 meses de afastamento</small></td>
+                                        <td class="text-center"><small>3.500,00/mês*</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Perda De Renda Por Acidente</small><br /><small style="font-size:11px;" class="hide-when-small">* Até 12 meses de afastamento</small></td>
+                                        <td class="text-center"><small>3.500,00/mês*</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Morte Acidental</small></td>
+                                        <td class="text-center"><small>30.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Invalidez Por Acidente</small></td>
+                                        <td class="text-center"><small>30.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Assistência</small></td>
+                                        <td class="text-center"><small>Farmácia</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2"><small style="font-size:11px;">*Por até 12 meses de afastamento</small></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-center colToResize" style="width:100%;">
+                            <div class="col-md-12"><small class="card-text"><strong>Valores</strong></small></div>
+                            <div class="col-md-12"><small class="card-text">R$ 50.000,00</small></div>
+                            <div class="col-md-12"><small class="card-text" style="white-space: nowrap;">12x R$3.500,00/mês<br />&nbsp;</small></div>
+                            <div class="col-md-12"><small class="card-text" style="white-space: nowrap;">12x R$3.500,00/mês<br />&nbsp;</small></div>
+                            <div class="col-md-12"><small class="card-text">R$ 30.000,00</small></div>
+                            <div class="col-md-12"><small class="card-text">R$ 30.000,00</small></div>
+                            <div class="col-md-12"><small class="card-text">Farmácia</small></div>
+                        </div>
+                        <br />
+                    </div>
+                    <hr />
+                    <div class="row text-center">
+                        <div class="col-md-12 show-when-small">
+                            <table style="width:100%;">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center">Faixa Etaria</th>
+                                        <th class="text-center">Valores</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-center">
+                                    <tr>
+                                        <td><small>20 ~ 29</small></td>
+                                        <td class="text-center"><small>R$ <span style="padding: 1px 0px;" class="PrecoProII20"></span> / Mês</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>30 ~ 39</small></td>
+                                        <td class="text-center"><small>R$ <span style="padding: 1px 0px;" class="PrecoProII30"></span> / Mês</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>40 ~ 49</small></td>
+                                        <td class="text-center"><small>R$ <span style="padding: 1px 0px;" class="PrecoProII40"></span> / Mês</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>50 ~ 59</small></td>
+                                        <td class="text-center"><small>R$ <span style="padding: 1px 0px;" class="PrecoProII50"></span> / Mês</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>total</small></td>
+                                        <td><small><b>R$ <span class="PrecoTotalProII"></span> / Mês</b></small></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <br />
+                        <div class="text-center hide-when-small" style="width:100%;">
+                            <div class="col-md-12"><h5><strong>&nbsp;</strong></h5></div>
+                            <div class="text-center form-group col-md-12"><h6><strong>Valores</strong></h6></div>
+                            <div class="form-group col-md-12"><label>R$ <span style="padding: 1px 0px;" class="PrecoProII20"></span> / Mês</label></div>
+                            <div class="form-group col-md-12"><label>R$ <span style="padding: 1px 0px;" class="PrecoProII30"></span> / Mês</label></div>
+                            <div class="form-group col-md-12"><label>R$ <span style="padding: 1px 0px;" class="PrecoProII40"></span> / Mês</label></div>
+                            <div class="form-group col-md-12"><label>R$ <span style="padding: 1px 0px;" class="PrecoProII50"></span> / Mês</label></div>
+                            <div class="text-center form-group col-md-12"><h6><strong>R$ <span class="PrecoTotalProII"></span> / Mês</strong></h6></div>
+                            <input type="hidden" id="_PrecoTotalProII" />
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="text-center"><a href="javascript:void(0)" id="_ExtensaoCoberturaCotacaoSubmitButton3" class="btn btn-primary">Selecionar</a></div>
+                </div>
+            </div>
+            <div class="card" id="ProIIICard">
+                <div class="card-header">
+                    <h6 class="card-title text-center amaisvet-green" id="CardTitle4"><strong>Profissional III</strong></h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <table style="width:100%; font-size:12px;" class="tableToResize tableFont12">
+                                <thead>
+                                    <tr>
+                                        <th style="width:80%;">Cobertura</th>
+                                        <th class="text-center">Valores (R$)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><small>Responsabilidade Civil Profissional</small></td>
+                                        <td class="text-center"><small>50.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Perda De Renda Por Doença</small><br /><small style="font-size:11px;" class="hide-when-small">* Até 12 meses de afastamento</small></td>
+                                        <td class="text-center"><small>5.000,00/mês*</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Perda De Renda Por Acidente</small><br /><small style="font-size:11px;" class="hide-when-small">* Até 12 meses de afastamento</small></td>
+                                        <td class="text-center"><small>5.000,00/mês*</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Morte Acidental</small></td>
+                                        <td class="text-center"><small>45.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Invalidez Por Acidente</small></td>
+                                        <td class="text-center"><small>45.000,00</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>Assistência</small></td>
+                                        <td class="text-center"><small>Farmácia</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2"><small style="font-size:11px;">*Por até 12 meses de afastamento</small></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-center colToResize" style="width:100%;">
+                            <div class="col-md-12"><small class="card-text"><strong>Valores</strong></small></div>
+                            <div class="col-md-12"><small class="card-text">R$ 50.000,00</small></div>
+                            <div class="col-md-12"><small class="card-text" style="white-space: nowrap;">12x R$5.000,00/mês<br />&nbsp;</small></div>
+                            <div class="col-md-12"><small class="card-text" style="white-space: nowrap;">12x R$5.000,00/mês<br />&nbsp;</small></div>
+                            <div class="col-md-12"><small class="card-text">R$ 45.000,00</small></div>
+                            <div class="col-md-12"><small class="card-text">R$ 45.000,00</small></div>
+                            <div class="col-md-12"><small class="card-text">Farmácia</small></div>
+                        </div>
+                        <br />
+                    </div>
+                    <hr />
+                    <div class="row text-center">
+                        <div class="col-md-12 show-when-small">
+                            <table style="width:100%;">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center">Faixa Etaria</th>
+                                        <th class="text-center">Valores</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-center">
+                                    <tr>
+                                        <td><small>20 ~ 29</small></td>
+                                        <td class="text-center"><small>R$ <span style="padding: 1px 0px;" class="PrecoProIII20"></span> / Mês</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>30 ~ 39</small></td>
+                                        <td class="text-center"><small>R$ <span style="padding: 1px 0px;" class="PrecoProIII30"></span> / Mês</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>40 ~ 49</small></td>
+                                        <td class="text-center"><small>R$ <span style="padding: 1px 0px;" class="PrecoProIII40"></span> / Mês</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>50 ~ 59</small></td>
+                                        <td class="text-center"><small>R$ <span style="padding: 1px 0px;" class="PrecoProIII50"></span> / Mês</small></td>
+                                    </tr>
+                                    <tr>
+                                        <td><small>total</small></td>
+                                        <td><small><b>R$ <span class="PrecoTotalProIII"></span> / Mês</b></small></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <br />
+                        <div class="text-center hide-when-small" style="width:100%;">
+                            <div class="col-md-12"><h5><strong>&nbsp;</strong></h5></div>
+                            <div class="text-center form-group col-md-12"><h6><strong>Valores</strong></h6></div>
+                            <div class="form-group col-md-12"><label>R$ <span style="padding: 1px 0px;" class="PrecoProIII20"></span> / Mês</label></div>
+                            <div class="form-group col-md-12"><label>R$ <span style="padding: 1px 0px;" class="PrecoProIII30"></span> / Mês</label></div>
+                            <div class="form-group col-md-12"><label>R$ <span style="padding: 1px 0px;" class="PrecoProIII40"></span> / Mês</label></div>
+                            <div class="form-group col-md-12"><label>R$ <span style="padding: 1px 0px;" class="PrecoProIII50"></span> / Mês</label></div>
+                            <div class="text-center form-group col-md-12"><h6><strong>R$ <span class="PrecoTotalProIII"></span> / Mês</strong></h6></div>
+                            <input type="hidden" id="_PrecoTotalProIII" />
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="text-center"><a href="javascript:void(0)" id="_ExtensaoCoberturaCotacaoSubmitButton4" class="btn btn-primary">Selecionar</a></div>
+                </div>
+            </div>
+        </div>
+        <br />
+    </div>
+    <div class="row">
+        <div class="col-md-12 text-center">
+            <hr />
+            <h4><strong>Preço total:&nbsp;R$&nbsp;<label id="_SeguroClinicaVeterinariaCotacaoPreco">0,00</label> / Mês</strong></h4>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12 form-group text-right"><a href="javascript:void(0)" id="_SeguroClinicaVeterinariaCotacaoSubmitButton" class="btn btn-primary" style="display:none;"><i class="fas fa-arrow-right"></i>&nbsp;Continuar</a></div>
+    </div>
+</form>
+<script type="text/javascript">
+
+    $('#_SeguroClinicaVeterinariaCotacaoSubmitButton').click(function () {
+        if(_SeguroClinicaVeterinariaCotacaoValidacao()){
+            _SeguroClinicaVeterinariaCotacaoSalvar();
+        }
+    });
+
+    function SeguroClinicaVeterinariaSelect(planoId, planoNome, planoPreco) {
+        IsSeguroClinicaSelected = true;
+        $('.text-danger').remove();
+        $('#PlanoClinicaVeterinariaId').val(planoId);
+        $('#planoClinicaNome').text(planoNome);
+        $('#planoClinicaPreco').text(planoPreco);
+        $('#CardGeral').hide();
+        $('#PlanoClinicaInfo').hide();
+        $('#ProdutosSelecionadosTabela').show();
+        $('#planoClinicaInfoSelecionado').show();
+        $('#TextoIntro').hide();
+        CalcularPreco();
+        if (!IsSeguroTecnicoSelected) {
+            $('#_RTAdicionalCardGroup').show();
+            $('html,body').animate({ scrollTop: 300 }, 'slow');
+            $('#subCircle1').css("background", "#0a754e").removeClass('shadow');;
+            $('#subCircle2').css("background", "#0a754e").addClass('shadow');;
+            $('#subRetangle1').css("background", "#13D68F");
+            $('#subSmallCircle1').hide();
+            $('#subSmallCircle2').show();
+        }
+        if (HasFinished()) $('#_SeguroClinicaVeterinariaCotacaoSubmitButton').show();
+        else $('#_SeguroClinicaVeterinariaCotacaoSubmitButton').hide();
+    }
+
+    $('#_SeguroClinicaVeterinariaCotacaoSubmitButton1').click(function () {
+        SeguroClinicaVeterinariaSelect(1, 'Empresarial Básico I', 'R$ 65,00');
+    });
+
+    $('#_SeguroClinicaVeterinariaCotacaoSubmitButton2').click(function () {
+        SeguroClinicaVeterinariaSelect(2, 'Empresarial Básico II', 'R$ 81,67');
+    });
+    $('#_SeguroClinicaVeterinariaCotacaoSubmitButton3').click(function () {
+        SeguroClinicaVeterinariaSelect(3, 'Empresarial Maltês', 'R$ 99,23');
+    });
+    $('#_SeguroClinicaVeterinariaCotacaoSubmitButton4').click(function () {
+        SeguroClinicaVeterinariaSelect(4, 'Empresarial Bulldog', 'R$ 134,23');
+    });
+    $('#_SeguroClinicaVeterinariaCotacaoSubmitButton5').click(function () {
+        SeguroClinicaVeterinariaSelect(5, 'Empresarial Mastiff', 'R$ 168,75');
+    });
+    $('#TrocarPlanoBtn').click(function () {
+        IsSeguroClinicaSelected = false;
+        $('#PlanoClinicaVeterinariaId').val(null);
+        $('#CardGeral').show();
+        $('#PlanoClinicaInfo').show();
+        $('#planoClinicaInfoSelecionado').hide();
+        if (!VerificarProdutosSelecionados()) {
+            $('#ProdutosSelecionadosTabela').hide();
+        }
+        CalcularPreco();
+        $('#_SeguroClinicaVeterinariaCotacaoSubmitButton').hide();
+    });
+
+    function RTAdicionalSelect(planoId, planoNome, planoPreco, ignore = false) {
+        $('.text-danger').remove();
+        if (!ignore) {
+            if (IsNullOrWhiteSpace($('#NascimentoTecnico').val())) {
+                alert('Selecione uma faixa de idade.');
+                return;
+            }
+            if ((RTprecoProI == undefined || RTprecoProII == undefined || RTprecoProIII == undefined) && planoId != null) {
+                alert('Não é possível escolher nehnhum opção!');
+                return;
+            }
+        }
+        IsSeguroTecnicoSelected = true;
+        $('#PlanoResponsavelTecnicoId').val(planoId);
+        $('#_RTAdicionalCardGroup').hide();
+        $('#planoRTNome').text(planoNome);
+        if (planoPreco == undefined) {
+            'R$ 0.00'
+        } else {
+            $('#planoRTPreco').text('R$ ' + planoPreco);
+        }
+        $('#planoRTInfoSelecionado').show();
+        planoRTPreco = planoPreco;
+        $('#ProdutosSelecionadosTabela').show();
+        if (!ignore) {
+            CalcularPreco();
+            if (!IsSeguroMVSelected) {
+                $('#CardGroup').show();
+                $('html,body').animate({ scrollTop: 300 }, 'slow');
+                $('#subCircle2').css("background", "#0a754e").removeClass('shadow');;
+                $('#subCircle3').css("background", "#0a754e").addClass('shadow');;
+                $('#subRetangle2').css("background", "#13D68F");
+                $('#subSmallCircle2').hide();
+                $('#subSmallCircle3').show();
+            }
+        }
+        if (HasFinished()) $('#_SeguroClinicaVeterinariaCotacaoSubmitButton').show();
+        else $('#_SeguroClinicaVeterinariaCotacaoSubmitButton').hide();
+    }
+
+    $('#_RTAdicionalSubmitButton0').click(function () {
+        RTAdicionalSelect(null, 'Não Selecionado', '0,00');
+    });
+
+    $('#_RTAdicionalSubmitButton1').click(function () {
+        if (IsNullOrWhiteSpace($('#NascimentoTecnico').val())) {
+            alert('Selecione uma faixa de idade.');
+            return;
+        }
+        RTAdicionalSelect(2, 'Profissional I', RTprecoProI.replace('.', ','));
+    });
+
+    $('#_RTAdicionalSubmitButton2').click(function () {
+        if (IsNullOrWhiteSpace($('#NascimentoTecnico').val())) {
+            alert('Selecione uma faixa de idade.');
+            return;
+        }
+        RTAdicionalSelect(3, 'Profissional II', RTprecoProII.replace('.', ','));
+    });
+    $('#_RTAdicionalSubmitButton3').click(function () {
+        if (IsNullOrWhiteSpace($('#NascimentoTecnico').val())) {
+            alert('Selecione uma faixa de idade.');
+            return;
+        }
+        RTAdicionalSelect(4, 'Profissional III', RTprecoProIII.replace('.', ','));
+    });
+    $('#TrocarPlanoRTBtn').click(function () {
+        RTAdicionalSelect(null, '', '');
+        $('#_RTAdicionalCardGroup').show();
+        $('#planoRTInfoSelecionado').hide();
+        IsSeguroTecnicoSelected = false;
+        if (!VerificarProdutosSelecionados()) {
+            $('#ProdutosSelecionadosTabela').hide();
+        }
+        $('#_SeguroClinicaVeterinariaCotacaoSubmitButton').hide();
+    });
+
+    $('#NascimentoTecnico').change(function () {
+        if (!IsNullOrWhiteSpace($('#NascimentoTecnico').val())) {
+            var _idade = 0;
+            if ($('#NascimentoTecnico').val() == 1) _idade = 25;
+            if ($('#NascimentoTecnico').val() == 2) _idade = 35;
+            if ($('#NascimentoTecnico').val() == 3) _idade = 45;
+            if ($('#NascimentoTecnico').val() == 4) _idade = 55;
+            var date = new Date();
+            date.setFullYear(date.getFullYear() - _idade);
+            $('#_NascimentoTecnico').val(date.getDate() + '/' + date.getMonth() + '/' + date.getFullYear());
+            ConsultarCustoRT();
+        }
+    });
+
+    function MVSelect(planoId, planoNome, planoPreco) {
+        IsSeguroMVSelected = true;
+        $('.text-danger').remove();
+        $('#PlanoExtensaoCoberturaId').val(planoId);
+        $('#CardGroup').hide();
+        $('#planoExtensaoCoberturaNome').text(planoNome);
+        if (planoPreco == undefined) {
+            $('#planoExtensaoCoberturaPreco').text('R$ 0.00');
+        } else {
+            $('#planoExtensaoCoberturaPreco').text('R$ ' + (planoPreco + '').replace('.', ','));
+        }
+        $('#planoMVInfoSelecionado').show();
+        $('#ProdutosSelecionadosTabela').show();
+        CalcularPreco();
+        if (HasFinished()) $('#_SeguroClinicaVeterinariaCotacaoSubmitButton').show();
+        else $('#_SeguroClinicaVeterinariaCotacaoSubmitButton').hide();
+
+    }
+
+    $('#_ExtensaoCoberturaCotacaoSubmitButton0').click(function () {
+        planoExtensaoCoberturaPreco = "";
+        MVSelect(null, 'Não Selecionado', '0,00');
+        $('#QtdFuncionarios20').val(0);
+        $('#QtdFuncionarios30').val(0);
+        $('#QtdFuncionarios40').val(0);
+        $('#QtdFuncionarios50').val(0);
+        $('#totalFunc').text(0);
+        $('#_totalFunc').val(null);
+        ConsultarCusto();
+    });
+
+    function QtdFuncValidate() {
+        if (IsNullOrWhiteSpace($('#QtdFuncionarios20').val()) &&
+            IsNullOrWhiteSpace($('#QtdFuncionarios30').val()) &&
+            IsNullOrWhiteSpace($('#QtdFuncionarios40').val()) &&
+            IsNullOrWhiteSpace($('#QtdFuncionarios50').val())) {
+            alert('Digite a quantidade de algum funcionario na primeira coluna!');
+            return false;
+        }
+
+        if ($('#QtdFuncionarios20').val() == 0 &&
+            $('#QtdFuncionarios30').val() == 0 &&
+            $('#QtdFuncionarios40').val() == 0 &&
+            $('#QtdFuncionarios50').val() == 0) {
+            alert('Algum valor deve ser superior a 0!');
+            return false;
+        }
+        return true;
+    }
+
+    $('#_ExtensaoCoberturaCotacaoSubmitButton1').click(function () {
+        if (!QtdFuncValidate()) return;
+        planoExtensaoCoberturaPreco = $("#_PrecoTotalBasico").val();
+        MVSelect(1, 'Profissional Básico', precoTotalBasico);
+    });
+
+    $('#_ExtensaoCoberturaCotacaoSubmitButton2').click(function () {
+        if (!QtdFuncValidate()) return;
+        planoExtensaoCoberturaPreco = $("#_PrecoTotalProI").val();
+        MVSelect(2, 'Profissional I', precoTotalProI);
+    });
+    $('#_ExtensaoCoberturaCotacaoSubmitButton3').click(function () {
+        if (!QtdFuncValidate()) return;
+        planoExtensaoCoberturaPreco = $("#_PrecoTotalProII").val();
+        MVSelect(3, 'Profissional II', precoTotalProII);
+    });
+    $('#_ExtensaoCoberturaCotacaoSubmitButton4').click(function () {
+        if (!QtdFuncValidate()) return;
+        planoExtensaoCoberturaPreco = $("#_PrecoTotalProIII").val();
+        MVSelect(4, 'Profissional III', precoTotalProIII);
+    });
+
+    $('#TrocarPlanoExtensaoCoberturaBtn').click(function () {
+        $('#PlanoExtensaoCoberturaId').val(null);
+        planoExtensaoCoberturaPreco = "";
+        $('#CardGroup').show();
+        IsSeguroMVSelected = false;
+        $('#planoMVInfoSelecionado').hide();
+        if (!VerificarProdutosSelecionados()) {
+            $('#ProdutosSelecionadosTabela').hide();
+        }
+        CalcularPreco();
+        $('#_SeguroClinicaVeterinariaCotacaoSubmitButton').hide();
+    });
+
+    var inputFuncTypingTimer;
+    var inputFuncDoneTypingInterval = 500;
+
+
+    function inputFuncDoneTyping() {
+        ConsultarCusto();
+
+        var qtdTotal = 0;
+        if (!IsNullOrWhiteSpace($('#QtdFuncionarios20').val()))
+            qtdTotal += parseInt($('#QtdFuncionarios20').val());
+        if (!IsNullOrWhiteSpace($('#QtdFuncionarios30').val()))
+            qtdTotal += parseInt($('#QtdFuncionarios30').val());
+        if (!IsNullOrWhiteSpace($('#QtdFuncionarios40').val()))
+            qtdTotal += parseInt($('#QtdFuncionarios40').val());
+        if (!IsNullOrWhiteSpace($('#QtdFuncionarios50').val()))
+            qtdTotal += parseInt($('#QtdFuncionarios50').val());
+        $('#QtdFuncionarios').val(qtdTotal);
+    }
+
+    $('.inputFunc').keyup(function () {
+        clearTimeout(inputFuncTypingTimer);
+        inputFuncTypingTimer = setTimeout(inputFuncDoneTyping, inputFuncDoneTypingInterval);
+    });
+
+    $('.inputFunc').keydown(function () {
+        clearTimeout(inputFuncTypingTimer);
+    });
+
+    function VerificarProdutosSelecionados() {
+        if ($('#planoClinicaInfoSelecionado').css('display') == 'none' &&
+            $('#planoRTInfoSelecionado').css('display') == 'none' &&
+            $('#planoMVInfoSelecionado').css('display') == 'none') {
+            return false;
+        }
+        return true;
+    }
+
+    $('#_SeguroClinicaVeterinariaCotacaoForm').ready(function () {
+        PlanoClinicaVeterinariaComeco();
+    });
+
+    function PlanoClinicaVeterinariaComeco() {
+        @if (Model.PlanoClinicaVeterinariaId.HasValue)
+        {
+            <text>
+                if (@Model.PlanoClinicaVeterinariaId == 1)
+                    SeguroClinicaVeterinariaSelect(1, 'Empresarial Básico I', 'R$ 65,00');
+                else if (@Model.PlanoClinicaVeterinariaId == 2)
+                    SeguroClinicaVeterinariaSelect(2, 'Empresarial Básico II', 'R$ 81,67');
+                else if (@Model.PlanoClinicaVeterinariaId == 3)
+                    SeguroClinicaVeterinariaSelect(3, 'Empresarial Maltês', 'R$ 99,23');
+                else if (@Model.PlanoClinicaVeterinariaId == 4)
+                    SeguroClinicaVeterinariaSelect(4, 'Empresarial Bulldog', 'R$ 134,23');
+                else if (@Model.PlanoClinicaVeterinariaId == 5)
+                    SeguroClinicaVeterinariaSelect(5, 'Empresarial Mastiff', 'R$ 187,75');
+
+                $('#subCircle1').css("background", "#0a754e").removeClass('shadow');
+                $('#subCircle2').css("background", "#0a754e").removeClass('shadow');
+                $('#subCircle3').css("background", "#0a754e").addClass('shadow');
+                $('#subRetangle1').css("background", "#13D68F");
+                $('#subRetangle2').css("background", "#13D68F");
+                $('#subSmallCircle1').hide();
+                $('#subSmallCircle2').hide();
+                $('#subSmallCircle3').show();
+            </text>
+        }
+        PlanoResponsavelTecnicoComeco();
+    }
+    function PlanoResponsavelTecnicoComeco() {
+        @if (Model.PlanoResponsavelTecnicoId.HasValue)
+        {
+            <text>
+                ConsultarCustoRT();
+                if (@Model.PlanoResponsavelTecnicoId == 2)
+                    RTAdicionalSelect(2, 'Profissional I', RTprecoProI, true);
+                else if (@Model.PlanoResponsavelTecnicoId == 3)
+                    RTAdicionalSelect(3, 'Profissional II', RTprecoProII, true);
+                else if (@Model.PlanoResponsavelTecnicoId == 4)
+                    RTAdicionalSelect(4, 'Profissional III', RTprecoProIII, true);
+            </text>
+        }else if (Model.PlanoClinicaVeterinariaId.HasValue)
+        {
+            <text>
+        
+                RTAdicionalSelect(null, 'Não Selecionado', '0,00', true);
+            </text>
+        }
+        PlanoExtensaoCoberturaComeco();
+    }
+
+    function PlanoExtensaoCoberturaComeco() { 
+        @if (Model.PlanoExtensaoCoberturaId.HasValue)
+        {
+            <text>
+        ConsultarCusto();
+            if (@Model.PlanoExtensaoCoberturaId == 1) {
+                planoExtensaoCoberturaPreco = $("#_PrecoTotalBasico").val();
+                MVSelect(1, 'Profissional Básico', precoTotalBasico);
+            }
+            else if (@Model.PlanoExtensaoCoberturaId == 2) {
+                planoExtensaoCoberturaPreco = $("#_PrecoTotalProI").val();
+                MVSelect(2, 'Profissional I', precoTotalProI);
+            }
+            else if (@Model.PlanoExtensaoCoberturaId == 3) {
+                planoExtensaoCoberturaPreco = $("#_PrecoTotalProII").val();
+                MVSelect(3, 'Profissional II', precoTotalProII);
+            }
+            else if (@Model.PlanoExtensaoCoberturaId == 4) {
+                MVSelect(4, 'Profissional III', precoTotalProIII);
+                planoExtensaoCoberturaPreco = $("#_PrecoTotalProIII").val();
+            }
+        </text>
+        }else if (Model.PlanoClinicaVeterinariaId.HasValue)
+        {
+            <text>
+            planoExtensaoCoberturaPreco = "";
+            MVSelect(null, 'Não Selecionado', '0,00');
+            </text>
+        }
+    }
+
+    function HasFinished() {
+        return IsSeguroClinicaSelected && IsSeguroTecnicoSelected && IsSeguroMVSelected ? true : false;
+    }
+
+</script>

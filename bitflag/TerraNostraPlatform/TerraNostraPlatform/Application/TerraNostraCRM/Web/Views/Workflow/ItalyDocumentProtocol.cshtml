@@ -1,0 +1,298 @@
+﻿@{
+    ViewData["Title"] = "Protocolo de Documentos Enviados para a Itália";
+}
+
+<style>
+    .to-label {
+        height: 30px;
+    }
+
+    .select {
+        font-size: 11px;
+        width: 70px;
+        height: 30px;
+    }
+
+    #Description, #FullName, #BirthDate, #MarriageDate, #DeathDate, #CNN, #Spouse, #Applicant {
+        color: red;
+        font-weight: bolder;
+    }
+
+    #RegistryOfficeId, #Book, #Page, #Term, #FullNameItalian, #CNNDate {
+        color: blue;
+        font-weight: bolder;
+    }
+</style>
+
+
+<h1 class="mb-2"><small>Protocolo de Documentos Enviados para a Itália</small></h1>
+<div class="card">
+    <div class="card-body">
+        <table class="table table-bordered table-condensed" style="font-size:11px">
+            <thead>
+                <tr>
+                    <td style="text-align: center"><b>Grau de Parentesco</b></td>
+                    <td style="text-align: center"><b>Nome</b></td>
+                    <td style="text-align: center"><b>Documento</b></td>
+                    <td style="text-align: center"><b>Tradução</b></td>
+                    <td style="text-align: center"><b>Apostilamento</b></td>
+                </tr>
+            </thead>
+            <tbody>
+                @*@foreach (var item in Model.ViewModel)*@
+
+                <tr>
+                    <td style="text-align: center" id="CNN" name="CNN">CNN</td>
+                    <td style="text-align: center"><label data-value="Dalvo Paulino de Carvalho" class="editable-label" id="FullNameItalian" name="FullNameItalian">Dalvo Paulino de Carvalho</label></td>
+                    <td style="text-align: center"><label data-value="Certidão de CNN" class="editable-label" id="CNNDocument" name="CNNDocument">Certidão de CNN</label></td>
+                    <td style="text-align: center">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="Translation" name="Translation">
+                            <label class="form-check-label" for="Translation"></label>
+                        </div>
+                    </td>
+                    <td style="text-align: center">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="Apostille" name="Apostille">
+                            <label class="form-check-label" for="Apostille"></label>
+                        </div>
+                    </td>
+                </tr>
+
+                @*Linha para separação dos dados*@
+                <tr>
+                    <td colspan="13"></td>
+                </tr>
+
+                <tr>
+                    <td rowspan="3" style="text-align: center" id="Description" name="description">Sarah Reggiani / Pai</td>
+                    <td style="text-align: center;" id="FullName" name="FullName">Dalvo Paulino de Carvalho</td>
+                    <td style="text-align: center"><label data-value="Nascita" class="editable-label" id="BirthDocument" name="BirthDocument">Nascita</label></td>
+                    <td style="text-align: center">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="Translation" name="Translation">
+                            <label class="form-check-label" for="Translation"></label>
+                        </div>
+                    </td>
+                    <td style="text-align: center">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="Apostille" name="Apostille">
+                            <label class="form-check-label" for="Apostille"></label>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="text-align: center" id="Spouse" name="Spouse">Conjuge: Roseli R. Reggiani</td>
+                    <td style="text-align: center"><label data-value="Certidão de Casamento" class="editable-label" id="MarriageDocument" name="MarriageDocument">Certidão de Casamento</label></td>
+                    <td style="text-align: center">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="Translation" name="Translation">
+                            <label class="form-check-label" for="Translation"></label>
+                        </div>
+                    </td>
+                    <td style="text-align: center">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="Apostille" name="Apostille">
+                            <label class="form-check-label" for="Apostille"></label>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="text-align: center" id="FullName" name="FullName">Dalvo Paulino de Carvalho</td>
+                    <td style="text-align: center"><label data-value="Certidão de Óbito" class="editable-label" id="DeathDocument" name="DeathDocument">Certidão de Óbito</label></td>
+                    <td style="text-align: center">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="Translation" name="Translation">
+                            <label class="form-check-label" for="Translation"></label>
+                        </div>
+                    </td>
+                    <td style="text-align: center">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="Apostille" name="Apostille">
+                            <label class="form-check-label" for="Apostille"></label>
+                        </div>
+                    </td>
+                </tr>
+
+                @*Linha para separação dos dados*@
+                <tr>
+                    <td colspan="13"></td>
+                </tr>
+
+                <tr>
+                    <td rowspan="5" style="text-align: center" id="Applicant" name="Applicant">Requerente</td>
+                    <td style="text-align: center" id="FullName" name="FullName">Sarah Reggiani de Carvalho</td>
+                    <td style="text-align: center"><label data-value="Certidão de Nascimento" class="editable-label" id="BirthDocument" name="BirthDocument">Certidão de Nascimento</label></td>
+                    <td style="text-align: center">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="Translation" name="Translation">
+                            <label class="form-check-label" for="Translation"></label>
+                        </div>
+                    </td>
+                    <td style="text-align: center">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="Apostille" name="Apostille">
+                            <label class="form-check-label" for="Apostille"></label>
+                        </div>
+                    </td>
+
+                </tr>
+
+                <tr>
+                    <td style="text-align: center;" id="Spouse" name="Spouse">Conjuge: Bruno de Z. Amabile</td>
+                    <td style="text-align: center"><label data-value="Certidão de Casamento" class="editable-label" id="MarriageDocument" name="MarriageDocument">Certidão de Casamento</label></td>
+                    <td style="text-align: center">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="Translation" name="Translation">
+                            <label class="form-check-label" for="Translation"></label>
+                        </div>
+                    </td>
+                    <td style="text-align: center">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="Apostille" name="Apostille">
+                            <label class="form-check-label" for="Apostille"></label>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="text-align: center;" id="" name=""></td>
+                    <td style="text-align: center"><label data-value="Procura" class="editable-label" id="RandomDocument1" name="RandomDocument1">Procura</label></td>
+                    <td style="text-align: center">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="Translation" name="Translation">
+                            <label class="form-check-label" for="Translation"></label>
+                        </div>
+                    </td>
+                    <td style="text-align: center">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="Apostille" name="Apostille">
+                            <label class="form-check-label" for="Apostille"></label>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="text-align: center;" id="" name=""></td>
+                    <td style="text-align: center"><label data-value="Passaporte" class="editable-label" id="RandomDocument2" name="RandomDocument2">Passaporte</label></td>
+                    <td style="text-align: center">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="Translation" name="Translation">
+                            <label class="form-check-label" for="Translation"></label>
+                        </div>
+                    </td>
+                    <td style="text-align: center">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="Apostille" name="Apostille">
+                            <label class="form-check-label" for="Apostille"></label>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td style="text-align: center;" id="" name=""></td>
+                    <td style="text-align: center"><label data-value="Cópia do Documento" class="editable-label" id="RandomDocument3" name="RandomDocument3">Cópia do Documento</label></td>
+                    <td style="text-align: center">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="Translation" name="Translation">
+                            <label class="form-check-label" for="Translation"></label>
+                        </div>
+                    </td>
+                    <td style="text-align: center">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="" id="Apostille" name="Apostille">
+                            <label class="form-check-label" for="Apostille"></label>
+                        </div>
+                    </td>
+                </tr>
+
+                @*Linha para separação dos dados*@
+                <tr>
+                    <td colspan="13"></td>
+                </tr>
+                @*Essa tabela será fixa pois pertence somente aos dados do CNN do italiano*@
+
+            </tbody>
+        </table>
+        &nbsp;
+
+        <div class="card">
+            <div class="card-body">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="ShowPrint" name="ShowPrint">
+                    <label class="form-check-label" for="Apostille">Mostrar na Impressão?</label>
+                </div>
+                <br />
+                <br />
+                <h4 style="text-align:center"><b>SÃO CAETANO DO SUL - BR, 03 DE SETEMBRO DE 2020</b></h4>
+                <br />
+                <br />
+                <br />
+                <p style="text-align:center">___________________________________________________________________</p>
+                <p style="text-align:center">Assinatura</p>
+                <br />
+                <br />
+                <p style="text-align:center">___________________________________________________________________</p>
+                <p style="text-align:center">Razão Social da Empresa</p>
+                <br />
+            </div>
+        </div>
+        
+        <br />
+
+        <div class="row" style="width: 100%; margin: 0">
+            <div class="col-md-6">
+                <a class="btn btn-secondary float-left" target="_blank" href="@Url.Action("GetSteps", "Workbench")">Voltar&nbsp;<i class="fas fa-external-link-alt"></i></a>
+            </div>
+            <div class="col-md-6">
+                <button onclick="PreviousStep()" type="button" class="btn btn-success float-right">Salvar</button>
+                <button onclick="PreviousStep()" style="margin-left: 40px; margin-right:40px" type="button" class="btn btn-light float-right">Imprimir</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(function () {
+        initEditableLabel();
+    });
+
+    function initEditableLabel() {
+        $('.editable-label').off('click');
+
+        $(".editable-label").click(function () {
+            var input = $('<input>', { class: 'form-control to-label', value: $(this).data('value') });
+            $(this).replaceWith(input);
+            $(input).focus();
+
+
+            initToLabel();
+        });
+    }
+
+    function initToLabel() {
+        $('.to-label').off('blur').off('keypress');
+
+        $('.to-label').blur(function () {
+            toLabel(this);
+        }).keypress(function (e) {
+            if (e.which == 13) {
+                toLabel(this);
+            }
+        });
+    }
+
+    function toLabel(sel) {
+        var value = $(sel).val();
+
+        $(sel).replaceWith($('<label>', { class: 'editable-label', 'data-value': value }).text(value));
+        initEditableLabel();
+    }
+
+</script>
+
+
+
+

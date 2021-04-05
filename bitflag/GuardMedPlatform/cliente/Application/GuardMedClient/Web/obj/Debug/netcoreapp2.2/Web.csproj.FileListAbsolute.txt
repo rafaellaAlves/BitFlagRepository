@@ -1,0 +1,86 @@
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\appsettings.Development.json
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\appsettings.json
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\Files\Anestesista  - Fio no corpo do paciente - TJSP_1010717-94.2013.8.26.0100.PDF
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\Files\Cirurgia Desnecessária Punsao Pulmonar - Erro Diagnostico - TJSP 0009737-76.2013.8.26.0291.PDF
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\Files\Cirurgião Plastico Erro Médico Indenização TJSC 0004237-16.2008.8.24.0079.PDF
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\Files\Coberturas da apólice.pdf
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\Files\CONDIÇÕES ESPECIAIS E PARTICULARES.pdf
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\Files\Contrato de adesão GM.pdf
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\Files\Contrato de P SV médicos.pdf
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\Files\Contrato de prestação de serviços GM.pdf
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\Files\Contrato Locação comercial.pdf
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\Files\Contrato RPA médicos.pdf
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\Files\Código de Processo ético profissional Médico.pdf
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\Files\Dermatologista - Erro Medico Laser - TJMG.PDF
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\Files\Exame - Diagnostico HIV - divulgacao - TJMG 1.0000.16.057165-9-002.PDF
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\Files\Fator_condicoes_gerais.pdf
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\Files\Gastro Hernia Umbilical Pre Operatorio -  TJSP 400191783.2013.8.26.0566.PDF
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\Files\Lista de documentos Consultório Clínicas.pdf
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\Files\MODELO DE RECIBO DE HONORARIOS MEDICOS..pdf
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\Files\MODELO DE USO DE IMAGEM PARA FINS ACADEMICOS E EVENTOS CIENTIFICOS..pdf
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\Files\Obstetria Falecimento - TJSP 101448567.2016.8.26.0053.PDF
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\Files\Obstetria Parto Pensao Vitalicia Paralisia Cerebral  - TJSP 2018.0000815622.PDF
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\Files\Obstetrícia médico residente óbito neonato - TJSP 2018.0000399359.pdf.PDF
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\Files\Obstreta Pensão Vitalicia - TJSP 0001007652010.8.26.0361.PDF
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\Files\Obstretia Parto Fórceps TJSP0027510-10.2010.8.26.0625.PDF
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\Files\Programa de proteção profissional.pdf
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\Files\Riscos Excluídos.pdf
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\Files\Termo de consentimento livre e esclarecido.pdf
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\Files\TERMO DE USO COMPARTILHADO DE IMÓVEL E SERVIÇOS.pdf
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\Web.deps.json
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\Web.runtimeconfig.json
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\Web.runtimeconfig.dev.json
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\Web.dll
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\Web.pdb
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\Web.Views.dll
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\Web.Views.pdb
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\DB.dll
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\VendasDbContext.dll
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\DB.pdb
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\bin\Debug\netcoreapp2.2\VendasDbContext.pdb
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Web.csprojAssemblyReference.cache
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Web.AssemblyInfoInputs.cache
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Web.AssemblyInfo.cs
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Web.csproj.CoreCompileInputs.cache
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Web.RazorAssemblyInfo.cache
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Web.RazorAssemblyInfo.cs
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Web.TagHelpers.input.cache
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Web.TagHelpers.output.cache
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Web.RazorCoreGenerate.cache
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Razor\Views\Account\Login.cshtml.g.cs
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Razor\Views\Account\RecoveryPassword.cshtml.g.cs
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Razor\Views\Home\Advisor.cshtml.g.cs
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Razor\Views\Home\Benefits.cshtml.g.cs
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Razor\Views\Home\CertificatePdf.cshtml.g.cs
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Razor\Views\Home\Contact.cshtml.g.cs
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Razor\Views\Home\ContactEmail.cshtml.g.cs
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Razor\Views\Home\Index.cshtml.g.cs
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Razor\Views\Home\InsuredChangePlanEmail.cshtml.g.cs
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Razor\Views\Home\Legal.cshtml.g.cs
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Razor\Views\Home\LegalArmor.cshtml.g.cs
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Razor\Views\Home\MyAccount.cshtml.g.cs
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Razor\Views\Home\Preventive.cshtml.g.cs
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Razor\Views\Home\PreventiveAdvisor.cshtml.g.cs
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Razor\Views\Home\PreventiveContactEmail.cshtml.g.cs
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Razor\Views\Home\Privacy.cshtml.g.cs
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Razor\Views\Home\Shared\_CertificatePdf.cshtml.g.cs
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Razor\Views\Home\Welfare.cshtml.g.cs
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Razor\Views\Home\WelfareEmail.cshtml.g.cs
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Razor\Views\Shared\Components\InsuredHistoric\Default.cshtml.g.cs
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Razor\Views\Shared\Components\InsuredManage\Default.cshtml.g.cs
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Razor\Views\Shared\Error.cshtml.g.cs
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Razor\Views\Shared\_CookieConsentPartial.cshtml.g.cs
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Razor\Views\Shared\_Layout.cshtml.g.cs
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Razor\Views\Shared\_LayoutClean.cshtml.g.cs
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Razor\Views\Shared\_ValidationScriptsPartial.cshtml.g.cs
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Razor\Views\_ViewImports.cshtml.g.cs
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Razor\Views\_ViewStart.cshtml.g.cs
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Web.RazorTargetAssemblyInfo.cache
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Web.RazorTargetAssemblyInfo.cs
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Web.Views.pdb
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Web.csproj.CopyComplete
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Web.dll
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Web.pdb
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Web.genruntimeconfig.cache
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Razor\Views\Print\PrintApolice.cshtml.g.cs
+C:\repositorios\bitflag\GuardMedPlatform\cliente\Application\GuardMedClient\Web\obj\Debug\netcoreapp2.2\Razor\Views\Shared\_LayoutPrint.cshtml.g.cs

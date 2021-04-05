@@ -1,0 +1,20 @@
+﻿@model int?
+@{
+    ViewData["Title"] = "Planos";
+}
+
+<div class="card shadow bg-light">
+    <div class="card-body">
+        <div id="_PlanIndexViewComponent"></div>
+    </div>
+    @if (Model.HasValue)
+    {
+        <div class="card-footer">
+            <a href="@Url.Action("Index","Product")?productId=@Model" class="btn btn-secondary float-left"><i class="fa fa-arrow-left"></i>&nbsp;Voltar</a>
+        </div>
+    }
+</div>
+
+<script type="text/javascript">
+    $('#_PlanIndexViewComponent').load('@Url.Action("PlanIndexComponent", "Plan")', {productId: @if(Model.HasValue){<text>@Model</text>}else{<text>null</text>}});
+</script>

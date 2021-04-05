@@ -1,0 +1,385 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject UserManager<TerraNostraIdentityDbContext.User> userManager
+@{
+    var controller = this.ViewContext.RouteData.Values["controller"].ToString();
+    var action = this.ViewContext.RouteData.Values["action"].ToString();
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Terra Nostra Assessoria</title>
+
+
+    <!-- Start CSS -->
+    <!-- Vertical Timeline CSS -->
+    <link href="@Url.Content("~/assets/plugins/vertical-timeline/vertical-timeline.css")" rel="stylesheet" type="text/css">
+
+    <!-- DataTables CSS -->
+    <link href="@Url.Content("~/assets/plugins/datatables/dataTables.bootstrap4.min.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/assets/plugins/datatables/buttons.bootstrap4.min.css")" rel="stylesheet" type="text/css" />
+
+    <!-- Responsive Datatable CSS -->
+    <link href="@Url.Content("~/assets/plugins/datatables/responsive.bootstrap4.min.css")" rel="stylesheet" type="text/css" />
+
+    <!-- BOOTSTRAP DATEPICKER -->
+    <link href="@Url.Content("~/assets/plugins/datepicker/datepicker.css")" rel="stylesheet" type="text/css" />
+
+    <!--CALENDAR -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@3.10.1/dist/fullcalendar.min.css" rel="stylesheet" type="text/css" />
+
+
+    @RenderSection("Header", false)
+
+    <link href="@Url.Content("~/assets/css/bootstrap.min.css")" rel="stylesheet" type="text/css">
+    <link href="@Url.Content("~/assets/css/icons.css")" rel="stylesheet" type="text/css">
+    <link href="@Url.Content("~/assets/css/style.css")" rel="stylesheet" type="text/css">
+    <link href="@Url.Content("~/css/jqtree.css")" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.min.css" integrity="sha256-UzFD2WYH2U1dQpKDjjZK72VtPeWP50NoJjd26rnAdUI=" crossorigin="anonymous" />
+    <!-- End CSS -->
+
+
+    <link href="~/css/site.css?v=2.0" rel="stylesheet" />
+
+    <!-- Start JS -->
+    <script src="@Url.Content("~/assets/js/jquery.min.js")"></script>
+    <script src="@Url.Content("~/assets/js/popper.min.js")"></script>
+    <script src="@Url.Content("~/assets/js/bootstrap.min.js")"></script>
+    <script src="@Url.Content("~/assets/js/modernizr.min.js")"></script>
+    <script src="@Url.Content("~/assets/js/detect.js")"></script>
+    <script src="@Url.Content("~/assets/js/jquery.slimscroll.js")"></script>
+    <script src="@Url.Content("~/assets/js/sidebar-menu.js")"></script>
+    <script src="@Url.Content("~/lib/OrgChartJS/orgchart.js")"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.15/jquery.mask.min.js"></script>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.11/lodash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.9.2/d3.min.js" integrity="sha256-k9RyZhvMj2bg0fd8L3IE41t0HpTXnivMoePN/Ksq250=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-dtree@2.2.1/dist/dTree.min.js"></script>
+
+    <!-- Required Datatable JS -->
+    <script src="@Url.Content("~/assets/plugins/datatables/jquery.dataTables.min.js")"></script>
+    <script src="@Url.Content("~/assets/plugins/datatables/dataTables.bootstrap4.min.js")"></script>
+
+    <script type="text/javascript">
+        var dataTableDefaultLanguageSettings = {
+            "sEmptyTable": "Nenhum registro encontrado",
+            "sInfo": "Mostrando de _START_ até _END_ de _TOTAL_ registros",
+            "sInfoEmpty": "Mostrando 0 até 0 de 0 registros",
+            "sInfoFiltered": "(Filtrados de _MAX_ registros)",
+            "sInfoPostFix": "",
+            "sInfoThousands": ".",
+            "sLengthMenu": "_MENU_ resultados por página",
+            "sLoadingRecords": "Carregando...",
+            "sProcessing": "Processando...",
+            "sZeroRecords": "Nenhum registro encontrado",
+            "sSearch": "Pesquisar",
+            "oPaginate": {
+                "sNext": "Próximo",
+                "sPrevious": "Anterior",
+                "sFirst": "Primeiro",
+                "sLast": "Último"
+            },
+            "oAria": {
+                "sSortAscending": ": Ordenar colunas de forma ascendente",
+                "sSortDescending": ": Ordenar colunas de forma descendente"
+            }
+        };
+        $.extend(true, $.fn.dataTable.defaults, {
+            "language": dataTableDefaultLanguageSettings
+        });
+    </script>
+
+    <!-- BOOTSTRAP DATEPICKER -->
+    <script src="@Url.Content("~/assets/plugins/datepicker/datepicker.js")"></script>
+    <script src="@Url.Content("~/assets/js/init/form-datepicker-init.js")"></script>
+    <script src="@Url.Content("~/assets/plugins/datepicker/i18n/datepicker.pt-BR.js")"></script>
+
+    <script src="@Url.Content("~/assets/plugins/moment/moment.js")"></script>
+
+    <script type="text/javascript">
+        $('.cpf').mask('000.000.000-00', { reverse: true });
+        $('.date').datepicker({ format: 'dd/mm/yyyy', language: 'pt-BR', autoclose: true });
+        $('.date').mask('99/99/9999');
+        $('.date-range').datepicker({
+            language: 'pt-BR',
+            dateFormat: 'dd/mm/yyyy',
+            range: true,
+            multipleDatesSeparator: ' - ',
+        });
+        $('.date-range-month').datepicker({
+            language: 'pt-BR',
+            dateFormat: 'MM yyyy',
+            range: true,
+            minView: 'months',
+            view: 'months',
+            multipleDatesSeparator: ' - ',
+        });
+        $('.money').mask('#.##0,00', { reverse: true });
+    </script>
+
+    <!-- Knob Chart JS -->
+    <script src="@Url.Content("~/assets/plugins/jquery-knob/excanvas.js")"></script>
+    <script src="@Url.Content("~/assets/plugins/jquery-knob/jquery.knob.min.js")"></script>
+    <script src="@Url.Content("~/assets/js/init/knob-init.js")"></script>
+
+
+    <!-- Timeline JS -->
+    <script src="@Url.Content("~/assets/plugins/vertical-timeline/vertical-timeline.js")"></script>
+
+    <!-- JS Tree-->
+    <script src="https://mbraak.github.io/jqTree/tree.jquery.js" type="text/javascript"></script>
+
+    <!-- Main JS -->
+    <script src="@Url.Content("~/assets/js/main.js")"></script>
+    <!-- End JS -->
+    <!--Select2-->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
+
+    <!--SummerNote-->
+    <link href="~/lib/summerNote/summernote.css" rel="stylesheet">
+    <link href="~/lib/summerNote/summernote-bs4.css" rel="stylesheet">
+    <script src="~/lib/summerNote/summernote.js"></script>
+    <script src="~/lib/summerNote/summernote-bs4.js"></script>
+    <script src="~/lib/summerNote/lang/summernote-pt-BR.js"></script>
+
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@3.10.1/dist/fullcalendar.min.js'></script>
+
+    <script src="~/js/site.js"></script>
+
+    <script type="text/javascript">
+        $(document).ajaxStart(function () {
+            $("#loading").show();
+        });
+        $(document).ajaxStop(function () {
+            $("#loading").hide();
+        });
+
+        function ShowLoading() {
+            $("#loading").show();
+        }
+        function HideLoading() {
+            $("#loading").hide();
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans&display=swap" rel="stylesheet">
+    <style type="text/css">
+        body, .form-control {
+            color: #333;
+            font-family: 'Open Sans', sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading" style="display: none; z-index: 1060; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6)">
+        <img src="~/images/ajax-loading.svg" style="position: absolute; left: 50%; margin-left: -100px; top: 50%; margin-top: -100px;" />
+    </div>
+    <div id="xp-container">
+        <!-- Start XP Leftbar -->
+        <div class="xp-leftbar">
+            <!-- Start XP Sidebar -->
+            <div class="xp-sidebar">
+                <!-- Start XP Logobar -->
+                <div class="xp-logobar text-center">
+                    <a href="@Url.Action("Index", "Home")" class="xp-logo">
+                        <img src="~/images/TerraNostraLogo.jpg" class="img-fluid">
+                    </a>
+                </div>
+                <!-- End XP Logobar -->
+                <!-- Start XP Navigationbar -->
+                <div class="xp-navigationbar">
+                    <ul class="xp-vertical-menu">
+
+                        @if (User.IsInRole("Administrator") || User.IsInRole("Contact Manager") || User.IsInRole("Administrative") || User.IsInRole("Financial") || User.IsInRole("Administrative Assistant") || User.IsInRole("Salesman"))
+                        {
+                            <li class="@if (controller.Equals("Indication")) {<text>active</text>}">
+                                <a href="@Url.Action("Index", "Indication")">
+
+                                    <i class="mdi mdi-account-check"></i><span>Indicações</span>
+                                </a>
+                            </li>
+                            <li class="@if (controller.Equals("Client")) {<text>active</text>}">
+                                <a href="@Url.Action("Index", "Client")">
+                                    <i class="fa fa-users"></i><span>Leads</span>
+                                </a>
+                            </li>
+                            <li class="@if (controller.Equals("FreezedFamily") && action.Equals("Index")) {<text>active</text>}">
+                                <a href="@Url.Action("Index", "FreezedFamily")">
+                                    <i class="simple-icon-organization"></i><span>Árvores Geradas</span>
+                                </a>
+                            </li>
+                            <li class="@if (controller.Equals("Invoice") && action.Equals("Index")) {<text>active</text>}">
+                                <a href="@Url.Action("Index", "Invoice")">
+                                    <i class="simple-icon-calculator"></i><span>Orçamentos</span>
+                                </a>
+                            </li>
+                            <li class="@if (controller.Equals("Workbench") && action.Equals("Index")) {<text>active</text>}">
+                                <a href="@Url.Action("Index", "Workbench")">
+                                    <i class="fas fa-user-cog"></i><span>Processos</span>
+                                </a>
+                            </li>
+                        }
+                        else if (User.IsInRole("Salesman"))
+                        {
+                            <li>
+                                <a href="@Url.Action("Index", "Client")">
+                                    <i class="fa fa-users"></i><span>Meus Clientes</span>
+                                </a>
+                            </li>
+                        }
+                        @if (User.IsInRole("Administrator"))
+                        {
+
+                            <li class="xp-vertical-header">Administração</li>
+                            <li>
+                                <a href="javaScript:void();">
+                                    <i class="icon-wrench"></i><span>Pessoas</span><i class="icon-arrow-right pull-right"></i>
+                                </a>
+                                <ul class="xp-vertical-submenu">
+                                    <li>
+                                        <a href="@Url.Action("Index", "User", new { userType = (int)Web.Utils.UserType.NoAgent})">
+                                            <i class="fa fa-user"></i><span>Usuários</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="@Url.Action("Index", "User", new { userType = (int)Web.Utils.UserType.Agent})">
+                                            <i class="fa fa-user"></i><span>Representantes</span>
+                                        </a>
+                                    </li>
+
+                                </ul>
+                            </li>
+                            <li>
+                                <a href="javaScript:void();">
+                                    <i class="icon-wrench"></i><span>Sistema</span><i class="icon-arrow-right pull-right"></i>
+                                </a>
+                                <ul class="xp-vertical-submenu">
+                                    <li>
+                                        <a href="@Url.Action("Index", "ServiceType")">
+                                            <i class="icon-organization"></i>&nbsp;<span>Serviços</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="@Url.Action("Index", "SystemVariable")">
+                                            <i class="icon-organization"></i>&nbsp;<span>Variáveis</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
+
+                    </ul>
+                </div>
+                <!-- End XP Navigationbar -->
+            </div>
+            <!-- End XP Sidebar -->
+        </div>
+        <!-- End XP Leftbar -->
+        <!-- Start XP Rightbar -->
+        <div class="xp-rightbar">
+            <!-- Start XP Topbar -->
+            <div class="xp-topbar">
+
+                <!-- Start XP Row -->
+                <div class="row">
+
+                    <!-- Start XP Col -->
+                    <div class="col-2 col-md-1 col-lg-1 order-2 order-md-1 align-self-center">
+                        <div class="xp-menubar">
+                            <a class="xp-menu-hamburger" href="javascript:void();">
+                                <i class="icon-menu font-20 text-white"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <!-- End XP Col -->
+                    <!-- Start XP Col -->
+                    <div class="col-10 col-md-11 col-lg-11 order-1 order-md-2">
+                        <div class="xp-profilebar text-right">
+                            <ul class="list-inline mb-0">
+                                @if (User.Identity.IsAuthenticated)
+                                {
+                                    var user = await userManager.FindByNameAsync(User.Identity.Name);
+
+                                    <li class="list-inline-item mr-0">
+                                        <div class="dropdown xp-userprofile">
+                                            <a class="dropdown-toggle " href="#" role="button" id="xp-userprofile" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="color:white;">
+                                                Olá, @user.FirstName @user.LastName
+                                            </a>
+                                            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="xp-userprofile">
+                                                <span class="dropdown-item py-3 text-white text-center font-16">Minha Conta</span>
+                                                <a class="dropdown-item" href="@Url.Action("LogOut", "Account")"><i class="icon-power text-danger mr-2"></i> Sair</a>
+                                            </div>
+                                        </div>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                    <!-- End XP Col -->
+
+                </div>
+                <!-- End XP Row -->
+
+            </div>
+            <!-- End XP Topbar -->
+            <!-- Start XP Breadcrumbbar -->
+            <div class="xp-breadcrumbbar">
+                <div class="row">
+                    <div class="col-md-6 col-lg-6">
+                        <h4 class="xp-page-title">
+                            @if (ViewData["SubTitle"] == null)
+                            {
+                                @ViewData["Title"]
+                            }
+                            else
+                            {
+                                @ViewData["Title"]
+                                <br />
+                                <small>@Html.Raw(ViewData["SubTitle"])</small>
+                            }
+                        </h4>
+                    </div>
+                    <div class="col-md-6 col-lg-6">
+                        <div class="xp-breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")"><i class="icon-home"></i></a></li>
+                                <li class="breadcrumb-item active" aria-current="page">@ViewData["Title"]</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End XP Breadcrumbbar -->
+            <!-- Start XP Contentbar -->
+            <div class="xp-contentbar">
+                <!-- Write page content code here -->
+                @if (!string.IsNullOrWhiteSpace(Context.Request.Query["saved"]))
+                {
+                    <text>
+                        <div id="_GeneralAlertSuccess" class="alert alert-success alert-dismissible fade show " role="alert">
+                            <b>Dados foram salvos com sucesso!</b>
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    </text>
+                }
+
+
+                @RenderBody()
+            </div>
+            <!-- End XP Contentbar -->
+        </div>
+        <!-- End XP Rightbar -->
+    </div>
+    <footer class="border-top footer text-muted text-center">
+        Terra Nostra &copy; @DateTime.Now.Year :: Desenvolvido por Bit Flag (versão @string.Format("{0}.{1}-{2}", FUNCTIONS.Utils.Version.Major, FUNCTIONS.Utils.Version.Minor, FUNCTIONS.Utils.Version.Build))
+    </footer>
+
+    @RenderSection("Modals", required: false)
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

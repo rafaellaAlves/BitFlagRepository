@@ -1,0 +1,30 @@
+﻿@model DTO.Subscription.SubscriptionViewModel
+@{
+    Layout = null;
+}
+@{ await Html.RenderPartialAsync("/Views/Mail/Subscription/Shared/Header.cshtml"); }
+
+
+<p>Olá Dr (a) @Model.FullName,</p>
+
+<p>Por favor, siga as instruções abaixo;</p>
+
+<p>
+    <ul>
+        <li>Imprima a Declaração Pessoal de Saúde que consta no anexo (modelo)</li>
+        <li>Preencha de próprio punho todo o documento</li>
+        <li>Seja breve na especificação</li>
+        <li>Você deve assinar e datar Scanei em formato pdf e responda neste mesmo e-mail</li>
+    </ul>
+</p>
+
+<p> Fluxo de análise:</p>
+
+<p>A Seguradora terá 15 dias para analisar a Declaração Pessoal de Saúde após o recebimento deste documento assinado e datado. Caso seja necessário, a Seguradora poderá solicitar mais informações ou documentos.</p>
+
+<p>Fluxo de Desbloqueio:</p>
+
+<p>No prazo de 2 dias uteis, tendo a aprovação de aceitação da Seguradora, a AmaisVet fará o desbloqueio para a contratação do seguro.</p>
+
+@{ await Html.RenderPartialAsync("/Views/Mail/Subscription/Shared/Signature.cshtml"); }
+

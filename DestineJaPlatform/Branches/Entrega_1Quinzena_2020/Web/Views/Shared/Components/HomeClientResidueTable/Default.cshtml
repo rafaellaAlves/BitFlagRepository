@@ -1,0 +1,63 @@
+﻿@using Microsoft.AspNetCore.Identity
+
+@inject Services.Home.HomeServices homeServices
+@inject Services.Client.ClientServices clientServices
+
+@{
+    var clientId = await clientServices.GetClientIdByLoggedUser(Context);
+}
+    <style type="text/css">
+        #home-demand-residue-table td, #home-demand-residue-table th {
+            font-size: 11px;
+            padding-top: 10px;
+            padding-bottom: 10px;
+        }
+
+        #home-demand-residue-table_wrapper .dataTables_scroll {
+            overflow-x: auto;
+        }
+    </style>
+
+<div class="row">
+	<div class="col">
+		<table class="table nowrap table-condensed table-bordered w-100 tablesizeline" id="home-demand-residue-table">
+			<thead>
+				<tr>
+					<th colspan="8" class="text-center">RESÍDUOS MAIS ENVIADOS</th>
+				</tr>
+				<tr>
+					<th>Peso</th>
+					<th>Resíduos</th>
+					<th>Família</th>
+				</tr>
+			</thead>
+			<tbody>
+				@await foreach (var item in homeServices.GetHomeDemandClientResidueCollectedViewModel(clientId))
+				{
+					<tr>
+						<td>@item._Weight</td>
+						<td>@item.ResidueName</td>
+						<td>@item.ResidueFamilyName</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	</div>
+</div>
+
+<script type="text/javascript" asp-cut-key="home-demand-residue">
+    $(document).ready(function () {
+        $('#home-demand-residue-table').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            dom: 'tip',
+            ordering: false,
+            scrollY: '190px',
+            scrollX: true,
+            paging: false,
+            info: false
+        });
+    });
+</script>

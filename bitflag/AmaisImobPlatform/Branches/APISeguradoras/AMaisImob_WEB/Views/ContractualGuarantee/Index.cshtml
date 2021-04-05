@@ -1,0 +1,22 @@
+﻿@model int
+@{
+    switch (Model)
+    {
+        case (int)AMaisImob_WEB.Utils.ContractualGuaranteeTypes.New: ViewData["Title"] = "Nova Garantia"; break;
+        case (int)AMaisImob_WEB.Utils.ContractualGuaranteeTypes.Active: ViewData["Title"] = "Garantias Ativas"; break;
+        case (int)AMaisImob_WEB.Utils.ContractualGuaranteeTypes.Inactive: ViewData["Title"] = "Garantias Inativas"; break;
+        default: ViewData["Title"] = "Garantia Contratual"; break;
+    }
+}
+ 
+<div class="card shadow bg-light">
+    <div class="card-body">
+        <div id="_ContractualGuaranteeIndexViewComponent">
+            @( await Component.InvokeAsync("ContractualGuaranteeIndex", new { statusId = Model }) )
+        </div>
+    </div>
+</div>
+
+@*<script type="text/javascript">
+        $('#_ContractualGuaranteeIndexViewComponent').load('@Url.Action("ContractualGuaranteeIndexComponent", "ContractualGuarantee")', { statusId: '@Model' });
+    </script>*@

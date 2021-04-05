@@ -1,0 +1,161 @@
+﻿@{
+    ViewData["Title"] = "Seguro para Clínica, PetShop e Hospital Veterinário AmaisVet";
+}
+
+<script type="text/javascript">
+
+    function SalvarIndex() {
+        if (!IsNullOrWhiteSpace($('#Referencia').val())) {
+            var referencia = $('#Referencia').val();
+
+            window.location.href = '@Url.Action("Retornar", "SeguroClinicaVeterinaria")?reference=' + referencia;
+        } else {
+            var d = $('#IndexForm').serializeArray();
+            $.post('@Url.Action("Index", "SeguroClinicaVeterinaria")', d, function (data) {
+                window.location.href = '@Url.Action("Cotacao", "SeguroClinicaVeterinaria")?reference=' + data.referencia;
+		    });
+        }
+    }
+    
+        
+
+    function ValidacaoDoIndex() {
+        $('.text-danger').remove();
+        var IndexErro = false;
+        if (IsNullOrWhiteSpace($('#Referencia').val())) {
+
+            if (IsNullOrWhiteSpace($('#RazaoSocial').val())) {
+                $('#RazaoSocial').after('<div class="text-danger">Insira o nome da clínica/petshop!</div>');
+                IndexErro = true;
+            }
+
+            if (IsNullOrWhiteSpace($('#NomeContato').val())) {
+                $('#NomeContato').after('<div class="text-danger">Insira o nome de contato!</div>');
+                IndexErro = true;
+            }
+
+            if (IsNullOrWhiteSpace($('#Email').val())) {
+                $('#Email').after('<div class="text-danger">Insira o e-mail!</div>');
+                IndexErro = true;
+            }
+
+            if (IsNullOrWhiteSpace($('#Telefone').val())) {
+                $('#Telefone').after('<div class="text-danger">Insira o telefone!</div>');
+                IndexErro = true;
+            }
+
+            if (IsNullOrWhiteSpace($('#Celular').val())) {
+                $('#Celular').after('<div class="text-danger">Insira o celular!</div>');
+                IndexErro = true;
+            }
+        }
+        return (!IndexErro);
+    }
+
+</script>
+
+<div class="row">
+    <div class="col-sm-12 mx-auto">
+        <div class="row">
+            <div class="rectangle" id="retangle1" style="height: 10px; width:17%; margin-left:16%; background:lightgrey;"></div>
+            <div class="rectangle" id="retangle2" style="height: 10px; width:17%; background:lightgrey;"></div>
+            <div class="rectangle" id="retangle3" style="height: 10px; width:17%; background-color:lightgrey;"></div>
+            <div class="rectangle" id="retangle4" style="height: 10px; width:17%; background-color:lightgrey;"></div>
+        </div>
+        <div class="row">
+            <div class="col-md-1 col-1"></div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle shadow" id="circle1" style="background-color: lightgrey; ">
+                    <div style="padding-top:25px;">
+                        <div class="mx-auto smallcircle" id="smallCircle1" style="background: white; display:none;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="circle2" style="background-color: lightgrey;"></div>
+                <div class="mx-auto smallcircle" id="smallCircle2" style="background: white; display:none;"></div>
+            </div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="circle3" style="background-color: lightgrey;"></div>
+                <div class="mx-auto smallcircle" id="smallCircle3" style="background: white; display:none;"></div>
+            </div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="circle4" style=" background-color: lightgrey;"></div>
+                <div class="mx-auto smallcircle" id="smallCircle4" style="background: white; display:none;"></div>
+            </div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="circle5" style=" background-color: lightgrey;"></div>
+                <div class="mx-auto smallcircle" id="smallCircle5" style=" background: white; display:none;"></div>
+            </div>
+        </div>
+        <div class="row" style="margin-top:1em;">
+            <div class="col-md-1"></div>
+            <div class="col-sm-2 text-center"><strong style="color:#40615f">Simulação</strong></div>
+            <div class="col-sm-2 text-center"><label>Monte seu Plano</label></div>
+            <div class="col-sm-2 text-center"><label>Proposta</label></div>
+            <div class="col-sm-2 text-center"> <label>Contratar</label></div>
+            <div class="col-sm-2 text-center"> <label>Impressão</label></div>
+        </div>
+    </div>
+</div>
+<br />
+<script type="text/javascript">
+    $('#circle1').css("background", "#0a754e").addClass('shadow');
+    $('#smallCircle1').show();
+</script>
+<br />
+<form id="IndexForm" method="post" enctype="multipart/form-data">
+    <input type="hidden" id="SeguradoClinicaVeterinaria" name="SeguradoClinicaVeterinaria" />
+    <div class="row">
+        <div class="col-md-6 mx-auto">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <div class="form-group">
+                        <label>Nome da clínica/petshop:</label>
+                        <input class="form-control" id="RazaoSocial" name="RazaoSocial" type="text" placeholder="Nome da clínica/petshop" />
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label>Nome de contato:</label>
+                            <input class="form-control" id="NomeContato" name="NomeContato" type="text" placeholder="Nome de contato" />
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label>E-mail:</label>
+                            <input class="form-control" id="Email" name="Email" type="email" placeholder="E-mail" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label>Celular:</label>
+                            <input class="form-control mobile" id="Celular" name="Celular" type="text" placeholder="Celular" />
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label>Telefone:</label>
+                            <input class="form-control phone" name="Telefone" id="Telefone" type="text" placeholder="Telefone" />
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="form-row">
+                        <div class="col-md-5 col-12" style="margin-top:5px;">
+                            <input class="form-control text-left" placeholder="# Referência, caso possua." id="Referencia" />
+                        </div>
+                        <div class="col-md-7" style="margin-top:5px;">
+                            <button type="button" id="IndexSubmitButton" class="btn btn-primary float-right">Avançar&nbsp;<i class="fas fa-arrow-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script type="text/javascript">
+
+    $('#IndexSubmitButton').click(function () {
+        if (ValidacaoDoIndex()) {
+            SalvarIndex();
+        }
+    });
+
+</script>

@@ -1,0 +1,151 @@
+﻿
+@{
+    ViewData["Title"] = "Lista de Orgãos";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="card shadow">
+    <div class="card-header">
+        Listagem de Orgaos
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="input-group">
+                    <span class="input-group-addon"><i class="fa fa-search"></i></span>
+                    <input id="search" type="text" class="form-control" placeholder="Procurar..." />
+                    <span class="input-group-btn">
+                        <a href="#" id="CreateOrgaoButton" class="btn btn-success pull-right"><i class="fa fa-plus"></i>&nbsp;Novo Orgão</a>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <hr />
+        <table id="tableOrgaos" class="datatable table table-sm table-bordered table-striped" style="border-collapse: collapse !important;">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Nome</th>
+                    <th>&nbsp;</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+<script type="text/javascript">
+    var typingTimer;
+    var doneTypingInterval = 500;
+    var datatables = $('#tableOrgaos').DataTable({
+        proccessing: true
+        , serverSide: true
+        , searching: true
+        , lengthChange: false
+        , dom: 'tip'
+        , ajax: {
+            url: '@Url.Action("List", "Orgao")'
+                , type: 'POST'
+            }
+            , columns: [
+                { data: 'OrgaoId' }
+                , { data: 'Name' }
+                , {
+                    data: null
+                    , sortable: false
+                    , searchable: false
+                    , render: function (data, type, row) {
+                        var activate = (data.IsActive == true ? '<a href="javascript:Inactivate(' + data.OrgaoId + ')>Inativar</a>' : '<a href="javascript:Activate(' + data.OrgaoId + ')>Ativar</a>');
+
+                        return '<div class="text-center"><a href="javascript:void(0)" onclick="OpenModal(' + row.OrgaoId + ')">Editar</a>';
+                    }
+                }
+            ]
+    });
+    function doneTyping() {
+        if ($.fn.DataTable.isDataTable('#tableOrgaos')) {
+            datatables.search($('#search').val()).draw();
+        }
+    }
+    $('#search').keyup(function () {
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(doneTyping, doneTypingInterval);
+    });
+    $('#search').keydown(function () {
+        clearTimeout(typingTimer);
+	});
+    
+</script>
+
+
+
+<div class="modal fade" id="OrgaoModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><span id="ModalTitle">Criação</span> de Orgão</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="alertErrorOrgao" class="alert alert-danger fade show text-center" role="alert" style="display: none;">
+                    <strong>Atenção!</strong> O Formulário contém erros.
+                </div>
+                <div id="alertSuccessOrgao" class="alert alert-success fade show text-center" role="alert" style="display: none;">
+                    <strong>O Orgão foi adicionado com sucesso!</strong>
+                </div>
+                <div id="OrgaoViewComponent"></div>
+                <script type="text/javascript">
+                </script>
+            </div>
+            <div class="modal-footer">
+                <div class="row">
+                    @*<div class="col-md-6 float-left">
+                            <button type="button" aria-label="Close" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-times"></i>&nbsp;Fechar</button>
+                        </div>*@
+                    <div class="col-md-6">
+                        <button type="button" class="btn btn-success" id="OrgaoSaveButton"><i class="fa fa-upload"></i>&nbsp;Salvar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#CreateOrgaoButton').click(function () {
+        OpenModal();
+    });
+
+    function OpenModal(orgaoId) {
+        if (orgaoId != null)
+            $('#ModalTitle').text('Atualização');
+        else
+            $('#ModalTitle').text('Criação');
+
+        $('#alertErrorOrgao').hide();
+        $('#alertSuccessOrgao').hide();
+        $('#OrgaoName').val('');
+        $('#OrgaoViewComponent').load('@Url.Action("OrgaoCreateViewComponent", "Orgao")', { "orgaoId": orgaoId});
+        $('#OrgaoModal').modal('show');
+    }
+
+
+    $('#OrgaoSaveButton').click(function () {
+        if (OrgaoValidate())
+            OrgaoSave();
+    });
+
+    function OrgaoSaveCallBack(data) {
+        $('#alertErrorOrgao').hide();
+        $('#alertSuccessOrgao').hide();
+
+        if (data) {
+            $('#alertSuccessOrgao').show();
+            doneTyping();
+            $('#OrgaoModal').modal('hide');
+        } else {
+            $('#alertErrorOrgao').show();
+        }
+    }
+</script>

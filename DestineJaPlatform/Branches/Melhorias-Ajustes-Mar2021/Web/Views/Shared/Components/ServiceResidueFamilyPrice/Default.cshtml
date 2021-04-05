@@ -1,0 +1,324 @@
+﻿@model DTO.Service.ServiceResidueViewModel
+
+@inject Web.Helpers.DropDownListHelper dropDownListHelper
+@inject Services.Residue.ResidueFamilyServices residueFamilyServices
+@inject Services.Residue.UnitOfMeasurementServices unitOfMeasurementServices
+@inject Services.Service.ServiceServices serviceServices
+
+<style type="text/css">
+    #service-manage-residue-families-table td, #service-manage-residue-families-table th {
+        text-align: center;
+    }
+</style>
+<div class="row">
+    <div class="col-md-12 mb-2">
+        <a href="javascript:openResidueFamilyModal()" class="btn btn-primary float-right btn-sm"><i class="simple-icon-plus"></i>&nbsp;Adicionar Família</a>
+    </div>
+</div>
+<div>
+    <table class="table table-striped table-bordered" id="service-manage-residue-families-table">
+        <thead>
+            <tr>
+                <th style="text-align:center; background-color:#BFBFBF" colspan="12" scope="col">
+                    Família
+                </th>
+            </tr>
+            <tr>
+                <th scope="col">Código</th>
+                <th scope="col">Código ONU</th>
+                <th scope="col">Família</th>
+                <th scope="col">R$ do Resíduo por Família</th>
+                <th style="width: 160px;" scope="col">&nbsp;</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.ServiceResidueFamilyPrices.Count; i++)
+            {
+                var rowId = i + 1;
+                var serializeData = Newtonsoft.Json.JsonConvert.SerializeObject(Model.ServiceResidueFamilyPrices[i]);
+                <tr>
+                    <td>@rowId</td>
+                    <td>@Model.ServiceResidueFamilyPrices[i].ResidueFamily.ONUCode</td>
+                    <td>@Model.ServiceResidueFamilyPrices[i].ResidueFamily.Name</td>
+                    <td>@Model.ServiceResidueFamilyPrices[i]._Price (@Model.ServiceResidueFamilyPrices[i].UnitOfMeasurementName)</td>
+                    <td>
+                        <div class="text-center">
+                            <a data-row-id="@rowId" data-residue-family-id="@Model.ServiceResidueFamilyPrices[i].ResidueFamily.ResidueFamilyId" href='javascript:void(0)' onclick='openResidueFamilyModal(@serializeData)' title="Editar"><span class="badge badge-pill badge-success"><i class="simple-icon-note"></i>&nbsp;Editar</span></a>&nbsp;
+                            <a data-row-id="@rowId" data-residue-family-id="@Model.ServiceResidueFamilyPrices[i].ResidueFamily.ResidueFamilyId" href='javascript:removeServiceResidueFamily("@Model.ServiceResidueFamilyPrices[i].ResidueFamily.ResidueFamilyId")' title="Excluir"><span class="badge badge-pill badge-danger"><i class="simple-icon-trash"></i>&nbsp;Excluir</span></a>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+<hr />
+<div class="row mb-4" id="service-manage-residue-table-more-info-link">
+    <div class="col-md-12 text-center">
+        <a data-disabledAll="false" href="javascript:void(0)" class="badge badge-info" onclick="$('#service-manage-residue-table-more-info-link').hide(); $('#service-manage-residue-table-area').show();"><i class="simple-icon-arrow-down"></i>&nbsp;Mostrar Resíduos</a>
+    </div>
+</div>
+<div id="service-manage-residue-table-area" style="display:none;">
+    <table class="table table-striped table-bordered w-100" id="service-manage-residue-table">
+        <thead>
+            <tr>
+                <th style="text-align:center; background-color:#BFBFBF" colspan="12" scope="col">
+                    Resíduos
+                </th>
+            </tr>
+            <tr>
+                <th scope="col">Família</th>
+                <th scope="col">IBAMA</th>
+                <th scope="col">Resíduo</th>
+                <th scope="col">R$ do Resíduo</th>
+                <th scope="col">Peso</th>
+            </tr>
+        </thead>
+        <tbody>
+            @await foreach (var item in serviceServices.GetDemandClientResidueByServiceId(Model.ServiceId))
+            {
+                <tr>
+                    <td>@item.ResidueFamilyName</td>
+                    <td>@item.IBAMACode</td>
+                    <td>@item.ResidueName</td>
+                    <td>@item._Price</td>
+                    <td>@item._Weight (@item.UnitOfMeasurementName)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <div class="row">
+        <div class="col-md-12 text-center">
+            <a data-disabledAll="false" href="javascript:void(0)" class="badge badge-info" onclick="$('#service-manage-residue-table-more-info-link').show(); $('#service-manage-residue-table-area').hide();"><i class="simple-icon-arrow-up"></i>&nbsp;Esconder Resíduos</a>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="service-manage-residue-family-modal" tabindex="-1" role="dialog" aria-labelledby="service-manage-residue-family-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-lg w-100" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold" id="service-manage-residue-family-modal-title">Escolher Resíduos</h5>
+                <button data-disabledAll="false" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" name="edit-row-id" />
+                <div class="row">
+                    <div class="col form-group">
+                        <label class="required">Familia do Resíduo</label>
+                        <select name="ResidueFamilyId" class="form-control w-100" onchange="loadPriceVariation();">
+                            <option value="">Selecione</option>
+                            @foreach (var item in (await residueFamilyServices.GetDataAsNoTrackingAsync(x => !x.IsDeleted)).OrderBy(x => x.Name))
+                            {
+                                <option data-onu-code="@item.ONUCode" data-name="@item.Name" value="@item.ResidueFamilyId">@item.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col form-group">
+                        <label class="required">Preço do Resíduo</label>
+                        <div class="input-group">
+                            <input type="text" placeholder="Preço do Resíduo" class="form-control money" name="Price" />
+                            <div class="input-group-append">
+                                <select class="form-control w-100" onchange="loadPriceVariation();" name="UnitOfMeasurementId">
+                                    @foreach (var item in (await unitOfMeasurementServices.GetDataAsNoTrackingAsync()).OrderBy(x => x.Order))
+                                    {
+                                        <option data-name="@item.Name" value="@item.UnitOfMeasurementId">@item.Initials</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col form-group">
+                        <label>Preço Mínimo</label>
+                        <input type="text" class="form-control" name="_MinimumPrice" disabled placeholder="Preço Mínimo" />
+                    </div>
+                    <div class="col form-group">
+                        <label>Preço Médio</label>
+                        <input type="text" class="form-control" name="_MediumPrice" disabled placeholder="Preço Médio" />
+                    </div>
+                    <div class="col form-group">
+                        <label>Preço Máximo</label>
+                        <input type="text" class="form-control" name="_MaximumPrice" disabled placeholder="Preço Máximo" />
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="col-md-6">
+                    <button data-disabledAll="false" type="button" class="btn btn-secondary" data-dismiss="modal"><i class="simple-icon-close"></i>&nbsp;Fechar</button>
+                </div>
+                <div class="col-md-6">
+                    <button type="button" class="btn btn-success float-right" id="service-manage-residue-family-modal-add-button"><i class="simple-icon-cloud-upload"></i>&nbsp;Adicionar Família</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script asp-cut-key="service-residue-family">
+    var serviceResidueDatatables;
+    $(document).ready(function () {
+        serviceResidueDatatables = $('#service-manage-residue-table').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            dom: 'tip'
+        });
+    });
+
+    var serviceResidueFamiliesDatatables;
+    $(document).ready(function () {
+        serviceResidueFamiliesDatatables = $('#service-manage-residue-families-table').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            dom: 'tip',
+            drawCallback: function () {
+                $(this).DataTable().column(0, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
+                    var rowId = $(cell).parent('tr').find('[data-row-id]').data('row-id');
+
+                    var newIndex = i + 1;
+
+                    var inputs = $('.row-id-' + rowId);
+                    inputs.removeClass('row-id-' + rowId).addClass('row-id-' + newIndex);
+                    $.each(inputs, function (i, e) {
+                        var name = $(e).attr('name');
+                        $(e).attr('name', 'serviceResidueFamilies[' + newIndex + '].' + name.split('.')[1]);
+                    });
+
+                    $('[name="serviceResidueFamilies.Index"].row-index-' + rowId).val(newIndex);
+                    $('.row-index-' + rowId).removeClass('row-index-' + rowId).addClass('row-index-' + newIndex);
+
+                    $('[row-id="' + rowId + '"]').data('row-id', newIndex);
+                    $(cell).data('row-id', newIndex);
+                    cell.innerHTML = newIndex;
+                });
+            }
+        });
+    });
+
+    function openResidueFamilyModal(data) {
+
+        var residueFamiliesSelecteds = $.map($('[data-residue-family-id]'), function (e, i) { return $(e).data('residue-family-id'); });
+
+        $('#service-manage-residue-family-modal [name="ResidueFamilyId"] option').show();
+        $.each($('#service-manage-residue-family-modal [name="ResidueFamilyId"] option'), function (i, e) {
+            var val = parseInt($(e).val());
+            if (residueFamiliesSelecteds.indexOf(val) != -1 && (val != (data == null ? null : data.ResidueFamilyId)))
+                $(e).hide();
+        });
+
+        $('#service-manage-residue-family-modal [name="ResidueFamilyId"]').val(data == null ? $('#service-manage-residue-family-modal [name="ResidueFamilyId"] option:first').val() : data.ResidueFamilyId);
+        $('#service-manage-residue-family-modal [name="Price"]').val(data == null ? '' : data._Price);
+        $('#service-manage-residue-family-modal [name="_MinimumPrice"]').val(data == null ?  '': data._MinimumPrice);
+        $('#service-manage-residue-family-modal [name="_MediumPrice"]').val(data == null ?  '': data._MediumPrice);
+        $('#service-manage-residue-family-modal [name="_MaximumPrice"]').val(data == null ?  '': data._MaximumPrice);
+        $('#service-manage-residue-family-modal [name="UnitOfMeasurementId"]').val(data == null ? $('#service-manage-residue-family-modal [name="UnitOfMeasurementId"] option:first').val() : data.UnitOfMeasurementId);
+
+        $('#service-manage-residue-family-modal [name="edit-row-id"]').val(data == null ? '' : $('[data-residue-family-id="' + data.ResidueFamilyId + '"]').closest('[data-row-id]').data('row-id'));
+
+        $('#service-manage-residue-family-modal').modal('show');
+    }
+
+    function loadPriceVariation() {
+        $.post('@Url.Action("GetPriceVariationByFamilyId", "ResiduePrice")', { residueFamilyId: $('#service-manage-residue-family-modal [name="ResidueFamilyId"]').val(), unitOfMeasurement: $('#service-manage-residue-family-modal [name="UnitOfMeasurementId"]').val() }, setResidueFamilyPriceVariation);
+    }
+
+    function setResidueFamilyPriceVariation(data) {
+        data = data == null ? {} : data;
+
+        $('#service-manage-residue-family-modal [name="_MinimumPrice"]').val(isNull(data._MinimumPrice, '-'));
+        $('#service-manage-residue-family-modal [name="_MediumPrice"]').val(isNull(data._MediumPrice, '-'));
+        $('#service-manage-residue-family-modal [name="_MaximumPrice"]').val(isNull(data._MaximumPrice, '-'));
+    }
+
+    $('#service-manage-residue-family-modal-add-button').click(function () {
+        if (!validateInputs('service-manage-residue-family-modal')) return;
+
+        var edit_row_id = $('#service-manage-residue-family-modal [name="edit-row-id"]').val();
+        var rowId = isNullOrWhiteSpace(edit_row_id) ? serviceResidueFamiliesDatatables.rows()[0].length + 1 : edit_row_id;
+
+        var data = {
+            ResidueFamilyId: $('#service-manage-residue-family-modal [name="ResidueFamilyId"]').val(),
+            ONUCode: $('#service-manage-residue-family-modal [name="ResidueFamilyId"] option:selected').data('onu-code'),
+            Name: $('#service-manage-residue-family-modal [name="ResidueFamilyId"] option:selected').data('name'),
+            _Price: $('#service-manage-residue-family-modal [name="Price"]').val(),
+            _MinimumPrice: $('#service-manage-residue-family-modal [name="_MinimumPrice"]').val(),
+            _MediumPrice: $('#service-manage-residue-family-modal [name="_MediumPrice"]').val(),
+            _MaximumPrice: $('#service-manage-residue-family-modal [name="_MaximumPrice"]').val(),
+            UnitOfMeasurementId: $('#service-manage-residue-family-modal [name="UnitOfMeasurementId"]').val(),
+            UnitOfMeasurementName: $('#service-manage-residue-family-modal [name="UnitOfMeasurementId"] option:selected').data('name')
+        }
+
+        var row = {
+            0: rowId,
+            1: data.ONUCode,
+            2: data.Name,
+            3: data._Price + '(' + data.UnitOfMeasurementName + ')',
+            4: '<div class="text-center"><a data-row-id="' + rowId + '" data-residue-family-id="' + data.ResidueFamilyId + '" href=\'javascript:void(0)\' onclick=\'openResidueFamilyModal(' + JSON.stringify(data) + ')\' title="Editar"><span class="badge badge-pill badge-success"><i class="simple-icon-trash"></i>&nbsp;Editar</span></a>&nbsp;' +
+                '<a data-row-id="' + rowId + '" data-residue-family-id="' + data.ResidueFamilyId + '" href=\'javascript:removeServiceResidueFamily(' + data.ResidueFamilyId + ')\' title="Excluir"><span class="badge badge-pill badge-danger"><i class="simple-icon-trash"></i>&nbsp;Excluir</span></a></div>'
+        };
+
+        if (!isNullOrWhiteSpace(edit_row_id)) { // update row
+            serviceResidueFamiliesDatatables.row(parseInt(edit_row_id) - 1).data(row);
+
+            // remove old hidden inputs for this row id
+            $('.row-id-' + edit_row_id).remove();
+            $('.row-index-' + edit_row_id).remove();
+        }
+        else serviceResidueFamiliesDatatables.row.add(row); // add row
+
+        insertServiceResidueFamilyHiddenInputs(rowId, data);
+
+        serviceResidueFamiliesDatatables.draw();
+        $('#service-manage-residue-family-modal').modal('hide');
+    });
+
+    function insertServiceResidueFamilyHiddenInputs(rowId, data) {
+        var Class = 'row-id-' + rowId + ' service-residue-families-' + data.ResidueFamilyId;
+
+        $('#form-service-manage').append($('<input>', { type: 'hidden', name: 'serviceResidueFamilies.Index', value: rowId, class: 'row-index-' + rowId }));
+        $('#form-service-manage').append($('<input>', { type: 'hidden', name: 'serviceResidueFamilies[' + rowId + '].ResidueFamilyId', value: data.ResidueFamilyId, class: Class }));
+        $('#form-service-manage').append($('<input>', { type: 'hidden', name: 'serviceResidueFamilies[' + rowId + ']._Price', value: data._Price, class: Class }));
+        $('#form-service-manage').append($('<input>', { type: 'hidden', name: 'serviceResidueFamilies[' + rowId + ']._MinimumPrice', value: data._MinimumPrice, class: Class }));
+        $('#form-service-manage').append($('<input>', { type: 'hidden', name: 'serviceResidueFamilies[' + rowId + ']._MediumPrice', value: data._MediumPrice, class: Class }));
+        $('#form-service-manage').append($('<input>', { type: 'hidden', name: 'serviceResidueFamilies[' + rowId + ']._MaximumPrice', value: data._MaximumPrice, class: Class }));
+        $('#form-service-manage').append($('<input>', { type: 'hidden', name: 'serviceResidueFamilies[' + rowId + '].UnitOfMeasurementId', value: data.UnitOfMeasurementId, class: Class }));
+
+        if (typeof changeServiceResidueFamilyCallback == 'function') changeServiceResidueFamilyCallback(data.ResidueFamilyId);
+    }
+
+    function removeServiceResidueFamily(residueFamilyId) {
+        var rowId = $('[data-residue-family-id="' + residueFamilyId + '"]').closest('[data-row-id]').data('row-id');
+        $('.row-id-' + rowId).remove();
+        $('.row-index-' + rowId).remove();
+
+        var row = serviceResidueFamiliesDatatables.row($('[data-residue-family-id="' + residueFamilyId + '"]').parents('tr'));
+        row.remove();
+
+        serviceResidueFamiliesDatatables.draw();
+
+        if (typeof changeServiceResidueFamilyCallback == 'function') changeServiceResidueFamilyCallback(residueFamilyId);
+    }
+
+@*Carregar os dados já salvos de residuos em hidden inputs*@
+    $(document).ready(function () {
+    @for (int i = 0; i < Model.ServiceResidueFamilyPrices.Count; i++)
+    {
+        var rowId = i + 1;
+        var serializeData = Newtonsoft.Json.JsonConvert.SerializeObject(Model.ServiceResidueFamilyPrices[i]);
+        var _serializeData = Html.Raw(serializeData);
+
+        <text>
+        insertServiceResidueFamilyHiddenInputs(@rowId, @_serializeData);
+        </text>
+    }
+});
+</script>
+

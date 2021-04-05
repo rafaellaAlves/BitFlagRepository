@@ -1,0 +1,50 @@
+﻿<!-- *********** -->
+<!-- ADD COMPANY -->
+<!-- *********** -->
+<div class="modal fade" tabindex="-1" role="dialog" id="addCompanyModal" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Adicionar Unidade de Negócio</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+               @{ Html.RenderPartial("~/Views/Shared/_CompanySearch.cshtml"); }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-ban" aria-hidden="true"></i>&nbsp;Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $('#addCompanyModal').on('shown.bs.modal', function () {
+        _CompanySearchClearSearch();
+        _CompanySearchDoneTyping();
+    });
+    function _CompanySearchSelectCallBack(data) {
+        var parentNode = $('#tree').tree('getSelectedNode');
+        if (parentNode == false || parentNode.IsCompany) {
+            alert('Por favor, selecione um grupo.');
+            return;
+        }
+        var d = { companyId: data.CompanyId, groupId: parentNode.GroupId };
+        $.ajax({
+            url: '@Url.Action("AddCompanyToGroup", "GroupManagement")',
+            type: 'POST',
+            data: d,
+            dataType: 'json',
+            success: function (data) {
+                $('#tree').tree('appendNode', data, parentNode);
+                $('#tree').tree('openNode', parentNode);
+
+                var node = $('#tree').tree('getNodeById', parentNode.GroupId);
+                $('#tree').tree('selectNode', node);
+                //$('#addCompanyModal').modal('hide');
+            }
+        });
+    }
+</script>
+<!-- *********** -->

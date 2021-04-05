@@ -1,0 +1,51 @@
+﻿@model DTO.Shared.EntityViewMode<List<DTO.Client.Report.ClientReportDownloadTransporterViewModel>>
+
+@section Header{
+    <style type="text/css">
+        #download-transporter-report-table tbody td {
+            text-align: center;
+        }
+    </style>
+}
+
+<div class="row">
+    <div class="col table-responsive">
+        <table class="table table-condensed table-striped tablesizeline" id="download-transporter-report-table">
+            <thead>
+                <tr>
+                    <td></td>
+                    <td>Razão Social</td>
+                    <td>Nome Fantasia</td>
+                    <td>CNPJ/CPF</td>
+                    <td>Documento</td>
+                    <td>Vencimento</td>
+                    <td>Dias para o Vencimento</td>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    foreach (var item in Model.Model)
+                    {
+                        <tr>
+                            <td>
+                                <a href="@Url.Action("GetFile", "TransporterEnvironmentalDocumentation", new { id = item.TransporterEnvironmentalDocumentationId })" target="_blank" class="badge badge-pill badge-primary ml-2">Visualizar/Baixar</a>
+                            </td>
+                            <td>@item.TransporterCompanyName</td>
+                            <td>@item.TransporterTradeName</td>
+                            <td>@item.TransporterDocument.CNPJOrCPFmask()</td>
+                            <td>@item.License.IfNullChange(item.DocumentName)</td>
+                            <td>@item._DueDate</td>
+                            <td class="text-center">@item.DaysToDueDate</td>
+                        </tr>
+                    }
+                    if (Model.Model.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center"><i>Nenhum item encontrado.</i></td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,14 @@
+﻿@model AMaisImob_DB.Models.CertificateContractual
+
+<style type="text/css">
+    .w-100 {
+        width: 100%;
+    }
+</style>
+<div class="w-100" style="padding:1em;">
+    <label>Olá @ViewData["EmailReceiver"],</label>
+    <div style="margin-top:1em;"></div>
+    <label>A garantia contratual de referência #<b>@Model.Reference</b> entrou para análise.</label>
+    <div style="margin-top:.2em;"></div>
+    <label><a href="@($"{Context.Request.Scheme}://{Context.Request.Host + Url.Action("Manage", "ContractualGuarantee")}?id={Model.CertificateContractualId}")">Clique aqui</a> para visualizar os dados desta garantia.</label>
+</div>

@@ -1,0 +1,98 @@
+﻿@model int
+
+<style type="text/css">
+    .background-message {
+        background-color: white;
+        border-radius: 7px;
+        height: 300px;
+        overflow-y: auto;
+    }
+
+    .messageBox {
+        padding: 7px;
+        padding-left: 15px;
+    }
+
+    .sendMessage {
+        background-color: lightgreen;
+        border-radius: 20px 20px 20px 0px;
+    }
+
+    .receiveMessage {
+        background-color: lightgrey;
+        border-radius: 20px 20px 0px 20px;
+    }
+
+    #messageArea .row:last-child {
+        margin-bottom: 10px;
+    }
+    #messageArea .row {
+        padding: 10px;
+        padding-bottom: 0;
+        padding-top: 0;
+    }
+
+    .user-send-info-area, .user-receive-info-area {
+        margin-top: 10px;
+        margin-bottom: -10px;
+    }
+    .user-receive-info-area {
+        text-align: right;
+    }
+
+    .user-info {
+        font-size: 11px;
+    }
+</style>
+
+<div class="row" style="padding:10px;">
+    <div class="col-md-12 form-group background-message" id="messageArea"></div>
+    <div class="col-md-12 form-group" style="margin-top:.5em;">
+        <div class="input-group">
+            <input type="text" style="border: 1px solid #6c757d;" class="form-control" placeholder="Digite..." />
+            <div class="input-group-append">
+                <button class="btn btn-outline-secondary" type="button"><i class="fas fa-play"></i></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var data = [
+        { to: 2, from: 1, text: 'Teste 1', senderName: 'Yuri Santana', createdDate: '@DateTime.Now.ToString("dd/mm/yyyy ss:mm:hh")'}
+        , { to: 1, from: 2, text: 'Teste 2', senderName: 'Teste Usuário', createdDate: '@DateTime.Now.ToString("dd/mm/yyyy ss:mm:hh")'}
+        , { to: 1, from: 2, text: 'Teste 3', senderName: 'Teste Usuário', createdDate: '@DateTime.Now.ToString("dd/mm/yyyy ss:mm:hh")'}
+        , { to: 2, from: 1, text: 'Teste 4', senderName: 'Yuri Satana', createdDate: '@DateTime.Now.ToString("dd/mm/yyyy ss:mm:hh")'}
+        , { to: 1, from: 2, text: 'Teste 5', senderName: 'Teste Usuário', createdDate: '@DateTime.Now.ToString("dd/mm/yyyy ss:mm:hh")'}
+    ]
+
+    function getMessageBoxes(data) {
+        var rows = [];
+        $.each(data, function (i, e) {
+            var sender = e.to == '@Model';
+            var func = sender ? 'send' : 'receive';
+
+            var row = $('<div>', { class: 'row'});
+
+            var userInfo = e.senderName + ', ' + $('<span>', { class: 'date-time' }).append(e.createdDate).html();
+            var userInfoDiv = $('<div>', { class: 'col-md-12 user-' + func + '-info-area' }).append($('<label>', { class: 'user-info' }).append(userInfo));
+
+            var messageDiv = $('<div>', { class: 'col-md-5 messageBox ' + func + 'Message' + (sender ? '' : ' offset-md-7') }).append('<label>', { class: 'message' }).append(e.text);
+
+            row.append(userInfoDiv, messageDiv);
+            rows.push(row);
+        });
+        return rows;
+    }
+
+    $(function () {
+        var rows = getMessageBoxes(data);
+        for (var i = 0; i < rows.length; i++) {
+            $('#messageArea').append(rows[i]);
+        }
+    });
+
+    function SendMessage() {
+
+    }
+</script>

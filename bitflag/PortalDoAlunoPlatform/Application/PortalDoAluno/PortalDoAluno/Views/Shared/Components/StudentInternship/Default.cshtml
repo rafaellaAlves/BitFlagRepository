@@ -1,0 +1,28 @@
+@model DTO.ClassStudent.StudentInternshipViewModel
+<div class="row">
+    <div class="col">
+        <div class="form-check">
+            @Html.CheckBox("StudentInternship.InternshipDocument1", Model.InternshipDocument1, new { Class = "form-check-input", id = "defaultCheck1" })
+            <label class="form-check-label" for="defaultCheck1">
+                São Paulo, Centro Formador ou Hospitalar
+            </label>
+        </div>
+    </div>
+    <div class="col">
+        <div class="form-check">
+            @Html.CheckBox("StudentInternship.InternshipDocument2", Model.InternshipDocument2, new { Class = "form-check-input", id = "defaultCheck2" })
+            <label class="form-check-label" for="defaultCheck2">
+                Prática ATD
+            </label>
+        </div>
+    </div>
+</div>
+<hr />
+<div class="row">
+    <div class="col">
+        <div class="form-group">
+            <label class="control-label">Observações</label>
+            <textarea class="form-control" name="StudentInternship.InternshipComments" rows="10">@Model.InternshipComments</textarea>
+        </div>
+    </div>
+</div>

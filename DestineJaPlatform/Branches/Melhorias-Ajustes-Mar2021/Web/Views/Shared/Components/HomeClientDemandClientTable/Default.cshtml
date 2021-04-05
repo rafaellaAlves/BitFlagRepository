@@ -1,0 +1,82 @@
+﻿@model List<DTO.Home.HomeDemandClientListViewModel>
+
+<style type="text/css">
+    #home-demand-client-table td, #home-demand-client-table th {
+        font-size: 11px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        text-align: center;
+    }
+
+    #home-demand-client-table_wrapper .dataTables_scroll {
+        overflow-x: auto;
+    }
+
+    #home-demand-client-table th, #home-demand-client-table td {
+        text-align: center;
+    }
+</style>
+
+<div class="table-responsive">
+    <table class="table table-condensed table-bordered w-100 display nowrap tablesizeline" id="home-demand-client-table">
+        <thead>
+            <tr>
+                <th colspan="8" class="text-center" style="text-align: center !important;">
+                    <a class="btn float-left" style="font-size:8px; color: white; background: rgb(15, 72, 127);" href="@Url.Action("ReportDownload", "Client")">Clique aqui para Download</a>
+                    <label>LISTAGEM DE COLETA</label>
+                </th>
+            </tr>
+            <tr>
+                @*style="background: #a1a1a1; color: white;"*@
+                <th>MTR</th>
+                <th>Data</th>
+                <th>Motorista</th>
+                <th>Visitou?</th>
+                <th>Coletou?</th>
+                <th>Assinado Por</th>
+                <th>Peso (Kg)</th>
+                <th>Certificado</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.OrderBy(x => x.VisitedDate))
+            {
+                <tr>
+                    <td>@item.DestineJaDemandId</td>
+                    <td>@item._VisitedDate</td>
+                    <td>@item.DriverName</td>
+                    <td>@(!item.Visited.HasValue ? (object)"-" : Html.Raw(item.Visited.Value ? "<span class=\"badge badge-pill badge-success\">Sim</span>" : "<span class=\"badge badge-pill badge-danger\">Não</span>"))</td>
+                    <td>@(!item.Collected.HasValue ? (object)"-" : Html.Raw(item.Collected.Value ? "<span class=\"badge badge-pill badge-success\">Sim</span>" : "<span class=\"badge badge-pill badge-danger\">Não</span>"))</td>
+                    <td>@item.ReceptorName.IfNullChange("-")</td>
+                    <td>@item.Weight.ToWeightPtBr()</td>
+                    <td>@item.DestineJaCertificateId.IfNullChange("-")</td>
+                    <td>@item.VisitedDateISO</td>
+
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<script type="text/javascript" asp-cut-key="home-demand-client">
+    $(document).ready(function () {
+        $('#home-demand-client-table').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            dom: 'tip',
+            //scrollY: '190px',
+            scrollX: true,
+            order: [[1, "desc"]],
+            columnDefs: [{
+                targets: [1],
+                orderData: [8]
+            }, {
+                targets: [8],
+                visible: false
+            }]
+        });
+    });
+</script>

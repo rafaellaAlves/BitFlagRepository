@@ -1,0 +1,114 @@
+﻿@model WEB.Models.InsurancePolicyViewModel
+@inject DB.Models.Insurance_HomologContext context
+@{
+    var companyOwnerTypes = new WEB.BLL.CompanyOwnerTypeFunctions(context).GetData();
+    var personTypeId = companyOwnerTypes.Single(x => x.ExternalCode == "PERSON").CompanyOwnerTypeId;
+    //var companyTypeId = companyOwnerTypes.Single(x => x.ExternalCode == "COMPANY");
+}
+
+<script type="text/javascript">
+    _MaskData();
+</script>
+
+<script type="text/javascript">
+
+function _InsurancePolicyManageSave() {
+    var d = $('#_InsurancePolicyManageForm').serializeArray();
+    $.post('@Url.Action("Manage", "InsurancePolicy")', d, function (data) {
+        if (data.hasError) {
+            $('#alertErrorInsurancePolicy').show();
+            alert(data.message);
+            return;
+        }
+        _InsurancePolicyManageCallBack(data.code);
+	});
+}
+
+function _InsurancePolicyManageValidate() {
+
+    var _InsurancePolicyManagehasError = false;
+	$('.text-danger').remove();
+
+    if (IsNullOrWhiteSpace($('#_InsurancePolicyManageInsurancePolicyNumber').val())) {
+        $('#_InsurancePolicyManageInsurancePolicyNumber').after('<div class="text-danger">Preencha o número da apólice.</div>');
+        _InsurancePolicyManagehasError = true;
+	}
+
+    if (IsNullOrWhiteSpace($('#_InsurancePolicyManageStartDate').val())) {
+        $('#_InsurancePolicyManageStartDate').after('<div class="text-danger">Preencha o início da vigência.</div>');
+        _InsurancePolicyManagehasError = true;
+	}
+
+    if (IsNullOrWhiteSpace($('#_InsurancePolicyManageEndDate').val())) {
+        $('#_InsurancePolicyManageEndDate').after('<div class="text-danger">Preencha o término da vigência.</div>');
+        _InsurancePolicyManagehasError = true;
+    }
+
+    if (_InsurancePolicyManagehasError) {
+        $('#_InsurancePolicyManageAlertError').show();
+    } else {
+        $('#_InsurancePolicyManageAlertError').hide();
+    }
+
+    return (!_InsurancePolicyManagehasError);
+}
+
+</script>
+<div id="_InsurancePolicyManageAlertError" class="alert alert-danger fade show text-center" role="alert" style="display: none;">
+    <strong>Atenção!</strong> O Formulário contém erros.
+</div>
+<form id="_InsurancePolicyManageForm" method="post">
+    <input type="hidden" id="_InsurancePolicyManageInsurancePolicyId" name="InsurancePolicyId" value="@Model.InsurancePolicyId" />
+    <div class="form-row">
+        @if (!User.IsInRole("Administrator"))
+        {
+            <input type="hidden" id="CorretoraId" name="companyId" value="@Model.CompanyId" />
+        }
+        else
+        {
+            <div class="form-group col-md-6">
+                <label class="control-label">@WEB.Configuration.InsuranceConfiguration.CorretoraDisplayName*</label>
+                <select id="CorretoraId" name="companyId" class="form-control">
+                    @foreach (var corretora in (List<DB.Models.Company>)ViewData["Corretoras"])
+                    {
+                        string corretoraName = corretora.CompanyOwnerTypeId == personTypeId ? corretora.FirstName + " " + corretora.LastName : corretora.NomeFantasia;
+                        if (Model.CompanyId == corretora.CompanyId)
+                        {
+                            <option value="@(corretora.CompanyId)" selected>@corretoraName</option>
+                            continue;
+                        }
+                        <option value="@(corretora.CompanyId)">@corretoraName</option>
+                    }
+                </select>
+            </div>
+        }
+        <div class="form-group col-md-6">
+            <label class="control-label">Produto*</label>
+            <select id="ProductId" name="ProductId" class="form-control">
+                @foreach (var product in (List<DB.Models.Product>)ViewData["Products"])
+                {
+                    if (Model.ProductId == product.ProductId)
+                    {
+                        <option value="@(product.ProductId)" selected>@product.Name</option>
+                        continue;
+                    }
+                    <option value="@(product.ProductId)">@product.Name</option>
+                }
+            </select>
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group col-md-4">
+            <label class="control-label">Nº Apólice*</label>
+            <input type="text" class="form-control" id="_InsurancePolicyManageInsurancePolicyNumber" name="InsurancePolicyNumber" value="@Model.InsurancePolicyNumber" placeholder="Nome">
+        </div>
+        <div class="form-group col-md-4">
+            <label class="control-label">Início da Vigência*</label>
+            <input type="text" class="form-control date" id="_InsurancePolicyManageStartDate" name="_StartDate" value="@Model._StartDate" placeholder="Data de Início">
+        </div>
+        <div class="form-group col-md-4">
+            <label class="control-label">Término da Vigência*</label>
+            <input type="text" class="form-control date" id="_InsurancePolicyManageEndDate" name="_EndDate" value="@Model._EndDate" placeholder="Data de Término">
+        </div>
+    </div>
+</form>

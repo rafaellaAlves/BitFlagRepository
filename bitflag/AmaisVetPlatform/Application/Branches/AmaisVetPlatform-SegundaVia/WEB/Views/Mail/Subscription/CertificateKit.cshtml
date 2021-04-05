@@ -1,0 +1,61 @@
+﻿@model DTO.Certificate.CertificateViewModel
+
+    <div style="margin: 0 auto; width: 800px;">
+        @{ await Html.RenderPartialAsync("/Views/Mail/Subscription/Shared/Header.cshtml"); }
+        <p>
+            Parabéns <b>Dr(a). @Model.Subscription.FullName</b> pela escolha!
+        </p>
+        <p>
+            Nós da AmaisVet temos o orgulho de ter você como nosso cliente.
+        </p>
+        <p>
+            Certificado Referência: <b>@Model.Subscription.Reference</b>
+        </p>
+        <p>
+            Confira todas as informações do seu certificado:
+            <ul>
+                <li>
+                    <b>DADOS CADASTRAIS</b>
+                    <ul>
+                        <li>Nome: <b>@Model.Subscription.FullName</b></li>
+                        <li>CPF: <b>@Model.Subscription.Cpf</b></li>
+                        <li>Idade: <b>@Model.Subscription.Age</b></li>
+                        <li>CRMV: <b>@Model.Subscription.Crmv</b></li>
+                        <li>Estado CRMV: <b>@Model.Subscription.Crmvstate</b></li>
+                        <li>Área de Atuação: <b>@Model.Subscription.OccupationArea</b></li>
+                        <li>Especialidade: <b>@Model.Subscription.ProfessionalSpecialty</b></li>
+                        <li>Ano de formação: <b>@Model.Subscription.GraduationYear</b></li>
+                        <li>E-mail: <b>@Model.Subscription.Email</b></li>
+                        <li>Telefone: <b>@Model.Subscription.PhoneNumber</b></li>
+                        <li>Celular: <b>@Model.Subscription.MobileNumber</b></li>
+                        <li>CEP: <b>@Model.Subscription.ZipCode</b></li>
+                        <li>Endereço: <b>@Model.Subscription.Address</b></li>
+                        <li>Complemento: <b>@Model.Subscription.AddressAdditionalInfo</b></li>
+                        <li>Cidade: <b>@Model.Subscription.City</b></li>
+                        <li>Estado: <b>@Model.Subscription.State</b></li>
+                    </ul>
+                </li>
+                <li>
+                    <b>RESUMO DO SEGURO</b>
+                    <ul>
+                        <li>Plano: <b>@Model.Plan.Name</b></li>
+                        @foreach (var item in Model.Plan.Coverages)
+                        {
+                            <li>@item.Value.planCoverageTypeViewModel.Description: <b>@item.Value.Description</b></li>
+                        }
+                        <li>Assistência Farmácia: <b>Sim</b></li>
+                    </ul>
+                </li>
+            </ul>
+        </p>
+        <p>
+            Divergências de informações são as principais causas de perda de direito à indenização.
+        </p>
+        <div style="width: 100%; background-color: #0f4c81; color: white; padding: 20px;">
+            <p>Pensando em sustentabilidade, a AmaisVet disponibiliza os documentos do seu seguro digitalmente.</p>
+            <p>Clique nos links e visualize:</p>
+            <p style="padding: 5px; background-color: #20ce88;">
+                <a style="color: white;" href="@Url.Action("Goto", "Subscription", new { reference = Model.Subscription.Reference }, this.Context.Request.Scheme)">Certificado Individual</a> | <a style="color: white;" href="https://www.amaisvet.com.br/condicoesgerais-particulares">Condições Gerais Responsabilidade Profissional</a> | <a style="color: white;" href="https://www.amaisvet.com.br/condicoesgerais-particulares">Renda Protegida</a> | <a style="color: white;" href="https://www.amaisvet.com.br/condicoesgerais-particulares">Tabela de Indenização do Renda Protegida</a> | <a style="color: white;" href="https://www.amaisvet.com.br/condicoesgerais-particulares">Assistência Farmácia</a>
+            </p>
+        </div>
+    </div>

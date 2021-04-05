@@ -1,0 +1,18 @@
+﻿@model GuardMedWeb.Models.SeguradoProfissionalViewModel
+@{
+    ViewData["Title"] = "Seguro Profissional Veterinario AmaisVet";
+}
+
+@{ Html.RenderPartial("~/Views/Shared/_ProdutoSelecionado.cshtml", new ViewDataDictionary(this.Vi‌​ewData) { { "model", Model } }); }
+<br />
+<div class="card">
+    <div class="card-body">
+        <span style="font-size:18px;">
+            Caro Dr(a). @Model.Nome,<br /><br />
+            Mediante as respostas do seu questionário de risco, informamos que sua adesão passará por um processo de análise prévia antes de sua conclusão. Sendo assim, você receberá nos próximos 2 dias (úteis) o contato de um dos nossos analistas.<br /><br />
+            Caso queira mais informações, entre em contato com nossa equipe comercial pelo e-mail <a href="mailto:contato@amaisvet.com.br">contato@amaisvet.com.br</a> ou pelo WhatsApp <a target="_blank" href="https://api.whatsapp.com/send?phone=5511992680642">(11) 99268-0642</a>. Horário de funcionamento: 9h às 18h de segunda a sexta-feira.<br /><br />
+            Obrigado,<br /><br />
+            Equipe AmaisVet
+        </span>
+    </div>
+</div>

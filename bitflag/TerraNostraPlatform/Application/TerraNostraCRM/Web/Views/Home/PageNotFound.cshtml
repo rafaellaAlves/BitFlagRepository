@@ -1,0 +1,28 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutClean.cshtml";
+    ViewData["Title"] = "Página não encontrada";
+}
+<div class="row">
+    <div class="col-6 offset-3">
+        <div class="card auth-card">
+            <div class="form-side" style="width: 100% !important;">
+                <div class="text-center">
+                    <div class="text-center">
+                        <img src="~/images/LogoTerraNostraHighResolution.jpg" width="250" height="80" style="margin-bottom:1em;" />
+                    </div>
+                    <h6 class="mb-4">Página não encontrada.</h6>
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <a href="@Url.Action("Index", "Home")" class="btn btn-primary btn-lg btn-shadow">Ir para HOME</a>
+                        <br/><br />
+                        <a style="font-size: 10px;" href="@Url.Action("Login", "Account")">Ir para Login</a>
+                    }
+                    else
+                    {
+                        <a href="@Url.Action("Login", "Account")" class="btn btn-primary btn-lg btn-shadow">Ir para Login</a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

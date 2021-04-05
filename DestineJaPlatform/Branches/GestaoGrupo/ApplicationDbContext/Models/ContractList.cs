@@ -1,0 +1,37 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Text;
+
+namespace ApplicationDbContext.Models
+{
+    public class ContractList
+    {
+        [Key]
+        public int ContractId { get; set; }
+        public int ClientId { get; set; }
+        public string Code { get; set; }
+        public DateTime StartContract { get; set; }
+        public DateTime DueDate { get; set; }
+        public int ContractSituationId { get; set; }
+        public string ContractSituationName { get; set; }
+        public DateTime? RenewDate { get; set; }
+        public int? RenewFrom { get; set; }
+        public int DueDay { get; set; }
+        public string RenewFromCode { get; set; }
+        public bool UsedForRenew { get; set; }
+        public string ClientName { get; set; }
+        public string TradeName { get; set; }
+        public int? ContractStatusId { get; set; }
+        public string ContractStatusName { get; set; }
+        public DateTime CreatedDate { get; set; }
+        public bool HasFile { get; set; }
+        public string DemandIds { get; set; }
+        public string DemandDestinationIds { get; set; }
+        public double? RemainingWeight { get; set; }
+        public bool Regular { get; set; }
+        public bool ToRenew { get; set; }
+        public bool NewRenew { get; set; }
+        public bool CanDelete { get; set; }
+    }
+}

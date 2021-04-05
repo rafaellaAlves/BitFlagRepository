@@ -1,0 +1,82 @@
+﻿@inject DAL.GLAS2Context context
+
+@{ var guid = "_" + Guid.NewGuid().ToString("N");
+
+    bool canRemove = true;
+    if (ViewData.ContainsKey("canRemove"))
+    {
+        bool.TryParse(ViewData["canRemove"].ToString(), out canRemove);
+    }
+
+
+}
+<div id="@guid">
+    <div id="@Html.Raw(guid + "_attachmentContainer")">
+        <i>Nenhum anexo encontrado.</i>
+    </div>
+</div>
+<script type="text/javascript">
+	var _lawId;
+	function _LawAttachmentsClearSearch() {
+        $('#@Html.Raw(guid + "_attachmentContainer")').empty();
+		$('#@Html.Raw(guid + "_attachmentContainer")').append('<i>Nenhum anexo encontrado.</i>');
+	}
+	function _ListLawAttachments(lawId) {
+        _lawId = lawId;
+		var formData = new FormData();
+		formData.append('lawId', lawId);
+		$.ajax({
+			url: '@Url.Action("List", "LawAttachmentManagement")',
+			type: 'POST',
+			processData: false,
+			contentType: false,
+			data: formData,
+			success: function (d) {
+				if (d.data.length == 0) {
+					_LawAttachmentsClearSearch();
+					return;
+				}
+
+				$('#@Html.Raw(guid + "_attachmentContainer")').empty();
+				$.each(d.data, function (i, e) {
+					var DescriptionText = 'Data de criação: ' + e._CreatedDate;
+					DescriptionText += e.Length > 0 ? ' | Tamanho: ' + e.Length + ' B' : '';
+                    DescriptionText += e.FullLaw ? ' | <b>Lei na íntegra</b>' : '';
+
+					var defineAsFullLawLink = e.FullLaw ? '' : '<a href="javascript:setFullLaw(' + _lawId + ', ' + e.LawAttachmentId + ')">Definir como Lei na Íntegra</a>&nbsp;|&nbsp;';
+
+                    $('#@Html.Raw(guid + "_attachmentContainer")').append('<div class="card p-3 list-group-item list-group-item-action flex-column" style= "margin-bottom: 5px;" ><div class="d-flex w-100 justify-content-between" ><a class="mb-1" href="@Url.Action("GetLawAttachment", "LawAttachmentManagement")?lawAttachmentId=' + e.LawAttachmentId + '" data-holder-rendered="true">' + e.Name + '</a>@if(canRemove){<text><small class="LawAttachmentRemoveLink">' + defineAsFullLawLink + '<a href="javascript:void(0)" onclick="RemoveLawAttachmentFromLaw(' + e.LawAttachmentId + ')">Excluir</a></small></text>}</div><small class="float-left">' + DescriptionText + '</small><br/></div>');
+				});
+			}
+		});
+	}
+    function RemoveLawAttachmentFromLaw(_lawAttachmentId) {
+        if (confirm('Deseja realmente remover esse anexo?')) {
+            _RemoveLawAttachmentFromLaw(_lawAttachmentId, function () {
+                _ListLawAttachments(_lawId);
+                alert('Anexo removido com sucesso!');
+                $('#alertErrorAttachment').hide();
+                $('#alertSuccessAttachment').hide();
+                $('.text-danger').remove();
+            });
+        }
+    }
+	function _RemoveLawAttachmentFromLaw(_lawAttachmentId, callback) {
+		var d = { lawAttachmentId: _lawAttachmentId };
+		$.ajax({
+			url: '@Url.Action("RemoveLawAttachmentFromLaw", "LawAttachmentManagement")',
+			type: 'POST',
+			data: d,
+			dataType: 'json',
+			success: callback
+		});
+	}
+	function setFullLaw(lawId, lawAttachmentId) {
+		$.post('@Url.Action("SetFullLaw", "LawAttachmentManagement")', { lawAttachmentId }, function (d) {
+			alert(d.message);
+			if (d.hasError) return;
+
+            _ListLawAttachments(lawId);
+		});
+	}
+</script>

@@ -1,0 +1,104 @@
+﻿@model int?
+@using Web.Utils
+
+@{
+    ViewData["Title"] = "Gerenciar Lead";
+
+}
+<h1 class="mb-2" style="font-size:22.4px"><small id="_ClientManageCardHeaderTitle" style="font-size:22.4px">Criação de Lead</small></h1>
+<div class="card">
+    <div class="card-body">
+        <ul class="nav nav-tabs mb-4" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link nav-link-client active" id="client-tab" data-toggle="tab" href="#client" role="tab" aria-controls="client" aria-selected="true">Lead</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link nav-link-client @if (!Model.HasValue) {<text>disabled</text>}" id="dependents-tab" data-client-dependents="true" data-toggle="tab" href="#dependents" role="tab" aria-controls="dependents" aria-selected="false">Dependentes</a>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="client" role="tabpanel" aria-labelledby="client-tab"><div id="ClientViewComponent"></div></div>
+            <div class="tab-pane fade" id="dependents" role="tabpanel" aria-labelledby="dependents-tab">
+                <div style="padding: 0 1em 0 1em;">
+                    <div id="ClientDependentsViewComponent"></div>
+                </div>
+            </div>
+        </div>
+        <hr />
+        <a href="@Url.Action("Index", "Client")" class="btn btn-secondary float-left" style="color:white;"><i class="simple-icon-action-undo"></i>&nbsp;Voltar</a>
+        <div id="client-buttons-area">
+            @if (User.ClientCanAccessEdition())
+            {
+                <button type="button" id="_ClientManageButtonSubmit" class="btn btn-success float-right"><i class="simple-icon-cloud-upload"></i>&nbsp;Criar Lead</button>
+            }
+        </div>
+        <div id="client-dependents-buttons-area" style="display:none;">
+            @if (User.ClientCanAccessEdition())
+            {
+                <button type="button" id="_ClientDependentsManageButtonSubmit" class="btn btn-success float-right"><i class="simple-icon-cloud-upload"></i>&nbsp;Criar Dependente</button>
+                <button type="button" id="_ClientDependentsManageButtonRemove" style="margin-right:15px;" class="btn btn-danger float-right"><i class="simple-icon-trash"></i>&nbsp;Remover</button>
+            }
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $('.nav-link-client').on('show.bs.tab', function () {
+        var navDependent = $(this).data('client-dependents');
+
+        if (navDependent) {
+            $('#client-buttons-area').hide();
+            $('#client-dependents-buttons-area').show();
+        } else {
+            $('#client-buttons-area').show();
+            $('#client-dependents-buttons-area').hide();
+        }
+    });
+</script>
+
+<script type="text/javascript">
+    $('#ClientViewComponent').load('@Url.Action("ClientManageComponent", "Client")', { "id": @if (Model.HasValue) { @Model } else { <text>null</text> } });
+
+    @if (Model.HasValue) {
+        <text>
+    $('#ClientDependentsViewComponent').load('@Url.Action("ClientDependentsViewComponent", "Client")', { "clientId": '@Model' } );
+        </text>
+    }
+    $('#_ClientManageButtonSubmit').click(function () {
+        if (_ClientManageValidate()) {
+            $('#_ClientManageButtonSubmit').attr('disabled', 'disabled');
+            _ClientManageSave();
+        }
+    });
+</script>
+@if (Model.HasValue)
+{
+    <text>
+        <script type="text/javascript">
+            $('#_ClientManageButtonSubmit').html('<i class="simple-icon-cloud-upload"></i>&nbsp;Salvar');
+            $('#_ClientManageCardHeaderTitle').text('Atualização de Lead');
+        </script>
+    </text>
+}
+<script type="text/javascript">
+    function _ClientManageCallBack(data) {
+        window.location.href = '@Url.Action("Index", "Client")?id=' + data + '&saved=true';
+    }
+</script>
+
+<script type="text/javascript">
+    $('#_ClientDependentsManageButtonSubmit').click(function () {
+        if (_ClientDependentsManageValidate()) {
+            _ClientDependentsManageSave();
+        }
+    });
+    $('#_ClientDependentsManageButtonRemove').click(function () {
+        _ClientDependentsManageRemove();
+    });
+
+
+    function _ClientDependentsManageCallBack() {
+        $('#ClientDependentsViewComponent').empty();
+
+        $('#ClientDependentsViewComponent').load('@Url.Action("ClientDependentsViewComponent", "Client")', { "clientId": '@Model' } );
+    }
+</script>

@@ -1,0 +1,610 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Web.Utils
+
+@inject UserManager<TerraNostraIdentityDbContext.User> userManager
+@inject FUNCTIONS.User.UserFunctions userFunctions
+@inject FUNCTIONS.Client.ClientCalendarFunctions clientCalendarFunctions
+@{
+    var controller = this.ViewContext.RouteData.Values["controller"].ToString();
+    var action = this.ViewContext.RouteData.Values["action"].ToString();
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Terra Nostra Assessoria :: @ViewData["Title"]</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <!-- App Favicon -->
+    <link rel="shortcut icon" href="~/assets/theme/Uplon-Responsive-Bootstrap4/images/favicon.ico">
+
+
+    <!-- Switchery css -->
+    <link href="~/assets/theme/Uplon-Responsive-Bootstrap4/plugins/waypoints/lib/jquery.waypoints.min.js" rel="stylesheet" />
+
+    <!-- Bootstrap CSS -->
+    <link href="~/assets/theme/Uplon-Responsive-Bootstrap4/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+
+    <!-- App CSS -->
+    <link href="~/assets/theme/Uplon-Responsive-Bootstrap4/css/style.css" rel="stylesheet" type="text/css" />
+    <script src="~/assets/theme/Uplon-Responsive-Bootstrap4/js/jquery.min.js"></script>
+    <script src="~/assets/theme/Uplon-Responsive-Bootstrap4/js/popper.min.js"></script><!-- Tether for Bootstrap -->
+    <script src="~/assets/theme/Uplon-Responsive-Bootstrap4/js/bootstrap.min.js"></script>
+    <!-- Modernizr js -->
+    <script src="~/assets/theme/Uplon-Responsive-Bootstrap4/js/modernizr.min.js"></script>
+
+    <link rel="stylesheet" href="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/font/simple-line-icons/css/simple-line-icons.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" integrity="sha512-+4zCK9k+qNFUR5X+cKL9EIR+ZOhtIloNl9GIKS57V1MyNsYpYcUrUeQc9vNfzsWfV28IaLL3i96P9sdNyeRssA==" crossorigin="anonymous" />
+    <!-- DATATABLES -->
+    <link href="@Url.Content("~/assets/plugins/datatables/dataTables.bootstrap4.min.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/assets/plugins/datatables/buttons.bootstrap4.min.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/assets/plugins/datatables/responsive.bootstrap4.min.css")" rel="stylesheet" type="text/css" />
+    <script src="@Url.Content("~/assets/plugins/datatables/jquery.dataTables.min.js")"></script>
+    <script src="@Url.Content("~/assets/plugins/datatables/dataTables.bootstrap4.min.js")"></script>
+
+    <!-- DATEPICKER -->
+    <script src="@Url.Content("~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/js/vendor/bootstrap-datepicker.js")"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/locales/bootstrap-datepicker.pt-BR.min.js"></script>
+
+    <!--CALENDAR -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@3.10.1/dist/fullcalendar.min.css" rel="stylesheet" type="text/css" />
+    @*<script src="~/assets/js/locales-all.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/locale/pt-br.js"></script>*@
+
+    @*<script src="@Url.Content("~/assets/plugins/datepicker/datepicker.js")"></script>*@
+    @*<script src="@Url.Content("~/assets/js/init/form-datepicker-init.js")"></script>*@
+    @*<script src="@Url.Content("~/assets/plugins/datepicker/i18n/datepicker.pt-BR.js")"></script>*@
+    <script src="@Url.Content("~/assets/plugins/moment/moment.js")"></script>
+
+    <!-- SUMMERNOTE -->
+    <link href="~/lib/summerNote/summernote.css" rel="stylesheet">
+    <link href="~/lib/summerNote/summernote-bs4.css" rel="stylesheet">
+    <script src="~/lib/summerNote/summernote.js"></script>
+    <script src="~/lib/summerNote/summernote-bs4.js"></script>
+    <script src="~/lib/summerNote/lang/summernote-pt-BR.js"></script>
+
+    <!--Select2-->
+    <script src="~/assets/plugins/select2/select2.js"></script>
+    <!-- MASK -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.15/jquery.mask.min.js"></script>
+    <script type="text/javascript">
+        $('.cpf').mask('000.000.000-00', { reverse: true });
+        $('.date').datepicker({ format: 'dd/mm/yyyy', language: 'pt-BR', autoclose: true });
+        $('.date').mask('99/99/9999');
+        $('.date-range').datepicker({
+            language: 'pt-BR',
+            dateFormat: 'dd/mm/yyyy',
+            range: true,
+            multipleDatesSeparator: ' - ',
+        });
+        $('.date-range-month').datepicker({
+            language: 'pt-BR',
+            dateFormat: 'MM yyyy',
+            range: true,
+            minView: 'months',
+            view: 'months',
+            multipleDatesSeparator: ' - ',
+        });
+        $('.money').mask('#.##0,00', { reverse: true });
+    </script>
+
+    <script src="~/js/site.js"></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@3.10.1/dist/fullcalendar.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@3.10.1/dist/locale-all.min.js'></script>
+
+
+
+</head>
+
+
+<body>
+
+    <header id="topnav">
+        <div class="topbar-main">
+            <div class="container ml-md-5 pl-4">
+                <div class="topbar-left">
+                    <a href="@Url.Action("Index", "Home")" class="logo">
+
+                        <span><img src="~/images/cropped-logo-terra-nostra-black-1024x341.png" class="img-fluid"></span>
+                    </a>
+                </div>
+                <div class="menu-extras navbar-topbar">
+                    <ul class="list-inline float-right mb-0">
+
+                        <li class="list-inline-item">
+
+                            <a class="navbar-toggle">
+                                <div class="lines">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </div>
+                            </a>
+
+                        </li>
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            var user = await userManager.FindByNameAsync(User.Identity.Name);
+                            @if (User.IsInRole("Salesman") || User.IsInRole("Administrator"))
+                            {
+                                <li class="list-inline-item">
+
+                                </li>
+                            }
+
+                            @if (!User.IsInRole("Client"))
+                            {
+                                @if (User.CalendarCanAccess())
+                                {
+                                    <li class="list-inline-item dropdown notification-list">
+                                        <a class="nav-link dropdown-toggle arrow-none waves-light waves-effect" id="notificationButton" data-toggle="dropdown" href="#" role="button"
+                                           aria-haspopup="false" aria-expanded="false">
+                                            <i class="zmdi zmdi-email noti-icon"></i>
+                                            <span class="count" id="task-count">0</span>
+                                        </a>
+                                        <div class="dropdown-menu dropdown-menu-right dropdown-arrow dropdown-arrow-success dropdown-lg" id="notificationDropdown" aria-labelledby="Preview">
+                                            <div class="dropdown-item noti-title">
+                                                <h5><small><span class="count label label-danger float-right" id="task-count">0</span>Notificações</small></h5>
+                                            </div>
+                                            <div class="scroll ps" id="task-area"></div>
+                                        </div>
+                                    </li>
+
+                                }
+                                if (User.BellCanAccess())
+                                {
+                                    <li class="list-inline-item dropdown notification-list">
+                                        <a class="nav-link dropdown-toggle arrow-none waves-light waves-effect" id="notificationButton" data-toggle="dropdown" href="#" role="button"
+                                           aria-haspopup="false" aria-expanded="false">
+                                            <i class="zmdi zmdi-notifications-none noti-icon"></i>
+                                            <span class="count" id="notification-count">0</span>
+                                        </a>
+                                        <div class="dropdown-menu dropdown-menu-right dropdown-arrow dropdown-lg" id="notificationDropdown" aria-labelledby="Preview">
+                                            <div class="dropdown-item noti-title">
+                                                <h5><small><span class="count label label-danger float-right" id="notification-count">0</span>Notificações</small></h5>
+                                            </div>
+                                            <div class="scroll ps" id="notification-area"></div>
+                                        </div>
+                                    </li>
+
+                                }
+                            }
+                            <li class="list-inline-item dropdown notification-list">
+                                <a class="nav-link dropdown-toggle waves-effect waves-light nav-user" data-toggle="dropdown" href="#" role="button"
+                                   aria-haspopup="false" aria-expanded="false">
+                                    <span class="name">@user.FirstName @user.LastName</span>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-right profile-dropdown " aria-labelledby="Preview">
+
+                                    <div class="dropdown-item noti-title">
+                                        <a class="dropdown-item" href="@Url.Action("LogOut", "Account")">Sair</a>
+                                    </div>
+
+
+                                </div>
+                            </li>
+                        }
+                    </ul>
+
+                </div>
+                <div class="clearfix"></div>
+
+            </div>
+        </div>
+
+        <div class="navbar-custom">
+            <div class="container">
+                <div id="navigation">
+
+                    <ul class="navigation-menu">
+                        <li>
+                            <a href="@Url.Action("Index", "Home")">
+                                <i class="zmdi zmdi-chart-donut"></i>
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+
+
+                        <li class="has-submenu">
+                            <a><i class="zmdi zmdi-shopping-cart"></i> <span> Vendas </span> </a>
+                            <ul class="submenu">
+
+                                @if (User.IndicationCanAccess())
+                                {
+                                    <li class="@if (controller.Equals("Indication")) {<text>active</text>}">
+
+                                        <span class="d-inline-block pr-0">
+                                            <i class="zmdi zmdi-accounts-add zmdi-hc-lg"></i>
+                                        </span>
+                                        <span class="d-inline-block pl-0">
+                                            <a href="@Url.Action("Index", "Indication")">
+                                                Indicações
+                                            </a>
+                                        </span>
+
+                                    </li>
+                                }
+                                @if (User.ClientCanAccess())
+                                {
+                                    <li>
+                                        <span class="d-inline-block pr-0">
+                                            <i class="zmdi zmdi-filter-list zmdi-hc-lg"></i>
+                                        </span>
+                                        <span class="d-inline-block pl-0">
+                                            <a href="@Url.Action("Index", "Client")">
+                                                Leads
+                                            </a>
+                                        </span>
+
+                                    </li>
+                                }
+                                @if (User.FreezedFamilyCanAccess() && User.FreezedFamilyCanAccessEdition())
+                                {
+                                    <li>
+                                        <span class="d-inline-block pr-0">
+                                            <i class="zmdi zmdi-group-work zmdi-hc-lg"></i>
+                                        </span>
+                                        <span class="d-inline-block pl-0 pr-0">
+                                            <a href="@Url.Action("Index", "FreezedFamily")">
+                                                Árvores Genealógicas
+                                            </a>
+                                        </span>
+
+                                    </li>
+                                }
+                                @if (User.InvoiceCanAccess())
+                                {
+                                    <li>
+                                        <span class="d-inline-block pr-0">
+                                            <i class="zmdi zmdi-assignment zmdi-hc-lg"></i>
+                                        </span>
+                                        <span class="d-inline-block pl-0">
+                                            <a href="@Url.Action("Index", "Invoice")">
+                                                Orçamentos
+                                            </a>
+                                        </span>
+
+                                    </li>
+                                }
+                            </ul>
+                        </li>
+
+                        <li class="has-submenu">
+                            <a><i class="zmdi zmdi-collection-text"></i><span> Processos </span> </a>
+                            <ul class="submenu">
+                                @if (User.FinancialCanAccess())
+                                {
+                                    <li>
+                                        <span class="d-inline-block pr-0">
+                                            <i class="zmdi zmdi-money zmdi-hc-lg"></i>
+                                        </span>
+                                        <span class="d-inline-block pl-0">
+                                            <a href="@Url.Action("Index", "Financial")">
+                                                Financeiro
+                                            </a>
+                                        </span>
+
+                                    </li>
+                                }
+                                @if (User.InvoiceCanAccess())
+                                {
+                                    <li>
+                                        <span class="d-inline-block pr-0">
+                                            <i class="zmdi zmdi-assignment zmdi-hc-lg"></i>
+                                        </span>
+                                        <span class="d-inline-block pl-0">
+                                            <a href="@Url.Action("Index", "Invoice")">
+                                                Orçamento
+                                            </a>
+                                        </span>
+                                    </li>
+                                }
+                            </ul>
+                        </li>
+
+                        <li class="has-submenu">
+                            <a><i class="zmdi zmdi-plus-box"></i> <span> Organizar </span> </a>
+                            <ul class="submenu">
+                                @if (User.WorkbenchCanAccess())
+                                {
+                                    <li>
+                                        <span class="d-inline-block pr-0">
+                                            <i class="zmdi zmdi-collection-item zmdi-hc-lg"></i>
+                                        </span>
+                                        <span class="d-inline-block pl-0">
+                                            <a href="@Url.Action("Index", "Workbench")">
+                                                Processos
+                                            </a>
+                                        </span>
+
+                                    </li>
+                                }
+                                @if (User.WorkbenchCanAccess())
+                                {
+                                    <li>
+                                        <span class="d-inline-block pr-0">
+                                            <i class="zmdi zmdi-case zmdi-hc-lg"></i>
+                                        </span>
+                                        <span class="d-inline-block pl-0">
+                                            <a href="@Url.Action("Index", "RegistryOffice")">
+                                                Cartórios
+                                            </a>
+                                        </span>
+
+                                    </li>
+                                }
+                            </ul>
+                        </li>
+
+                        @if (User.CalendarCanAccess())
+                        {
+                            <li>
+                                <a href="@Url.Action("ClientCalendar", "Client")">
+                                    <i class="zmdi zmdi-calendar"></i>
+                                    <span>Calendário</span>
+                                </a>
+                            </li>
+                        }
+                        <li class="has-submenu">
+                            <a><i class="zmdi zmdi-format-list-bulleted"></i> <span>  Configurações </span> </a>
+                            <ul class="submenu">
+                                <li>
+                                    <span class="d-inline-block pr-0">
+                                        <i class="zmdi zmdi-accounts-alt zmdi-hc-lg"></i>
+                                    </span>
+                                    <span class="d-inline-block pl-0">
+                                        <a href="@Url.Action("Index", "User", new { userType = (int)Web.Utils.UserType.NoAgent })">
+                                            Usuário CRM
+                                        </a>
+                                    </span>
+
+                                </li>
+                                <li>
+                                    <span class="d-inline-block pr-0">
+                                        <i class="zmdi zmdi-account zmdi-hc-lg"></i>
+                                    </span>
+                                    <span class="d-inline-block pl-0">
+                                        <a href="@Url.Action("Index", "User", new { userType = (int)Web.Utils.UserType.Agent })">
+                                            Usuário Representante
+                                        </a>
+                                    </span>
+
+                                </li>
+                                <li>
+                                    <span class="d-inline-block pr-0">
+                                        <i class="zmdi zmdi-account-o zmdi-hc-lg"></i>
+                                    </span>
+                                    <span class="d-inline-block pl-0">
+                                        <a href="@Url.Action("Index", "User", new { userType = (int)Web.Utils.UserType.Client })">
+                                            Usuário Cliente
+                                        </a>
+                                    </span>
+
+                                </li>
+
+                                <li>
+                                    <span class="d-inline-block pr-0">
+                                        <i class="zmdi zmdi-settings zmdi-hc-lg"></i>
+                                    </span>
+                                    <span class="d-inline-block pl-0">
+                                        <a href="@Url.Action("Index", "ServiceType")">
+                                            Serviços
+                                        </a>
+                                    </span>
+
+                                </li>
+                                <li>
+                                    <span class="d-inline-block pr-0">
+                                        <i class="zmdi zmdi-chart zmdi-hc-lg"></i>
+                                    </span>
+                                    <span class="d-inline-block pl-0">
+                                        <a href="@Url.Action("Index", "SystemVariable")">
+                                            Variáveis
+                                        </a>
+                                    </span>
+
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="wrapper">
+        <div class="container">
+
+            <div class="row">
+                <div class="col-12">
+                    <div class="container-fluid">
+                        <div class="modal fade" id="modal-new-notification" tabindex="-1" role="dialog" aria-labelledby="modal-new-notification-title" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header" style="padding: 1em;">
+                                        <h5 class="modal-title">Uma nova notificação foi adicionada a sua lista</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body" style="padding: 1em;">
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <input type="hidden" id="modal-new-notification-clientId">
+                                                <input type="hidden" id="modal-new-notification-clientTaskId">
+                                                <label class="form-group has-float-label"><input disabled id="modal-new-notification-client" class="form-control" style="background-color: #ffffff;"> <span>Cliente</span></label>
+                                                <label class="form-group has-float-label"><input disabled id="modal-new-notification-title" class="form-control" style="background-color: #ffffff;"> <span>Título</span></label>
+                                                <label class="form-group has-float-label"><textarea disabled id="modal-new-notification-message" class="form-control" style="background-color: #ffffff;" rows="3"></textarea> <span>Mensagem</span></label>
+                                                <label class="form-group has-float-label"><input disabled id="modal-new-notification-task-date" class="form-control" style="background-color: #ffffff;"> <span>Data da Tarefa</span></label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <div class="col-md-6">
+                                            <button type="button" class="btn btn-secondary float-left" data-dismiss="modal"><i class="simple-icon-close"></i>&nbsp;Fechar</button>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <button onclick="redirectToCalendar()" type="button" class="btn btn-primary float-right" data-dismiss="modal"><i class="simple-icon-calendar"></i>&nbsp;Ver no Calendário</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Page-Title -->
+            <div class="row">
+                <div class="col-sm-12">
+                    <h4 class="page-title">@ViewData["Title"]</h4>
+                </div>
+            </div>
+            <!-- end row -->
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="card-box">
+                        @RenderBody()
+                    </div>
+                </div>
+            </div>
+        </div>
+        <footer class="footer">
+            <div class="col-12 ">
+                <p class="mb-0 text-muted">Terra Nostra &copy; @DateTime.Now.Year :: Desenvolvido por Bit Flag (versão @string.Format("{0}.{1}-{2}", FUNCTIONS.Utils.Version.Major, FUNCTIONS.Utils.Version.Minor, FUNCTIONS.Utils.Version.Build))</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        var resizefunc = [];
+    </script>
+
+    <!-- jQuery  -->
+
+    <script src="~/assets/theme/Uplon-Responsive-Bootstrap4/js/waves.js"></script>
+    <script src="~/assets/theme/Uplon-Responsive-Bootstrap4/js/jquery.nicescroll.js"></script>
+    <script src="~/assets/theme/Uplon-Responsive-Bootstrap4/plugins/switchery/switchery.min.js"></script>
+
+
+    <!-- Counter Up  -->
+    <script src="~/assets/theme/Uplon-Responsive-Bootstrap4/plugins/waypoints/lib/jquery.waypoints.min.js"></script>
+    <script src="~/assets/theme/Uplon-Responsive-Bootstrap4/plugins/counterup/jquery.counterup.min.js"></script>
+
+    <!-- App js -->
+    <script src="~/assets/theme/Uplon-Responsive-Bootstrap4/js/jquery.core.js"></script>
+    <script src="~/assets/theme/Uplon-Responsive-Bootstrap4/js/jquery.app.js"></script>
+
+    <!-- Page specific js -->
+    <script src="~/assets/theme/Uplon-Responsive-Bootstrap4//pages/jquery.dashboard.js"></script>
+
+    <script type="text/javascript">
+        function getNotifications() {
+            $.post('@Url.Action("GetNotifications", "Client")', function (d) {
+                if (d == null) return;
+
+                var totalNotification = d.calendarNoticeEvents == null ? 0 : d.calendarNoticeEvents.length;
+                var totalTask = d.calendarTaskEvents == null ? 0 : d.calendarTaskEvents.length;
+
+                $('#notification-count').text(totalNotification);
+                $('#task-count').text(totalTask);
+
+                $('#task-area').empty();
+                $('#notification-area').empty();
+
+                setNotificationAlerts(d.calendarNoticeEvents, false);
+                setNotificationAlerts(d.calendarTaskEvents, true);
+
+                if (totalNotification == 0) {
+                    $('#notification-area').append($('<div>', { class: "dropdown-item notify-item" }).append($('<b>', { style: "margin-left: 50%; transform: translateX(-50%);" }).append('Nenhum aviso.')));
+                }
+
+                if (totalTask == 0) {
+                    $('#task-area').append($('<div>', { class: "dropdown-item notify-item" }).append($('<b>', { style: "margin-left: 50%; transform: translateX(-50%);" }).append('Nenhuma tarefa para hoje.')));
+                }
+            });
+        }
+
+        function setNotificationAlerts(events, isTask) {
+            var area = $('#' + (isTask ? 'task-area' : 'notification-area'));
+
+            $.each(events, function (i, e) {
+                if (i == 0) {
+                    area.append($('<div>', { class: "dropdown-item notify-item" }).append($('<b>', { style: "margin-left: 50%; transform: translateX(-50%);" }).append((isTask ? 'Tarefas de hoje' : 'Avisos'))));
+                }
+
+                var row = $('<div>', { class: "dropdown-item notify-item" }).append($('<div>', { class: "pl-3" }));
+
+                @if (User.CalendarCanAccess()) {
+                    <text>
+                    @*@Url.Action("ReadClientTask", "Client")?clientId=" + e.clientId + (isTask ? '' : '&clientTaskNotificationId=' + e.clientTaskNotificationId)*@
+                    var link = $('<a>', { href: "javascript: OpenModalNewNotification(" + e.clientTaskId + (isTask ? '' : ', ' + e.clientTaskNotificationId) + ")" });
+                    </text>
+                }else{
+                    <text>
+                    var link = $('<span>');
+                    </text>
+                }
+
+                var p1 = $('<p>', { class: "notify-details" }).append(e.clientName);
+                var p2 = $('<p>', { class: "notify-details", style: 'line-height: .7rem;' }).append(e.title);
+                var p3 = $('<small>', { class: "text-muted", style: 'font-size: .6rem!important; line-height: .8rem!important;' }).append(!isTask ? 'Tarefa para ' + e._TaskDate + ' às ' + e._TaskDateTime : 'Tarefa às ' + e._TaskDateTime);
+
+                area.append(row.append(link.append(p1, p2, p3)));
+            });
+        }
+
+        function OpenModalNewNotification(clientTaskId, clientTaskNotificationId) {
+            $.post('@Url.Action("GetClientTask", "Client")', { clientTaskId: clientTaskId, clientTaskNotificationId: clientTaskNotificationId }, function (d) {
+                setTaskOnModalNotification(d);
+                $('#modal-new-notification').modal('show');
+
+                if (clientTaskNotificationId != null) {
+                    getNotifications();
+                }
+            });
+
+        }
+
+
+        const connection = new signalR.HubConnectionBuilder().withUrl("@Url.Content("~/notificationhub")").configureLogging(signalR.LogLevel.Information).build();
+        connection.start().catch(err => console.error(err));
+        connection.on('UpdateNotifications', (notification) => {
+            getNotifications();
+
+            if (notification != null) {
+                setTaskOnModalNotification(notification);
+
+                $('#modal-new-notification').modal('show');
+            }
+        });
+
+        function setTaskOnModalNotification(notification) {
+            var taskDate = moment(notification.taskDate);
+
+            $('#modal-new-notification-clientId').val(notification.clientId);
+            $('#modal-new-notification-clientTaskId').val(notification.clientTaskId);
+            $('#modal-new-notification-client').val(notification.clientName);
+            $('#modal-new-notification-title').val(notification.title);
+            $('#modal-new-notification-message').val(notification.message);
+            $('#modal-new-notification-task-date').val(taskDate.format('DD/MM/YYYY') + ' às ' + taskDate.format('HH:mm'));
+        }
+
+        function redirectToCalendar() {
+            var clientId = $('#modal-new-notification-clientId').val();
+            var clientTaskId = $('#modal-new-notification-clientTaskId').val();
+
+            window.location.href = '@Url.Action("ClientCalendar", "Client")' + '?clientId=' + clientId + '&clientTaskId=' + clientTaskId;
+        }
+
+        $(document).ready(function () {
+            getNotifications();
+        });
+    </script>
+    @RenderSection("Modals", required: false)
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

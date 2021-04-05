@@ -1,0 +1,126 @@
+﻿@{
+    ViewData["Title"] = "Blindagem Jurídica";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style type="text/css">
+    ul {
+        list-style: none;
+        padding-left: .7em;
+    }
+
+    #card-boy-questions li span {
+        margin-left: 25px;
+    }
+</style>
+<div class="card card-dark-theme">
+    <div class="card-header" id="headingOne">
+        <h5 class="m-0">
+            <span class="p-0"><i class="fas fa-shield-alt"></i> Geral</span>
+        </h5>
+    </div>
+    <div class="card-body" style="background: linear-gradient(to bottom, #dedede, transparent);">
+        <div class="row">
+            <div class="col">
+                <ul>
+                    <li><i class="fas fa-angle-right"></i>&nbsp;Estão inclusas mediação e conciliação, defesas judicial e administrativa em caso de processo judicial ou perante aos Conselhos de medicina.</li>
+                    <li><i class="fas fa-angle-right"></i>&nbsp;Caso seja utilizado o serviço <b>GUARDMED de blindagem jurídica</b> não haverá abatimento do valor dos honorários  a serem debitados do limite total de cobertura contratada.</li>
+                    <li><i class="fas fa-angle-right"></i>&nbsp;O serviço é opcional, ou seja, o cliente poderá utilizar a <b>defesa jurídica GUARDMED</b> ou não, no entanto caso ele opte por utilizar serviços de terceiros, o valor dos honorários serão descontados do limite geral de cobertura da sua apólice.</li>
+                    <li><i class="fas fa-angle-right"></i>&nbsp;Visando facilitar e beneficiar o cliente <b>GUARDMED</b>, dispomos de uma rede de escritórios parceiros que oferecem a defesa por um valor sugerido de até três vezes a tabela da OAB regional. Dessa forma é possível ter um serviço de qualidade além de provisionar os valores do limite individual de cobertura.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+<br />
+<div class="card">
+    <div class="card-header text-white bg-info" id="headingTwo">
+        <h5 class="m-0">
+            <span class="p-0"><i class="fas fa-question-circle"></i> Dúvidas</span>
+        </h5>
+    </div>
+    <div class="card-body" id="card-boy-questions"  style="background: linear-gradient(to bottom, #d7f1f9, transparent 30%);">
+        <div class="row">
+            <div class="col-12">
+                <ul>
+                    <li>
+                        <b>A) Utilizando o serviço de blindagem jurídica da GUARDMED vou precisar pagar honorários advocatícios?</b><br />
+                        <span><b>R.</b> Não, o serviço está incluso no Programa de proteção profissional da <b>GUARDMED</b>.</span><br /><br />
+                    </li>
+                    <li>
+                        <b>B) Utilizando o serviço de blindagem jurídica da GUARDMED o valor correspondente aos honorários advocatícios serão descontados do meu limite de cobertura individual contratado?</b><br />
+                        <span><b>R.</b> Não, esse serviço só será descontado caso você faça a opção de contratação de um escritório de advocacia de sua preferência.</span><br /><br />
+                    </li>
+                    <li>
+                        <b>C) Caso eu utilize os escritórios parceiros GUARDMED vou ter que pagar honorários advocatícios?</b><br />
+                        <span><b>R.</b> Não, nossa apólice de seguros fornecida pela FATOR SEGURADORA abrange o pagamento dos honorários advocatícios referentes aos serviços realizados a partir da notificação formal recebida pelo médico.</span><br /><br />
+                    </li>
+                    <li>
+                        <b>D) Sou obrigado a utiliar o serviço de blindagem jurídica ou os escritórios parceiros GUARDMED?</b><br />
+                        <span><b>R.</b> Não, tanto o serviço de blindagem jurídica quanto a contratação dos escritórios parceiros são totalmente opcionais. Você tem total liberdade de contratação.</span><br /><br />
+                    </li>
+                    <li>
+                        <b>E) Tenho um escritório de confiança na minha cidade, posso indicá-lo para ser parceiro GUARDMED?</b><br />
+                        <span><b>R.</b> Sim, uma vez que o escritório passe a ser parceiro <b>GUARDMED</b> ele constará na nossa lista de indicações separadas por região.</span><br /><br />
+                    </li>
+                    <li>
+                        <b>F) Escritórios parceiro seguem algum tipo de tabela de honorários?</b><br />
+                        <span><b>R.</b> Todos os escritórios parceiros tem liberdade na precificação dos seus serviços, no entanto a <b>GUARDMED</b> fornece uma tabela sugestiva de valores, tendo como teto 03 (três) vezes a tabela da OAB regional atualizada.</span><br /><br />
+                    </li>
+                    <li>
+                        <b>G) Caso eu escolha um escritório que não seja parceiro GUARDMED  terei cobertura dos honorários advocatícios?</b><br />
+                        <span><b>R.</b> Sim, nossa apólice de seguros abrange os honorários advocatícios, contudo será abatido do valor do limite máximo de cobertura individual contratada.</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+@*<div id="accordion">
+        <div class="card">
+            <div class="card-header" id="headingTwo">
+                <h5 class="m-0">
+                    <button class="btn btn-link collapsed p-0" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                        <i class="fas fa-question-circle"></i> Dúvidas
+                    </button>
+                </h5>
+            </div>
+            <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-12">
+                            <ul>
+                                <li>
+                                    <b>a) Utilizando o serviço de blindagem jurídica da GUARDMED vou precisar pagar honorários advocatícios?</b><br />
+                                    <span>R. Não, o serviço está incluso no Programa de proteção profissional da GUARDMED.</span><br /><br />
+                                </li>
+                                <li>
+                                    <b>b) Utilizando o serviço de blindagem jurídica da GUARDMED o valor correspondente aos honorários advocatícios serão descontados do meu limite de cobertura individual contratado?</b><br />
+                                    <span>R. Não, esse serviço só será descontado caso você faça a opção de contratação de um escritório de advocacia de sua preferência.</span><br /><br />
+                                </li>
+                                <li>
+                                    <b>c) Caso eu utilize os escritórios parceiros GUARDMED vou ter que pagar honorários advocatícios?</b><br />
+                                    <span>R. Não, nossa apólice de seguros fornecida pela FATOR SEGURADORA abrange o pagamento dos honorários advocatícios referentes aos serviços realizados a partir da notificação formal recebida pelo médico.</span><br /><br />
+                                </li>
+                                <li>
+                                    <b>d) Sou obrigado a utiliar o serviço de blindagem jurídica ou os escritórios parceiros GUARDMED?</b><br />
+                                    <span>R. Não, tanto o serviço de blindagem jurídica quanto a contratação dos escritórios parceiros são totalmente opcionais. Você tem total liberdade de contratação.</span><br /><br />
+                                </li>
+                                <li>
+                                    <b>e) Tenho um escritório de confiança na minha cidade, posso indicá-lo para ser parceiro GUARDMED?</b><br />
+                                    <span>R. Sim, uma vez que o escritório passe a ser parceiro GUARDMED ele constará na nossa lista de indicações separadas por região.</span><br /><br />
+                                </li>
+                                <li>
+                                    <b>f) Escritórios parceiro seguem algum tipo de tabela de honorários?</b><br />
+                                    <span>R. Todos os escritórios parceiros tem liberdade na precificação dos seus serviços, no entanto a GUARDMED fornece uma tabela sugestiva de valores, tendo como teto 03 (três) vezes a tabela da OAB regional atualizada.</span><br /><br />
+                                </li>
+                                <li>
+                                    <b>g) Caso eu escolha um escritório que não seja parceiro GUARDMED  terei cobertura dos honorários advocatícios?</b><br />
+                                    <span>R. Sim, nossa apólice de seguros abrange os honorários advocatícios, contudo será abatido do valor do limite máximo de cobertura individual contratada.</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>*@

@@ -1,0 +1,14 @@
+﻿@{
+    ViewData["Title"] = "Indicações";
+}
+
+<h1 class="mb-2"><small>Indicações</small></h1>
+<div class="card">
+    <div class="card-body">
+        <div id="_IndicationIndexViewComponent"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#_IndicationIndexViewComponent').load('@Url.Action("IndicationIndexComponent", "Indication")');
+</script>

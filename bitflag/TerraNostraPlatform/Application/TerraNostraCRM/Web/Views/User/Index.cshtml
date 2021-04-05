@@ -1,0 +1,27 @@
+﻿@model List<Web.Utils.UserType>
+@{
+    if (Model.Contains(Web.Utils.UserType.Agent))
+    {
+        ViewData["Title"] = "Representantes";
+        <h1 class="mb-2"><small>Representantes</small></h1>
+    }
+    else if (Model.Contains(Web.Utils.UserType.Client))
+    {
+        ViewData["Title"] = "Clientes";
+        <h1 class="mb-2"><small>Clientes</small></h1>
+    }
+    else
+    {
+        ViewData["Title"] = "Usuários";
+        <h1 class="mb-2"><small>Usuários</small></h1>
+    }
+}
+<div class="card">
+    <div class="card-body">
+        <div id="_UserIndexViewComponent"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#_UserIndexViewComponent').load('@Url.Action("UserIndexComponent", "User")', { userType: '@string.Join(";", Model.Select(x => (int)x))' });
+</script>

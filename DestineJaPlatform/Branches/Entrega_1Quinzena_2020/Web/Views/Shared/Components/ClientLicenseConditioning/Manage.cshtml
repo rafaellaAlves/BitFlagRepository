@@ -1,0 +1,154 @@
+﻿@model DTO.Shared.EntityViewMode<DTO.Client.ClientLicenseConditioningViewModel>
+
+@inject Services.Client.ClientLicenseConditioningPeriodicityServices clientLicenseConditioningPeriodicityServices
+@inject Services.Client.ClientLicenseConditioningItemService clientLicenseConditioningItemService
+
+<form id="client-license-conditioning-manage">
+    <input type="hidden" value="@Model.Model.ClientLicenseId" name="ClientLicenseId" />
+    <input type="hidden" value="@Model.Model.ClientLicenseConditioningId" name="ClientLicenseConditioningId" />
+    <div class="row">
+        <div class="col-12 form-group">
+            <label class="">Número da Condicionante</label>
+            <input class="form-control" name="Number" placeholder="Número da Condicionante" value="@Model.Model.Number" />
+        </div>
+        <div class="col-12 form-group">
+            <label class="required">Descrição da Condicionante</label>
+            <input class="form-control" name="Description" placeholder="Descrição da Condicionante" value="@Model.Model.Description" />
+        </div>
+        <div class="col-md-6 form-group">
+            <label class="required">Prazo para Cumprimento (Dias)</label>
+            <input class="form-control number" placeholder="Prazo para Cumprimento (Dias)" name="DaysToRegularize" value="@Model.Model.DaysToRegularize" />
+        </div>
+        <div class="col-md-6 form-group">
+            <label class="required">Notificar o vencimento em quantos dias</label>
+            <input class="form-control number" placeholder="Notificar o vencimento em quantos dias" name="DaysToNotify" value="@Model.Model.DaysToNotify" />
+        </div>
+        <div class="col-md-6 form-group">
+            <label class="required">Frequência /Recorrência do vencimento</label>
+            <select class="form-control" name="ClientLicenseConditioningPeriodicityId">
+                @foreach (var item in (await clientLicenseConditioningPeriodicityServices.GetDataAsNoTrackingAsync()).OrderBy(x => x.Order))
+                {
+                    <option value="@item.ClientLicenseConditioningPeriodicityId" @(item.ClientLicenseConditioningPeriodicityId == Model.Model.ClientLicenseConditioningPeriodicityId ? "selected" : "")>@item.Name</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-6 form-group">
+            <label>Número do Protocolo</label>
+            <input class="form-control" placeholder="Número do Protocolo" name="Protocol" value="@Model.Model.Protocol" />
+        </div>
+        <div class="col-md-6 form-group">
+            <label>Data do Protocolo</label>
+            <input class="form-control date" placeholder="Data do Protocolo" name="ProtocolDateFormated" value="@Model.Model.ProtocolDateFormated" />
+            <span style="color: red;">* Campo não obrigatório, em caso de novo cadastro</span>
+        </div>
+    </div>
+    <div class="row" id="client-license-conditioning-manage-file-area">
+        <div class="col-md">
+            <input type="file" data-error-message="Insira um arquivo" class="form-control" name="File" />
+        </div>
+    </div>
+</form>
+<hr />
+<div id="client-license-conditioning-file-view-component">
+    @if (!Model.Model.ClientLicenseConditioningId.HasValue)
+    {
+        <div class="row file-area">
+            <div class="col text-center">
+                <i style="font-size: 14px !important;">Após salvar os dados desta condicionante será possível inserir arquivos para ela.</i>
+            </div>
+        </div>
+    }
+    else if (string.IsNullOrWhiteSpace(Model.Model.Protocol) || !Model.Model.ProtocolDate.HasValue)
+    {
+        <div class="row file-area">
+            <div class="col text-center">
+                <i style="font-size: 14px !important;">Para inserir arquivos primeiro insera o número de protocolo e a data de protocolo.</i>
+            </div>
+        </div>
+    }
+    else
+    {
+        @(await Component.InvokeAsync<Web.ViewComponents.Client.ClientLicenseConditioningItemIndexViewComponent>(new { clientLicenseConditioningId = Model.Model.ClientLicenseConditioningId, loadFromController = Model.LoadFromController }))
+    }
+</div>
+
+<script asp-cut-key="client-license-conditioning-manage" asp-cut-key-load-from-controller="@Model.LoadFromController">
+    InitializeFunctions();
+
+    function saveClientLicenseConditioning(callback) {
+        if (!validateInputs('client-license-conditioning-manage')) return;
+
+        $.post('@Url.Action("ManageAjax", "ClientLicenseConditioning")', $('#client-license-conditioning-manage').serializeArray(), function (d) {
+            bootbox.alert(d.message);
+
+            if (d.hasError) return;
+
+            if ($('.file-area').length > 0) {
+                $('.file-area').remove();
+
+                $('#client-license-conditioning-file-view-component').load('@Url.Action("LoadClientLicenseConditioningItemViewComponent", "ClientLicenseConditioning")', { clientLicenseConditioningId: d.data });
+            }
+
+            $('#client-license-conditioning-manage [name="ClientLicenseConditioningId"]').val(d.data);
+            $('#client-license-conditioning-manage-file-area').show();
+            $('#client-license-conditioning-manage-modal-save-item-button').show();
+
+            typeof callback == 'function' && callback(d);
+        });
+    }
+
+    function validateClientLicenseConditioningItem(){
+        var r = validateInputs('client-license-conditioning-manage')
+
+        if (r) {
+            if (isNullOrWhiteSpace($('#client-license-conditioning-manage [name="Protocol"]').val())) {
+                $('#client-license-conditioning-manage [name="Protocol"]').after('<small class="text-danger" style="font-size: 12px;">Preencha este campo.</small>')
+                r = false;
+            }
+            if (isNullOrWhiteSpace($('#client-license-conditioning-manage [name="ProtocolDateFormated"]').val())) {
+                $('#client-license-conditioning-manage [name="ProtocolDateFormated"]').after('<small class="text-danger" style="font-size: 12px;">Preencha este campo.</small>')
+                r = false;
+            }
+            if ($('#client-license-conditioning-manage [name=\'File\']')[0].files.length == 0) {
+                $('#client-license-conditioning-manage [name=\'File\']').after('<small class="text-danger" style="font-size: 12px;">Insira um arquivo.</small>')
+                r = false;
+            }
+        }
+
+        return r;
+    }
+
+    function saveClientLicenseConditioningItem() {
+        var data = new FormData();
+
+        data.append('File', $('#client-license-conditioning-manage [name=\'File\']')[0].files[0]);
+        $('#client-license-conditioning-manage').serializeArray().forEach(function (e) {
+            data.append(e.name, e.value);
+        });
+
+        $('#success-area-recipient-environmental-documentation').empty();
+
+        $.ajax({
+            url: '@Url.Action("ManageItem", "ClientLicenseConditioning")',
+            type: 'POST',
+            contentType: false,
+            processData: false,
+            data: data,
+            success: function (d) {
+                bootbox.alert(d.message);
+
+                if (d.hasError)
+                    return;
+
+                clientLicenseConditioningItemsDatatables.ajax.reload();
+            }
+        });
+    }
+
+    updateSaveButtonText("@(clientLicenseConditioningItemService.dbSet.Any(x => x.ClientLicenseConditioningId == Model.Model.ClientLicenseConditioningId) ? "Renovar" : "Criar")");
+
+    $(document).ready(function () {
+        @(Model.Model.ClientLicenseConditioningId.HasValue? Html.Raw("$('#client-license-conditioning-manage-modal-save-item-button').show();") : Html.Raw("$('#client-license-conditioning-manage-modal-save-item-button').hide();"))
+        @(Model.Model.ClientLicenseConditioningId.HasValue? Html.Raw("$('#client-license-conditioning-manage-file-area').show();") : Html.Raw("$('#client-license-conditioning-manage-file-area').hide();"))
+    });
+</script>

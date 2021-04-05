@@ -1,0 +1,599 @@
+﻿
+@model GuardMedWeb.Models.SeguradoProfissionalViewModel
+@inject GuardMedWeb.DAL.GuardMedWebContext context;
+@{
+    ViewData["Title"] = "GuarMed";
+
+    var especialidadeFunctions = new GuardMedWeb.BLL.SeguradoProfissional.EspecialidadeFunctions(context);
+    bool hasToken = Context.Request.Query.ContainsKey("token");
+    int i = 1;
+}
+@{ Html.RenderPartial("~/Views/SeguroProfissional/Shared/_StepCotacao.cshtml"); }
+<br />
+<script type="text/javascript">
+    @if (Context.Request.Query.ContainsKey("fileError")) {
+        <text>
+        alert("@Html.Raw(Context.Request.Query["fileError"])");
+        </text>
+    }
+
+    var idade = @Model.Idade;
+
+    function ValidacaoDeFormulario() {
+        $('.text-danger').remove();
+        var FormularioErro = false;
+
+
+        if (IsNullOrWhiteSpace($('#Nome').val())) {
+            $('#Nome').after('<div class="text-danger">Insire o nome!</div>');
+            FormularioErro = true;
+
+        }
+
+        if (IsNullOrWhiteSpace($('#EstadoCRM').val())) {
+            $('#EstadoCRM').after('<div class="text-danger">Insire o estado do CRM!</div>');
+            FormularioErro = true;
+
+        }
+
+        if (IsNullOrWhiteSpace($('#CPF').val())) {
+            $('#CPF').after('<div class="text-danger">Insire o CPF!</div>');
+            FormularioErro = true;
+
+        }
+        else if (!TestaCPF($('#CPF').cleanVal())) {
+            $('#CPF').after('<div class="text-danger">CPF Inválido!</div>');
+            FormularioErro = true;
+
+        }
+
+        if (IsNullOrWhiteSpace($('#CEP').val())) {
+            $('#CEP').after('<div class="text-danger CEPError">Insire o CEP!</div>');
+            FormularioErro = true;
+
+        }
+
+        if (IsNullOrWhiteSpace($('#Estado').val())) {
+            $('#Estado').after('<div class="text-danger">Insire o estado!</div>');
+            FormularioErro = true;
+
+        }
+        if (IsNullOrWhiteSpace($('#Cidade').val())) {
+            $('#Cidade').after('<div class="text-danger">Insire a cidade!</div>');
+            FormularioErro = true;
+
+        }
+        if (IsNullOrWhiteSpace($('#Bairro').val())) {
+            $('#Bairro').after('<div class="text-danger">Insire o bairro!</div>');
+            FormularioErro = true;
+
+        }
+        if (IsNullOrWhiteSpace($('#Endereco').val())) {
+            $('#Endereco').after('<div class="text-danger">Insire o endereço!</div>');
+            FormularioErro = true;
+
+        }
+        if (IsNullOrWhiteSpace($('#EnderecoNumero').val())) {
+            $('#EnderecoNumero').after('<div class="text-danger">Insire o número!</div>');
+            FormularioErro = true;
+
+        }
+
+        if (IsNullOrWhiteSpace($('#DataNascimento').val())) {
+            $('#DataNascimento').after('<div class="text-danger">Insire a data de nascimento!</div>');
+            FormularioErro = true;
+
+        }
+
+        if (IsNullOrWhiteSpace($('#Celular').val()) && IsNullOrWhiteSpace($('#Telefone').val())) {
+            $('#Celular').after('<div class="text-danger">Insire pelo menos um numero!</div>');
+            $('#Telefone').after('<div class="text-danger">Insire pelo menos um numero!</div>');
+            FormularioErro = true;
+
+        }
+
+
+        if (IsNullOrWhiteSpace($('#Email').val())) {
+            $('#Email').after('<div class="text-danger">Insire o e-mail!</div>');
+            FormularioErro = true;
+
+        } else if ($('#Email').val().indexOf("@@") < 1 ||
+            $('#Email').val().indexOf(".") < 1) {
+            FormularioErro = true;
+            $('#Email').after('<div class="text-danger">E-mail incorreto!</div>');
+        }
+
+
+
+        if ($('#AcceptTermCheckbox').length > 0 && !$('#AcceptTermCheckbox')[0].checked) {
+            FormularioErro = true;
+            $('#AcceptTermCheckboxArea').after('<div class="text-danger">Leia o Contrato de Prestação de Serviços e assinale o campo acima</div>');
+        }
+
+
+        if (FormularioErro == true) {
+        $([document.documentElement, document.body]).animate({
+        scrollTop: $("#_ErroShow").offset().top
+        }, 1000);
+            $('#_ErroShow').show().fadeOut(7000);
+            alert(numero);
+        }
+
+        return (!FormularioErro);
+    }
+
+    function SalvarFormulario() {
+        $('#FormularioForm').submit();
+    }
+
+
+</script>
+@{ Html.RenderPartial("~/Views/Shared/_ProdutoSelecionado.cshtml", new ViewDataDictionary(this.Vi‌​ewData) { { "model", Model } }); }
+<br />
+<div class="alert alert-danger" style="display: none" role="alert" id="_ErroShow">Atenção preencha os dados corretamente.</div>
+<form id="FormularioForm" method="post" enctype="multipart/form-data">
+    <input value="@Model.Referencia" name="reference" type="hidden" />
+    <div class="card bg-light">
+        <div class="card-header">
+            <h5 class="amaisvet-green">Dados Cadastrais</h5>
+        </div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group col-md-7">
+                    <label>Nome:</label>
+                    <input class="form-control" value="@Model.Nome" name="Nome" id="Nome" type="text" placeholder="Nome" />
+                </div>
+                <div class="form-group col-md-2">
+                    <label>CRM:</label>
+                    <input class="form-control" value="@Html.Raw(Model.CRM)" type="text" placeholder="CRM" disabled />
+                </div>
+                <div class="form-group col-md-3">
+                    <label>Estado do CRM:</label>
+                    <select class="form-control" id="EstadoCRM" name="EstadoCRM" value="@Model.EstadoCRM" disabled>
+                        <option value="">Selecione</option>
+                        @foreach (var item in GuardMedWeb.BLL.Utils.Utils.GetEstados())
+                        {
+                            <option value="@item.EstadoId">@item.Description</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group col-md-2">
+                    <label>CPF:</label>
+                    <input class="form-control cpf" id="CPF" name="CPF" value="@Model.CPF" type="text" placeholder="CPF" />
+                </div>
+                <div class="col-md-2 form-group">
+                    <label>Data de nascimento:</label>
+                    <input class="form-control date" id="DataNascimento" name="_DataNascimento" value="@Model._DataNascimento" type="text" placeholder="Data de nascimento" disabled />
+                </div>
+                <div class="col-md-2 form-group">
+                    <label>Celular:</label>
+                    <input class="form-control mobile" name="Celular" id="Celular" value="@Model.Celular" type="text" placeholder="Celular" />
+                </div>
+                <div class="col-md-2 form-group">
+                    <label>Telefone:</label>
+                    <input class="form-control phone" name="Telefone" id="Telefone" value="@Model.Telefone" type="text" placeholder="Telefone" />
+                </div>
+                <div class="col-md-4 form-group">
+                    <label>E-mail:</label>
+                    <input class="form-control" id="Email" name="Email" type="email" value="@Model.Email" placeholder="E-mail" />
+                </div>
+                <div class="col-md-2 form-group">
+                    <label>CEP:</label>
+                    <input class="form-control cep" id="CEP" name="CEP" value="@Model.CEP" type="text" placeholder="CEP" />
+                </div>
+                <div class="col-md-6 form-group">
+                    <label>Endereço:</label>
+                    <input class="form-control" id="Endereco" name="Endereco" value="@Model.Endereco" type="text" placeholder="Endereço" />
+                </div>
+                <div class="col-md-2 form-group">
+                    <label>Número:</label>
+                    <input class="form-control" id="EnderecoNumero" name="EnderecoNumero" value="@Model.EnderecoNumero" type="text" placeholder="Numero" />
+                </div>
+                <div class="col-md-2 form-group">
+                    <label>Complemento:</label>
+                    <input class="form-control" id="Complemento" name="Complemento" value="@Model.Complemento" type="text" placeholder="Complemento" />
+                </div>
+                <div class="col-md-4 form-group">
+                    <label>Bairro:</label>
+                    <input class="form-control" id="Bairro" name="Bairro" value="@Model.Bairro" type="text" placeholder="Bairro" />
+                </div>
+                <div class="col-md-4 form-group">
+                    <label>Cidade:</label>
+                    <input class="form-control" id="Cidade" name="Cidade" value="@Model.Cidade" type="text" placeholder="Cidade" />
+                </div>
+                <div class="col-md-4 form-group">
+                    <label>Estado:</label>
+                    <select class="form-control" id="Estado" name="Estado">
+                        <option value="">Selecione</option>
+                        @foreach (var item in GuardMedWeb.BLL.Utils.Utils.GetEstados())
+                        {
+                            <option value="@item.EstadoId">@item.Description</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (!Context.Request.Query.ContainsKey("RenewToken"))
+    {
+        <br />
+        <div class="card bg-light">
+            <div class="card-header">
+                <h5 class="amaisvet-green">Histórico do Seguro</h5>
+            </div>
+            <div class="card-body">
+                <div class="row" style="width:100%;">
+                    <div class="col-md-6"> <b>O profissional possui apólice de seguro vigente ou a renovar?</b> </div>
+                    <div class="row col-md-6">
+                        <div class="col-md-5 text-center">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="HistoricoSeguro" id="HistoricoSeguroSim" value="true">
+                                <label class="form-check-label" for="inlineRadio3"><strong>Sim</strong></label>
+                                <br />
+                            </div>
+                        </div>
+                        <div class="col-md-5 text-center">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="HistoricoSeguro" id="HistoricoSeguroNao" value="false">
+                                <label class="form-check-label" for="inlineRadio4"><strong>Não</strong></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row" id="DivDatasHistoricoSeguro" style="display:none;">
+                    <div class="form-group col-md-4">
+                        <label>Data de Vencimento da Apólice:</label>
+                        @*<input name="DataVencimentoSeguro" id="DataVencimentoSeguro" type="hidden" />*@
+                        <input class="form-control date" id="DataVencimentoSeguro" name="_DataVencimentoSeguro" type="text" placeholder="Data de Vencimento da Apólice" value="@Model._DataVencimentoSeguro" />
+                    </div>
+                    <div class="col-md-1"></div>
+                    <div class="form-group col-md-4">
+                        <label>Data de Retroatividade:</label>
+                        @*<input name="Retroatividade" id="Retroatividade" type="hidden" />*@
+                        <input class="form-control date" id="DataRetroatividade" name="_DataRetroatividade" type="text" placeholder="Data de Retroatividade" value="@Model._DataRetroatividade" />
+                    </div>
+                    <div>&nbsp;&nbsp;&nbsp;&nbsp;</div>
+                    <div class="form-group col-md-4">
+                        <label>Apólices Anteriores:</label>
+                        <input type="file" id="BotaoUpload" name="file" />
+
+                    </div>
+                    <div class="col-md-12">
+                        <small style="color:grey;">*Arquivos devem ser remetidos em até 72 horas para o email : contato@guardmed.com.br</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <br />
+    <div class="card bg-light">
+        <div class="card-header">
+            <h5 class="amaisvet-green">Dados Técnicos</h5>
+        </div>
+        <div class="card-body">
+            <div id="dadosTecnicos" style="width:100%;">
+                @foreach (var especialidade in Model.EspecialidadeProfissional)
+                {
+                    <div id="especilidadeProfissionalArea@(i)" class="form-row">
+                        <input id="EspecialidadeProfissionalId@(i)" type="hidden" value="@especialidade.EspecialidadeProfissionalId" />
+                        <h5 class="col-md-12">
+                            Especialidade @(i)
+                        </h5>
+                        <div class="form-group col-md-12">
+                            <label>Especialidade:</label>
+                            <select class="form-control" id="EspecialidadeId@(i)" disabled>
+                                <option value="">Selecione</option>
+                                @foreach (var _item in especialidadeFunctions.GetData())
+                                {
+                                    if (_item.EspecialidadeId == especialidade.EspecialidadeId)
+                                    {
+                                        <option value="@_item.EspecialidadeId" selected>@_item.Nome</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@_item.EspecialidadeId">@_item.Nome</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        @*<div class="form-group col-md-4">
+                                <label>Invasivo: </label>
+                                <select class="form-control" id="Invasivo@(i)">
+                                    <option value="">Selecione</option>
+                                    @if (especialidade.Invasivo == true)
+                                    {
+                                        <option value="true" selected>Sim</option>
+                                        <option value="false">Não</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="true">Sim</option>
+                                        <option value="false" selected>Não</option>
+                                    }
+                                </select>
+                            </div>*@
+                        @if (i != Model.EspecialidadeProfissional.Count)
+                        {
+                            <hr />
+                        }
+                    </div>
+                    i++;
+                }
+                @*@if (i == 1)
+                    {
+                        <div id="especilidadeProfissionalArea@(i)" class="form-row">
+                            <input id="EspecialidadeProfissionalId@(i)" type="hidden" value="" />
+                            <h5 class="col-md-12">
+                                Especialidade @(i)
+                            </h5>
+                            <div class="form-group col-md-8">
+                                <label>Especialidade:</label>
+                                <select class="form-control" id="EspecialidadeId@(i)">
+                                    <option value="">Selecione</option>
+                                    @foreach (var _item in especialidadeFunctions.GetData())
+                                    {
+                                        <option value="@_item.EspecialidadeId">@_item.Nome</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="form-group col-md-4">
+                                <label>Invasivo: </label>
+                                <select class="form-control" id="Invasivo@(i)">
+                                    <option value="">Selecione</option>
+                                    <option value="true">Sim</option>
+                                    <option value="false">Não</option>
+                                </select>
+                            </div>
+                        </div>
+                        i++;
+                    }*@
+            </div>
+            @*<div class="form-row">
+                    <div class="col-md-6">
+                        <a href="javascript:void(0)" id="DiminuirEspecialidade"><i class="fas fa-minus-circle"></i>&nbsp; Especialidade</a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="javascript:void(0)" id="AumentarEspecialidade" class="float-right"><i class="fas fa-plus-circle"></i>&nbsp; Especialidade</a>
+                    </div>
+                </div>*@
+        </div>
+    </div>
+
+    @if (!Context.Request.Query.ContainsKey("RenewToken"))
+    {
+        <br />
+        <div class="card bg-light">
+            <div class="card-header">
+                <h5 class="amaisvet-green">Contrato de Prestação de Serviços</h5>
+            </div>
+            <div class="card-body">
+                <div class="row" style="height:300px; overflow-y:auto;">
+                    <div class="col-md-12" style="line-height:30px;">
+                        Pelo presente instrumento particular, e na melhor forma de direito, as Partes abaixo qualificadas:<br />
+                        De um lado<br />
+                        <b>GUARDMED</b> com sede na Cidade de São Paulo, Estado de São Paulo, na Rua Manuel da Nóbrega, nº 354, 8º andar Paraíso, São Paulo-SP.  CEP 04001-00, representada pelos seus sócios nos termos de seu estatuto social, doravante denominada <b>CONTRATADA</b>, e de outro lado,<br />
+                        o <b>CONTRATANTE</b>, indicado e qualificado no certificado individual de seguro, têm entre si, justo e acertado, celebrar o presente Contrato de Prestação de Serviços (“<b>CONTRATO</b>”), nos termos e condições descritos nas cláusulas abaixo.
+                        <br /><br />
+                        <b><u>Cláusula Primeira – Objeto</u></b>
+                        <br /><br />
+                        <b>1.1.</b>	O presente <b>CONTRATO</b> tem como objeto o fornecimento dos seguintes serviços:
+                        <br />
+                        <div style="padding-left:30px;">
+                            a)	 Disponibilização de lista de documentos básicos, modelos de documentos e contratos  relacionados à atividade do profissional da área de saúde a ser extraída do site <a href="www.guardmed.com.br">www.guardmed.com.br</a>;<br />
+                            b)	Pesquisa nos tribunais competentes, limitado a 20 (vinte) decisões que serão disponibilizadas em forma de relatório, sem, contudo, emitir parecer, opinião ou orientação jurídica de qualquer natureza;<br />
+                            c)	Intermediação entre o paciente (reclamante) e o profissional (reclamado), adstrita a realização dos contatos necessários para formalização de acordo extrajudicial, excluindo análises de mérito e negociações, apenas atuando na interface entre as partes.
+                        </div>
+                        <br /><br />
+                        <b>1.2</b>	A lista de documentos disponibilizada no site da <b>CONTRATADA</b> não compreende o conteúdo dos documentos ou os termos a serem incluídos, mas apenas uma relação em forma de lista.<br />
+                        <b>1.3</b>	A equipe da <b>CONTRATADA</b>, no que se refere a alínea “c” do item 1.1, não atuará como mediadora ou conciliadora, limitando-se apenas a realização da interface entre as partes.<br />
+                        <b>1.3.1</b>	Não será objeto deste contrato o pedido de homologação judicial do termo de acordo previsto na alínea “c” do item 1.1, este será de inteira responsabilidade do <b>CONTRATANTE</b> que poderá solicitar à <b>CONTRATADA</b> a lista de escritórios de advocacia credenciados.<br />
+                        <b>1.4</b>	O prazo para envio do relatório constante na alínea “b” será de até 07 (sete) dias a contar do recebimento da solicitação formal pela <b>CONTRATADA</b> e somente mediante abertura do sinistro.
+                        <br /><br />
+                        <b><u>Cláusula Segunda – Prazo e Rescisão</u></b>
+                        <br /><br />
+                        <b>2.1.</b>	O presente <b>CONTRATO</b> terá vigência de <b>12 (doze) meses</b> contados a partir da data da contratação, podendo ser renovado por iguais e sucessivos períodos, mediante atualização do certificado de seguro.<br />
+
+                        <b>2.2.</b>	As partes poderão rescindi-lo em razão de:<br />
+
+                        <b>(i)</b>	recuperação judicial, decretação de falência ou processo de liquidação judicial ou extrajudicial da outra parte e<br />
+
+                        <b>(ii)</b>	considerando que o programa de proteção profissional funciona no sistema de seguro de movimentação mensal, o atraso no pagamento, por parte da <b>CONTRATANTE</b>, superior a 10 (dez) do vencimento da parcela, implicará suspensão, no mês em atraso, dos serviços fornecidos pela <b>CONTRATADA</b> e ausência de cobertura da apólice de responsabilidade civil profissional emitida pela Chubb seguros.<br />
+
+                        <b>(iii)</b>	A <b>CONTRATANTE</b> poderá solicitar a resilição unilateral a qualquer tempo, mediante manifestação por escrito encaminhada por fax, e-mail ou correspondência com aviso de recebimento no endereço indicado pela <b>CONTRATADA</b> constante no certificado individual de seguro.
+                        <br /><br />
+                        <b><u>Cláusula Terceira – Preço</u></b>
+                        <br /><br />
+                        <b>3.1.</b> Pela prestação dos serviços descritos no item 1.1, a <b>CONTRATANTE</b> pagará à <b>CONTRATADA</b> os valores correspondentes ao plano contratado previsto no certificado individual de seguro.
+                        <br /><br />
+                        <b><u>Cláusula Quarta – Das Comunicações entre as Partes</u></b>
+                        <br /><br />
+                        <b>4.1.</b>	Toda e qualquer comunicação entre as partes, para que seja válida, deverá ser manifestada por escrito e encaminhada por fax, e-mail ou correspondência com aviso de recebimento nos endereços indicados pelas partes no certificado de seguro.
+                        <br /><br />
+                        <b><u>Cláusula Quinta – Das Condições Gerais</u></b>
+                        <br /><br />
+                        <b>5.1.</b>	As partes reconhecem e declaram expressamente que as cláusulas e disposições estabelecidas neste <b>CONTRATO</b> prevalecem sobre quaisquer cláusulas ou condições estabelecidas em outros documentos, unilaterais ou não, firmados anteriormente pelas partes.<br />
+                        <b>5.2.</b>	O presente <b>CONTRATO</b> não gera obrigações entre as partes estranhas ao seu objeto.<br />
+                        <b>5.3.</b>	Todas as cláusulas anteriormente descritas só poderão ser alteradas por instrumento aditivo expresso e devidamente firmado entre as partes.<br />
+                        <b>5.4.</b>	Cada uma das Partes compromete-se a manter e preservar a outra Parte livre e a salvo de quaisquer demandas, queixas, reclamações, representações ou ações, e a ressarcir a outra Parte, integralmente, de qualquer dano direto decorrente de ações de natureza trabalhista, tributária, acidentária, ambiental, penal, previdenciária ou cível, intentadas por qualquer terceiro, incluindo seus empregados, prepostos, fornecedores, ou outros danos diretos decorrentes de ações e omissões da respectiva Parte nas suas atribuições nos termos deste <b>CONTRATO</b>.<br />
+                        <b>5.5.</b>	A eventual tolerância de qualquer das partes na hipótese de descumprimento, por parte da outra, de qualquer cláusula ou dispositivo deste <b>CONTRATO</b>, não importará em novação ou alteração contratual, nem a impedirá de exercer, a qualquer tempo, todos os direitos ou prerrogativas que, através do presente instrumento ou da lei, lhe são assegurados.
+                        <br /><br />
+                        <b><u>Cláusula Sexta – Foro de Eleição</u></b>
+                        <br /><br />
+                        <b>6.1.</b>	Fica desde já eleito o Foro da Comarca de São Paulo, com expressa renúncia a qualquer outro por mais privilegiado que seja, ou se torne, aonde dirimir-se-ão dúvidas ou questões oriundas do presente <b>CONTRATO</b>.<br />
+
+                        E assim, por estarem justos e acordados, as partes aceitam as cláusulas do presente <b>CONTRATO</b>, formalizado por meio do aceite do <b>CONTRATANTE</b> no correspondente termo de aceite.
+                    </div>
+                </div>
+            </div>
+            @if (!hasToken)
+            {
+                <div class="card-footer">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-check" id="AcceptTermCheckboxArea">
+                                <input type="hidden" value="@if (Model.AcceptTerm) {<text>true</text>} else {<text>false</text>}" id="AcceptTermHidden" name="AcceptTerm" />
+                                <input type="checkbox" class="form-check-input" style="margin-left:0;" @if (Model.AcceptTerm) { <text> checked</text>} id="AcceptTermCheckbox">
+                                <label class="form-check-label" for="exampleCheck1">Declaro que li e aceito os termos do contrato</label>
+                            </div>
+                        </div>
+                    </div>
+                    <br />
+                    <a href="@Url.Action("Cotacao", "SeguroProfissional")?reference=@Model.Referencia" class="btn btn-secondary"><i class="fas fa-arrow-left"></i>&nbsp;Voltar</a>
+                    <button type="button" id="FormularioSubmitButton" class="btn btn-primary float-right">Avançar&nbsp;<i class="fas fa-arrow-right"></i></button>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <br/>
+        <a href="@Url.Action("QuoteRenew", "SeguroProfissional")?reference=@Model.Referencia&RenewToken=@Context.Request.Query["RenewToken"]" class="btn btn-secondary"><i class="fas fa-arrow-left"></i>&nbsp;Voltar</a>
+        <button type="button" id="FormularioSubmitButton" class="btn btn-primary float-right">Avançar&nbsp;<i class="fas fa-arrow-right"></i></button>
+    }
+</form>
+<script type="text/javascript">
+    $('#AcceptTermCheckbox').change(function () {
+        $('#AcceptTermHidden').val($('#AcceptTermCheckbox')[0].checked);
+    });
+    var i = @i;
+    $('#FormularioSubmitButton').click(function () {
+        if (ValidacaoDeFormulario()) {
+            SalvarFormulario();
+        }
+    });
+    @if (!string.IsNullOrWhiteSpace(Model.EstadoCRM))
+    {
+        <text>
+    $('#EstadoCRM').find('[value=' + "@Model.EstadoCRM" + ']').attr('selected', true);
+        </text>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Model.Estado))
+    {
+        <text>
+    $('#Estado').find('[value=' + "@Model.Estado" + ']').attr('selected', true);
+        </text>
+    }
+
+    $('#AumentarEspecialidade').click(function () {
+        if (i <= 4) {
+            $('#dadosTecnicos').append(
+                '<div id="especilidadeProfissionalArea' + i + '" class="form-row">' +
+                '<div class="col-md-12">' +
+                '<hr />' +
+                '</div>' +
+                '<input id="EspecialidadeProfissionalId' + i + '" type="hidden" value="" />' +
+                '<h5 class="col-md-12">Especialidade ' + i + '</h5>' +
+                '<div class="form-group col-md-8">' +
+                '<label>Especialidade:</label>' +
+                '<select class="form-control" id="EspecialidadeId' + i +'">' +
+                '<option value="">Selecione</option>' +
+                @foreach (var _item in especialidadeFunctions.GetData())
+                {
+                    <text>
+                    '<option value="@_item.EspecialidadeId">@_item.Nome</option>' +
+                    </text>
+                }
+                '</select>' +
+                '</div>' +
+                '<div class="form-group col-md-4">' +
+                '<label>Invasivo: </label>' +
+                '<select class="form-control" id="Invasivo' + i +'">' +
+                '<option value="">Selecione</option>' +
+                '<option value="true">Sim</option>' +
+                '<option value="false">Não</option>' +
+                '</select>' +
+                '</div>' +
+                '</div>');
+            i++;
+        } else {
+            alert('Não é possível adicionar mais especialidades.');
+        }
+    });
+    $('#DiminuirEspecialidade').click(function () {
+        if (i > 2) {
+            $('#especilidadeProfissionalArea' + (i - 1)).remove();
+            i--;
+        } else {
+            alert('Não é possível remover mais especialidades.');
+        }
+    });
+
+</script>
+<script type="text/javascript">
+
+
+    $("#HistoricoSeguroSim").change(function () {
+        $("#DivDatasHistoricoSeguro").show();
+    });
+    $("#HistoricoSeguroNao").change(function () {
+        $("#DivDatasHistoricoSeguro").hide();
+    });
+
+    @if (Model.HistoricoSeguro == true)
+    {
+        <text>
+            $("#HistoricoSeguroSim").prop("checked", true);
+        </text>
+    }
+    @if (Model.HistoricoSeguro == false)
+    {
+        <text>
+            $("#HistoricoSeguroNao").prop("checked", true);
+        </text>
+    }
+
+
+    function Validar() {
+        var error = false;
+
+        if ($('#HistoricoSeguroSim').length > 0 && $('#HistoricoSeguroSim').is(':checked') == false && $('#HistoricoSeguroNao').is(':checked') == false) {
+            error = true;
+        }
+        else if ($('#HistoricoSeguroSim').is(':checked')) {
+            if (IsNullOrWhiteSpace($('#DataVencimentoSeguro').val()) || IsNullOrWhiteSpace($('#DataRetroatividade').val())) {
+                error = true;
+            }
+        }
+
+        return (!error);
+    }
+
+    $('#FormularioForm').submit(function () {
+        if (!Validar()) {
+            alert("Por favor, preencher os campos de Histórico do Seguro");
+            return false;
+        }
+        else {
+            return true;
+        }
+    });
+
+    $('[name="HistoricoSeguro"]').click(function () {
+        if ($('[name="HistoricoSeguro"]:checked').val() == 'true') {
+            $('#DivDatasHistoricoSeguro').show();
+        } else {
+            $('#DivDatasHistoricoSeguro').hide();
+        }
+    });
+
+    $(document).ready(function () {
+        @if (Model.HistoricoSeguro.HasValue)
+        {
+            if (Model.HistoricoSeguro.Value)
+            {
+            <text>
+        $('#HistoricoSeguroSim').click();
+            </text>
+            }
+            else
+            {
+            <text>
+        $('#HistoricoSeguroNao').click();
+            </text>
+            }
+        }
+    });
+</script>

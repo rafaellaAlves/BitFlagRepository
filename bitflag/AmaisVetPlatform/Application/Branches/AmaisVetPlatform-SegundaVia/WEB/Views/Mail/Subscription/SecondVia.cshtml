@@ -1,0 +1,67 @@
+﻿@model DTO.Certificate.CertificateViewModel
+@{
+    Layout = null;
+}
+@{ await Html.RenderPartialAsync("/Views/Mail/Subscription/Shared/Header.cshtml"); }
+<p>
+    Olá Dr(a). @Model.Subscription.FullName, segue os dados da 2ª via do seu certificado
+</p>
+
+
+<p>
+    <ul>
+        <li>
+            <b>DADOS CADASTRAIS</b>
+            <ul>
+                <li>Nome: <b>@Model.Subscription.FullName</b></li>
+                <li>CPF: <b>@Model.Subscription.Cpf</b></li>
+                <li>Data de Nascimento: <b>@Model.Subscription.BirthDateFormatted</b></li>
+                <li>Faixa Etária: <b>@Model.Subscription.AgeRange</b></li>
+                <li>CRMV: <b>@Model.Subscription.Crmv</b></li>
+                
+                <li>Área de Atuação: <b>@Model.Subscription.OccupationArea</b></li>
+                <li>Especialidade: <b>@Model.Subscription.ProfessionalSpecialty</b></li>
+                <li>Ano de formação: <b>@Model.Subscription.GraduationYear</b></li>
+                <li>E-mail: <b>@Model.Subscription.Email</b></li>
+                <li>Telefone: <b>@Model.Subscription.PhoneNumber</b></li>
+                <li>Celular: <b>@Model.Subscription.MobileNumber</b></li>
+                <li>CEP: <b>@Model.Subscription.ZipCode</b></li>
+                <li>Endereço: <b>@Model.Subscription.Address</b></li>
+                <li>Complemento: <b>@Model.Subscription.AddressAdditionalInfo</b></li>
+                <li>Cidade: <b>@Model.Subscription.City</b></li>
+                <li>Estado: <b>@Model.Subscription.State</b></li>
+            </ul>
+        </li>
+
+        <li>
+            <b>RESUMO DO SEGURO</b>
+            <ul>
+                <li>Plano: <b>@Model.Plan.Name</b></li>
+                <li>Valor da Assinatura: <b>@Model.Subscription.MonthlyCostFormatted</b></li>
+                <li>Forma de Pagamento: @{
+                    if (Model.Subscription.PaymentMethodId.Equals(1)) {
+                        <b>Boleto</b>
+                    } else if (Model.Subscription.PaymentMethodId.Equals(2)) {
+                        <b>Cartão de Crédito</b>
+                    } else {
+                    <b>Não possui.</b>
+                        } }</li>
+                @foreach (var item in Model.Plan.Coverages)
+                {
+                    <li>@item.Value.planCoverageTypeViewModel.Description: <b>@item.Value.Description</b></li>
+                }
+                <li>Assistência Farmácia: <b>Sim</b></li>
+            </ul>
+        </li>
+    </ul>
+<p>
+    Divergências de informações são as principais causas de perda de direito à indenização.
+</p>
+<div style="width: 100%; background-color: #0f4c81; color: white; padding: 20px;">
+    <p>Pensando em sustentabilidade, a AmaisVet disponibiliza os documentos do seu seguro digitalmente.</p>
+    <p>Clique nos links e visualize:</p>
+    <p style="padding: 5px; background-color: #20ce88;">
+        <a style="color: white;" href="@Url.Action("Goto", "Subscription", new { reference = Model.Subscription.Reference }, this.Context.Request.Scheme)">Certificado Individual</a> | <a style="color: white;" href="https://www.amaisvet.com.br/condicoesgerais-particulares">Condições Gerais Responsabilidade Profissional</a> | <a style="color: white;" href="https://www.amaisvet.com.br/condicoesgerais-particulares">Renda Protegida</a> | <a style="color: white;" href="https://www.amaisvet.com.br/condicoesgerais-particulares">Tabela de Indenização do Renda Protegida</a> | <a style="color: white;" href="https://www.amaisvet.com.br/condicoesgerais-particulares">Assistência Farmácia</a>
+    </p>
+</div>
+@{ await Html.RenderPartialAsync("/Views/Mail/Subscription/Shared/Signature.cshtml"); }

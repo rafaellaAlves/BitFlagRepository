@@ -1,0 +1,13 @@
+﻿@{ 
+    ViewData["Title"] = "Serviços";
+}
+
+<div class="card bd-0">
+    <div class="card-body">
+        @(await Component.InvokeAsync("ServiceIndex"))
+    </div>
+</div>
+
+@section Scripts {
+    <script asp-paste-key="service-index"></script>
+}

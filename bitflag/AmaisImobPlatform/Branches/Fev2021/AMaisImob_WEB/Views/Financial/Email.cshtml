@@ -1,0 +1,10 @@
+﻿@model AMaisImob_WEB.Models.ChargeViewModel
+
+<div style="width: 75%; max-width: 500px; margin: auto;">
+    <p style="line-height: 15px; margin-bottom: 5px !important;">Caro Parceiro,</p>
+    <p style="line-height: 15px; margin-bottom: 10px !important;">Encaminhamos para providência o faturamento dos seguros e serviços contratados referente ao mês de <b>@Model._ReferenceDate</b>.</p>
+    <p style="line-height: 15px; margin-bottom: 10px !important;">Os relatórios estão disponíveis na plataforma A+Imob na seção Financeiro (<a href="@Url.Action("Index", "Financial", new { realEstateId = Model.RealEstateId, referenceDate = Model.ReferenceDateISOString, ChargeContractualGuarantee = Model.RealStateChargeContractualGuarantee }, Context.Request.Scheme, Context.Request.Host.Value)">link</a>).</p>
+    <p style="line-height: 15px; margin-bottom: 10px !important;">Em caso de dúvidas entrar em contato pelo <a href="mailto:financeiro@amaisseg.com.br">financeiro@amaisseg.com.br</a>.</p>
+    <p style="line-height: 15px; margin-bottom: 10px !important;">Atenciosamente,</p>
+    <b>Equipe A+ Imob</b>
+</div>

@@ -1,0 +1,13 @@
+﻿@model int
+
+@{
+    string title = "";
+   
+    title = "Relatório";
+    ViewData["Title"] = title;
+}
+<div class="card shadow bg-light">
+    <div class="card-body">
+        @(await Component.InvokeAsync<WEB.ViewComponents.Report.ReportIndexViewComponent>(new { status = Model }))
+    </div>
+</div>

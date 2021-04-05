@@ -1,0 +1,18 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutClean.cshtml";
+    ViewData["Title"] = "Página não encontrada";
+}
+<div class="text-center">
+<h6 class="mb-4">Página não encontrada.</h6>
+@if (User.Identity.IsAuthenticated)
+{
+    <a href="@Url.Action("Index", "Home")" class="btn btn-primary btn-lg btn-shadow">Ir para HOME</a>
+    <br />
+    <br />
+    <a style="font-size: 10px;" href="@Url.Action("Login", "Account")">Ir para Login</a>
+}
+else
+{
+    <a href="@Url.Action("Login", "Account")" class="btn btn-primary btn-lg btn-shadow">Ir para Login</a>
+}
+</div>

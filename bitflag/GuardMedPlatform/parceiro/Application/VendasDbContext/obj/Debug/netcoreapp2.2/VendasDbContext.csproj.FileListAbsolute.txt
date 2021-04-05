@@ -1,0 +1,9 @@
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\Application\VendasDbContext\bin\Debug\netcoreapp2.2\VendasDbContext.deps.json
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\Application\VendasDbContext\bin\Debug\netcoreapp2.2\VendasDbContext.dll
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\Application\VendasDbContext\bin\Debug\netcoreapp2.2\VendasDbContext.pdb
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\Application\VendasDbContext\obj\Debug\netcoreapp2.2\VendasDbContext.csprojAssemblyReference.cache
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\Application\VendasDbContext\obj\Debug\netcoreapp2.2\VendasDbContext.AssemblyInfoInputs.cache
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\Application\VendasDbContext\obj\Debug\netcoreapp2.2\VendasDbContext.AssemblyInfo.cs
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\Application\VendasDbContext\obj\Debug\netcoreapp2.2\VendasDbContext.csproj.CoreCompileInputs.cache
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\Application\VendasDbContext\obj\Debug\netcoreapp2.2\VendasDbContext.dll
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\Application\VendasDbContext\obj\Debug\netcoreapp2.2\VendasDbContext.pdb

@@ -1,0 +1,110 @@
+@model DTO.Client.ClientViewModel
+
+@using DTO.Utils
+
+@inject Services.Client.ClientActivityServices clientActivityServices
+@inject Web.Helpers.DropDownListHelper dropDownListHelper
+
+@{
+    var clientActivities = await clientActivityServices.GetDataAsNoTrackingAsync();
+
+    var otherActivity = clientActivities.Single(x => x.ExternalCode == "OUTROS");
+}
+
+<form id="form-client-manage" action="@Url.Action("ManageForm", "Client")" method="post">
+    <input type="hidden" name="ClientId" value="@Model.ClientId" />
+    <div class="row">
+        @( await Component.InvokeAsync<Web.ViewComponents.Shared.CompanyViewComponent>(new { model = Model.CopyToEntity<DTO.Shared.CompanyBaseViewModel>() }) )
+        <div class="col-md-3">
+            <div class="form-group">
+                <label class="control-label required">Ramo de Atividade</label>
+                @Html.DropDownList("ClientActivityId", dropDownListHelper.ToSelectListItem<ApplicationDbContext.Models.ClientActivity, int, string>(clientActivities, x => x.ClientActivityId, x => x.Name, Model.ClientActivityId.ToString()), "Selecione", new { Class = "form-control w-100", onchange = "checkClientActivity()" })
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label class="control-label">Telefone Central</label>
+                <input class="form-control" placeholder="Telefone Central" name="Phone" value="@Model.Phone" />
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label>E-mail Central</label>
+                <input class="form-control" placeholder="E-mail Central" name="CentralEmail" value="@Model.CentralEmail" />
+            </div>
+        </div>
+        <div class="col-md-12" id="activity-description-area" style="@(Model.ClientActivityId != otherActivity.ClientActivityId? "display:none;" : "")">
+            <div class="form-group">
+                <label class="required">Especifique o ramo de atividade</label>
+                <textarea name="ActivityDescription" class="form-control">@Model.ActivityDescription</textarea>
+            </div>
+        </div>
+    </div>
+    <hr />
+    @( await Component.InvokeAsync<Web.ViewComponents.Shared.AddressViewComponent>(new { model = Model.CopyToEntity<DTO.Shared.AddressBaseViewModel>(), formId = "#form-client-manage" }) )
+</form>
+
+
+
+<script type="text/javascript" asp-cut-key="client-manage-script">
+    $('#client-save-button').click(function () {
+
+        if (!validateInputs('form-client-manage')) return;
+
+        $.post('@Url.Action("ValidateClient")', $('#form-client-manage').serializeArray(), function (d) {
+            if (d.hasError) {
+                bootbox.alert(d.message);
+                return;
+            }
+
+            $('#form-client-manage').submit();
+        });
+
+        //$('#pills-address-tab').trigger('click');
+    });
+
+   $('#form-client-manage [name="CNPJ"], #form-client-manage [name="CPF"]').blur(function ()
+   {
+       $('.cnpj-error').remove();
+
+        $.post('@Url.Action("ValidateClient")', $('#form-client-manage').serializeArray(), function (d) {
+            if (d.hasError) {
+                if ($('#form-client-manage [name="CNPJ"]').is(':visible')) {
+                    $('#form-client-manage [name="CNPJ"]').after('<small class="text-danger cnpj-error">' + d.message + '</small>');
+                } else {
+                    $('#form-client-manage [name="CPF"]').after('<small class="text-danger cnpj-error">' + d.message + '</small>');
+                }
+            }
+       });
+   });
+
+
+    $('#goToNext').click(function () {
+        $('#pills-address-tab').trigger('click');
+    });
+
+    $('#form-client-manage [name="IEExempted"]').change(function () {
+        if ($(this).is(':checked')) {
+            $('#form-client-manage [name="IE"]').val('ISENTO');
+        } else {
+            $('#form-client-manage [name="IE"]').val('');
+        }
+    });
+
+    function checkClientActivity()
+    {
+        if ($('#form-client-manage [name="ClientActivityId"]').val() == @otherActivity.ClientActivityId) {
+            $('#form-client-manage #activity-description-area').show();
+        }
+        else {
+            $('#form-client-manage [name="ActivityDescription"]').val('');
+            $('#form-client-manage #activity-description-area').hide();
+        }
+    }
+
+    $(document).ready(function () {
+        //Deixando como obrigatório os campos de endereço,
+        //Isto é feito por Jquery pois o endereço vem de um ViewComponent onde não é obrigatório
+        $('#form-client-manage [name=\'CEP\'], #form-client-manage [name=\'Address\'], #form-client-manage [name=\'Neighborhood\'], #form-client-manage [name=\'City\'], #form-client-manage [name=\'State\']').prev('label').addClass('required');
+    });
+</script>

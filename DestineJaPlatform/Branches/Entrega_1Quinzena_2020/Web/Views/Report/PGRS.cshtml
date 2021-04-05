@@ -1,0 +1,91 @@
+﻿@inject Services.Residue.UnitOfMeasurementServices unitOfMeasurementServices
+@inject Services.Client.ClientReportServices clientReportServices
+@inject Web.Helpers.DropDownListHelper dropDownListHelper
+@inject Services.Client.ClientServices clientServices
+@{
+    DTO.Client.ClientViewModel userClient = null;
+
+    @if (User.IsClient())
+    {
+        userClient = await clientServices.GetViewModelByIdAsync(await clientServices.GetClientIdByLoggedUser(Context));
+    }
+
+    var startDate = new DateTime(DateTime.Now.Year, 1, 1);
+    var endDate = new DateTime(DateTime.Now.Year, 12, DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month));
+}
+<div class="card">
+    <div class="card-header">
+        <div class="row mb-2">
+            @if (User.IsClient())
+            {
+                <div class="col-12">
+                    <label class="text-destineja-md float-left">@userClient.Name - @userClient.AlternativeName - @userClient.DocumentFormated</label>
+                </div>
+            }
+            <div class="col-12 text-center" style="font-size: 20px !important; color: black;">
+                Plano de Gerenciamento de Resíduos Sólidos(PGRS)
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <form id="client-pgrs-filter-form">
+            @{
+                var filters = new List<ReportFilterModel>() { ReportFilterModel.StartAndEndDateFilter(new { startDate, endDate }, 3) };
+
+                if (User.IsInRole("Administrator"))
+                {
+                    filters.Add(ReportFilterModel.ClientFilter(null, 3));
+                }
+
+                filters.Add(ReportFilterModel.UnitOfMeasurementFilter(userClient?.ClientId, 3));
+
+                @(await Component.InvokeAsync<Web.ViewComponents.Report.Filter.FilterViewComponent>(filters))
+            }
+
+        </form>
+        <div class="row justify-content-end">
+            <div class="col-md-auto">
+                <div class="form-group">
+                    <button type="button" class="btn btn-primary" style="border-radius: 3px;" onclick="printReport('@Url.Action("PGRSDownload")')"><i class="simple-icon-cloud-download"></i> Download</button>
+                </div>
+            </div>
+            <div class="col-md-auto">
+                <div class="form-group">
+                    <button type="button" class="btn btn-primary" style="border-radius: 3px;" onclick="printReport('@Url.Action("PGRSPrint")')"><i class="simple-icon-printer"></i> Imprimir</button>
+                </div>
+            </div>
+        </div>
+        <hr />
+        <div class="w-100" id="client-report-collection-list-view-component">
+            @(await Component.InvokeAsync<Web.ViewComponents.Report.PGRS.IndexViewComponent>())
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script src="@Url.Content("~/assets/js/report.js")"></script>
+    <script asp-paste-key="report-filter-client"></script>
+
+    <script type="text/javascript">
+        function reloadByFilter() {
+            if (!validateInputs('client-pgrs-filter-form') || !validateStartAndEndDate()) return;
+
+            $('#client-report-collection-list-view-component').load('@Url.Action("LoadPGRSViewComponent")', $('#client-pgrs-filter-form').serializeArray());
+        }
+
+        function printReport(url) {
+             var form = $('<form>', { target: "_blank", method: "post", action: url });
+
+            form.append($('<input>', { type: 'hidden', value: (isNullOrWhiteSpace($('[name="StartDate"]').val()) ? "" : $('[name="StartDate"]').val()), name: 'startDate' }));
+            form.append($('<input>', { type: 'hidden', value: (isNullOrWhiteSpace($('[name="EndDate"]').val()) ? "" : $('[name="EndDate"]').val()), name: 'endDate' }));
+            form.append($('<input>', { type: 'hidden', value: (isNullOrWhiteSpace($('[name="UnitOfMeasurementId"]').val()) ? "" : $('[name="UnitOfMeasurementId"]').val()), name: 'unitOfMeasurementId' }));
+
+            setListPrintValuesIntoForm(form);
+
+            $('body').append(form);
+
+            form.submit();
+            form.remove();
+        }
+    </script>
+}

@@ -1,0 +1,522 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Cadastro de Usuários";
+}
+@section Styles {
+    <style type="text/css">
+        #menu {
+            background-image: url('@Url.Content("~/assets/image/home-background-cover.jpeg")');
+            background-repeat: no-repeat;
+            background-size: cover;
+            min-height: 100%;
+        }
+        .form_error{
+            color: red;
+            display: none;
+        }
+    </style>
+}
+
+<div class="row">
+    <div class="col-md-6">
+        <div id="menu" class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12 text-center">
+                    
+                        @await Html.PartialAsync("../Shared/_LayoutMenuAdmin.cshtml");
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="row pt-2">
+                            <div class="col-sm-4">
+                                <label style="visibility:hidden" class="control-label ">procura</label>
+                                <input name="Search" placeholder="Procurar..." type="text" class="form-control" />
+                            </div>
+                            <div class="col-sm-4">
+                                <label class="control-label ">Perfil</label>
+                                <select name="Perfil" id="pefil" class="custom-select">
+                                    <option>Selecione</option>
+                                    <option value="1">Administrador</option>
+                                    <option value="2">Vendedor</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-4">
+                                <label style="visibility:hidden" class="control-label ">botão</label>
+                                <button type="button" href="#" data-toggle="modal" data-target="#modal-registration" class="btn btn-success">Novo Usuário</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-striped table-responsive-sm table-bordered">
+                            <thead>
+
+                            </thead>
+                            <tbody>
+                            </tbody>
+                            <tfoot>
+
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@* MODAL NOVO USUARIO *@
+<style>
+    #message {
+        background: #f1f1f1;
+        color: #000;
+        position: relative;
+        padding: 20px;
+        margin-top: 10px;
+    }
+
+        #message p {
+            padding: 10px 35px;
+            font-size: 12px;
+        }
+
+    .valid {
+        color: green;
+    }
+
+        .valid:before {
+            position: relative;
+            left: -35px;
+            content: "\2714";
+        }
+
+    .invalid {
+        color: red;
+    }
+
+        .invalid:before {
+            position: relative;
+            left: -35px;
+            content: "\2715";
+        }
+</style>
+<div class="modal fade" id="modal-registration">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="exampleModalLabel">Dados do Usuário</h4>
+            </div>
+            <div class="modal-body">
+                <form method="post" id="formModalResgitration">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="control-label">Nome</label>
+                                <input name="Username" id="UserName" type="text" class="form-control" />
+                                <span class="form_error">Campo obrigatório</span>
+                                <span class="form_error" id="invalid-user">Digite um nome entre 5 e 30 caracteres</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="control-label ">E-mail</label>
+                                <input name="UserEmail" id="UserEmail" type="email" class="form-control " />
+                                <span class="form_error">Campo obrigatório</span>
+                                <span class="form_error" id="invalid-email">Digite um E-mail válido.</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-4">
+                            <div class="form-group">
+                                <label class="control-label">Senha</label>
+                                <input name="Password" id="Password" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" title="Deve conter pelo menos um número e uma letra maiúscula, e pelo menos 8 ou mais caracteres" required type="password" class="form-control" />
+                                <span class="form_error">Campo obrigatório</span>
+                                <div id="message" style="display: none;">
+                                    <p id="capital" class="invalid">Mínimo 1 letra <b>Maiúscula</b></p>
+                                    <p id="number" class="invalid">Mínimo 1 caracter <b>Numérico</b></p>
+                                    <p id="length" class="invalid">Mínimo <b>8 characteres</b></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="form-group">
+                                <label class="control-label">Confirmação senha</label>
+                                <input name="ConfirmPassword" id="ConfirmPassword" type="password" class="form-control " />
+                                <span class="form_error">Campo obrigatório</span>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="form-group">
+                                <label class="control-label ">Perfil</label>
+                                <select name="TypeUser" id="TypeUser" class="custom-select">
+                                    <option>Selecione</option>
+                                    <option value="1">Administrador</option>
+                                    <option value="2">Vendedor</option>
+                                </select>
+                                <span class="form_error">Campo obrigatório</span>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <div class="col-6">
+                    <button class="btn btn-danger" data-dismiss="modal" type="reset">Cancelar</button>
+                </div>
+                <div class="col-6 text-right">
+                    <button class="btn btn-success" onclick="return validateFormModal()" name="submitModal" type="submit">Salvar</button>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+@* ATUALIZAR USUÁRIO *@
+<div class="modal fade" id="modal-update">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="exampleModalLabel">Dados do Usuário</h4>
+            </div>
+            <div class="modal-body">
+                <form method="get" id="form-modal-resgitration">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="control-label">Nome</label>
+                                <input name="Username" @*value="@Modal.Username"*@ type="text" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-group">
+                                <label class="control-label ">E-mail</label>
+                                <input name="UserEmail" @*value="@Modal.Useremail"*@ type="email" class="form-control " />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-4">
+                            <div class="form-group">
+                                <label class="control-label ">Senha</label>
+                                <input name="Password" @*value="@Modal.Password"*@ disabled type="password" class="form-control " />
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="form-group">
+                                <label class="control-label ">Confirmação senha</label>
+                                <input name="ConfirmPassword" @*value="@Modal.Confirm"*@ disabled type="password" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="form-group">
+                                <label class="control-label ">Perfil</label>
+                                <select name="Type" class="custom-select">
+                                    <option>Selecione</option>
+                                    <option value="1">Administrador</option>
+                                    <option value="2">Vendedor</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <div class="col-6">
+                    <button class="btn btn-danger" data-dismiss="modal" type="reset">Cancelar</button>
+                </div>
+                <div class="col-6 text-right">
+                    <button class="btn btn-success" name="submitModal" type="submit">Salvar</button>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@* MODAL CAPTÇÃO DO VENDEDOR *@
+<div class="modal fade" id="modal-fundclient">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="exampleModalLabel">Captações do vendedor (a):</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-sm-8">
+                        <label style="visibility:hidden" class="control-label ">procura</label>
+                        <input name="Search" placeholder="Procurar..." type="text" class="form-control" />
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="control-label ">Perfil</label>
+                        <select name="Situation" id="situation" class="custom-select">
+                            <option>Selecione</option>
+                            <option value="1">Em negociação</option>
+                            <option value="2">Concluído</option>
+                        </select>
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <table class="table table-condesed table-striped table-responsive-sm">
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>Celular</th>
+                                        <th>Situação</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            Luana Rodriguez Bezerra
+                                        </td>
+                                        <td>
+                                            (11)99999-9999
+                                        </td>
+                                        <td>
+                                            Em negociação
+                                        </td>
+                                        <td>
+                                            <button type="button" data-toggle="modal" data-target="#modal-update-fundclient" class="btn btn-outline-info fa fa-edit p-1"></button>
+                                            <button type="button" class="btn btn-outline-info fa fa-trash p-1"></button>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <div class="col-6">
+                    <button class="btn btn-danger" data-dismiss="modal" type="reset">Cancelar</button>
+                </div>
+                <div class="col-6 text-right">
+                    <button class="btn btn-success" name="submitModal" type="submit">Salvar</button>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@* MODAL UPDATE CAPTAÇÃO VENDEDOR *@
+<div class="modal fade" id="modal-update-fundclient">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="exampleModalLabel">Atualizar Captação</h4>
+            </div>
+            <div class="modal-body">
+                <form id="form-update-fundclient">
+                    <div class="row">
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <label class="control-label ">Nome</label>
+                                <input name="Name" type="text" class="form-control " />
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <label class="control-label ">DDD</label>
+                                <input name="DDD" type="text" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <label class="control-label ">Celular</label>
+                                <input name="MobilephoneSeller" type="text" class="form-control " />
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <label class="control-label ">Perfil</label>
+                                <select name="Situation" id="situation" class="custom-select" required title="Selecione uma opção.">
+                                    <option>Selecione</option>
+                                    <option value="1">Em negociação</option>
+                                    <option value="2">Concluído</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <br />
+                    <div class="row">
+                        <div class="col-6">
+                            <button class="btn btn-danger" data-dismiss="modal" type="reset">Cancelar</button>
+                        </div>
+                        <div class="col-6 text-right">
+                            <button class="btn btn-success" name="submitModal" type="submit">Salvar</button>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script type="text/javascript" src="~/assets/js/Utils.js"></script>
+    <script type="text/javascript" src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script type="text/javascript">
+        function validateFormModal() {
+            var nome = $('#UserName').val();
+            var email = $('#UserEmail').val();
+            var senha = $('#Password').val();
+            var confim = $('#ConfirmPassword').val();
+            var tipo = $('#TypeUser').val();
+            var cont = 0;
+
+            //NOME
+            if (nome == '') {
+                $('#UserName').next().show();
+                $('#invalid-user').hide();
+                focus('#UserName');
+                cont = cont + 1;
+            } else if (nome.length < 5 || nome.length > 30) {
+                $('#invalid-user').show();
+                $('#UserName').next().hide();
+                focus('#UserName');
+                cont = cont + 1;
+            } else {
+                forceFocus('#UserName');
+                $('#Username').next().hide();
+                $('#invalid-user').hide();
+            }
+
+            //EMAIL
+            if (email == '') {
+                $('#UserEmail').next().show();
+                $('#invalid_email').hide();
+                focus('#UserEmail');
+                cont = cont + 1;
+
+            } else {
+                forceFocus('#UserEmail');
+                $('#UserEmail').next().hide();
+                $('#invalid-email').hide();
+            }
+
+            //SENHA
+            if (senha == '') {
+                $('#Password').next().show();
+                focus('#Password');
+                cont = cont + 1;
+            } else {
+                forceFocus('#Password');
+                $('#Password').next().hide();
+            }
+
+            //COMFIRMAÇÃO
+            if (confim == '') {
+                $('#ConfirmPassword').next().show();
+                focus('#ConfirmPassword');
+                cont = cont + 1;
+            } else {
+                forceFocus('#ConfirmPassword');
+                $('#ConfirmPassword').next().hide();
+            }
+
+            //TIPO
+            if (tipo == '') {
+                $('#TypeUser').next().show();
+                focus('#TypeUser');
+                cont = cont + 1;
+            } else {
+                forceFocus('#TypeUser');
+                $('#TypeUser').next().hide();
+            }
+
+            if (cont = 0) {
+                $('#formModalResgitration').submit();
+            } else {
+                return false;
+            }
+        }
+
+
+        $(document).ready(function () {
+            $("#formModalResgitration").validate({
+
+                onkeyup: function (element) {
+                    this.element(element);
+                },
+                onfocusout: function (element) {
+                    this.element(element);
+                },
+                rules: {
+                    ConfirmPassword: {
+                        equalTo: "#Password"
+                    },
+                },
+                messages: {
+                    ConfirmPassword: {
+                        equalTo: "A senha deve ser igual a anterior."
+                    },
+                },
+            });
+
+            var myInput = document.getElementById("Password");
+            var capital = document.getElementById("capital");
+            var number = document.getElementById("number");
+            var length = document.getElementById("length");
+
+
+            myInput.onfocus = function () {
+                document.getElementById("message").style.display = "block";
+            }
+
+            myInput.onblur = function () {
+                document.getElementById("message").style.display = "none";
+            }
+
+            myInput.onkeyup = function () {
+
+
+                //VALIDA LETRA MAIUSCULA
+                var upperCaseLetters = /[A-Z]/g;
+                if (myInput.value.match(upperCaseLetters)) {
+                    capital.classList.remove("invalid");
+                    capital.classList.add("valid");
+                } else {
+                    capital.classList.remove("valid");
+                    capital.classList.add("invalid");
+                }
+
+                // VALIDA NUMEROS
+                var numbers = /[0-9]/g;
+                if (myInput.value.match(numbers)) {
+                    number.classList.remove("invalid");
+                    number.classList.add("valid");
+                } else {
+                    number.classList.remove("valid");
+                    number.classList.add("invalid");
+                }
+
+                // VALIDA TAMANHO
+                if (myInput.value.length >= 8) {
+                    length.classList.remove("invalid");
+                    length.classList.add("valid");
+                } else {
+                    length.classList.remove("valid");
+                    length.classList.add("invalid");
+                }
+            }
+        });
+    </script>
+}

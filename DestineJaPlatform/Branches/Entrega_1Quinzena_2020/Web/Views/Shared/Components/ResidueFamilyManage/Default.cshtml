@@ -1,0 +1,53 @@
+﻿@model DTO.Residue.ResidueFamilyViewModel
+
+@inject Services.Residue.ResidueFamilyClassService residueFamilyClassService
+@inject Web.Helpers.DropDownListHelper dropDownListHelper
+<form class="row" id="residue-family-manage-form">
+    <input type="hidden" name="ResidueFamilyId" value="@Model.ResidueFamilyId" />
+
+    <div class="col-md-8 form-group">
+        <label class="required">Nome da Família</label>
+        <input class="form-control" placeholder="Nome da Família" name="Name" value="@Model.Name" />
+    </div>
+    <div class="col-md-4 form-group">
+        <label>Abreviação do Nome</label>
+        <input class="form-control" placeholder="Abreviação" name="NameAbbreviation" value="@Model.NameAbbreviation" />
+    </div>
+    
+    <div class="col-md-6 form-group">
+        <label class="required">Classe</label>
+        @Html.DropDownList("ResidueFamilyClassId", dropDownListHelper.ToSelectListItem<ApplicationDbContext.Models.ResidueFamilyClass, int, string>(await residueFamilyClassService.GetDataAsNoTrackingAsync(), x => x.ResidueFamilyClassId, x => x.Name, Model.ResidueFamilyClassId.ToString()), "Selecione", new { Class = "form-control w-100" })
+
+    </div>
+    <div class="col-md-6 form-group">
+        <label class="required">Risco</label>
+        <input class="form-control" placeholder="Risco" name="Risk" value="@Model.Risk" />
+    </div>
+    <div class="col-md-6 form-group">
+        <label class="required">Classe de Risco</label>
+        <input class="form-control" placeholder="Classe de Risco" name="RiskClass" value="@Model.RiskClass" />
+    </div>
+    <div class="col-md-6 form-group">
+        <label class="required">Código ONU</label>
+        <input class="form-control" placeholder="Código ONU" name="ONUCode" value="@Model.ONUCode" />
+    </div>
+</form>
+
+<script asp-cut-key="residue-family-manage">
+    function saveResidueFamily(callback) {
+        if (!validateInputs('residue-family-manage-form')) return;
+
+        $.post('@Url.Action("ManageAjax", "ResidueFamily")', $('#residue-family-manage-form').serializeArray(), callback);
+    }
+
+    function loadResidueFamilyData(data) {
+        $('#residue-family-manage-form [name="ResidueFamilyId"]').val(data == null ? '' : data.residueFamilyId);
+
+        $('#residue-family-manage-form [name="Name"]').val(data == null ? '' : data.name);
+        $('#residue-family-manage-form [name="NameAbbreviation"]').val(data == null ? '' : data.nameAbbreviation);
+        $('#residue-family-manage-form [name="ResidueFamilyClassId"]').val(data == null ? '' : data.residueFamilyClassId);
+        $('#residue-family-manage-form [name="Risk"]').val(data == null ? '' : data.risk);
+        $('#residue-family-manage-form [name="RiskClass"]').val(data == null ? '' : data.riskClass);
+        $('#residue-family-manage-form [name="ONUCode"]').val(data == null ? '' : data.onuCode);
+    }
+</script>

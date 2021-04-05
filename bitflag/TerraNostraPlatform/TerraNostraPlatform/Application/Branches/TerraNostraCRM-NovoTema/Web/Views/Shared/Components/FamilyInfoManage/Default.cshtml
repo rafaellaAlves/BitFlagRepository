@@ -1,0 +1,215 @@
+﻿@model List<DTO.Family.FamilyStructureItemViewModel>
+
+@{
+    int applicantTypeId = (int)ViewBag.ApplicantFamilyMemberTypeId;
+}
+
+<ul class="list-group" id="applicant-area">
+    @{ await Html.RenderPartialAsync("~/Views/Shared/Components/FamilyInfoManage/Shared/Recursive.cshtml", Model); }
+</ul>
+
+<script type="text/javascript">
+    $('.changeableTitle').change(function () {
+        var li = $(this).closest('li');
+
+        var familyMemberTypeId = $(li).data('family-member-type-id');
+        var fullName = $(li).find('input[name="FullName"]').val();
+
+        if (familyMemberTypeId == @applicantTypeId) {
+            $('.text-danger').remove();
+            if (IsNullOrWhiteSpace(fullName)) {
+                $(li).find('input[name="FullName"]').after('<div class="text-danger">Insira o nome.</div>');
+                return;
+            }
+        }
+
+        $('.nav-link.active').text($(li).find('input[name="FullName"]').val());
+    });
+
+    $('.changeable').change(function () {
+
+        var li = $(this).closest('li');
+        var clientId = $(li).find('input[name="ClientId"]').val();
+        var familyStructureId = $(li).data('family-structure-id');
+        var clientApplicantId = $(li).data('client-applicant-id');
+        var fullName = $(li).find('input[name="FullName"]').val();
+        var consortFullName = $(li).find('input[name="ConsortFullName"]').val();
+        var birthDate = $(li).find('input[name="_BirthDate"]').val();
+        var marriageDate = $(li).find('input[name="_MarriageDate"]').val();
+        var deathDate = $(li).find('input[name="_DeathDate"]').val();
+        var birthPlace = $(li).find('input[name="BirthPlace"]').val();
+        var marriagePlace = $(li).find('input[name="MarriagePlace"]').val();
+        var deathPlace = $(li).find('input[name="DeathPlace"]').val();
+        var email = $(li).find('input[name="_Email"]').val(); //usado apenas pelo requerente
+        var familyMemberTypeId = $(li).data('family-member-type-id');
+        var dataLimiteInicial = moment('01/01/1753', 'DD-MM-YYYY');
+        var dataLimiteFinal = moment('12/31/9999', 'DD-MM-YYYY');
+
+        if (!IsNullOrWhiteSpace(birthDate)) {
+            var _birthDate = moment(birthDate, 'DD-MM-YYYY');
+            if (_birthDate < dataLimiteInicial || _birthDate > dataLimiteFinal) {
+                alert("Informe uma data válida");
+                $(li).find('input[name="_BirthDate"]').val('');
+                return;
+            }
+        }
+
+        if (!IsNullOrWhiteSpace(marriageDate)) {
+            var _marriageDate = moment(marriageDate, 'DD-MM-YYYY');
+            if (_marriageDate < dataLimiteInicial || _marriageDate > dataLimiteFinal) {
+                alert("Informe uma data válida");
+                $(li).find('input[name="_MarriageDate"]').val('');
+                return;
+            }
+        }
+        console.log(deathDate);
+        if (!IsNullOrWhiteSpace(deathDate)) {
+            var _deathDate = moment(deathDate, 'DD-MM-YYYY');
+            console.log(_deathDate);
+            if (_deathDate < dataLimiteInicial || _deathDate > dataLimiteFinal) {
+                alert("Informe uma data válida");
+                $(li).find('input[name="_DeathDate"]').val('');
+                return;
+            }
+        }
+
+        if (familyMemberTypeId == @applicantTypeId && IsNullOrWhiteSpace(fullName)) {
+            return;
+        }
+
+        SaveFamilyMember(li, clientId, familyStructureId, clientApplicantId, fullName, consortFullName, deathDate, birthDate, marriageDate, birthPlace, marriagePlace, deathPlace, email, this);
+
+        updateLi(li);
+    });
+
+
+    function updateLi(li) {
+        var familyStructureId = $(li).data('family-structure-id');
+
+        if (hasAnyInfo(li)) {
+            showChildrens(familyStructureId);
+        } else {
+            hideChildrens(familyStructureId);
+
+            var parentFamilyStructureId = $(li).data('parent-family-structure-id');
+            if (parentFamilyStructureId != null) {
+                updateLi($('#listGroupItem' + parentFamilyStructureId));
+            }
+        }
+    }
+
+    function SaveFamilyMember(li, clientId, familyStructureId, clientApplicantId, fullName, consortFullName, deathDate, birthDate, marriageDate, birthPlace, marriagePlace, deathPlace, email, sel) {
+        $.post('@Url.Action("SaveFamilyMember", "Family")', { ClientId: clientId, FamilyStructureId: familyStructureId, ClientApplicantId: clientApplicantId, FullName: fullName, ConsortFullName: consortFullName, _DeathDate: deathDate, _BirthDate: birthDate, _MarriageDate: marriageDate, BirthPlace: birthPlace, MarriagePlace: marriagePlace, DeathPlace: deathPlace, Email: email }, function (d) {
+            var alert = $('<div class="text-success">Dados salvos com sucesso!</div>');
+            alert.fadeOut(2000);
+
+            $(sel).after(alert);
+            //'<div class="text-danger">Dados salvos com sucesso!</div>'
+        });
+    } //Chamada para salvar.
+
+    function GetFamilyMember(clientId, familyStructureId) {
+        $.get('@Url.Action("GetFamilyMember", "Family")', { clientId: clientId, familyStructureId: familyStructureId }, function (d) {
+        });
+    }
+
+    function showChildrens(familyStructureId) {
+        $('.parent-' + familyStructureId).show();
+        $.each($('.parent-' + familyStructureId), function (i, e) {
+            var structureId = $(e).data('family-structure-id');
+
+            $('#list-group-item-content-area-' + structureId).hide();
+            ChangeIcon('plus', structureId);
+        });
+    }
+
+    function hideChildrens(familyStructureId) {
+        if (childrensHasAnyInfo(familyStructureId)) return;
+
+        $('.parent-' + familyStructureId).hide();
+    }
+
+    function hasAnyInfo(li) {
+        var fullName = $(li).find('input[name="FullName"]').val();
+        var birthDate = $(li).find('input[name="_BirthDate"]').val();
+        var marriageDate = $(li).find('input[name="_MarriageDate"]').val();
+        var deathDate = $(li).find('input[name="_DeathDate"]').val();
+        var birthPlace = $(li).find('input[name="BirthPlace"]').val();
+        var marriagePlace = $(li).find('input[name="MarriagePlace"]').val();
+        var deathPlace = $(li).find('input[name="DeathPlace"]').val();
+
+        return !IsNullOrWhiteSpace(fullName) ||
+            !IsNullOrWhiteSpace(birthDate) ||
+            !IsNullOrWhiteSpace(marriageDate) ||
+            !IsNullOrWhiteSpace(deathDate) ||
+            !IsNullOrWhiteSpace(marriagePlace) ||
+            !IsNullOrWhiteSpace(birthPlace) ||
+            !IsNullOrWhiteSpace(deathPlace);
+    }
+
+    function childrensHasAnyInfo(familyStructureId) {
+        var flag = false;
+        $.each($('.parent-' + familyStructureId), function (i, e) {
+            if (hasAnyInfo(e)) {
+                flag = true;
+            }
+        });
+
+        return flag;
+    }
+
+    function ExpandeCollideItem(structureTypeId, force) {
+        var hidded = false;
+
+        if (force == null) {
+            if ($('#list-group-item-content-area-' + structureTypeId).is(":visible")) {
+                $('#list-group-item-content-area-' + structureTypeId).hide();
+                ChangeIcon('plus', structureTypeId);
+                hidded = true;
+            }
+            else {
+                $('#list-group-item-content-area-' + structureTypeId).show();
+                ChangeIcon('minus', structureTypeId);
+            }
+        } else {
+            if (force) {
+                //$('#listGroupItem' + structureTypeId).show();
+                $('#list-group-item-content-area-' + structureTypeId).show();
+                ChangeIcon('minus', structureTypeId);
+            }
+            else {
+                //$('#listGroupItem' + structureTypeId).hide();
+                $('#list-group-item-content-area-' + structureTypeId).hide();
+                ChangeIcon('plus', structureTypeId);
+            }
+        }
+
+        $.each($('.parent-' + structureTypeId), function (i, e) {
+            if (force == null) ExpandeCollideItem($(e).data('family-structure-id'), !hidded);
+            else ExpandeCollideItem($(e).data('family-structure-id'), force);
+        });
+    }
+
+    function ChangeIcon(icon, structureTypeId) {
+        $('#expande-collide-icon-' + structureTypeId).removeClass('simple-icon-plus');
+        $('#expande-collide-icon-' + structureTypeId).removeClass('simple-icon-minus');
+
+        $('#expande-collide-icon-' + structureTypeId).addClass('simple-icon-' + icon);
+    }
+
+ //   function _AttachmentListRemove(ownerId) {
+	//	if (confirm("Deseja realmente excluir este anexo?")) {
+ //           __AttachmentListRemove(ownerId, function () {
+ //               $('#_AttachmentListTable').DataTable().ajax.reload();
+ //               alert("Anexo excluído com sucesso!");
+ //               index = attachmentIds.indexOf(ownerId);
+ //               if (index !== -1)
+ //                   attachmentIds.splice(index, 1);
+	//		});
+	//	}
+	//}
+
+
+
+
+</script>

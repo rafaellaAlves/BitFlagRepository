@@ -1,0 +1,203 @@
+﻿<div class="row">
+    <div class="col-md-10">
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text"><i class="fa fa-search"></i></span>
+            </div>
+            <input id="ProductIndexSearch" type="text" class="form-control" placeholder="Procurar..." />
+        </div>
+    </div>
+    <div class="col-md-2">
+        <a href="@Url.Action("Manage", "Product")" class="btn btn-success pull-right w-100" style="color:white;"><i class="fas fa-plus-circle"></i>&nbsp;Novo</a>
+    </div>
+</div>
+<hr />
+
+<div class="table-wrapper">
+    <table id="ProductIndexTable" class="table display responsive" style="border-collapse: collapse !important; width:100%">
+        <thead>
+            <tr>
+                <td>Nome</td>
+                <td>Descrição</td>
+                <td>Qtd. Coberturas</td>
+                <td>Qtd. Planos</td>
+                <td>Gerenciar</td>
+                <td style="min-width: 80px;">&nbsp;</td>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<script type="text/javascript">
+    var ProductIndexTypingTimer;
+    var ProductIndexDoneTypingInterval = 500;
+    var ProductDatatables = $('#ProductIndexTable').DataTable({
+	    proccessing: true,
+        serverSide: true,
+	    searching: true,
+	    lengthChange: false,
+	    dom: 'tip',
+	    ajax: {
+            url: '@Url.Action("List", "Product")',
+		    type: 'POST'
+        },
+	    columns: [
+            {
+                data: 'ProductId',
+                render: function (data, type, row) {
+                    return "<a href='@Url.Action("Manage","Product")?id=" + row.productId + "')'>" + row.name + "</a>";
+                    return ;
+                }
+            },
+            {
+                data: 'Description',
+                render: function (data, type, row) {
+                    return row.description;
+                }
+            },
+            {
+                data: 'QtdCoverage',
+                render: function (data, type, row) {
+                    return row.qtdCoverage;
+                }
+            },
+            {
+                data: 'QtdPlan',
+                render: function (data, type, row) {
+                    return row.qtdPlan;
+                }
+            }
+            ,
+            {
+                data: '',
+                orderable: false,
+                render: function (data, type, row) {
+                    return "<div class='text-center' style='white-space:nowrap;'><a  href='@Url.Action("Index","ProductCoverage")?ProductId=" + row.productId + "')'><span class='badge badge-primary'>Coberturas</span></a>&nbsp;<a href='@Url.Action("Index","Plan")?productId=" + row.productId + "'><span class='badge badge-primary'>Planos</span></a>&nbsp;<a href='javascript:OpenProductAssistanceModal(" + row.productId + ")' title='produto x assistência'><span class='badge badge-primary'>Assistências</span></a></div>";
+                }
+            },
+            {
+                data: '',
+                orderable: false,
+                render: function (data, type, row) {
+
+                   return "<div class='text-center'><a href='javascript:void(0)' title='Excluir' class='fas fa-trash ' onclick='RemoveProduct(" + JSON.stringify({ productId: row.productId, name: row.name }) + ")'></a></div>";
+                   
+                }
+            }
+	    ]
+    });
+
+    function ProductIndexDoneTyping() {
+        if ($.fn.DataTable.isDataTable('#ProductIndexTable')) {
+            ProductDatatables.search($('#ProductIndexSearch').val()).draw();
+        }
+    }
+    $('#ProductIndexSearch').keyup(function () {
+        clearTimeout(ProductIndexTypingTimer);
+        ProductIndexTypingTimer = setTimeout(ProductIndexDoneTyping, ProductIndexDoneTypingInterval);
+    });
+    $('#ProductIndexSearch').keydown(function () {
+        clearTimeout(ProductIndexTypingTimer);
+    });
+
+
+    function RemoveProduct(data) {
+        if (confirm("Deseja remover o produto?")) {
+            $.ajax({
+                url: '@Url.Action("RemoveProduct", "Product")',
+                type: 'POST',
+                datatype: 'JSON',
+                data: { id: data.productId },
+                success: function (data) {
+                    if(!data.hasError){
+                        $('#ProductIndexTable').DataTable().ajax.reload();
+                    }
+                    alert(data.message);
+                }
+            });
+        }
+    }
+
+  
+</script>
+<div class="modal fade" id="ProductPlanModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" style="width:100%;" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold">Associação de Planos</h6>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="_ProductPlanViewComponent"></div>
+            </div>
+            <div class="modal-footer">
+                <div class="col-md-6">
+                    <button type="submit" aria-label="Close" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-times"></i>&nbsp;Fechar</button>
+                </div>
+                <div class="col-md-6">
+                    <a href="javacsropt:void(0)" id="_ProductPlanButtonSubmit" class="btn btn-success float-right"><i class="fas fa-cloud-upload-alt"></i>&nbsp;Salvar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function OpenModal(data) {
+        $('#_ProductPlanViewComponent').load('@Url.Action("ProductPlanComponent", "Product")', { "productId": data.productId });
+        $('#ProductPlanModal').modal('show');
+    }
+
+    $('#_ProductPlanButtonSubmit').click(function () {
+        _ProductPlanSave();
+    });
+
+    function _ProductPlanCallBack(data) {
+        $('#ProductPlanModal').modal('hide');
+        $('#ProductIndexTable').DataTable().ajax.reload();
+    }
+</script>
+
+
+
+<div class="modal fade" id="ProductAssistanceModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" style="width:100%;" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold">Associação de Assistências</h6>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="_ProductAssistanceManageViewComponent"></div>
+            </div>
+            <div class="modal-footer">
+                <div class="col-md-6">
+                    <button type="submit" aria-label="Close" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-times"></i>&nbsp;Fechar</button>
+                </div>
+                <div class="col-md-6">
+                    <a href="javacsropt:void(0)" id="_ProductAssistanceManageButtonSubmit" class="btn btn-success float-right"><i class="fas fa-cloud-upload-alt"></i>&nbsp;Salvar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function OpenProductAssistanceModal(productId) {
+        $('#_ProductAssistanceManageViewComponent').load('@Url.Action("ProductAssistanceComponent", "Assistance")', { "productId": productId });
+        $('#ProductAssistanceModal').modal('show');
+    }
+
+    $('#_ProductAssistanceManageButtonSubmit').click(function () {
+        _ProductAssistanceManageSave();
+    });
+
+    function _ProductAssistanceManageCallBack(data) {
+        $('#ProductAssistanceModal').modal('hide');
+    }
+</script>

@@ -1,0 +1,218 @@
+﻿html {
+    position: relative;
+    height: 100%;
+}
+
+body {
+    height: 100%;
+    font-family: Avenir;
+}
+
+.shadow {
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+.BackgorundColorHeader {
+    background: #eeeeee;
+    background: -moz-linear-gradient(top, #eeeeee 0%, #cccccc 100%);
+    background: -webkit-linear-gradient(top, #eeeeee 0%,#cccccc 100%);
+    background: linear-gradient(to bottom, #eeeeee 0%,#cccccc 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#eeeeee', endColorstr='#cccccc',GradientType=0 );
+}
+
+.rectangle {
+    z-index: 0;
+}
+
+.bigcircle {
+    width: 26px;
+    height: 26px;
+    border-radius: 13px;
+    margin-top: -18px;
+    z-index: 3;
+}
+
+.smallcircle {
+    width: 12px;
+    height: 12px;
+    border-radius: 9px;
+    margin-top: -19px;
+    z-index: 2;
+}
+
+.control-label {
+    font-weight: 500;
+}
+
+.guardmed-blue{
+    color: #2e5071;
+}
+.guardmed-lightblue {
+    color: #0080bd;
+}
+
+.bgguardmed-blue {
+    background-color: #2e5071;
+}
+
+.bgguardmed-lightblue {
+    background-color: #0080bd;
+}
+.guardmed-grey {
+    color: rgb(176,176,176);
+}
+.guardmed-darkgrey {
+    color: rgb(146,146,146);
+}
+.bgguardmed-grey {
+    background-color: rgb(176,176,176);
+}
+
+.amaisvet-green {
+    color: #2e5071;
+}
+
+.amaisvet-darkgreen {
+    color: #0a754e;
+}
+
+.bgamaisvet-green {
+    background-color: #13D68F;
+}
+
+.amaisvet-grey {
+    color: #938953;
+}
+
+.bgamaisvet-darkgreen {
+    background-color: #0a754e;
+}
+
+.amaisvet-orange {
+    color: #e36c09;
+}
+
+.amaisvet-darkorange {
+    color: #ab5107;
+}
+
+.bgamaisvet-orange {
+    background-color: #e36c09;
+}
+
+.bgamaisvet-darkorange {
+    background-color: #ab5107;
+}
+
+.amaisvet-purple {
+    color: #8064a2;
+}
+
+.amaisvet-darkpurple {
+    color: #ab5107;
+}
+
+.bgamaisvet-purple {
+    background-color: #ccc0d9;
+}
+
+.bgamaisvet-darkpurple {
+    background-color: #8064a2;
+}
+
+.tooltip-inner {
+    max-width: 340px;
+    text-align: left;
+    background-color: #2e5071;
+}
+
+.bs-tooltip-auto[x-placement^=bottom] .arrow::before, .bs-tooltip-bottom .arrow::before {
+    border-bottom-color: #2e5071 !important;
+}
+
+.bs-tooltip-auto[x-placement^=top] .arrow::before, .bs-tooltip-top .arrow::before {
+    border-top-color: #2e5071 !important;
+}
+
+.bs-tooltip-auto[x-placement^=left] .arrow::before, .bs-tooltip-left .arrow::before {
+    border-left-color: #2e5071 !important;
+}
+
+.bs-tooltip-auto[x-placement^=right] .arrow::before, .bs-tooltip-right .arrow::before {
+    border-right-color: #2e5071 !important;
+}
+
+.btn-primary {
+    color: #fff;
+    background-color: #2e5071;
+    border-color: #2e5071;
+}
+
+    .btn-primary.focus, .btn-primary:focus {
+        color: #fff;
+        background-color: #2e5071;
+        border-color: #2e5071;
+    }
+
+    .btn-primary:hover {
+        color: #fff;
+        background-color: #2e5071;
+        border-color: #2e5071;
+    }
+
+    .btn-primary.active, .btn-primary:active, .open > .dropdown-toggle.btn-primary {
+        color: #fff;
+        background-color: #2e5071;
+        border-color: #2e5071;
+    }
+
+        .btn-primary.active.focus, .btn-primary.active:focus, .btn-primary.active:hover, .btn-primary:active.focus, .btn-primary:active:focus, .btn-primary:active:hover, .open > .dropdown-toggle.btn-primary.focus, .open > .dropdown-toggle.btn-primary:focus, .open > .dropdown-toggle.btn-primary:hover {
+            color: #fff;
+            background-color: #2e5071;
+            border-color: #2e5071;
+        }
+
+.no-screen {
+    display: none !important;
+}
+
+.footer {
+    position: relative;
+    bottom: 0;
+    width: 100%;
+    min-height: 60px; /* Set the fixed height of the footer here */
+    line-height: 60px; /* Vertically center the text there */
+    background-color: #f5f5f5;
+}
+
+@media print {
+    page {
+        margin: 0;
+    }
+
+    body {
+        -webkit-print-color-adjust: exact;
+        margin-top: -2em;
+    }
+
+    .no-print, .no-print * {
+        display: none !important;
+    }
+
+    .page-break {
+        page-break-after: always;
+    }
+
+    .smallFont {
+        font-size: 10px;
+    }
+
+    .no-screen {
+        display: block !important;
+    }
+}
+@media only screen (max-width: 500px) {
+    .img-circle {
+        margin-left: 5px;
+    }
+}

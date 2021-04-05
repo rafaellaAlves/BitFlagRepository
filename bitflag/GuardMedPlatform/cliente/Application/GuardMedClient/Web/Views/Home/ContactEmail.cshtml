@@ -1,0 +1,25 @@
+﻿@model Web.DTO.Contact.ContactEmailViewModel
+
+<div style="width: 45%; margin-left: 26%; border: 1px solid #cecece; -webkit-box-shadow: -1px -5px 20px 0px #b5b5b5; box-shadow: -1px -5px 20px 0px #b5b5b5; background: linear-gradient(to bottom, #e2e2e2, #e2e2e2 70px, #a8c6e28a 250px, #adc2d8);">
+    <div style="padding: 15px; font-weight: bold; font-size: 25px; text-align: center;">
+        <img src="cid:LogoImg" width="300">
+        <div style="margin-top: 1em;">
+            - Nova Mensagem -<br />
+            #@Model.Segurado.Referencia
+        </div>
+    </div>
+    <div style="padding: 15px; font-size: 16px; line-height: 25px; padding-bottom: 40px;">
+        O cliente <b>@Model.Segurado.Nome</b> enviou a seguinte mensagem:<br /><br />
+        <div style="width: 80%; margin-left: 10%; padding: 10px; background: white; border-radius: 7px; box-shadow: inset 0px 0px 7px 2px #d0d0d0; -webkit-box-shadow: inset 0px 0px 7px 2px #d0d0d0; margin-bottom: 1em;">
+            @Html.Raw(Model.Mensagem)
+        </div>
+        @if (!string.IsNullOrWhiteSpace(Model.Segurado.Telefone) || !string.IsNullOrWhiteSpace(Model.Segurado.Celular))
+        {
+            <label>É possível entrar em contato com o cliente pelo telefone/celular: <b>@(!string.IsNullOrWhiteSpace(Model.Segurado.Celular)? Model.Segurado.Celular : Model.Segurado.Telefone)</b> ou pelo e-mail: <b>@Model.Segurado.Email</b>.</label>
+        }
+        else
+        {
+            <label>É possível entrar em contato com o cliente pelo e-mail: <b>@Model.Segurado.Email</b>.</label>
+        }
+    </div>
+</div> 

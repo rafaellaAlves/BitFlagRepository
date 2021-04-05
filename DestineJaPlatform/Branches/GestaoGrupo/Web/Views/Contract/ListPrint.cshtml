@@ -1,0 +1,95 @@
+﻿@model DTO.Contract.ContractListPrintViewModel
+
+@inject Services.Contract.ContractSituationServices contractSituationServices
+
+@{
+    var defaultingSituationId = (await contractSituationServices.GetDataByExternalCodeAsync("INADIMPLENTE")).ContractSituationId;
+    Layout = "~/Views/Shared/_LayoutClean.cshtml";
+}
+
+<style type="text/css">
+    main, main * {
+        -webkit-print-color-adjust: exact;
+        ;
+    }
+
+    body, body * {
+        -webkit-print-color-adjust: exact;
+    }
+
+    table {
+        border: 1px solid #f1f1f1 !important;
+    }
+
+    th {
+        background-color: #989898 !important;
+        color: white !important;
+        border: 1px solid #f1f1f1 !important;
+    }
+
+    td {
+        background-color: white !important;
+        border: 1px solid #f1f1f1 !important;
+    }
+</style>
+
+<div style="margin-bottom:5em; margin-top:3em;" class="no-print">
+    <a class="no-print btn btn-primary" style="padding: 10px 30px 10px 30px;" href="@Url.Action("Index", "Contract")"><i class="simple-icon-arrow-left"></i>&nbsp;Voltar</a>
+    <a class="no-print btn btn-success float-right" style="padding: 10px 30px 10px 30px;" href="javascript:window.print();"><i class="simple-icon-printer"></i>&nbsp;Imprimir</a>
+</div>
+<div style="width:100%; text-align:center;">
+    @{
+        var bytes = System.IO.File.ReadAllBytes(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "wwwroot", "Imagens", "logo2.png"));
+        var base64 = Convert.ToBase64String(bytes);
+
+        <img src="@($"data:image/png;base64, {base64}")" width="500" />
+    }
+</div>
+<div class="w-100 text-center" style="font-weight: bold; font-weight: bold; font-size: 20px; margin-bottom: 1em;">
+    LISTAGEM DE CONTRATOS
+</div>
+@if (!string.IsNullOrWhiteSpace(Model.Search) || !string.IsNullOrWhiteSpace(Model.ContractSituation) || !string.IsNullOrWhiteSpace(Model.RenewStatus))
+{
+    <div class="w-100 text-center" style="font-weight: bold; font-weight: bold; font-size: 20px;">
+        Filtros:
+    </div>
+    <div class="w-100 text-center" style="font-weight: bold; font-weight: bold; font-size: 20px; margin-bottom: 1em;">
+        @(string.IsNullOrWhiteSpace(Model.Search) ? "" : $"Pesquisar: '{Model.Search}'")
+        @(($"{(string.IsNullOrWhiteSpace(Model.Search) ? "" : " | ")}{Model.ContractSituation}").IfNullChange("", " | "))
+        @(($"{(string.IsNullOrWhiteSpace(Model.Search) ? "" : " | ")}{Model.RenewStatus}").IfNullChange("", " | "))
+    </div>
+}
+<div style="width:100%; text-align: right;">@Model.Items.Count Registros</div>
+<table class="table table-bordered table-condensed">
+    <thead>
+        <tr>
+            <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;">Código</th>
+            <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;">Gerador</th>
+            <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;">Início</th>
+            <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;">Vencimento</th>
+            <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;">Dia</th>
+            <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;">Status</th>
+            <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;">Observação</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Items)
+        {
+            <tr>
+                <td>@item.Code</td>
+                <td>@(item.ContractSituationId != defaultingSituationId? (object)item.ClientName : Html.Raw($"<span style=\"color: red\">{item.ClientName} <b>$</b></span>"))</td>
+                <td>@item._StartContract</td>
+                <td>@item._DueDate</td>
+                <td>@item.DueDay</td>
+                <td>@item.ContractStatusName.IfNullChange("-")</td>
+                <td>@(item.RemainingWeight < 0? "Peso contratado foi excedido." : "-")</td>
+            </tr>
+        }
+        @if (Model.Items.Count == 0)
+        {
+            <tr>
+                <td class="text-center" colspan="7">Nenhum dado encontrado.</td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,140 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject UserManager<TerraNostraIdentityDbContext.User> userManager
+@{
+    var controller = this.ViewContext.RouteData.Values["controller"].ToString();
+    var action = this.ViewContext.RouteData.Values["action"].ToString();
+}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Terra Nostra Assessoria :: @ViewData["Title"]</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <link rel="stylesheet" href="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/font/iconsmind-s/css/iconsminds.css" />
+    <link rel="stylesheet" href="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/font/simple-line-icons/css/simple-line-icons.css" />
+
+    <link rel="stylesheet" href="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/css/vendor/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/css/vendor/bootstrap.rtl.only.min.css" />
+    <link rel="stylesheet" href="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/css/vendor/bootstrap-float-label.min.css">
+    <link rel="stylesheet" href="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/css/vendor/component-custom-switch.min.css" />
+    <link rel="stylesheet" href="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/css/vendor/perfect-scrollbar.css" />
+    <link href="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/css/vendor/bootstrap-datepicker3.min.css" rel="stylesheet" />
+
+    <link rel="stylesheet" href="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/css/main.css" />
+
+    <style type="text/css">
+        .logo {
+            background: none;
+            width: 200px;
+            height: 53px;
+        }
+    </style>
+
+    <script src="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/js/vendor/jquery-3.3.1.min.js"></script>
+    <script src="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/js/vendor/bootstrap.bundle.min.js"></script>
+
+    <!-- DATATABLES -->
+    <link href="@Url.Content("~/assets/plugins/datatables/dataTables.bootstrap4.min.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/assets/plugins/datatables/buttons.bootstrap4.min.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/assets/plugins/datatables/responsive.bootstrap4.min.css")" rel="stylesheet" type="text/css" />
+    <script src="@Url.Content("~/assets/plugins/datatables/jquery.dataTables.min.js")"></script>
+    <script src="@Url.Content("~/assets/plugins/datatables/dataTables.bootstrap4.min.js")"></script>
+
+
+    <!-- DATEPICKER -->
+    <!-- DATEPICKER -->
+    <script src="@Url.Content("~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/js/vendor/bootstrap-datepicker.js")"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/locales/bootstrap-datepicker.pt-BR.min.js"></script>
+    @*<script src="@Url.Content("~/assets/plugins/datepicker/datepicker.js")"></script>
+        <script src="@Url.Content("~/assets/js/init/form-datepicker-init.js")"></script>
+        <script src="@Url.Content("~/assets/plugins/datepicker/i18n/datepicker.pt-BR.js")"></script>*@
+    <script src="@Url.Content("~/assets/plugins/moment/moment.js")"></script>
+
+    <!-- SUMMERNOTE -->
+    <link href="~/lib/summerNote/summernote.css" rel="stylesheet">
+    <link href="~/lib/summerNote/summernote-bs4.css" rel="stylesheet">
+    <script src="~/lib/summerNote/summernote.js"></script>
+    <script src="~/lib/summerNote/summernote-bs4.js"></script>
+    <script src="~/lib/summerNote/lang/summernote-pt-BR.js"></script>
+
+    <!-- MASK -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.15/jquery.mask.min.js"></script>
+    <script type="text/javascript">
+        $('.cpf').mask('000.000.000-00', { reverse: true });
+        $('.date').datepicker({ format: 'dd/mm/yyyy', language: 'pt-BR', autoclose: true });
+        $('.date').mask('99/99/9999');
+        $('.date-range').datepicker({
+            language: 'pt-BR',
+            dateFormat: 'dd/mm/yyyy',
+            range: true,
+            multipleDatesSeparator: ' - ',
+        });
+        $('.date-range-month').datepicker({
+            language: 'pt-BR',
+            dateFormat: 'MM yyyy',
+            range: true,
+            minView: 'months',
+            view: 'months',
+            multipleDatesSeparator: ' - ',
+        });
+        $('.money').mask('#.##0,00', { reverse: true });
+    </script>
+
+    <script src="~/js/site.js"></script>
+    <script type="text/javascript">
+        $(document).ajaxStart(function () {
+            $("#loading").show();
+        });
+        $(document).ajaxStop(function () {
+            $("#loading").hide();
+        });
+    </script>
+</head>
+
+<body id="app-container" class="menu-hidden show-spinner">
+    <div id="loading" style="display: none; z-index: 10; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6)">
+        <img src="~/images/ajax-loading.svg" style="position: absolute; left: 50%; margin-left: -100px; top: 50%; margin-top: -100px;" />
+    </div>
+    <div class="fixed-background"></div>
+    <main>
+        <div class="container">
+            <div class="row h-100">
+                <div class="col-12 mx-auto my-auto">
+                    <div class="container-fluid">
+                        @RenderBody()
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="border-top footer text-muted text-center">
+        Terra Nostra &copy; @DateTime.Now.Year :: Desenvolvido por Bit Flag (versão @string.Format("{0}.{1}-{2}", FUNCTIONS.Utils.Version.Major, FUNCTIONS.Utils.Version.Minor, FUNCTIONS.Utils.Version.Build))
+    </footer>
+    @*<footer class="page-footer">
+        <div class="footer-content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-12 col-sm-6">
+                        <p class="mb-0 text-muted">Terra Nostra &copy; @DateTime.Now.Year :: Desenvolvido por Bit Flag (versão @string.Format("{0}.{1}-{2}", FUNCTIONS.Utils.Version.Major, FUNCTIONS.Utils.Version.Minor, FUNCTIONS.Utils.Version.Build))</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>*@
+
+    <script src="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/js/vendor/perfect-scrollbar.min.js"></script>
+    <script src="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/js/vendor/mousetrap.min.js"></script>
+    <script src="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/js/dore.script.js"></script>
+    <script type="text/javascript">
+        var basePathForDore = '@Url.Content("~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/")';
+    </script>
+    <script src="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/js/scripts.js"></script>
+
+    @RenderSection("Modals", required: false)
+    @RenderSection("Scripts", required: false)
+</body>
+
+</html>

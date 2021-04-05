@@ -1,0 +1,22 @@
+﻿@{
+    var action = this.ViewContext.RouteData.Values["action"].ToString();
+
+    ViewData["Title"] = action.Equals("Index") ? "Contratos" : "Propostas";
+}
+
+<div class="card bd-0">
+    <div class="card-header">
+        <div class="row">
+            <div class="col text-center" style="font-size: 20px; color: black;">
+                @Html.Raw(action.Equals("Index") ? "Contratos" : "Propostas")
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        @(await Component.InvokeAsync("ContractIndex"))
+    </div>
+</div>
+
+@section Scripts {
+    <script asp-paste-key="contract-index"></script>
+}

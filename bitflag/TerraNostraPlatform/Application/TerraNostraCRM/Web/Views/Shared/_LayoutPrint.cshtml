@@ -1,0 +1,64 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject UserManager<TerraNostraIdentityDbContext.User> userManager
+@inject FUNCTIONS.User.UserFunctions userFunctions
+@{
+    var controller = this.ViewContext.RouteData.Values["controller"].ToString();
+    var action = this.ViewContext.RouteData.Values["action"].ToString();
+}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Terra Nostra Assessoria :: @ViewData["Title"]</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <link rel="stylesheet" href="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/font/iconsmind-s/css/iconsminds.css" />
+    <link rel="stylesheet" href="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/font/simple-line-icons/css/simple-line-icons.css" />
+
+    <link rel="stylesheet" href="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/css/vendor/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/css/main.css" />
+
+    <script src="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/js/vendor/jquery-3.3.1.min.js"></script>
+    <script src="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/js/vendor/bootstrap.bundle.min.js"></script>
+
+    <!-- DATEPICKER -->
+    <script src="@Url.Content("~/assets/plugins/datepicker/datepicker.js")"></script>
+    <script src="@Url.Content("~/assets/js/init/form-datepicker-init.js")"></script>
+    <script src="@Url.Content("~/assets/plugins/datepicker/i18n/datepicker.pt-BR.js")"></script>
+    <script src="@Url.Content("~/assets/plugins/moment/moment.js")"></script>
+
+    <!-- MASK -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.15/jquery.mask.min.js"></script>
+    <script src="~/js/site.js"></script>
+</head>
+
+<body id="app-container" class="menu-hidden show-spinner">
+    <div id="loading" style="display: none; z-index: 10; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6)">
+        <img src="~/images/ajax-loading.svg" style="position: absolute; left: 50%; margin-left: -100px; top: 50%; margin-top: -100px;" />
+    </div>
+    <main class="d-print-block">
+        <div class="container-fluid">
+            <div class="row invoice">
+                <div class="col-12">
+                    <div class="container-fluid">
+                        @RenderBody()
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/js/vendor/perfect-scrollbar.min.js"></script>
+    <script src="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/js/vendor/mousetrap.min.js"></script>
+    <script src="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/js/dore.script.js"></script>
+    <script type="text/javascript">
+        var basePathForDore = '@Url.Content("~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/")';
+    </script>
+    <script src="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/js/scripts.js"></script>
+
+    @RenderSection("Modals", required: false)
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

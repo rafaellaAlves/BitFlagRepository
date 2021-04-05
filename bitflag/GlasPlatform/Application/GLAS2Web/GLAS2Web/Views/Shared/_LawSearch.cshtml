@@ -1,0 +1,74 @@
+﻿<div id="_9236ABE035A44D5D809E2A17E4F39AD3">
+    <div class="input-group">
+        <span class="input-group-addon"><i class="fa fa-search"></i></span>
+        <input id="_9236ABE035A44D5D809E2A17E4F39AD3_search" class="form-control" type="text" placeholder="Procurar Requisito legal..." />
+        <script type="text/javascript">
+            var _9236ABE035A44D5D809E2A17E4F39AD3_typingTimer;
+            var _9236ABE035A44D5D809E2A17E4F39AD3_doneTypingInterval = 500;
+
+            function _9236ABE035A44D5D809E2A17E4F39AD3_DoneTyping() {
+                $('#_9236ABE035A44D5D809E2A17E4F39AD3_listGroupLawSearch').empty();
+                var q = $('#_9236ABE035A44D5D809E2A17E4F39AD3_search').val();
+
+                $.ajax({
+                    url: '@Url.Action("QuickList", "LawManagement")',
+                    type: 'POST',
+                    data: JSON.stringify(q),
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        if (data.data.length == 0)
+                        {
+							$('#_9236ABE035A44D5D809E2A17E4F39AD3_listGroupLawSearch').html('<i class="text-center">Nenhum Requisito legal encontrado.</a>');
+                        }
+
+                        $.each(data.data, function (i, e) {
+                            $('#_9236ABE035A44D5D809E2A17E4F39AD3_listGroupLawSearch').append(function () {
+
+								var listGroupItem = $('<li class="list-group-item" />');
+								if (e.LawRevokedDate != null) {
+									var listGroupItemA = $('<a class="_9236ABE035A44D5D809E2A17E4F39AD3 float-left" style="color: red; text-decoration: line-through;" href="javascript:void(0);" data-law-id="' + e.LawId + '" data-number="' + e.LawNumber + '" data-title="' + e.LawTitle + '">' + e.LawTitle + '</a>');
+								}
+								else {
+									var listGroupItemA = $('<a class="_9236ABE035A44D5D809E2A17E4F39AD3 float-left" href="javascript:void(0);" data-law-id="' + e.LawId + '" data-number="' + e.LawNumber + '" data-title="' + e.LawTitle + '">' + e.LawTitle + ' </a>');
+								}
+                                var listGroupItemB = $('<b class="float-right"><span>' + e._LawNumber + '</span></b>');
+
+                                $(listGroupItem).append(listGroupItemA);
+                                $(listGroupItem).append(listGroupItemB);
+
+                                return listGroupItem;
+                            });
+                        })
+
+                        $('._9236ABE035A44D5D809E2A17E4F39AD3').click(function () {
+                            var d = { LawId: parseInt($(this).data('law-id')), LawNumber: $(this).data('number'), LawTitle: $(this).data('title') };
+                            _LawSearchSelectCallBack(d);
+                        });
+                    }
+                });
+            }
+            $('#_9236ABE035A44D5D809E2A17E4F39AD3_search').keyup(function () {
+                clearTimeout(_9236ABE035A44D5D809E2A17E4F39AD3_typingTimer);
+                _9236ABE035A44D5D809E2A17E4F39AD3_typingTimer = setTimeout(_9236ABE035A44D5D809E2A17E4F39AD3_DoneTyping, _9236ABE035A44D5D809E2A17E4F39AD3_doneTypingInterval);
+            });
+            $('#_9236ABE035A44D5D809E2A17E4F39AD3_search').keydown(function () {
+                clearTimeout(_9236ABE035A44D5D809E2A17E4F39AD3_typingTimer);
+            });
+        </script>
+    </div>
+    <hr />
+    <div style="height: 100%; width: 100%; overflow-y:auto;">
+        <ul id="_9236ABE035A44D5D809E2A17E4F39AD3_listGroupLawSearch" class="list-group"></ul>
+    </div>
+    <script type="text/javascript">
+            function _LawSearchDoneTyping() {
+                _9236ABE035A44D5D809E2A17E4F39AD3_DoneTyping();
+            }
+            function _LawSearchClearSearch() {
+                $('#_9236ABE035A44D5D809E2A17E4F39AD3_search').val('');
+                $('#_9236ABE035A44D5D809E2A17E4F39AD3_listGroupLawSearch').empty();
+                $('#_9236ABE035A44D5D809E2A17E4F39AD3_listGroupLawSearch').html('<i class="text-center">Faça a busca no campo acima.</a>');
+            }
+            _LawSearchClearSearch();
+    </script>
+</div>

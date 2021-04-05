@@ -1,0 +1,48 @@
+﻿@model DTO.HealthQuestionnaire.HealthQuestionnaireUnblockViewModel
+@{
+    Layout = null;
+}
+@{ await Html.RenderPartialAsync("/Views/Mail/Subscription/Shared/Header.cshtml"); }
+
+<p>
+    Dados da proposta:
+    <ul>
+        <li>
+            <b>DADOS CADASTRAIS</b>
+            <ul>
+                <li>Nome: <b>@Model.Subscription.FullName</b></li>
+                <li>CPF: <b>@Model.Subscription.Cpf</b></li>
+                <li>Idade: <b>@Model.Subscription.Age</b></li>
+                <li>CRMV: <b>@Model.Subscription.Crmv</b></li>
+                <li>Estado CRMV: <b>@Model.Subscription.Crmvstate</b></li>
+                <li>Área de Atuação: <b>@Model.Subscription.OccupationArea</b></li>
+                <li>Especialidade: <b>@Model.Subscription.ProfessionalSpecialty</b></li>
+                <li>Ano de formação: <b>@Model.Subscription.GraduationYear</b></li>
+                <li>E-mail: <b>@Model.Subscription.Email</b></li>
+                <li>Telefone: <b>@Model.Subscription.PhoneNumber</b></li>
+                <li>Celular: <b>@Model.Subscription.MobileNumber</b></li>
+                <li>CEP: <b>@Model.Subscription.ZipCode</b></li>
+                <li>Endereço: <b>@Model.Subscription.Address</b></li>
+                <li>Complemento: <b>@Model.Subscription.AddressAdditionalInfo</b></li>
+                <li>Cidade: <b>@Model.Subscription.City</b></li>
+                <li>Estado: <b>@Model.Subscription.State</b></li>
+            </ul>
+        </li>
+        <li>
+            <b>RESUMO DO SEGURO</b>
+            <ul>
+                <li>Plano: <b>@Model.Plan.Name</b></li>
+                <li>Valor: <b>@Model.Plan.MonthlyCostFormatted</b></li>
+                @foreach (var item in Model.Plan.Coverages)
+                {
+                    <li>@item.Value.planCoverageTypeViewModel.Description: <b>@item.Value.Description</b></li>
+                }
+            </ul>
+        </li>
+    </ul>
+</p>
+<p>
+    Clique no link para desbloquear a proposta: <a href="@Url.Action("HealthUnblockAdmin", "Subscription", new { reference = Model.Subscription.Reference, token = Model.Token }, Context.Request.Scheme)">Desbloquear Proposta @Model.Subscription.Reference</a>.
+    
+</p>
+@{ await Html.RenderPartialAsync("/Views/Mail/Subscription/Shared/Signature.cshtml"); }

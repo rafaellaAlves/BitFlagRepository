@@ -1,0 +1,76 @@
+﻿@model DTO.Route.RouteViewModel
+
+@inject Services.Route.RouteServices routeServices
+@inject Services.Contract.ContractPeriodicityServices contractPeriodicityServices
+@inject Services.Route.RouteTypeServices routeTypeServices
+@inject Services.Route.RoutePeriodicityServices routePeriodicityServices
+@inject Web.Helpers.DropDownListHelper dropDownListHelper
+
+@{
+    ViewData["Title"] = "Gerenciar Rota";
+    var Id = Model.RouteId ?? await routeServices.GetLastId() + 1;
+}
+
+<div class="row" id="route-manage-form-area">
+    <div class="col-md-2 col-12 form-group">
+        <label>Código</label>
+        <input class="form-control" value="@Id" disabled placeholder="Código" />
+    </div>
+    <div class="col-md-6 col-12 form-group">
+        <label class="required">Nome</label>
+        <input class="form-control" value="@Model.Name" name="Name" placeholder="Nome" />
+    </div>
+    <div class="col-md-2 col-12 form-group">
+        <label class="required">Tipo de Rota</label>
+        @Html.DropDownList("RouteTypeId", dropDownListHelper.ToSelectListItem<ApplicationDbContext.Models.RouteType, int, string>(await routeTypeServices.GetDataAsNoTrackingAsync(), x => x.RouteTypeId, x => x.Name, Model.RouteTypeId.ToString()), "Selecione", new { Class = "form-control w-100" })
+    </div>
+    <div class="col-md-2 col-12 form-group">
+        <label class="required">Periodicidade</label>
+        @Html.DropDownList("RoutePeriodicityId", dropDownListHelper.ToSelectListItem<ApplicationDbContext.Models.RoutePeriodicity, int, string>(await routePeriodicityServices.GetDataAsNoTrackingAsync(), x => x.RoutePeriodicityId, x => x.Name, Model.RouteTypeId.ToString()), "Selecione", new { Class = "form-control w-100" })
+    </div>
+</div>
+<div class="row @(!Model.Suspended && !Model.Canceled && string.IsNullOrWhiteSpace(Model.EnableReason)? "mb-4" : "")">
+    <div class="col form-group">
+        <label>Observação</label>
+        <textarea class="form-control" name="Observation" placeholder="Observação">@Model.Observation</textarea>
+    </div>
+</div>
+@if (Model.Canceled)
+{
+    <div class="row mb-4">
+        <div class="col form-group">
+            <label>Motivo do Cancelamento</label>
+            <textarea class="form-control" disabled placeholder="Motivo do Cancelamento">@Model.CancelReason</textarea>
+        </div>
+    </div>
+}
+else if (Model.Suspended)
+{
+    <div class="row mb-4">
+        <div class="col form-group">
+            <label>Motivo da Suspensão</label>
+            <textarea class="form-control" disabled placeholder="Motivo da Suspensão">@Model.SuspendReason</textarea>
+        </div>
+    </div>
+}
+else if (!Model.Suspended && !Model.Canceled && !string.IsNullOrWhiteSpace(Model.EnableReason))
+{
+    <div class="row mb-4">
+        <div class="col form-group">
+            <label>Motivo de Habilitação</label>
+            <textarea class="form-control" disabled placeholder="Motivo de Habilitação">@Model.EnableReason</textarea>
+        </div>
+    </div>
+}
+
+@( await Component.InvokeAsync<Web.ViewComponents.Route.RouteClientViewComponent>(new { routeId = Model.RouteId }))
+
+<script type="text/javascript" asp-cut-key="route-manage">
+    @if (Model.Suspended || Model.Canceled)
+    {
+        <text>
+        disableAllFields('#route-manage-form', true);
+        </text>
+    }
+
+</script>

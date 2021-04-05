@@ -1,0 +1,107 @@
+﻿@inject Services.Client.ClientServices clientServices
+@inject Services.Contract.ContractServices contractServices
+
+@{
+    ViewData["Title"] = "Solicitar Coleta";
+
+    var clientId = await clientServices.GetClientIdByLoggedUser(Context);
+}
+
+<style type="text/css">
+    .bootbox-body {
+        text-transform: none;
+    }
+</style>
+
+<div class="card" style="border: 1px solid #dcdcdc;">
+    <div class="card-body">
+        <div class="form-group text-center text-destineja-lg">
+            Solicitar Coleta
+        </div>
+        @(await Component.InvokeAsync<Web.ViewComponents.Client.ClientCollectionRequestViewComponent>())
+    </div>
+    <div class="card-footer">
+        <button type="button" class="btn btn-destineja-orange float-right"><i class="fa fa-right-arrow"></i>&nbsp;<span id="client-collection-request-save-button-text">Próximo Passo</span></button>
+    </div>
+</div>
+
+@section Scripts{
+    <script asp-paste-key=""></script>
+    <script type="text/javascript">
+        $('#client-collection-request-save-button-text').click(function () {
+            if ($('#collection-request-form [name="Step"]').val() == 1) {
+                if (!validateInputs('client-collection-request-manage-area')) return;
+
+                if (!isNullOrWhiteSpace($('#collection-request-form [name="_Weight"]').val()) && isNaN(Globalize.parseFloat(Globalize.format($('#collection-request-form [name="_Weight"]').val())))) {
+                    $('#collection-request-form [name="_Weight"]').after('<small class="text-danger">O valor do peso precisa ser númerico.</small>');
+                    return;
+                }
+
+                $('#client-collection-request-manage-area').slideUp(750);
+
+                $('#client-collection-request-address-alert').show();
+                $('#client-collection-request-address-card').show();
+                $('#client-collection-request-address-area').slideDown(750);
+
+                $('#client-collection-request-save-button-text').text('Solicitar Coleta');
+
+                $('#collection-request-form [name="Step"]').val(2);
+                return;
+            }
+
+            if (!validateAddress()) return;
+
+            var _d = new FormData();
+
+            if ($('#collection-request-form [name=\'Archive\']')[0].files.length > 0) {
+                _d.append('Archive', $('#collection-request-form [name=\'Archive\']')[0].files[0]);
+            }
+
+            $('#collection-request-form').serializeArray().forEach(function (e) {
+                _d.append(e.name, e.value);
+            });
+
+            $.ajax({
+                url: '@Url.Action("CollectionRequest", "Client")',
+			    type: 'POST',
+			    contentType: false,
+			    processData: false,
+			    data: _d,
+                success: function (d) {
+                    if (!d.success) {
+                        bootbox.alert(d.message);
+                        return;
+                    }
+
+                    window.location.href = '@Url.Action("CollectionRequestSuccess", "Client")'
+                }
+            });
+        });
+
+        function validateAddress() {
+            $('.text-danger').remove();
+
+            if (isNullOrWhiteSpace($('[name="CEP"]').val())) $('[name="CEP"]').after($('<small>', { class: 'text-danger address-error' }).append('Preencha este campo.'));
+            if (isNullOrWhiteSpace($('[name="Address"]').val())) $('[name="Address"]').after($('<small>', { class: 'text-danger address-error' }).append('Preencha este campo.'));
+            if (isNullOrWhiteSpace($('[name="State"]').val())) $('[name="State"]').after($('<small>', { class: 'text-danger address-error' }).append('Preencha este campo.'));
+            if (isNullOrWhiteSpace($('[name="Number"]').val())) $('[name="Number"]').after($('<small>', { class: 'text-danger address-error' }).append('Preencha este campo.'));
+            if (isNullOrWhiteSpace($('[name="Neighborhood"]').val())) $('[name="Neighborhood"]').after($('<small>', { class: 'text-danger address-error' }).append('Preencha este campo.'));
+            if (isNullOrWhiteSpace($('[name="City"]').val())) $('[name="City"]').after($('<small>', { class: 'text-danger address-error' }).append('Preencha este campo.'));
+
+            return $('.text-danger').length == 0;
+        }
+    </script>
+
+    @if (await contractServices.ClientHasAnyContract(clientId))
+    {
+    <script type="text/javascript">
+        $(document).ready(function () {
+            bootboxConfirm('Você já possui contrato com a Destine Já, suas coletas já estão programadas. Você deseja realmente solicitar uma coleta extra?', function (d) {
+                if (!d) {
+                    window.location.href = '@Url.Action("Index", "Home")';
+                }
+            });
+        });
+    </script>
+    }
+}

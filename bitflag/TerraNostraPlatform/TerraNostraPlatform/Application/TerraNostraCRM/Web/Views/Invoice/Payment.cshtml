@@ -1,0 +1,13 @@
+﻿@{
+    ViewData["Title"] = "Parcelas";
+}
+
+<div class="card">
+    <div class="card-body">
+        <div id="_InvoicePaymentViewComponent"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#_InvoicePaymentViewComponent').load('@Url.Action("InvoicePaymentViewComponent", "Invoice")');
+</script>

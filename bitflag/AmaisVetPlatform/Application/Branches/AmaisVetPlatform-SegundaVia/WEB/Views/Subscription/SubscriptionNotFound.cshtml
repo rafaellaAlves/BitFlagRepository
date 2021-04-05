@@ -1,0 +1,43 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Referência não encontrada!";
+}
+
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="mb-2">
+            <h2>
+                Referência não encontrada!
+            </h2>
+        </div>
+        <hr />
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-12 text-center">
+                        <span class="fa-stack fa-5x">
+                            <i class="fas fa-circle fa-stack-2x"></i>
+                            <i class="fas fa-exclamation fa-stack-1x fa-inverse"></i>
+                        </span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 text-center">
+                        <h2>Não encontramos a referência.<br /><br /><small>Entre em contato com o suporte caso acredite que esteja aqui por um engano.</small></h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<hr />
+<div class="row">
+    <div class="col-md-6">
+        <a href="@Url.Action("Index", "Home")" class="btn btn-secondary">Voltar</a>
+    </div>
+</div>

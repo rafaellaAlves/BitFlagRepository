@@ -1,0 +1,858 @@
+﻿@model CompanyViewModel
+@using System.Globalization;
+@using WEB.Utils;
+@inject WEB.BLL.CompanyFunctions companyFunctions
+@{
+
+    string mesAtual = "";
+
+    switch (DateTime.Now.Month)
+    {
+        case 1:
+            mesAtual = "Janeiro";
+            break;
+        case 2:
+            mesAtual = "Fevereiro";
+            break;
+        case 3:
+            mesAtual = "Março";
+            break;
+        case 4:
+            mesAtual = "Abril";
+            break;
+        case 5:
+            mesAtual = "Maio";
+            break;
+        case 6:
+            mesAtual = "Junho";
+            break;
+        case 7:
+            mesAtual = "Julho";
+            break;
+        case 8:
+            mesAtual = "Agosto";
+            break;
+        case 9:
+            mesAtual = "Setembro";
+            break;
+        case 10:
+            mesAtual = "Outubro";
+            break;
+        case 11:
+            mesAtual = "Novembro";
+            break;
+        case 12:
+            mesAtual = "Dezembro";
+            break;
+    }
+
+    var acceptTerm = (bool?)ViewData["acceptTerm"];
+    var escritorios = companyFunctions.GetDataViewModel(companyFunctions.GetRealEstatesByRealEstateAgencyId(Model.CompanyId.Value));
+    var diaEnvio = "";
+    var mesEnvio = "";
+    var AnoEnvio = "";
+
+}
+
+<div style="text-align: justify">
+    <p align="center">
+        <strong>
+            INSTRUMENTO PARTICULAR DE PARCERIA PARA INTERMEDIAÇÃO DE NEGÓCIOS
+        </strong>
+    </p>
+    <br />
+    <p>
+        Pelo presente instrumento particular, de um lado
+    </p>
+    <p>
+        <strong>(i) </strong>
+        <strong>GUARDMED APOIO ADMINISTRATIVO LTDA</strong>
+        , inscrita no CNPJ/MF sob o número 34.787.252/0001-24, com sede na Rua
+        Manuel da Nobrega, nº 354, cj. 81, Bairro Paraíso, CEP 04001-001, São
+        Paulo– SP, neste ato devidamente representado nos termos do seu Contrato
+        Social, doravante designada simplesmente <strong>GUARDMED</strong> e de
+        outro lado
+    </p>
+    <p>
+        <strong></strong>
+    </p>
+    <p>
+        <strong>(ii) </strong>
+        <strong>
+            @Model.CompanyName
+        </strong>
+        ., inscrita no CNPJ/MF sob o número @(string.IsNullOrEmpty(Model.cnpj) ? Model.Cpf : Model.Cnpj), com sede na @Model.Endereco, @Model.Numero - @Model.Complemento, @Model.Bairro, @Model.Cidade - @Model.Uf - CEP: @Model.Cep,
+        neste ato devidamente representado nos termos do seu Contrato
+        Social, doravante denominado simplesmente <strong>PARCEIRO</strong>, e,
+        quando em conjunto com <strong>GUARDMED</strong>, simplesmente “Partes”,
+        sendo cada uma designada isoladamente como “Parte”;
+    </p>
+    <p>
+        <strong></strong>
+    </p>
+    <p>
+        <strong>Considerando que</strong>
+    </p>
+    <p>
+        <strong></strong>
+    </p>
+    <p>
+        <strong>(I) </strong>
+        a <strong>GUARDMED</strong> é uma plataforma online que se utiliza de uma
+        ferramenta tecnológica para prestação de serviços administrativos e
+        comercialização de benefícios (“Serviços”), proprietária e desenvolvedora
+        do Programa de Proteção Profissional voltados para médicos e profissionais
+        da saúde em todo território nacional (“Clientes”);<strong></strong>
+    </p>
+    <p>
+        <strong></strong>
+    </p>
+    <p>
+        <strong>(II) </strong>
+        o <strong>PARCEIRO</strong> possui <em>know-how</em>, <em>expertise</em> e    <em>networking</em>, bem como tem interesse em intermediar a prospecção e
+        captação de novos Clientes para <strong>GUARDMED</strong>;<strong></strong>
+    </p>
+    <p>
+        <strong></strong>
+    </p>
+    <p>
+        Resolvem firmar o presente Instrumento Particular de Prestação de Serviços
+        de Intermediação de Negócios (“Instrumento”), que se regerá pelas cláusulas
+        e condições seguintes:
+    </p>
+    <p>
+        <strong></strong>
+    </p>
+    <p>
+        <strong>1. </strong>
+        <strong>Cláusula Primeira – Do Objeto</strong>
+    </p>
+    <p>
+        <strong>1.1. </strong>
+        Constitui objeto do presente Instrumento a atuação, por parte do    <strong>PARCEIRO</strong> de forma independente, sem qualquer tipo de
+        vínculo e de maneira não-exclusiva, na intermediação, prospecção e captação
+        de novos Clientes que serão atendidos pelos Serviços prestados pela<strong>GUARDMED</strong>, nos termos e condições aqui pactuados.    <strong> </strong>
+    </p>
+    <p>
+        <strong>1.2. </strong>
+        A <strong>GUARDMED</strong> poderá nomear a qualquer tempo e a seu
+        exclusivo critério, outros parceiros para intermediar a captação de novos
+        Clientes em todo o território nacional, sem que as receitas resultantes da
+        prestação dos Serviços para os Cientes não indicados pelo    <strong>PARCEIRO</strong> impliquem em qualquer direito ao recebimento de
+        comissões nos termos aqui pactuados.
+    </p>
+    <p>
+        <strong>1.3. </strong>
+        O <strong>PARCEIRO</strong> só poderá prospectar Clientes que não façam
+        parte da carteira da <strong>GUARDMED</strong> e sejam previamente
+        autorizados por ela, nos termos da clausula 4.2.2, e que constem em Anexo
+        ao presente Instrumento, não sendo aceito como Cliente e consequente fato
+        gerador para pagamento de comissão a mera comunicação de determinado nome
+        por parte do <strong>PARCEIRO</strong> à <strong>GUARDMED</strong>.
+    </p>
+    <p>
+        <strong></strong>
+    </p>
+    <div style="page-break-after: always"></div>
+    <p>
+        <strong>2. </strong>
+        <strong>Cláusula Segunda – Da Remuneração</strong>
+    </p>
+    <p>
+        <strong>2.1. </strong>
+        Fica ajustado entre as Partes que o <strong>PARCEIRO</strong> fará jus a
+        remuneração de comissionamento (“Comissão”) sobre os Novos Clientes
+        captados de forma exclusiva e independente, e indicados à    <strong>GUARDMED</strong>, desde que previamente autorizados por escritos
+        nos termos dos Anexos ao presente Instrumento.
+    </p>
+    <p>
+        <strong>2.2. </strong>
+        A Comissão terá como base um percentual sobre o valor líquido, descontados
+        impostos, auferido pela <strong>GUARDMED </strong>na prestação de seu
+        Serviços<strong> </strong>e pago pelo Cliente ou pela Operadora/Seguradora,
+        tanto na modalidade de Agenciamento e/ou Vitalício.
+    </p>
+    <p>
+        <strong>2.2.1. </strong>
+        Entende-se como Comissão na Modalidade de Agenciamento aquela paga pela    <strong>GUARDMED</strong> ao <strong>PARCEIRO</strong> em parcela única,
+        tendo por base percentual sobre a primeira fatura paga pelo Cliente à    <strong>GUARDMED</strong>.
+    </p>
+    <p>
+        <strong>2.2.2. </strong>
+        Entende-se como Comissão na Modalidade de Vitalício aquela paga pela    <strong>GUARDMED</strong> ao <strong>PARCEIRO</strong> em parcelas
+        recorrentes e mensais, tendo por base percentual sobre a fatura paga pelo
+        Cliente à <strong>GUARDMED</strong>, estendendo-se pelo tempo enquanto
+        perdurar a relação Cliente/<strong>GUARDMED</strong>, ou nas hipóteses de
+        rescisão deste Instrumento nos termos da Cláusula Sexta.
+    </p>
+    <p>
+        <strong>2.2.3. </strong>
+        O valor da Comissão será definido pelas Partes em Anexo ao presente
+        Instrumento, tendo por base percentual dos valores recebidos pela    <strong>GUARDMED</strong>, quando da prestação dos Serviços.
+    </p>
+    <p>
+        <strong>2.3. </strong>
+        A Comissão será paga pela <strong>GUARDMED</strong> ao    <strong>PARCEIRO</strong>, até o 15º (décimo quinto) dia útil do mês
+        subsequente ao do pagamento por parte do Cliente, e está condicionada à
+        entrega pelo <strong>PARCEIRO</strong> à <strong>GUARDMED</strong> de nota
+        fiscal de serviços do <strong>PARCEIRO</strong>, com ao menos 05 (cinco)
+        dias de antecedência de cada pagamento, sendo certo que a    <strong>GUARDMED</strong> não se responsabilizará por eventual atraso no
+        pagamento, oriundo da ausência ou do atraso na entrega das notas fiscais
+        por parte do <strong>PARCEIRO</strong>.
+    </p>
+    <p>
+        <strong>2.4. </strong>
+        Somente serão devidas comissões sobre os Serviços efetivamente
+        concretizados, faturados e recebidos pela <strong>GUARDMED</strong>, e, na
+        hipótese de mora e/ou inadimplência de quaisquer das parcelas/faturas por
+        parte do Cliente ou da <a name="page4"></a>Operadora/Seguradora, nada será
+        devido ao <strong>PARCEIRO</strong>, até que estas tenham sido
+        integralmente pagas.
+    </p>
+    <p>
+        <strong>2.5. </strong>
+        Não obstante ao acima exposto, as Partes se reservam o direito de negociar
+        entre si percentuais diferenciados de remuneração para novos negócios com
+        características especiais, desde que tal negociação, seja concluída de
+        comum acordo, e com documento anexo ou instrumento particular devidamente
+        firmado pelas partes.
+    </p>
+    <p>
+        <strong>2.6. </strong>
+        A <strong>GUARDMED</strong> reserva-se no direito de nomear mais de um    <strong>PARCEIRO</strong> para determinado Cliente, desde que para
+        comissionamento de Serviço distinto ao ajustado, respeitada a remuneração
+        devida a título de Comissão quando do Serviço prestado àquele Cliente.
+    </p>
+    <p>
+        <strong>3. </strong>
+        <strong>Cláusula Terceira – Do Prazo</strong>
+    </p>
+    <p>
+        <strong>3.1. </strong>
+        O presente Instrumento é firmado por prazo indeterminado e poderá ser
+        rescindido imotivadamente a qualquer tempo por qualquer das partes mediante
+        aviso prévio por escrito com antecedência de 30 (trinta) dias.
+    </p>
+    <div style="page-break-after: always"></div>
+    <p>
+        <strong>3.2. </strong>
+        Em caso de rescisão, todos os compromissos assumidos com os clientes da    <strong>GUARDMED</strong> deverão ser observados, bem como as obrigações
+        constantes nas cláusulas de não concorrência e não aliciamento.
+    </p>
+    <p>
+        <strong>4. </strong>
+        <strong>Clausula Quarta – Das Obrigações das Partes</strong>
+    </p>
+    <p>
+        <strong>4.1. </strong>
+        São obrigações da <strong>GUARDMED</strong>
+    </p>
+    <p>
+        <strong>4.1.1. </strong>
+        efetuar os pagamentos da comissão devida ao <strong>PARCEIRO</strong> nos
+        termos previsto no presente Instrumento e seus respectivos anexos;
+    </p>
+    <p>
+        <strong>4.1.2. </strong>
+        fornecer ao <strong>PARCEIRO</strong> as informações relativas aos seus
+        Serviços necessárias para o exercício do objeto deste Instrumento;
+    </p>
+    <p>
+        <strong>4.1.3. </strong>
+        aceitar ou recusar, a qualquer tempo e seu exclusivo critério, os Clientes
+        apresentados pelo <strong>PARCEIRO</strong>;
+    </p>
+    <p>
+        <strong>4.2. </strong>
+        São obrigações do <strong>PARCEIRO</strong>
+    </p>
+    <p>
+        <strong>4.2.1. </strong>
+        manter a <strong>GUARDMED</strong> devidamente informada, expressamente por
+        escrito, sobre o andamento das prospecções comerciais objeto deste
+        Instrumento;
+    </p>
+    <p>
+        <strong>4.2.2. </strong>
+        informar, previamente e por escrito, à <strong>GUARDMED</strong> todos os
+        Clientes que serão objeto das atividades deste Instrumento, para que esta
+        possa anuir com referida prospecção e formalizar respectivo Anexo;
+    </p>
+    <p>
+        <strong>4.2.3. </strong>
+        arcar com todos e quaisquer custos e despesas necessárias ao exercício do
+        objeto deste Instrumento, tais como locomoção, comunicação, alimentação,
+        dentre outros, sendo certo que não haverá qualquer reembolso de despesas
+        por parte da <strong>GUARDMED</strong> ao <strong>PARCEIRO</strong>;
+    </p>
+    <p>
+        <strong>4.2.4. </strong>
+        não prometer ou conceder aos Clientes abatimentos, descontos ou outras
+        formas de dilações ou parcelamentos nos Serviços sem prévio e expresso
+        consentimento da <strong>GUARDMED</strong>.
+    </p>
+    <p>
+        <strong>4.2.5. </strong>
+        responsabilizar-se pelo ressarcimento de todo e qualquer dano e ou prejuízo
+        que por dolo ou culpa der causa na execução dos encargos assumidos, podendo
+        a <strong>GUARDMED</strong> reter as comissões devidas para o ressarcimento
+        de tais prejuízos.
+    </p>
+    <p>
+        <strong>4.2.6. </strong>
+        respeitar e não utilizar, de qualquer maneira, salvo o prévio e expresso
+        consentimento, por escrito da <strong>GUARDMED</strong>, suas marcas,
+        sinais distintivos ou logotipos.
+    </p>
+    <p>
+        <strong>5. </strong>
+        <strong>Cláusula Quinta – Das Declarações e Garantias do Parceiro</strong>
+    </p>
+
+    <p>
+        <strong>5.1. </strong>
+        Sem prejuízo de outras declarações e garantias do <strong>PARCEIRO</strong>
+        constantes deste Instrumento ou de seus anexos, o <strong>PARCEIRO</strong>
+        declara e garante para a <strong>GUARDMED</strong> que:
+    </p>
+    <p>
+        <strong>5.1.1. </strong>
+        é perfeitamente capaz de realizar, com perfeição, o objeto do presente
+        instrumento;
+    </p>
+    <p>
+        <strong>5.1.2. </strong>
+        é uma sociedade devidamente constituída e existente sob as leis da
+        República Federativa do Brasil, e regularmente matriculada nos órgãos
+        competentes, possuindo todos os registros necessários para o
+        desenvolvimento de seu objeto social;
+    </p>
+    <div style="page-break-after: always"></div>
+    <p>
+        <strong>5.1.3. </strong>
+        conhece e é perfeitamente capaz de atender a todas as legislações
+        aplicáveis às atividades oriundas do presente Instrumento;
+    </p>
+
+    <p>
+        <strong>5.1.4. </strong>
+        está em dia com todas as suas obrigações tributárias, trabalhistas e
+        previdenciárias, ficando expressamente ajustado entre as Partes que o não
+        cumprimento das referidas obrigações pelo <strong>PARCEIRO</strong>, poderá
+        justificar a rescisão do presente Instrumento pela    <strong>GUARDMED</strong>;
+    </p>
+    <p>
+        <strong>5.1.5. </strong>
+        ser devidamente habilitado, capacitado e especializado nas tarefas objeto
+        deste Instrumento, inclusive e principalmente, quanto aos seus
+        contratados/prepostos/indicados, sobre os quais assume isolada e integral
+        responsabilidade, arcando com todos os ônus decorrentes e inerentes à
+        referida relação contratual, respondendo ainda, direta e exclusivamente,
+        por todos os atos, omissões e/ou procedimentos que estes vierem a praticar
+        em seu nome para a execução do presente instrumento;
+    </p>
+    <p>
+        <strong>5.1.6. </strong>
+        respeitar e não utilizar, de qualquer maneira, salvo prévio e expresso
+        consentimento, por escrito, da <strong>GUARDMED</strong>, suas marcas, nome
+        comercial, insígnias, nome de domínio, sinais distintivos, expressões de
+        propaganda, propriedades intelectuais, dentre outros elementos que
+        caracterizem a <strong>GUARDMED</strong> e/ou os Produtos, notificando a    <strong>GUARDMED</strong> sempre que haja utilização indevida destes
+        elementos, ficando convencionado entre as Partes que a    <strong>GUARDMED</strong> poderá, a seu exclusivo critério e por mera
+        liberalidade, conceder ao <strong>PARCEIRO</strong>, para melhor
+        desenvoltura da Intermediação de Negócios, o direito de uso temporário de
+        sua marca, logotipo e/ou nome comercial sem que isto signifique quaisquer
+        vínculos associativos ou trabalhistas, seja de que natureza forem;
+    </p>
+    <p>
+        <strong>5.1.7. </strong>
+        não exerce atividade concorrente com a <strong>GUARDMED</strong>.
+    </p>
+    <p>
+        <strong>6. </strong>
+        <strong>Cláusula Sexta – Da Rescisão Contratual</strong>
+    </p>
+    <p>
+        <strong>6.1. </strong>
+        Qualquer das Partes poderá rescindir o presente Instrumento, motivada e
+        imediatamente, a qualquer tempo, ocorrendo qualquer das seguintes
+        hipóteses:
+    </p>
+    <p>
+        <strong>6.1.1. </strong>
+        Infração de qualquer cláusula ou disposição do presente Instrumento, por
+        qualquer das Partes, que não tenha sido sanada em 15 (quinze) dias,
+        contados do recebimento de notificação neste sentido;
+    </p>
+    <p>
+        <strong>6.1.2. </strong>
+        instauração do procedimento de recuperação judicial ou extrajudicial ou
+        decretação de falência de qualquer das Partes;
+    </p>
+    <p>
+        <strong>6.1.3. </strong>
+        Alienação de controle da <strong>GUARDMED</strong> a terceiros;
+    </p>
+    <p>
+        <strong>6.1.4. </strong>
+        nos demais casos previstos em lei.
+    </p>
+    <p>
+        <strong>6.2. </strong>
+        Na hipótese da <strong>GUARDMED</strong> rescindir este Instrumento por
+        justa causa, ensejada pelo <strong>PARCEIRO</strong>, como, por exemplo,
+        mas não exaustivamente a prática de qualquer ato que comprometa a imagem da    <strong>GUARDMED</strong> ou a assunção de qualquer obrigação sem expressa
+        e escrita concordância da <strong>GUARDMED</strong>, poderá a    <strong>GUARDMED</strong> reter, a seu exclusivo critério, qualquer
+        Comissão devida ao <strong>PARCEIRO</strong>, sem prejuízo das perdas e
+        danos cabíveis.
+    </p>
+    <p>
+        <strong>6.3. </strong>
+        À <strong>GUARDMED</strong> será lícita a retenção de Comissões, a título
+        compensatório, visando à reparação de perdas e danos e lucros cessantes,
+        inclusive custas judiciais e honorários advocatícios, a que o    <strong>PARCEIRO</strong> tenha dado causa.
+    </p>
+    <div style="page-break-after: always"></div>
+    <p>
+        <strong>6.4. </strong>
+        Na hipótese de Rescisão Imotivada ou Rescisão Motivada por parte do    <strong>PARCEIRO</strong>, serão devidas apenas as Comissões sobre as Notas
+        Fiscais já emitidas até então, considerada a data de corte a data da
+        infração contratual ou do fato original que deu causa a rescisão.
+    </p>
+    <p>
+        <strong>6.5. </strong>
+        Na hipótese de Rescisão Imotivada ou Rescisão Motivada por culpa da<strong>GUARDMED</strong>, será devido a título de indenização por parte da    <strong>GUARDMED</strong> ao <strong>PARCEIRO</strong>, valor
+        correspondente a 3 (três) vezes a média de Comissões na Modalidade de
+        Vitalício apenas, e pagas nos últimos 180 (cento e oitenta) dias contados
+        da data da comunicação do pedido de rescisão, a título de indenização.
+    </p>
+    <p>
+        <strong>6.5.1. </strong>
+        Para efeito de cálculo da indenização de que trata a cláusula 6.5, só serão
+        computadas as Comissões pagas pelos Clientes captados pelo    <strong>PARCEIRO</strong> que estiverem ativos na prestação de Serviços por
+        parte da <strong>GUARDMED</strong> em até 30 (trinta) dias anteriores à
+        data da comunicação do pedido de rescisão.
+    </p>
+    <p>
+        <strong>7. </strong>
+        <strong>
+            Cláusula Sétima – Da Confidencialidade e Propriedade Intelectual
+        </strong>
+    </p>
+    <p>
+        <strong>7.1. </strong>
+        É vedado ao <strong>PARCEIRO</strong>, a partir desta data e por um período
+        de 3 (três) anos após o término ou rescisão do presente Instrumento, por
+        qualquer motivo, revelar, divulgar ou de qualquer outra forma tornar
+        conhecidas quaisquer informações confidenciais da <strong>GUARDMED</strong>
+        , divulgadas por qualquer meio, sejam estas informações técnicas,
+        financeiras, contábeis etc., bem como quaisquer documentos, tecnologias,
+        materiais ou projetos da <strong>GUARDMED</strong> relacionados às suas
+        atividades, ou aos produtos e Serviços; e ainda, concorrer com qualquer
+        tipo de atividade desenvolvida pela <strong>GUARDMED</strong>, com o que o    <strong>PARCEIRO</strong> declara nada ter a opor.
+    </p>
+    <p>
+        <strong>7.2. </strong>
+        O <strong>PARCEIRO</strong> compromete-se a fazer com que todos os seus
+        empregados, prepostos e diretores que venham a ter acesso a quaisquer
+        informações confidenciais da <strong>GUARDMED</strong>, direta ou
+        indiretamente, observem o disposto nesta cláusula.
+    </p>
+    <p>
+        <strong>7.3. </strong>
+        O <strong>PARCEIRO</strong> responsabiliza-se, desde já, por toda e
+        qualquer divulgação ou confecção de cópias não autorizadas, previamente e
+        por escrito, pela <strong>GUARDMED</strong>, de qualquer informação
+        confidencial desta, respondendo inclusive pelas indenizações por perdas e
+        danos, lucros cessantes, danos morais, despesas com honorários
+        advocatícios, dentre outras.
+    </p>
+    <p>
+        <strong>7.4. </strong>
+        Quando do término ou rescisão do presente Instrumento, por qualquer motivo,
+        caberá ao <strong>PARCEIRO</strong> restituir, imediatamente, todas e
+        quaisquer informações confidenciais da <strong>GUARDMED</strong> que se
+        encontrarem em seu poder, bem como todos e quaisquer documentos ou
+        materiais relativos aos Produtos e/ou Serviços que estejam em seu poder,
+        sejam confidenciais ou não.
+    </p>
+    <p>
+        <strong>7.5. </strong>
+        A violação da obrigação assumida pelo <strong>PARCEIRO</strong> nos termos
+        desta cláusula o sujeitará a indenizar à <strong>GUARDMED</strong> de todos
+        os danos que vier a suportar, inclusive, mas sem se limitar a lucros
+        cessantes, perda de receita e perda de participação no mercado, sem
+        prejuízo do direito da <strong>GUARDMED</strong> de adotar as demais
+        medidas que entender convenientes, conforme previstas em Lei.
+    </p>
+    <p>
+        <strong>8. </strong>
+        <strong>Cláusula Oitava - Das Práticas Anti Corrupção</strong>
+    </p>
+    <p>
+        <strong></strong>
+    </p>
+    <p>
+        <strong>8.1. </strong>
+        O <strong>PARCEIRO</strong> se obriga, sob as penas previstas neste
+        Instrumento e na legislação aplicável, a observar e cumprir rigorosamente
+        todas as leis cabíveis, incluindo, mas não se limitando à legislação
+        brasileira anticorrupção, a legislação brasileira contra a lavagem de
+        dinheiro.
+    </p>
+    <div style="page-break-after: always"></div>
+    <p>
+        <strong>8.2. </strong>
+        O <strong>PARCEIRO</strong> declara e garante que não está envolvida ou irá
+        se envolver, direta ou indiretamente, por meio de seus representantes,
+        administradores, diretores, conselheiros, sócios ou acionistas, assessores,
+        consultores, partes relacionadas, durante o cumprimento das obrigações
+        previstas neste Instrumento, em qualquer atividade ou prática que constitua
+        uma infração aos termos das leis anticorrupção.
+    </p>
+    <p>
+        <strong>8.3. </strong>
+        O <strong>PARCEIRO</strong> declara e garante que não se encontra, assim
+        como seus representantes, administradores, diretores, conselheiros, sócios
+        ou acionistas, assessores, consultores, direta ou indiretamente    <strong>(i)</strong> sob investigação em virtude de denúncias de suborno
+        e/ou corrupção; <strong>(ii)</strong> no curso de um processo judicial e/ou
+        administrativo ou foi condenada ou indiciada sob a acusação de corrupção ou
+        suborno; <strong>(iii)</strong> suspeita de práticas de terrorismo e/ou
+        lavagem de dinheiro por qualquer entidade governamental; e    <strong>(iv)</strong> sujeita à restrições ou sanções econômicas e de
+        negócios por qualquer entidade governamental.
+    </p>
+    <p>
+        <strong>8.4. </strong>
+        O <strong>PARCEIRO</strong> declara que, direta ou indiretamente, não
+        ofereceu, prometeu, pagou ou autorizou o pagamento em dinheiro, deu ou
+        concordou em dar presentes ou qualquer objeto de valor e, durante a
+        vigência deste Instrumento, não irá ofertar, prometer, pagar ou autorizar o
+        pagamento em dinheiro, dar ou concordar em dar presentes ou qualquer objeto
+        de valor a qualquer pessoa ou entidade, pública ou privada, com o objetivo
+        de beneficiar ilicitamente a <strong>GUARDMED</strong> e/ou seus negócios.
+    </p>
+    <p>
+        <strong>8.5. </strong>
+        O <strong>PARCEIRO</strong> declara que, direta ou indiretamente, não irá
+        receber, transferir, manter, usar ou esconder recursos que decorram de
+        qualquer atividade ilícita, bem como não irá contratar como empregado ou de
+        alguma forma manter relacionamento profissional com pessoas físicas ou
+        jurídicas envolvidas em atividades criminosas, em especial pessoas
+        investigadas pelos delitos previstos nas leis anticorrupção, de lavagem de
+        dinheiro, tráfico de drogas e terrorismo.
+    </p>
+    <p>
+        <strong>8.6. </strong>
+        O <strong>PARCEIRO</strong> se obriga a notificar prontamente, por escrito,
+        à <strong>GUARDMED</strong> a respeito de qualquer suspeita ou violação do
+        disposto nas leis anticorrupção, e ainda de participação em práticas de
+        suborno ou corrupção, assim como o descumprimento de qualquer declaração
+        prevista neste Instrumento.
+    </p>
+    <p>
+        <strong>8.7. </strong>
+        O <strong>PARCEIRO</strong> declara e garante que (i) seus atuais
+        representantes não são funcionários públicos ou empregados do governo; e
+        que (ii) informará por escrito, no prazo de 3 (três) dias úteis, qualquer
+        nomeação de seus representantes como funcionários públicos ou empregados do
+        governo. A <strong>GUARDMED</strong> poderá, a seu exclusivo critério,
+        rescindir o Instrumento, caso o <strong>PARCEIRO</strong> realize referida
+        nomeação nos termos do item “ii” acima, sendo que, neste caso, não serão
+        aplicáveis quaisquer multas ou penalidades à <strong>GUARDMED</strong> pela
+        rescisão do Instrumento, devendo o <strong>PARCEIRO</strong> responder por
+        eventuais perdas e danos.
+    </p>
+    <p>
+        <strong>8.8. </strong>
+        O não cumprimento pelo <strong>PARCEIRO</strong> das leis anticorrupção
+        será considerado uma infração grave ao presente Instrumento e conferirá à    <strong>GUARDMED</strong> o direito de, agindo de boa-fé, declarar
+        rescindido imediatamente o presente Instrumento, sem qualquer ônus ou
+        penalidade, sendo o <strong>PARCEIRO</strong> responsável por eventuais
+        perdas e danos.
+    </p>
+    <p>
+        <strong>8.9. </strong>
+        O <strong>PARCEIRO</strong> declara e garante que não pagou, propôs nem
+        pagará, direta ou indiretamente, qualquer comissão ou honorários de
+        intermediação ou encaminhamento a qualquer pessoa ou firma, com relação às
+        suas atividades em nome da <strong>GUARDMED</strong>.
+    </p>
+    <p>
+        <strong>9. </strong>
+        <strong>Cláusula Décima – Das Comunicações entre as Partes</strong>
+    </p>
+    <p>
+        <strong>9.1. </strong>
+        Toda e qualquer comunicação entre as partes, para que seja válida, deverá
+        ser manifestada por escrito e encaminhada por fax, e-mail ou
+        correspondência com aviso de recebimento nos endereços indicados abaixo:
+    </p>
+    <p>
+        <strong>9.1.1. </strong>
+        Por parte da <strong>GUARDMED</strong>
+    </p>
+    <p>
+        A/C Sr. Raul Petrilli Leme de Campos;
+    </p>
+    <p>
+        Rua Manuel da Nobrega, nº 354, cj. 81, Bairro Paraíso;
+    </p>
+    <p>
+        São Paulo/SP: CEP 04001-001
+    </p>
+    <p>
+        Tel.: (11) 3253-2284
+    </p>
+    <p>
+        Email: juridico@guardmed.com.br
+    </p>
+    <p>
+        <strong>9.1.2. </strong>
+        Por parte do <strong>PARCEIRO</strong>
+    </p>
+    <p>
+        A/C Sr/Sra. @Model.Responsavel,
+    </p>
+    <p>
+        @Model.Endereco, @Model.Numero - @Model.Complemento, @Model.Bairro;
+    </p>
+    <p>
+        @Model.Cidade/@Model.Uf - CEP: @Model.Cep
+    </p>
+    <p>
+        Tel.: @Model.Telefone
+    </p>
+    <p>
+        Email: @Model.Email
+    </p>
+    <p>
+        <strong>10. </strong>
+        <strong>Cláusula Décima Primeira - Das Disposições Gerais</strong>
+    </p>
+    <p>
+        <strong>10.1. </strong>
+        As Partes que assinam o presente declaram que possuem plena capacidade
+        civil para tanto, sem qualquer impedimento legal, bem como estão imbuídas
+        de plenos poderes e devidamente autorizadas por todos os respectivos atos
+        societários.
+    </p>
+    <p>
+        <strong>10.2. </strong>
+        O presente Instrumento constitui o acordo integral entre as Partes,
+        substituindo todos os acordos, promessas, propostas, declarações,
+        entendimentos e negociações anteriores, escritas ou verbais, no que se
+        refere ao objeto deste Instrumento, a não ser que feito por escrito e
+        devidamente assinado pelas Partes, nenhuma modificação, alteração, aditivo
+        ou renúncia ao presente Instrumento ou quaisquer disposições do mesmo,
+        vinculará as Partes contratantes.
+    </p>
+    <p>
+        <strong>10.3. </strong>
+        Não se estabelece por força deste Instrumento, nenhum tipo de sociedade,
+        associação, consórcio, representação, agência ou responsabilidade solidária
+        e/ou subsidiária entre as Partes, estando o mesmo vinculado aos seus
+        Anexos.
+    </p>
+    <p>
+        <strong>10.4. </strong>
+        O <strong>PARCEIRO</strong> não poderá ceder ou transferir, bem como dar em
+        garantia de operações o presente Instrumento, sem a prévia concordância por
+        escrito da <strong>GUARDMED</strong>.
+    </p>
+    <p>
+        <strong>10.5. </strong>
+        Nenhuma das Partes, será responsável perante a outra por quaisquer falhas
+        nas obrigações constantes do presente Instrumento, causadas total ou
+        parcialmente por eventos de força maior, assim considerados aqueles
+        definidos pela legislação vigente.
+    </p>
+    <div style="page-break-after: always"></div>
+    <p>
+        <strong>10.6. </strong>
+        O <strong>PARCEIRO</strong> assume desde já de forma ilimitada e integral o
+        pagamento de todos os tributos e encargos, sejam de qualquer natureza
+        forem, presentes e futuros, diretos e indiretos, resultantes da remuneração
+        sobre a atividade objeto deste Instrumento, incluindo, mas não se limitando
+        a, todos os encargos trabalhistas, previdenciários e tributários. O    <strong>PARCEIRO</strong> obriga-se a indenizar a <strong>GUARDMED</strong>
+        na hipótese desta vir a ser impelida a assumir quaisquer obrigações
+        trabalhistas, previdenciárias, tributárias, ou de qualquer outra natureza,
+        administrativa ou judicial, inclusive aquelas decorrentes de acidente de
+        trabalho, dos profissionais por ele contratados, ou por seus sócios, bem
+        como pelo pagamento de indenizações, multas, honorários advocatícios e
+        custas processuais.
+    </p>
+    <p>
+        <strong>10.7. </strong>
+        Este Instrumento não autoriza o <strong>PARCEIRO</strong>, nem seus
+        empregados, prepostos, contratados ou subcontratados a atuarem como
+        agentes, representantes, mandatários ou a obrigarem a    <strong>GUARDMED</strong> a qualquer tempo e forma.
+    </p>
+    <p>
+        <strong>10.8. </strong>
+        O não exercício ou o atraso no exercício, por qualquer das partes, de
+        qualquer direito que seja assegurado por este Instrumento, não constituirá
+        novação, renúncia ou precedente de tal direito, nem prejudicara seu
+        eventual exercício ou execução posterior.
+    </p>
+    <p>
+        <strong>10.9. </strong>
+        Caso qualquer disposição do presente Instrumento seja considerada nula,
+        ilegal ou inexequível, ela não inviabilizará nem desobrigará a execução das
+        demais obrigações nele contidas, desde que não configure dispositivo
+        essencial à consecução do seu objeto, e, se assim for, as Partes deverão
+        negociar de boa-fé, de forma a chegar a uma redação de uma nova Cláusula
+        que seja satisfatória e que reflita suas intenções, conforme expressas no
+        presente Instrumento, a qual substituirá aquela considerada nula, ilegal ou
+        inexequível em todos os seus efeitos.
+    </p>
+    <p>
+        <strong>10.10. </strong>
+        O presente Instrumento é celebrado em caráter irrevogável e irretratável,
+        obrigando as Partes e seus sucessores a qualquer título.
+    </p>
+    <p>
+        <strong>11. </strong>
+        <strong>Cláusula Décima Primeira – Do Foro </strong>
+    </p>
+    <p>
+        <strong>11.1. </strong>
+        Fica eleito o Foro Central da Cidade de São Paulo, em detrimentos de
+        qualquer outro, por mais privilegiado que seja para dirimir quaisquer
+        dúvidas oriundas do presente Instrumento.
+    </p>
+
+    <p>
+        Assim, por estarem justos e acordados, as partes aceitam as condições do presente Instrumento Particular de Prestação de Serviços de Intermediação de Negócios, por meio do “Termo de aceite” firmado pelos representantes legais dos parceiros, nos termos de seus respectivos contratos sociais.
+    </p>
+
+    @if (Model.ContractSentDate.HasValue)
+    {
+        AnoEnvio = Model.ContractSentDate.Value.Year.ToString();
+        mesEnvio = Model.ContractSentDate.Value.ToMonthPtBR().ToString();
+        diaEnvio = Model.ContractSentDate.Value.Day.ToString();
+    }
+    else
+    {
+        AnoEnvio = DateTime.Now.Year.ToString();
+        mesEnvio = DateTime.Now.ToMonthPtBR().ToString();
+        diaEnvio = DateTime.Now.Day.ToString();
+    }
+
+    São Paulo, @diaEnvio de @mesEnvio de @AnoEnvio
+
+    <p>
+        _________________________________________________________
+    </p>
+    <p>
+        <strong>GUARDMED APOIO ADMINISTRATIVO LTDA.</strong>
+    </p>
+    <p>
+        <strong>Por:</strong> Raul Petrilli Leme de Campos
+    </p>
+    <p>
+        _________________________________________________________
+    </p>
+    <p><strong>@Model.CompanyName</strong></p>
+    <p>Por:&nbsp; @((Model.cnpj == null) ? Model.CompanyName : Model.Responsavel)</p>
+    <p>Cpf:&nbsp; @((Model.cnpj == null) ? Model.Cpf : Model.CpfResponsavel)</p>
+
+    <div style="page-break-after: always"></div>
+
+    <p style="text-align: center;"><strong>ANEXO 1</strong></p>
+    <p style="text-align: center;"><strong>INSTRUMENTO PARTICULAR DE PARCERIA PARA INTERMEDIAÇÃO&nbsp;DE NEGÓCIOS</strong></p>
+    <br />
+    <p><strong>REF: PLATAFORMA</strong></p>
+    <br />
+    <p>
+        O presente documento, que integra o Instrumento Particular de Parceria para Intermediação de Negócios (“Instrumento”), assinado em&nbsp;<strong>
+            @if (Model.DateAcceptTerm == null)
+            {<span>@DateTime.Now.ToDatePtBR()</span>}
+        else
+        {<span>@Model.DateAcceptTerm.ToDatePtBR()</span>}
+        </strong> entre <strong>GUARDMED APOIO ADMINISTRATIVO LTDA.</strong>, e <strong>@Model.CompanyName</strong>, doravante denominado <strong>PLATAFORMA</strong> e tem como objetivo, nos termos da cláusula , 2.2.3 e 4.2.2, definir a prospecção e captação do Cliente informado nos termos e condições abaixo descritas
+    </p>
+    <br />
+    <p>Ajustam as partes que o <strong>PARCEIRO/PLATAFORMA</strong>, neste ato, indica os escritórios abaixo elencados para atuarem em conjunto e sob a sua responsabilidade, observado os termos do Instrumento firmado, na captação de novos Clientes, sendo certo que o comissionamento deverá observar as tabelas abaixo descritas.</p>
+    <br />
+    <table border="1" cellpadding="0" cellspacing="0" width="100%">
+        <tbody>
+            <tr>
+                <td colspan="2" width="100%">
+                    <p style="text-align: center;"><strong>TABELA DE COMISSÕES PLATAFORMA/ESCRITÓRIO PRÓPRIO</strong></p>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" width="100%">
+                    <p style="text-align: center;"><strong>VENDA DIRETA</strong></p>
+                </td>
+            </tr>
+            <tr>
+                <td valign="top" width="49%">
+                    <p style="text-align: center;"><strong>Agenciamento</strong></p>
+                </td>
+                <td valign="top" width="50%">
+                    <p style="text-align: center;"><strong>Vitalício</strong></p>
+                </td>
+            </tr>
+            <tr>
+                <td valign="top" width="49%">
+                    <p style="text-align: center;">@(Model.Agenciamento.ToPtBR())%</p>
+                </td>
+                <td valign="top" width="50%">
+                    <p style="text-align: center;">@(Model.Vitalicio.ToPtBR())%</p>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <br />
+    <table border="1" cellpadding="0" cellspacing="0" width="100%">
+        <tbody>
+            <tr>
+                <td colspan="3" valign="top" width="100%">
+                    <p style="text-align: center;"><strong>TABELA DE COMISSÕES PLATAFORMA/ESCRITÓRIOS SUBORDINADOS</strong></p>
+                </td>
+            </tr>
+            <tr>
+                <td valign="top" width="55%">
+                    <p style="text-align: center;"><strong>Escritórios</strong></p>
+                </td>
+                <td valign="top" width="24%">
+                    <p style="text-align: center;"><strong>Remuneração plataforma</strong></p>
+                </td>
+                <td valign="top" width="20%">
+                    <p style="text-align: center;"><strong>Remuneração Escritório</strong></p>
+                </td>
+            </tr>
+            @foreach (var item in escritorios)
+            {
+                <tr>
+                    <td style="text-align: center;" valign="top" width="55%">
+                        <p style="text-align: center;">@item.CompanyName</p>
+                    </td>
+                    <td valign="top" width="22%">
+                        <p style="text-align: center;">Agenc: @((Model.Agenciamento - item.Agenciamento).ToPtBR())%</p>
+                        <p style="text-align: center;">Vital: @((Model.Vitalicio - item.Vitalicio).ToPtBR())%</p>
+                    </td>
+                    <td valign="top" width="22%">
+                        <p style="text-align: center;">Agenc: @(item.Agenciamento.ToPtBR())%</p>
+                        <p style="text-align: center;">Vital: @(item.Vitalicio.ToPtBR())%</p>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <br />
+    <p>* O presente documento é um anexo ao denominado “INSTRUMENTO PARTICULAR DE PARCERIA PARA INTERMEDIAÇÃO DE NEGÓCIOS”, sendo certo de que se trata exclusivamente de acessório e perderá automaticamente sua validade no caso de ausência do principal, por qualquer motivo.</p>
+    <br />
+    <p>São Paulo, @diaEnvio de @mesEnvio de @AnoEnvio</p>
+    <br />
+    <p>_________________________________________________________</p>
+    <p><strong>GUARDMED APOIO ADMINISTRATIVO LTDA.</strong></p>
+    <p>Por: RAUL PETRILLI LEME DE CAMPOS</p>
+    <br />
+    <p>_________________________________________________________</p>
+    <p><strong>@Model.CompanyName</strong></p>
+    <p>Por:&nbsp; @((Model.cnpj == null) ? Model.CompanyName : Model.Responsavel)</p>
+    <p>Cpf:&nbsp; @((Model.cnpj == null) ? Model.Cpf : Model.CpfResponsavel)</p>
+
+</div>

@@ -1,0 +1,9 @@
+﻿@{
+    ViewData["Title"] = "Famílias de Produtos";
+}
+
+<div class="card shadow bg-light">
+    <div class="card-body">
+        @(await Component.InvokeAsync<AMaisImob_WEB.ViewComponents.ProductFamily.ProductFamilyIndexViewComponent>())
+    </div>
+</div>

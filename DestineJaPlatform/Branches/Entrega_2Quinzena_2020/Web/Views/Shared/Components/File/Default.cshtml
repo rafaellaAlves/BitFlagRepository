@@ -1,0 +1,88 @@
+﻿@model DTO.Shared.EntityViewMode<DTO.Shared.FileViewModel>
+
+<div class="row" id="file-manage-area-@Model.Model.ViewComponentId">
+    <div class="col-md-12 form-group">
+        <input class="required form-control" type="file" name="Archive">
+        <label id="file-name-@Model.Model.ViewComponentId" style="margin-top:.5em; @(!string.IsNullOrWhiteSpace(Model.Model.FileName)? "" : "display:none;")">@Model.Model.FileName</label>
+    </div>
+</div>
+<div class="row">
+    <div class="col">
+        <hr />
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-4 form-group" id="file-remove-area-@Model.Model.ViewComponentId" style="@(!string.IsNullOrWhiteSpace(Model.Model.FileName)? "" : "display:none;")">
+        <button type="button" class="btn btn-danger" id="file-manage-area-@Model.Model.ViewComponentId-remove-button-@Model.Model.ViewComponentId" onclick="removeContractFile@(Model.Model.ViewComponentId)()"><i class="simple-icon-close"></i>&nbsp;Remover Arquivo Existente</button>
+    </div>
+    <div class="col text-right form-group">
+        @if (Model.Model.IsModal)
+        {
+        <button type="button" class="btn btn-secondary" data-dismiss="modal" aria-label="Close" id="close-modal-button-@Model.Model.ViewComponentId"><i class="simple-icon-close"></i>&nbsp;Fechar</button>
+        }
+        <a href="@Model.Model.GetUrl" target="_blank" class="btn btn-primary" id="file-get-button-@Model.Model.ViewComponentId" style="@(!string.IsNullOrWhiteSpace(Model.Model.FileName)? "" : "display:none;")"><i class="simple-icon-magnifier"></i>&nbsp;Visualizar</a>
+        <a href="@Model.Model.DownloadUrl" class="btn btn-primary" id="file-download-button-@Model.Model.ViewComponentId" style="@(!string.IsNullOrWhiteSpace(Model.Model.FileName)? "" : "display:none;")"><i class="simple-icon-cloud-download"></i>&nbsp;Download</a>
+        <button type="button" class="btn btn-success" onclick="uploadContractFile@(Model.Model.ViewComponentId)()"><i class="simple-icon-cloud-upload"></i>&nbsp;Salvar</button>
+    </div>
+</div>
+
+<script type="text/javascript" asp-cut-key="file-@Model.Model.ViewComponentId" asp-cut-key-load-from-controller="@Model.LoadFromController">
+    function removeContractFile@(Model.Model.ViewComponentId)() {
+        bootboxConfirm('Deseja realmente remover o arquivo existente?', function (d) {
+            if (!d) return;
+
+            $.post('@Model.Model.RemoveUrl', function (d) {
+                bootbox.alert(d.message);
+
+                if (d.success) {
+                    if (typeof removeFileCallback@(Model.Model.ViewComponentId) == 'function') removeFileCallback@(Model.Model.ViewComponentId)();
+
+                    $('#file-remove-area-@Model.Model.ViewComponentId').hide();
+                    $('#file-get-button-@Model.Model.ViewComponentId').hide();
+                    $('#file-download-button-@Model.Model.ViewComponentId').hide();
+                    $('#file-name-@Model.Model.ViewComponentId').hide();
+                }
+            });
+        });
+    }
+
+    function uploadContractFile@(Model.Model.ViewComponentId)() {
+        if ($('#file-manage-area-@Model.Model.ViewComponentId [name=\'Archive\']')[0].files.length == 0) {
+            bootbox.alert('Insira um arquivo.');
+            return;
+        }
+
+        var _d = new FormData();
+        _d.append('Archive', $('#file-manage-area-@Model.Model.ViewComponentId [name=\'Archive\']')[0].files[0]);
+        _d.append('id', @Model.Model.Id);
+
+        $.ajax({
+            url: '@Model.Model.SetUrl',
+			type: 'POST',
+			contentType: false,
+			processData: false,
+			data: _d,
+            success: function (d) {
+                bootbox.alert(d.message);
+
+                if (!d.hasError) {
+                    if (typeof insertFileCallback@(Model.Model.ViewComponentId) == 'function' && $('#file-manage-area-@Model.Model.ViewComponentId [name=\'Archive\']')[0].files.length > 0) insertFileCallback@(Model.Model.ViewComponentId)($('#file-manage-area-@Model.Model.ViewComponentId [name=\'Archive\']')[0].files[0].name);
+
+                    $('#file-manage-area-@Model.Model.ViewComponentId [name=\'Archive\']').val('');
+                    $('#file-remove-area-@Model.Model.ViewComponentId').show();
+                    $('#file-get-button-@Model.Model.ViewComponentId').show();
+                    $('#file-download-button-@Model.Model.ViewComponentId').show();
+                    $('#file-name-@Model.Model.ViewComponentId').show();
+                    $('#file-name-@Model.Model.ViewComponentId').text(d.fileName);
+
+                    @if (Model.Model.IsModal)
+                    {
+                    <text>
+                    $('#close-modal-button-@Model.Model.ViewComponentId').click();
+                    </text>
+                    }
+                }
+            }
+        });
+    }
+</script>

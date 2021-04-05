@@ -1,0 +1,56 @@
+﻿@model DTO.Residue.ResidueViewModel
+@inject Web.Helpers.DropDownListHelper dropDownListHelper
+@inject Services.Residue.UnitOfMeasurementServices unitOfMeasurementServices
+@inject Services.Residue.PhysicalStateServices physicalStateServices
+@inject Services.Residue.PackagingServices packagingServices
+@inject Services.Residue.ResidueDestinationTypeServices residueDestinationTypeServices
+
+<form class="row" id="residue-manage-form">
+    <input type="hidden" name="ResidueId" value="@Model.ResidueId" />
+    <input type="hidden" name="ResidueFamilyId" value="@Model.ResidueFamilyId" />
+
+    <div class="col-md-12 mb-2">
+        <label class="required">Nome do Resíduo</label>
+        <input class="form-control" placeholder="Nome do Resíduo" name="Name" value="@Model.Name" />
+    </div>
+    <div class="col-md-6 mb-2">
+        <label class="required">Código IBAMA</label>
+        <input class="form-control" placeholder="Código IBAMA" name="IBAMACode" value="@Model.IBAMACode" />
+    </div>
+    <div class="col-md-6 mb-2">
+        <label class="required">Unidade de Medida</label>
+        @Html.DropDownList("UnitOfMeasurementId", dropDownListHelper.ToSelectListItem<ApplicationDbContext.Models.UnitOfMeasurement, int, string>((await unitOfMeasurementServices.GetDataAsNoTrackingAsync()).OrderBy(x => x.Order), x => x.UnitOfMeasurementId, x => x.Name, Model.UnitOfMeasurementId.ToString()), "Selecione", new { Class = "form-control w-100" })
+    </div>
+    <div class="col-md-6 mb-2">
+        <label class="required">Estado Físico</label>
+        @Html.DropDownList("PhysicalStateId", dropDownListHelper.ToSelectListItem<ApplicationDbContext.Models.PhysicalState, int, string>(await physicalStateServices.GetDataAsNoTrackingAsync(), x => x.PhysicalStateId, x => x.Name, Model.PhysicalStateId.ToString()), "Selecione", new { Class = "form-control w-100" })
+    </div>
+    <div class="col-md-6 mb-2">
+        <label class="required">Acondicionamento</label>
+        @Html.DropDownList("PackagingId", dropDownListHelper.ToSelectListItem<ApplicationDbContext.Models.Packaging, int, string>(await packagingServices.GetDataAsNoTrackingAsync(), x => x.PackagingId, x => x.Name, Model.PackagingId.ToString()), "Selecione", new { Class = "form-control w-100" })
+    </div>
+    <div class="col-md-12 mb-2">
+        <label class="required">Tipo de Destinação</label>
+        @Html.DropDownList("ResidueDestinationTypeId", dropDownListHelper.ToSelectListItem<ApplicationDbContext.Models.ResidueDestinationType, int, string>((await residueDestinationTypeServices.GetDataAsNoTrackingAsync()).OrderBy(x => x.Order), x => x.ResidueDestinationTypeId, x => x.Name, Model.ResidueDestinationTypeId?.ToString()), "Selecione", new { Class = "form-control w-100" })
+    </div>
+</form>
+
+
+<script asp-cut-key="residue-manage">
+    function saveResidue(callback) {
+        if (!validateInputs('residue-manage-form')) return;
+
+        $.post('@Url.Action("ManageAjax", "Residues")', $('#residue-manage-form').serializeArray(), callback);
+    }
+
+    function loadResidueData(data) {
+        $('#residue-manage-form [name="ResidueId"]').val(data == null ? '' : data.residueId);
+
+        $('#residue-manage-form [name="Name"]').val(data == null ? '' : data.name);
+        $('#residue-manage-form [name="IBAMACode"]').val(data == null ? '' : data.ibamaCode);
+        $('#residue-manage-form [name="UnitOfMeasurementId"]').val(data == null ? '' : data.unitOfMeasurementId);
+        $('#residue-manage-form [name="PhysicalStateId"]').val(data == null ? '' : data.physicalStateId);
+        $('#residue-manage-form [name="PackagingId"]').val(data == null ? '' : data.packagingId);
+        $('#residue-manage-form [name="ResidueDestinationTypeId"]').val(data == null ? '' : data.residueDestinationTypeId);
+    }
+</script>

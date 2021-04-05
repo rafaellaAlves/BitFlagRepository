@@ -1,0 +1,107 @@
+﻿@model GuardMedWeb.Models.SeguradoProfissionalViewModel
+@{
+    Layout = "~/Views/Shared/_LayoutPrint.cshtml";
+    ViewData["Title"] = "Apólice Argo";
+}
+<style type="text/css">
+    p {
+        text-align: justify;
+        font-family: Calibri;
+        color: #666666;
+    }
+
+    h4 {
+        font-family: Calibri;
+        color: #666666;
+    }
+
+        h4 small {
+            color: black;
+        }
+
+    .col-12 {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+</style>
+<div class="row col-12 text-center" style=" text-align: center;">
+    <p><h4>SEJA BEM VINDO(A) À GUARDMED<br /><small>obrigado por nos escolher</small></h4></p>
+</div>
+<div class="row col-12">
+    <p>Prezado(a) Dr(a). @Model.Nome</p>
+    <p>
+        A partir de agora, além de todos os serviços e benefícios da Plataforma GuardMed e seu Programa de Proteção Profissional, você conta com uma
+        apólice de seguro de responsabilidade civil profissional emitida pela <b>ARGO SEGUROS DO BRASIL - ARGO GROUP</b>, empresa seguradora com grande
+        solidez financeira e operações em diversos países.
+    </p>
+    <br />
+
+    <p>
+        ARGO SEGUROS BRASIL S.A.<br />
+        CNPJ: 14.868.712/0001-31<br />
+        Código SUSEP: 2798
+    </p>
+    <br />
+
+    <p>
+        Ramo: 0378<br />
+        Produto: RESPONSABILIDADE CIVIL PROFISSIONAL
+    </p>
+    <br />
+
+    <p>
+        Dados do Segurado<br />
+        Nome: @Model.Nome<br />
+        CPF: @Model.CPF<br />
+        Endereço: @Model.Endereco - @Model.EnderecoNumero<br />
+        Limite Máximo de garantia Contratado: R$@Model.PrecoTotal<br />
+
+        Nº da Apólice:@if (Model.NumeroDaApolice == null)
+        {
+            <text> -</text>
+                }
+        else { @Model.NumeroDaApolice}<br />
+    </p>
+    <br />
+
+    <p>
+        Corretora: A Mais Administradora e Corretora de Seguros S/S Ltda.<br />
+        CNPJ: 12.939.904/0001-66<br />
+        Código SUSEP: 202098420
+    </p>
+
+
+</div>
+<hr />
+<div class="row col-12">
+
+    <p>COBERTURAS</p>
+    <p>
+        *Despesas de Defesa na Esfera Civil - 100% do LMI<br />
+        *Despesas de Defesa na Esfera Administrativa - 100% do LMI<br />
+        *Despesas de Defesa em Inquéritos ou Ações Criminais - 100% do LMI<br />
+        *Indenizações por Condenações por Danos Materiais, Morais e Corporais - 100% do LMI<br />
+        *Lucro Cessante - 100% do LMI<br />
+        *Acordos Judiciais ou Extrajudiciais - 100% do LMI<br />
+        *Ressarcimentos Administrativos, sem a necessidade de ação judicial - 100% do LMI
+    </p>
+    <p style="color: black;"><b>*Verificar todas as especificações nas condições gerais da apólice.</b></p>
+
+    <p>
+        *Prazo Complementar: 36 meses<br />
+        *Prazo Suplementar: 75% do prêmio pago para 12 meses
+    </p>
+
+    <p>*Ambito da Cobertura e Jurisdição: Território Nacional (Brasil)</p>
+
+    <p>
+        Franquia:<br />
+        Jurídico GuardMed: Não Há.<br />
+        Jurídico Parceiros ou Livre Escolha: 10% dos prejuízos com o mínimo de R$3.500,00<br />
+        Demais Coberturas (Geral): 10% dos prejuízos com o mínimo de R$3.500,00
+    </p>
+
+    <hr />
+    <p><strong>Equipe GuardMed</strong></p>
+
+</div>

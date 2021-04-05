@@ -1,0 +1,103 @@
+﻿<div class="row">
+    <div class="col-md-10">
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text"><i class="fa fa-search"></i></span>
+            </div>
+            <input id="_AssistanceIndexSearch" type="text" class="form-control" placeholder="Procurar..." />
+        </div>
+    </div>
+    <div class="col-md-2">
+        <a href="@Url.Action("Manage", "Assistance")" class="btn btn-success pull-right w-100"><i class="fas fa-plus-circle"></i>&nbsp;Novo</a>
+    </div>
+</div>
+<hr />
+<div class="table-wrapper">
+    <table id="_AssistanceIndexTable" class="table display responsive nowrap" style="border-collapse: collapse !important;">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Valor (R$)</th>
+                <th>Descrição</th>
+                <th>&nbsp;</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+<script type="text/javascript">
+
+    var _AssistanceIndexTypingTimer;
+    var _AssistanceIndexDoneTypingInterval = 500;
+    var datatables = $('#_AssistanceIndexTable').DataTable({
+		proccessing: true,
+		serverSide: false,
+		searching: true,
+		lengthChange: false,
+		dom: 'tip',
+		ajax: {
+			url: '@Url.Action("List", "Assistance")',
+			type: 'POST'
+		},
+		columns: [
+			{ data: 'Name',
+            render: function (data, type, row) {
+                return '<a href="@Url.Action("Manage", "Assistance")?id=' + row.assistanceId + '">' + row.name + '</a>';
+                }
+            },
+			{ data: 'Value',
+            render: function (data, type, row) {
+                return row._Value;
+                }
+            },
+            {
+                data: 'Description',
+                render: function (data, type, row) {
+                    return row.description;
+                }
+            },
+			{
+				data: null,
+				render: function (data, type, row) {
+                    return '<div class="text-center"><a href="javascript:void(0)" onclick="RemoveAssistance(' + row.assistanceId + ')" title="Excluir" ><i class="far fa-trash-alt"></i></a></div>';
+				}
+			}
+		]
+	});
+
+    function _AssistanceIndexDoneTyping() {
+        if ($.fn.DataTable.isDataTable('#_AssistanceIndexTable')) {
+            datatables.search($('#_AssistanceIndexSearch').val()).draw();
+        }
+    }
+    $('#_AssistanceIndexSearch').keyup(function () {
+        clearTimeout(_AssistanceIndexDoneTypingInterval);
+        _AssistanceIndexTypingTimer = setTimeout(_AssistanceIndexDoneTyping, _AssistanceIndexDoneTypingInterval);
+    });
+    $('#_AssistanceIndexSearch').keydown(function () {
+        clearTimeout(_AssistanceIndexDoneTyping);
+    });
+
+    function RemoveAssistance(assistanceId) {
+		if (confirm("Deseja realmente excluir esta assistência?")) {
+            _RemoveAssistance(assistanceId, function (data) {
+                if(!data.hasError)
+                    $('#_AssistanceIndexTable').DataTable().ajax.reload();
+                alert(data.message);
+			});
+		}
+	}
+
+	function _RemoveAssistance(_assistanceId, callback) {
+        var d = { id: _assistanceId };
+		$.ajax({
+			url: '@Url.Action("RemoveAssistance", "Assistance")',
+			type: 'POST',
+			data: d,
+			dataType: 'Json',
+			success: function(data){
+                callback(data);
+            }
+		});
+	}
+</script>

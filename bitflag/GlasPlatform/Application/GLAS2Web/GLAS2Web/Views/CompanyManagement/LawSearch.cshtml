@@ -1,0 +1,544 @@
+﻿@model DTO.Company.CompanyViewModel
+@inject DAL.GLAS2Context context
+@{
+    var segmentoFunctions = new BLL.Utils.SegmentoFunctions(context);
+    var esferaFunctions = new BLL.Utils.EsferaFunctions(context);
+    var lawTypeFunctions = new BLL.Law.LawTypeFunctions(context);
+    var orgaoFunctions = new BLL.Utils.OrgaoFunctions(context);
+    var countryFunctions = new BLL.Utils.CountryFunctions(context);
+
+    ViewData["Title"] = "Associar Leis";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<form id="Form">
+    <input type="hidden" name="companyId" value="@Model.CompanyId" />
+    <div id="knowledgeLaws"></div>
+    <div id="applicableLaws"></div>
+</form>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card shadow">
+            <div class="card-header">
+                Associar Requisitos Legais à Unidade de Negócio: <b>@Model.NomeFantasia</b>, CNPJ: <b class="cnpj">@Model.cnpj</b>@if (Model.CountryId.HasValue)
+                {<text>, Federação: <b>@countryFunctions.GetDataByID(Model.CountryId).NiceName</b></text>}@if (!string.IsNullOrWhiteSpace(Model.Uf))
+                {<text>, Estado: <b>@Model.Uf</b></text>}@if (!string.IsNullOrWhiteSpace(Model.Cidade))
+                {<text>, Município: <b>@Model.Cidade</b></text>}
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label class="control-label">Procurar</label>
+                            <input type="text" class="form-control" id="search" Placeholder="Procurar...">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="control-label">Segmento</label>
+                            <select class="form-control" id="FilterSegmentoId">
+                                <option value="">Todos</option>
+                                @foreach (var item in segmentoFunctions.GetData())
+                                {
+                                    <option value="@item.SegmentoId">@item.Name</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="control-label">Esfera</label>
+                            <select class="form-control" id="FilterEsferaId">
+                                <option value="">Selecione</option>
+                                @foreach (var item in esferaFunctions.GetData())
+                                {
+                                    <option value="@item.EsferaId">@item.Name</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="control-label">Tipo</label>
+                            <select class="form-control" id="FilterLawTypeId">
+                                <option value="">Selecione</option>
+                                @foreach (var item in lawTypeFunctions.GetData())
+                                {
+                                    <option value="@item.LawTypeId">@item.Name</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="control-label">Órgão</label>
+                            <select class="form-control" id="FilterOrgaoId">
+                                <option value="">Selecione</option>
+                                @foreach (var item in orgaoFunctions.GetData())
+                                {
+                                    <option value="@item.OrgaoId">@item.Name</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class=" float-left">
+                            <a href="#" class="btn btn-primary" id="KnowledgeModal"><span class="badge badge-light" id="QtdKnowledge">0</span>&nbsp;Conhecimento</a>
+                            <a href="#" class="btn btn-primary" id="ApplicableModal"><span class="badge badge-light" id="QtdApplicable">0</span>&nbsp;Aplicáveis</a>
+                        </div>
+                        <div class="float-right">
+                            <h5><a id="AddAllKnowledgeButton" style="white-space: nowrap;" title="Conhecimento" href="javascript:void(0)"><span class="badge" style="background-color:rgba(251, 112, 53,1);"><i class="fas fa-plus-circle"></i>&nbsp;Todos como conhecimento</span></a>&nbsp;<a id="AddAllApplicableButton" style="white-space: nowrap;" title="Aplicável" href="javascript:void(0)"><span class="badge" style="background-color:rgba(155, 210, 32, 1);"><i class="fas fa-plus-circle"></i>&nbsp;Todos como aplicável</span></a></h5>
+                        </div>
+                    </div>
+                </div>
+                <hr />
+                <table id="tableLaws" class="datatable display table table-sm table-bordered table-striped" style="border-collapse: collapse !important; width: 100%">
+                    <thead>
+                        <tr>
+                            <th>Número</th>
+                            <th>Órgão</th>
+                            <th>Data</th>
+                            <th>Segmento</th>
+                            <th>Título</th>
+                            <th>&nbsp;</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div class="card-footer">
+                <a href="@Url.Action("Laws", "CompanyManagement")?id=@Model.CompanyId" class="btn btn-secondary float-left"><i class="fa fa-arrow-left"></i>&nbsp;Voltar</a>
+                <div class="btn-group" role="group" style="float:right;">
+                    <button type="button" class="btn btn-success" id="SearchLawSaveButton"><i class="fas fa-cloud-upload-alt"></i>&nbsp;Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    var filterParameter;
+    var chosenLawsKnowlodge = [];
+    var chosenLawsApplicable = [];
+    var typingTimer;
+    var doneTypingInterval = 500;
+    var datatables = $('#tableLaws').DataTable({
+        columnDefs: [
+            { targets: [0], orderData: [0, 7] }
+        ]
+        , proccessing: true
+        , serverSide: true
+        , searching: true
+        , lengthChange: false
+        , dom: 'tip'
+        , ajax: {
+            url: '@Url.Action("ListSelect", "LawManagement")',
+            data: function (d) {
+                d.CompanyId = @Model.CompanyId,
+                d.SegmentoId = $('#FilterSegmentoId').val() == '' ? null : $('#FilterSegmentoId').val(),
+                    d.EsferaId = $('#FilterEsferaId').val() == '' ? null : $('#FilterEsferaId').val(),
+                    d.LawTypeId = $('#FilterLawTypeId').val() == '' ? null : $('#FilterLawTypeId').val(),
+                    d.OrgaoId = $('#FilterOrgaoId').val() == '' ? null : $('#FilterOrgaoId').val()
+            }
+                , type: 'POST'
+        }
+        , "drawCallback": function (settings) {
+            filterParameter = this.oApi._fnAjaxParameters(settings);
+            ChangeChosenLawColor();
+        }
+        , columns: [
+            {
+                data: 'LawNumberOrdering',
+                render: function (data, type, row) {
+                    return row.LawNumber;
+                }
+            }
+            , { data: 'LawOrgaoName' }
+            , { data: 'LawForceDate', render: function (data, type, row, meta) { return row._LawForceDate; } }
+            , { data: 'LawSegmentoName' }
+            , { data: 'LawTitle' }
+            , {
+			data: null
+                , sortable: false
+                , searchable: false
+                , render: function (data, type, row, meta) {
+                    return "<h6 class='text-center' id='" + row.LawId + "'><a class='Btns" + row.LawId + "' style='white-space: nowrap;' title='Conhecimento' href='javascript:void(0)' onclick='AssociateKnowledge(" + JSON.stringify(row) + ")'><span class='badge' style='background-color:rgba(251, 112, 53,1);'><i class='fas fa-plus-circle'></i>&nbsp;Conhecimento</span></a>&nbsp;<a class='Btns" + row.LawId + "' style='white-space: nowrap;' title='Aplicável' href='javascript:void(0)' onclick='AssociateApplicable(" + JSON.stringify(row) + ")'><span class='badge'  style='background-color:rgba(155, 210, 32, 1);'><i class='fas fa-plus-circle'></i>&nbsp;Aplicável</span></a></h6>";
+				}
+            }
+            , { data: 'LawNumber', visible: false }
+            , { data: '_LawNumberOrdering', visible: false }
+        ]
+    });
+
+    function ChangeChosenLawColor() {
+        $.each(chosenLawsKnowlodge, function (i, e) {
+            $('#' + e).closest("tr").css("background-color", "rgba(251, 112, 53,0.1)");
+            $('.Btns' + e).hide();
+        });
+        $.each(chosenLawsApplicable, function (i, e) {
+            $('#' + e).closest("tr").css("background-color", "rgba(155, 210, 32, 0.15)");
+            $('.Btns' + e).hide();
+        });
+
+    }
+
+    $('#FilterSegmentoId, #FilterEsferaId, #FilterLawTypeId, #FilterOrgaoId').change(function () {
+        doneTyping();
+    });
+
+    function doneTyping() {
+        if ($.fn.DataTable.isDataTable('#tableLaws')) {
+            datatables.search($('#search').val()).draw();
+        }
+    }
+
+    $('#search').keyup(function () {
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(doneTyping, doneTypingInterval);
+    });
+    $('#search').keydown(function () {
+        clearTimeout(typingTimer);
+	});
+
+</script>
+<script type="text/javascript">
+
+    function AssociateKnowledge(data) {
+
+        var index = chosenLawsKnowlodge.indexOf(data.LawId);
+        if (index === -1) chosenLawsKnowlodge.push(data.LawId);
+
+        $('.knowledgeLaws[value="' + data.LawId + '"]').remove();
+        $('.applicableLaws[value="' + data.LawId + '"]').remove();
+
+        $('#_knowledgeLaws').append('<li value="' + data.LawId + '" class="knowledgeLaws list-group-item"><div class="row"><div class="col-11"><span class="NumberKnowledge">' + data.LawNumber + '</span> | <span class="TitleKnowledge">' + data.LawTitle + '</span></div><div class="col-1 text-center"><a href="javascript:void(0)" onclick="RemoveLaw(' + data.LawId + ')"><i class="fas fa-trash-alt"></i></a></div></div></li>');
+        $('#knowledgeLaws').append('<input type="hidden" class="knowledgeLaws" name="knowledgeLaws" value="' + data.LawId + '" />');
+        $('#' + data.LawId).closest("tr").css("background-color", "rgba(251, 112, 53,0.1)");
+        $('.Btns' + data.LawId).hide();
+
+        AssociateCommon(data.LawId);
+    };
+
+    function AssociateApplicable(data) {
+
+        var index = chosenLawsApplicable.indexOf(data.LawId);
+        if (index === -1) chosenLawsApplicable.push(data.LawId);
+
+        $('.knowledgeLaws[value="' + data.LawId + '"]').remove();
+        $('.applicableLaws[value="' + data.LawId + '"]').remove();
+
+        $('#_applicableLaws').append('<li value="' + data.LawId + '" class="applicableLaws list-group-item"><div class="row"><div class="col-11"><span class="NumberApplicable">' + data.LawNumber + '</span> | <span class="TitleApplicable">' + data.LawTitle + '</span></div><div class="col-1 text-center"><a href="javascript:void(0)" onclick="RemoveLaw(' + data.LawId + ')"><i class="fas fa-trash-alt"></i></a></div></div></li>');
+        $('#applicableLaws').append('<input type="hidden" class="applicableLaws" name="applicableLaws" value="' + data.LawId + '" />');
+        $('#' + data.LawId).closest("tr").css("background-color", "rgba(155, 210, 32, 0.15)");
+        $('.Btns' + data.LawId).hide();
+
+        AssociateCommon(data.LawId);
+    };
+
+    function AssociateCommon(lawId) {
+
+        //o valor é dividido por 2 pois a cada item selecionado são criados dois elementos com a classe knowledgeLaws
+        $('#QtdApplicable').text($('.applicableLaws').length / 2);
+        $('#QtdKnowledge').text($('.knowledgeLaws').length / 2);
+
+        $('.applicableLaws').length == 0 ? $('#ApplicableListTitle').html('<i>Nenhum Requisito Legal Selecionado</i>') : $('#ApplicableListTitle').html('');
+        $('.knowledgeLaws').length == 0 ? $('#KnowledgeListTitle').html('<i>Nenhum Requisito Legal Selecionado</i>') : $('#KnowledgeListTitle').html('');
+    }
+
+    $('#SearchLawSaveButton').click(function () {
+        var d = $('#Form').serializeArray();
+        $.post('@Url.Action("AddLawsToCompany", "CompanyManagement")', d, function (data) {
+            if (data == false) {
+                alert("Os dados não foram salvos!");
+            } else {
+                $('.knowledgeLaws').remove();
+                $('.applicableLaws').remove();
+                $('#QtdApplicable').text(0);
+                $('#QtdKnowledge').text(0);
+                $('#ApplicableListTitle').html('<i>Nenhum Requisito Legal Selecionado</i>');
+                $('#KnowledgeListTitle').html('<i>Nenhum Requisito Legal Selecionado</i>');
+                alert(data.knowledgeCount + " requisito(s) legal(is) de conhecimento e " + data.applicableCount + " requisito(s) legal(is) aplicáveis foram salvos!");
+                doneTyping();
+            }
+        });
+    });
+    $('#KnowledgeModal').click(function () {
+        $('#modalTitle').text('Conhecimento');
+        $('#KnowledgeList').show();
+        $('#ApplicableList').hide();
+        $('#RemoveAllApplicableBtn').hide()
+        $('.knowledgeLaws').length == 0 ? $('#RemoveAllKnowledgeBtn').hide() : $('#RemoveAllKnowledgeBtn').show();
+        $('#LawModal').modal('show');
+    });
+    $('#ApplicableModal').click(function () {
+        $('#modalTitle').text('Aplicáveis');
+        $('#ApplicableList').show();
+        $('#KnowledgeList').hide();
+        $('#RemoveAllKnowledgeBtn').hide()
+        $('.applicableLaws').length == 0 ? $('#RemoveAllApplicableBtn').hide() : $('#RemoveAllApplicableBtn').show();
+        $('#LawModal').modal('show');
+    });
+
+    function RemoveLaw(lawId) {
+        if (confirm("Deseja realmente retirar esta requisito legal?")){
+            _RemoveLaw(lawId, function () { alert('Requisito legal removida com sucesso!')});
+        }
+
+    }
+    function _RemoveLaw(lawId, callback) {
+        $('.knowledgeLaws[value="' + lawId + '"]').remove();
+        $('.applicableLaws[value="' + lawId + '"]').remove();
+        $('#QtdApplicable').text($('.applicableLaws').length / 2);
+        $('#QtdKnowledge').text($('.knowledgeLaws').length / 2);
+
+        $('.applicableLaws').length == 0 ? $('#ApplicableListTitle').html('<i>Nenhum Requisito Legal Selecionado</i>') : $('#ApplicableListTitle').html('');
+        $('.knowledgeLaws').length == 0 ? $('#KnowledgeListTitle').html('<i>Nenhum Requisito Legal Selecionado</i>') : $('#KnowledgeListTitle').html('');
+
+        if ($('#KnowledgeList').css('display') != 'none') {
+            $('.knowledgeLaws').length == 0 ? $('#RemoveAllKnowledgeBtn').hide() : $('#RemoveAllKnowledgeBtn').show();
+        }
+        else {
+            $('.applicableLaws').length == 0 ? $('#RemoveAllApplicableBtn').hide() : $('#RemoveAllApplicableBtn').show();
+        }
+
+        var index = chosenLawsKnowlodge.indexOf(lawId);
+        if (index !== -1) {
+            chosenLawsKnowlodge.splice(index, 1);
+            $('#' + lawId).closest("tr").css("background-color", "");
+        }
+        index = chosenLawsApplicable.indexOf(lawId);
+        if (index !== -1) {
+            chosenLawsApplicable.splice(index, 1);
+            $('#' + lawId).closest("tr").css("background-color", "");
+        }
+        $('.Btns' + lawId).show();
+
+        _doneTyping();
+        callback;
+    }
+
+</script>
+
+<div class="modal fade" id="LawModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document" style="overflow-y: initial !important">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <div class="input-group">
+                                <input id="searchModal" type="text" class="form-control" placeholder="Procurar...">
+                                <span class="input-group-addon" id="basic-addon2"><i class="fa fa-search"></i></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 text-center">
+                        <h5><a id="RemoveAllKnowledgeBtn" onclick="RemoveAllLaws()" style="white-space: nowrap; display:none;" href="javascript:void(0)"><span class="badge badge-info"><i class="fas fa-trash-alt"></i>&nbsp;Retirar todos requisitos legais</span></a></h5>
+                        <h5><a id="RemoveAllApplicableBtn" onclick="RemoveAllLaws()" style="white-space: nowrap; display:none;" href="javascript:void(0)"><span class="badge badge-info"><i class="fas fa-trash-alt"></i>&nbsp;Retirar todos requisitos legais</span></a></h5>
+                    </div>
+                </div>
+                <div class="row" id="KnowledgeList" style="display:none;">
+                    <div class="col-md-12">
+                        <div id="KnowledgeListTitle"><i>Nenhum Requisito Legal Selecionado.</i><br /></div>
+                        <ul class="list-group Knowledge" id="_knowledgeLaws" style="max-height: calc(80vh - 150px); overflow-y: auto;"></ul>
+                    </div>
+                </div>
+                <div class="row" id="ApplicableList" style="display:none;">
+                    <div class="col-md-12">
+                        <div id="ApplicableListTitle"><i>Nenhum Requisito Legal Selecionado.</i><br /></div>
+                        <ul class="list-group Applicable" style="max-height: calc(80vh - 150px); overflow-y: auto;" id="_applicableLaws"></ul>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" aria-label="Close" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-times"></i>&nbsp;Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    function RemoveAllLaws() {
+        if (confirm("Deseja realmente retirar todos requisitos legais?")) {
+            if ($('#KnowledgeList').css('display') != 'none') {
+                _RemoveAllKnowledgeLaws(function () { alert('Requisitos legais de conhecimento removidos com sucesso!') });
+            }
+            else {
+                _RemoveAllApplicableLaws(function () { alert('Requisitos legais aplicáveis removidos com sucesso!') });
+            }
+        }
+    }
+    function _RemoveAllKnowledgeLaws(callback) {
+        $('#QtdKnowledge').text('0');
+        $('#RemoveAllKnowledgeBtn').hide();
+        $('.knowledgeLaws').remove();
+        $('#KnowledgeListTitle').html('<i>Nenhum Requisito Legal Selecionado</i>');
+        $.each(chosenLawsKnowlodge, function (i, e) {
+            console.log(e);
+                $('#' + e).closest("tr").css("background-color", "");
+            $('.Btns' + e).show();
+        });
+        chosenLawsKnowlodge = [];
+
+        _doneTyping();
+        callback;
+    }
+    function _RemoveAllApplicableLaws(callback) {
+        $('#QtdApplicable').text('0');
+        $('#RemoveAllApplicableBtn').hide();
+        $('.applicableLaws').remove();
+        $('#ApplicableListTitle').html('<i>Nenhum Requisito Legal Selecionado</i>');
+        $.each(chosenLawsApplicable, function (i, e) {
+                $('#' + e).closest("tr").css("background-color", "");
+                $('.Btns' + e).show();
+        });
+        chosenLawsApplicable = [];
+
+        _doneTyping();
+        callback;
+        }
+
+    var typingTimerModal;
+    var doneTypingIntervalModal = 500;
+    function _doneTyping() {
+        $('.notfound').html("");
+        var q = $('#searchModal').val().toLowerCase();
+        var Count = 0;
+        var TotalLeis;
+        var Class;
+        if ($('#KnowledgeList').css('display') != 'none') {
+            TotalLeis = $('.knowledgeLaws').length / 2;
+            Class = 'Knowledge';
+        }
+        else {
+            TotalLeis = $('.applicableLaws').length / 2;
+            Class = 'Applicable';
+        }
+        if (TotalLeis > 0) {
+            $.each($('.list-group.' + Class).children(), function (i, e) {
+
+                if (typeof $(e).find('.Number' + Class)[0] === 'undefined' || typeof $(e).find('.Title' + Class)[0] === 'undefined') return;
+
+                if ($(e).find('.Number' + Class)[0].textContent.toLowerCase().indexOf(q) == -1 && $(e).find('.Title' + Class)[0].textContent.toLowerCase().indexOf(q) == -1) {
+                    $(e).hide();
+                    Count++;
+                }
+                else {
+                    $(e).show();
+                }
+                if (q == "") {
+                    $(e).show();
+                }
+                if (Count == TotalLeis) {
+                    $('.list-group.' + Class).after('<div class="text-center notfound"><i>Nenhum requisito legal encontrado.</i></div>');
+                }
+                else {
+                    $('.notfound').html("");
+                }
+            });
+        }
+    }
+    $('#searchModal').keyup(function () {
+        clearTimeout(typingTimerModal);
+        typingTimer = setTimeout(_doneTyping, doneTypingIntervalModal);
+    });
+    $('#searchModal').keydown(function () {
+        clearTimeout(typingTimerModal);
+    });
+
+    $("#LawModal").on("hidden.bs.modal", function () {
+        $('#searchModal').val('');
+        $.each($('.list-group').children(), function (i, e) {
+            $(e).show();
+        });
+        $('.notfound').html("");
+    });
+
+    $('#AddAllKnowledgeButton').click(function () {
+
+        filterParameter.search.value = $('#search').val();
+        var d = {
+            CompanyId: '@Model.CompanyId',
+            SegmentoId: $('#FilterSegmentoId').val() == '' ? null : $('#FilterSegmentoId').val(),
+            EsferaId: $('#FilterEsferaId').val() == '' ? null : $('#FilterEsferaId').val(),
+            LawTypeId: $('#FilterLawTypeId').val() == '' ? null : $('#FilterLawTypeId').val(),
+            OrgaoId: $('#FilterOrgaoId').val() == '' ? null : $('#FilterOrgaoId').val(),
+            getAll: 'true',
+            filter: filterParameter
+        };
+        $.ajax({
+            url: '@Url.Action("ListSelect", "LawManagement")',
+            type: 'POST',
+            data: d,
+            dataType: 'json',
+            success: function (data) {
+                if (data.data.length > 0) {
+                    $.each(data.data, function (i, e) {
+
+                        var index = chosenLawsKnowlodge.indexOf(e.LawId);
+                        if (index === -1) chosenLawsKnowlodge.push(e.LawId);
+
+                        $('.knowledgeLaws[value="' + e.LawId + '"]').remove();
+                        $('.applicableLaws[value="' + e.LawId + '"]').remove();
+
+                        $('#_knowledgeLaws').append('<li value="' + e.LawId + '" class="knowledgeLaws list-group-item"><div class="row"><div class="col-11"><span class="NumberKnowledge">' + e.LawNumber + '</span> | <span class="TitleKnowledge">' + e.LawTitle + '</span></div><div class="col-1 text-center"><a href="javascript:void(0)" onclick="RemoveLaw(' + e.LawId + ')"><i class="fas fa-trash-alt"></i></a></div></div></li>');
+                        $('#knowledgeLaws').append('<input type="hidden" class="knowledgeLaws" name="knowledgeLaws" value="' + e.LawId + '" />');
+
+                        AssociateCommon(e.LawId);
+                    });
+                }
+            doneTyping();
+            }
+        });
+    });
+
+
+    $('#AddAllApplicableButton').click(function () {
+
+        filterParameter.search.value = $('#search').val();
+        var d = {
+            CompanyId: '@Model.CompanyId',
+            SegmentoId: $('#FilterSegmentoId').val() == '' ? null : $('#FilterSegmentoId').val(),
+            EsferaId: $('#FilterEsferaId').val() == '' ? null : $('#FilterEsferaId').val(),
+            LawTypeId: $('#FilterLawTypeId').val() == '' ? null : $('#FilterLawTypeId').val(),
+            OrgaoId: $('#FilterOrgaoId').val() == '' ? null : $('#FilterOrgaoId').val(),
+            getAll: 'true',
+            filter: filterParameter
+        };
+         $.ajax({
+            url: '@Url.Action("ListSelect", "LawManagement")',
+            type: 'POST',
+            data: d,
+            dataType: 'json',
+            success: function (data) {
+                if (data.data.length > 0) {
+                    $.each(data.data, function (i, e) {
+
+                        var index = chosenLawsApplicable.indexOf(e.LawId);
+                        if (index === -1) chosenLawsApplicable.push(e.LawId);
+
+                        $('.knowledgeLaws[value="' + e.LawId + '"]').remove();
+                        $('.applicableLaws[value="' + e.LawId + '"]').remove();
+
+                        $('#_applicableLaws').append('<li value="' + e.LawId + '" class="applicableLaws list-group-item"><div class="row"><div class="col-11"><span class="NumberApplicable">' + e.LawNumber + '</span> | <span class="TitleApplicable">' + e.LawTitle + '</span></div><div class="col-1 text-center"><a href="javascript:void(0)" onclick="RemoveLaw(' + e.LawId + ')"><i class="fas fa-trash-alt"></i></a></div></div></li>');
+                        $('#applicableLaws').append('<input type="hidden" class="applicableLaws" name="applicableLaws" value="' + e.LawId + '" />');
+
+                        AssociateCommon(e.LawId);
+                    });
+                }
+                doneTyping();
+            }
+        });
+    });
+</script>

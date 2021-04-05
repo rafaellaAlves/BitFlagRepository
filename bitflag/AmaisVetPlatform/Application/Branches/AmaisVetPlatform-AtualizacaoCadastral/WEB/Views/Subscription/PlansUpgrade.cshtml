@@ -1,0 +1,129 @@
+﻿@model WEB.Models.Subscription.Plan.ChoosePlanViewModel
+@{
+    Layout = "~/Views/Subscription/Shared/_Layout.cshtml";
+    ViewData["title"] = "Plano Escolhido";
+
+}
+@section Styles {
+    <style type="text/css">
+        .selected-plan {
+            background-color: rgb(73, 186, 132);
+            color: white;
+            border-color: black;
+        }
+    </style>
+}
+<div class="row">
+    <div class="col-12">
+        <div class="mb-2">
+            <h2>
+                Olá Dr(a). <b>@Model.Subscription.FullName</b>!
+                <br />
+                <small>
+                    Anote o número desta simulação para acessos futuros: <b>@Model.Subscription.Reference</b><br />
+                </small>
+            </h2>
+        </div>
+        <hr />
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    Veja os planos para o seu perfil:
+                    <br />
+                    <small>
+                        Os valores abaixo já contemplam o descontro!
+                    </small>
+                </h5>
+                <table class="table table-striped table-responsive-sm table-bordered">
+                    <thead>
+                        <tr>
+                            <th style="font-size: 1.5em;">Coberturas</th>
+                            @foreach (var plan in Model.Plans)
+                            {
+                                <th style="font-size: 1.5em;" class="plan plan-@plan.PlanId text-center">@plan.Name</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.PlanCoverageTypes)
+                        {
+                            <tr>
+                                <td><i>@item.Description</i></td>
+                                @foreach (var plan in Model.Plans)
+                                {
+                                    if (plan.Coverages.ContainsKey(item.PlanCoverageTypeId))
+                                    {
+                                        <td class="plan plan-@plan.PlanId text-center">
+                                            @plan.Coverages[item.PlanCoverageTypeId].Description
+                                        </td>
+                                    }
+                                    else
+                                    {
+                                        <td class="plan plan-@plan.PlanId text-center">-</td>
+                                    }
+
+                                }
+                            </tr>
+                        }
+                        <tr style="font-size: 1.5em;">
+                            <td><b>Assinatura Mensal</b></td>
+                            @foreach (var plan in Model.Plans)
+                            {
+                                <td class="plan plan-@plan.PlanId text-center">
+                                    <b>@plan.MonthlyCostFormatted</b>
+                                </td>
+                            }
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td></td>
+                            @foreach (var plan in Model.Plans)
+                            {
+                                <td class="plan plan-@plan.PlanId text-center">
+                                    <button onclick="upgradePlan(@plan.PlanId, '@plan.Name', '@plan.MonthlyCostFormatted')" class="plan-selector plan-selector-@plan.PlanId btn btn-success btn-block">Upgrade</button>
+                                    <b style="font-size: 2em; display: none;" class="plan-selected plan-selected-@plan.PlanId"><i class="simple-icon-check"></i></b>
+                                </td>
+                            }
+                        </tr>
+                    </tfoot>
+                </table>
+                <hr />
+                <div class="row">
+                    <div class="col-md-6">
+                        <a href="@Url.Action("Index", "Home")" class="btn btn-secondary">Voltar</a>
+                    </div>
+                    <div class="col-md-6 text-right">
+                        <button type="button" class="btn btn-primary">Avançar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script type="text/javascript" src="~/js/Plans.js"></script>
+<script type="text/javascript">
+    function UpgradePlan(planId, planName, planMonthlyCost) {
+        $('.plan').removeClass('selected-plan');
+        $('.plan-' + planId).addClass('selected-plan');
+
+        $('.plan-selector').show();
+        $('.plan-selector-' + planId).hide();
+
+        $('.plan-selected').hide();
+        $('.plan-selected-' + planId).show();
+
+        $('#pesonal-info-form input[name="planId"]').val(planId);
+        $('#pesonal-info-form #plan-name').html(planName + ' - ' + planMonthlyCost + ' por mês');
+        $('#pesonal-info-form button[type="submit"]').show();
+        $('#pesonal-info-form').show();
+        
+    }
+</script>
+}

@@ -1,0 +1,81 @@
+﻿@model int
+
+<table id="table-question-subTheme" class="datatable table table-sm table-bordered table-striped" style="border-collapse: collapse !important;">
+    <thead>
+        <tr>
+            <th class="text-center">Código</th>
+            <th>Tema</th>
+            <th>Descrição</th>
+            <th>Causa</th>
+            <th>Efeito</th>
+            <th>Controle</th>
+            <th>&nbsp;</th>
+            <th>&nbsp;</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<script type="text/javascript">
+    var typingTimer;
+    var doneTypingInterval = 500;
+    var questionSubThemeDatatables = $('#table-question-subTheme').DataTable({
+        proccessing: true
+        , serverSide: false
+        , searching: true
+        , lengthChange: false
+        , dom: 'tip'
+        , ajax: {
+            url: '@Url.Action("List", "QuestionSubTheme")'
+            , data: function (d) {
+                d.questionThemeId = '@Model'
+            }
+            , type: 'POST'
+        }
+        , columnDefs: [
+            { "width": "250px", "targets": 6 }
+            , { "orderData": [7], "targets": 0 }
+            , { "targets": 0, "orderable": false }
+        ]
+        , columns: [
+            { render: function (data, type, row) { return '<div class="text-center">' + row.QuestionSubThemeId + '</div>'; } }
+            , { render: function (data, type, row) { return row.QuestionThemeName; } }
+            , { render: function (data, type, row) { return row.Name; } }
+            , { render: function (data, type, row) { return row.Cause; } }
+            , { render: function (data, type, row) { return row.Effect; } }
+            , { render: function (data, type, row) { return row.Control; } }
+            , {
+                data: null
+                , sortable: false
+                , searchable: false
+                , render: function (data, type, row) {
+                    return getListActions([
+                        { action: 'javascript:openQuestionSubThemeModal(' + row.QuestionSubThemeId + ')', text: 'Editar' },
+                        { action: 'javascript:deleteQuestionSubTheme(' + row.QuestionSubThemeId + ')', text: 'Remover' },
+                    ]);
+                }
+            }
+            , { render: function (data, type, row) { return row.CreatedDate; }, visible: false }
+        ]
+        , drawCallback: function () {
+            initSearchDataTable();
+        }
+    });
+
+    questionSubThemeDatatables.on('order.dt search.dt', function () {
+        questionSubThemeDatatables.column(0, { search: 'applied', order: 'applied' }).nodes().each(function (cell, i) {
+            cell.innerHTML = '<div class="text-center">' + (i + 1) + '</div>';
+        });
+    }).draw();
+
+    $(document).ready(initSearchDataTable);
+
+    function deleteQuestionSubTheme(questionSubThemeId) {
+        if (!confirm('Deseja realmente excluir este subtema?')) return;
+
+        $.post('@Url.Action("Delete", "QuestionSubTheme")', { questionSubThemeId }, function () {
+            alert('subtema excluído com sucesso!');
+            questionSubThemeDatatables.ajax.reload();
+        });
+    }
+</script>

@@ -1,0 +1,77 @@
+﻿@inject DAL.GLAS2Context context
+
+@{ var guid = "_" + Guid.NewGuid().ToString("N");
+
+	int companyLawId = -1;
+	bool canDelete = false;
+
+	if (ViewData.ContainsKey("companyLawId"))
+	{
+		int.TryParse(ViewData["companyLawId"].ToString(), out companyLawId);
+	}
+
+	if (ViewData.ContainsKey("canDelete"))
+	{
+		bool.TryParse(ViewData["canDelete"].ToString(), out canDelete);
+	}
+
+	bool companyLawIsCompleted = false;
+
+	if (companyLawId != -1)
+	{
+		var companyLawFunctions = new BLL.Company.CompanyLawFunctions(context);
+		companyLawIsCompleted = companyLawFunctions.CompanyLawIsCompleted(companyLawId);
+	}
+}
+<div id="@guid">
+	<div id="@Html.Raw(guid + "_commentsContainer")">
+		<i>Nenhum comentário encontrado.</i>
+	</div>
+	<script type="text/javascript">
+        function _CompanyLawActionCommentsDoneTyping(companyLawActionId) {
+            var formData = new FormData();
+            formData.append('companyLawActionId', companyLawActionId);
+            $.ajax({
+                url: '@Url.Action("List", "CompanyLawActionCommentManagement")',
+                type: 'POST',
+                processData: false,
+                contentType: false,
+                data: formData,
+                success: function (d) {
+					if (d.data.length == 0) {
+						_CompanyLawActionCommentsClearSearch();
+						return;
+					}
+                    $('#@Html.Raw(guid + "_commentsContainer")').empty();
+					$.each(d.data, function (i, e) {
+						$('#@Html.Raw(guid + "_commentsContainer")').append('<div class="card p-3 list-group-item list-group-item-action flex-column" style= "margin-bottom: 5px;" ><div class="d-flex w-100 justify-content-between" >' + e.Text + '@if(!companyLawIsCompleted && canDelete){<text><small><a href="javascript:void(0)" onclick="RemoveCompanyLawActionCommentFromCompanyLawAction(' + e.CompanyLawActionCommentId + ',' + e.CompanyLawActionId + ')">Excluir</a></small></text>}</div><footer class="blockquote-footer">' + e.Name + ' em ' + e.CreatedDate + '</small></footer></div >');
+                    });
+                }
+            });
+        }
+        function _CompanyLawActionCommentsClearSearch() {
+            $('#@Html.Raw(guid + "_commentsContainer")').empty();
+            $('#@Html.Raw(guid + "_commentsContainer")').append('<i>Nenhum comentário encontrado.</i>');
+		}
+
+		function RemoveCompanyLawActionCommentFromCompanyLawAction(_companyLawActionCommentId, _companyLawActionId) {
+			if (confirm('Deseja realmente remover esse comentário?')) {
+				_RemoveCompanyLawActionCommentFromCompanyLawAction(_companyLawActionCommentId, function () {
+					_CompanyLawActionCommentsDoneTyping(_companyLawActionId);
+					alert('Comentário removido com sucesso!');
+				});
+			}
+		}
+		function _RemoveCompanyLawActionCommentFromCompanyLawAction(_companyLawActionCommentId, callback) {
+			var d = { companyLawActionCommentId: _companyLawActionCommentId };
+			$.ajax({
+				url: '@Url.Action("RemoveCompanyLawActionComment", "CompanyLawActionCommentManagement")',
+				type: 'POST',
+				data: d,
+				dataType: 'json',
+				success: callback
+			});
+		}
+
+	</script>
+</div>

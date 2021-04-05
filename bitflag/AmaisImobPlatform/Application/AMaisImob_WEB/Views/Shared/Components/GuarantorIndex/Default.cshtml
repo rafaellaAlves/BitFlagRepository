@@ -1,0 +1,136 @@
+﻿@{
+
+
+}
+
+<style type="text/css">
+        @@font-face {
+            font-family: 'Avenir';
+            src: url('@Url.Content("~/assets/fonts/0078f486-8e52-42c0-ad81-3c8d3d43f48e.woff2")'), url('@Url.Content("~/assets/fonts/bc176270-17fa-4c78-a343-9fe52824e501.woff")'), url('@Url.Content("~/assets/fonts/d513e15e-8f35-4129-ad05-481815e52625.woff2")');
+        }
+</style>
+
+<style>
+    body {
+        font-family: Avenir;
+    }
+</style>
+
+
+<div class="row">
+    <div class="col-md-10">
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text"><i class="fa fa-search"></i></span>
+            </div>
+            <input id="_GuarantorIndexSearch" type="text" class="form-control" placeholder="Procurar..." />
+        </div>
+    </div>
+    <div class="col-md-2">
+        <a href="@Url.Action("Manage", "Guarantor")" class="btn btn-success pull-right w-100"><i class="fas fa-plus-circle"></i>&nbsp;Novo</a>
+    </div>
+</div>
+<hr />
+
+<div class="table-wrapper">
+    <table id="_GuarantorIndexTable" class="table display responsive nowrap" style="border-collapse: collapse !important;">
+        <thead>
+            <tr>
+                <td>&nbsp;</td>
+                <th>Nome Fantasia</th>
+                <th>Razão Social</th>
+                <th>Ativo?</th>
+                <th>&nbsp;</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<script type="text/javascript">
+
+    var _GuarantorIndexTypingTimer;
+    var _GuarantorIndexDoneTypingInterval = 500;
+    var datatables = $('#_GuarantorIndexTable').DataTable({
+		proccessing: true,
+		serverSide: false,
+		searching: true,
+		lengthChange: false,
+		dom: 'tip',
+		ajax: {
+			url: '@Url.Action("List", "Guarantor")',
+            type: 'POST'
+
+		},
+        columns: [
+            {
+                data: 'Id',
+                render: function (data, type, row) {
+                return row.guarantorId;
+                }
+            },
+            {
+                data: 'NomeFantasia',
+                render: function (data, type, row) {
+                return '<a href="@Url.Action("Manage", "Guarantor")?id=' + row.guarantorId + '">' + row.nomeFantasia + '</a>';
+                }
+            },
+            {
+                data: 'RazaoSocial',
+                render: function (data, type, row) {
+                return row.razaoSocial;
+                }
+            },
+            {
+                orderable: false,
+                data: 'IsActive',
+                render: function (data, type, row) {
+                    return row.isActive ? '<span class="badge badge-pill badge-success text-center">Sim</span>' : '<span class="badge badge-pill badge-danger text-center">Não</span>';
+                }
+            },
+            {
+                orderable: false,
+				data: null,
+				render: function (data, type, row) {
+                    return '<div class="text-center"><a href="javascript:void(0)" onclick="RemoveUser(' + row.guarantorId + ')" title="Excluir" ><i class="far fa-trash-alt"></i></a></div>';
+				}
+			}
+
+
+
+		]
+	});
+
+    function _GuarantorIndexDoneTyping() {
+        if ($.fn.DataTable.isDataTable('#_GuarantorIndexTable')) {
+            datatables.search($('#_GuarantorIndexSearch').val()).draw();
+        }
+    }
+    $('#_GuarantorIndexSearch').keyup(function () {
+        clearTimeout(_GuarantorIndexDoneTypingInterval);
+        _GuarantorIndexTypingTimer = setTimeout(_GuarantorIndexDoneTyping, _GuarantorIndexDoneTypingInterval);
+    });
+    $('#_GuarantorIndexSearch').keydown(function () {
+        clearTimeout(_GuarantorIndexDoneTyping);
+    });
+
+    function RemoveUser(id) {
+		if (confirm("Deseja realmente excluir esta Garantidora?")) {
+            _RemoveUser(id, function () {
+                $('#_GuarantorIndexTable').DataTable().ajax.reload();
+				alert("Garantidora excluída com sucesso!");
+			});
+		}
+	}
+
+    function _RemoveUser(_id, callback) {
+        var d = { id: _id};
+		$.ajax({
+			url: '@Url.Action("RemoveGuarantor", "Guarantor")',
+			type: 'POST',
+			data: d,
+			dataType: 'Json',
+			success: callback
+		});
+	}
+</script>

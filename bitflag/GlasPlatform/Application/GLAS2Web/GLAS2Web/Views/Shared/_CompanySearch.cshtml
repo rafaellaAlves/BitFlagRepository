@@ -1,0 +1,70 @@
+﻿<div id="_423FF860EF424A6DA61210B7623A5245">
+    <div class="input-group">
+        <span class="input-group-addon"><i class="fa fa-search"></i></span>
+        <input id="_423FF860EF424A6DA61210B7623A5245_search" class="form-control" type="text" placeholder="Procurar unidade de negócio..." />
+        <script type="text/javascript">
+            var _423FF860EF424A6DA61210B7623A5245_typingTimer;
+            var _423FF860EF424A6DA61210B7623A5245_doneTypingInterval = 500;
+
+            function _423FF860EF424A6DA61210B7623A5245_DoneTyping() {
+                $('#_423FF860EF424A6DA61210B7623A5245_listGroupCompanySearch').empty();
+                var q = $('#_423FF860EF424A6DA61210B7623A5245_search').val();
+
+                $.ajax({
+                    url: '@Url.Action("QuickList", "CompanyManagement")',
+                    type: 'POST',
+                    data: JSON.stringify(q),
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (data) {
+                        if (data.data.length == 0)
+                        {
+                            $('#_423FF860EF424A6DA61210B7623A5245_listGroupCompanySearch').html('<i class="text-center">Nenhuma unidade de negócio encontrada.</a>');
+                        }
+
+                        $.each(data.data, function (i, e) {
+                            $('#_423FF860EF424A6DA61210B7623A5245_listGroupCompanySearch').append(function () {
+
+                                var listGroupItem = $('<li class="list-group-item" />');
+                                var listGroupItemA = $('<a class="_423FF860EF424A6DA61210B7623A5245 float-left" href="javascript:void(0);" data-company-id="' + e.CompanyId + '" data-razao-social="' + e.RazaoSocial + '" >' + e.RazaoSocial + ' </a>');
+                                var listGroupItemB = $('<b class="float-right"><span class="cnpj">' + e.Cnpj + '</span></b>');
+
+                                $(listGroupItem).append(listGroupItemA);
+                                $(listGroupItem).append(listGroupItemB);
+
+                                return listGroupItem;
+                            });
+                        })
+
+                        $('._423FF860EF424A6DA61210B7623A5245').click(function () {
+                            var d = { CompanyId: parseInt($(this).data('company-id')), RazaoSocial: $(this).data('razao-social') };
+                            _CompanySearchSelectCallBack(d);
+                        });
+                    }
+                });
+            }
+            $('#_423FF860EF424A6DA61210B7623A5245_search').keyup(function () {
+                clearTimeout(_423FF860EF424A6DA61210B7623A5245_typingTimer);
+                _423FF860EF424A6DA61210B7623A5245_typingTimer = setTimeout(_423FF860EF424A6DA61210B7623A5245_DoneTyping, _423FF860EF424A6DA61210B7623A5245_doneTypingInterval);
+            });
+            $('#_423FF860EF424A6DA61210B7623A5245_search').keydown(function () {
+                clearTimeout(_423FF860EF424A6DA61210B7623A5245_typingTimer);
+            });
+
+        </script>
+    </div>
+    <hr />
+    <div style="height: 100%; width: 100%; overflow-y:auto;">
+        <ul id="_423FF860EF424A6DA61210B7623A5245_listGroupCompanySearch" class="list-group"></ul>
+    </div>
+    <script type="text/javascript">
+            function _CompanySearchDoneTyping() {
+                _423FF860EF424A6DA61210B7623A5245_DoneTyping();
+            }
+            function _CompanySearchClearSearch() {
+                $('#_423FF860EF424A6DA61210B7623A5245_search').val('');
+                $('#_423FF860EF424A6DA61210B7623A5245_listGroupUserSearch').empty();
+                $('#_423FF860EF424A6DA61210B7623A5245_listGroupCompanySearch').html('<i class="text-center">Faça a busca no campo acima.</a>');
+            }
+            _CompanySearchClearSearch();
+    </script>
+</div>

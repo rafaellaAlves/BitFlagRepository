@@ -1,0 +1,118 @@
+﻿@model int
+@inject Services.ClassStudent.ClassStudentService classStudentService
+@{
+    var classStudent = await classStudentService.GetClassStudentInfoViewModel(Model);
+
+    ViewData["Title"] = $"Boletos: {classStudent.Name}";
+}
+
+@section HeaderButtons {
+    @if (Context.Request.Query.ContainsKey("ClassId"))
+    {
+        <a href="@Url.Action("Index", "ClassStudent", new { classId = Context.Request.Query["classId"] })" class="btn btn-secondary"><i class="simple-icon-arrow-left"></i>&nbsp;Voltar</a>
+    }
+    else
+    {
+        <a href="javascript:window.open('','_self').close();" class="btn btn-secondary"><i class="simple-icon-arrow-left"></i>&nbsp;Voltar</a>
+    }
+    <a href="javascript: OpenStudentAdministrativeSituationModal();" id="open" class="btn btn-success"><i class="simple-icon-plus"></i>&nbsp;Gerar Cobranças</a>
+}
+
+<div id="studentAdministrativeSituation"></div>
+
+@section Scripts {
+    <script type="text/javascript">
+        function LoadStudentAdministrativeSituation() {
+            $('#studentAdministrativeSituation').load('@Url.Action("StudentAdministrativeSituation", "ViewComponentLoader")', { classStudentId: '@Model' });
+        }
+        function OpenStudentAdministrativeSituationModal() {
+            $('.text-danger').remove();
+            $('#StudentAdministrativeSituationModal').modal('show');
+        }
+        function CreateStudentCharge(value, installmentCount) {
+            $.ajax('@Url.Action("CreateCharge", "ClassStudent")', { classId: '@Context.Request.Query["classId"]', classStudentId: '@Model', value: value, installmentCount: installmentCount });
+        }
+
+        $("form").submit(function () {
+            return validateInputs();
+        });
+
+        $('#generate-bills-button').click(function () {
+            if (parseInt($('#installment-count').val()) <= 0) {
+                alert('Defina ao menos uma parcela.');
+                return false;
+            }
+
+            if (!moment($('#installment-date').val(), 'DD/MM/YYYY').isValid()) {
+                alert('Por favor, preencha uma data válida.');
+                return false;
+            }
+
+            if (!moment($('#installment-date').val(), 'DD/MM/YYYY').isSameOrAfter(moment(), 'day')) {
+                alert('Data de vencimento deve ser maior ou igual a data atual.');
+                return false;
+            }
+            $('#generate-bills-button').prop('disabled', true);
+            $('#form-create-charge').submit();
+        });
+    </script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#open').click(function () {
+                $('#generate-bills-button').prop('disabled', false);
+            });
+            LoadStudentAdministrativeSituation();
+            InitializeFunctions();
+        });
+    </script>
+}
+
+@section Modals {
+    <div class="modal fade" id="StudentAdministrativeSituationModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@classStudent.Name</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                </div>
+                <div class="modal-body">
+                    <form action="@Url.Action("CreateCharge", "ClassStudent")" method="post" id="form-create-charge">
+                        <input type="hidden" name="classId" value="@Context.Request.Query["classId"]" />
+                        <input type="hidden" name="classStudentId" value="@Model" />
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="required">Valor Total</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text" id="basic-addon1">R$</span>
+                                        </div>
+                                        <input type="text" class="form-control money" aria-describedby="basic-addon1" id="value" placeholder="Valor Total" name="value">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="required">Parcelas</label>
+                                    <input class="form-control number" id="installment-count" aria-describedby="basic-addon1" placeholder="Parcelas" name="installmentCount">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="required">Data de Vencimento</label>
+                                    <input class="form-control date" id="installment-date" aria-describedby="basic-addon1" placeholder="Data de Vencimento" name="installmentDate">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary float-left" data-dismiss="modal"><i class="simple-icon-close"></i>&nbsp;Fechar</button>
+                    <button type="button" class="btn btn-success" id="generate-bills-button"><i class="simple-icon-plus"></i>&nbsp;Gerar Cobranças</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}

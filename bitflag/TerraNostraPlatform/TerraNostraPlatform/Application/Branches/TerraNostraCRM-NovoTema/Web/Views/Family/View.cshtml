@@ -1,0 +1,132 @@
+﻿@model int
+@{
+    ViewData["Title"] = "Genealogia";
+    Layout = "~/Views/Shared/_LayoutClean.cshtml";
+    var clientApplicants = (List<DB.ClientApplicant>)ViewBag.ClientApplicants;
+    int clientApplicantId = (int)ViewBag.ClientApplicantId;
+}
+
+<div class="row">
+    <div class="col-md-12">
+        
+        <div class="card">
+            <div class="row" style="margin-top: 1em; margin-bottom: 1em;">
+                <div class="col-md-12 text-center">
+                    <img src="~/images/logo.png" width="250" height="80" />
+                </div>
+            </div>
+            <div class="card-header">
+                Bem-vindo à árvore genealógica da sua família!
+            </div>
+            <div class="card-body">
+                <p>
+                    Não se preocupe, nesse primeiro momento preencha com as informações que tiver em mãos e encaminhe as certidões disponíveis.
+                </p>
+                <hr />
+                <ul class="nav nav-pills">
+                    @foreach (var item in clientApplicants)
+                    {
+                        <li class="nav-item">
+                            @if (clientApplicantId == item.ClientApplicantId)
+                            {
+                                <a class="nav-link active" href="javascript:void(0)" id="nav-link-@item.ClientApplicantId" onclick="changeClientApplicant(@item.ClientApplicantId)">@item.FullName</a>
+                            }
+                            else
+                            {
+                                <a class="nav-link" href="javascript:void(0)" id="nav-link-@item.ClientApplicantId" onclick="changeClientApplicant(@item.ClientApplicantId)">@item.FullName</a>
+                            }
+                        </li>
+                    }
+                    <li class="nav-item">
+                        <a class="nav-link" href="@Url.Action("NewClientApplicant", "Family", new { clientId = Model})"><i class="simple-icon-plus"></i>&nbsp;Novo Requerente</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card" style="margin-top: 1em;">
+    @if (clientApplicants.Count > 1)
+    {
+    <div class="card-header" style="margin-top: 1em;">
+        <input type="hidden" id="removeApplicant" value="@clientApplicantId" />
+        <a class="btn btn-danger float-right"  href="#" onclick="removeApplicant()"><i class="simple-icon-trash"></i>&nbsp;Excluir Requerente</a>
+    </div>
+    }
+    <div class="card-body">
+        <div id="accordion">
+            <div class="card">
+                <div class="card-header" id="headingOne">
+                    <h5 class="mb-0">
+                        <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                            Genealogia
+                        </button>
+                    </h5>
+                </div>
+                <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
+                    <div class="card-body">
+                        <div id="_FamilyInfoManageViewComponent"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header" id="headingTwo">
+                    <h5 class="mb-0">
+                        <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                            Arquivos do requerente
+                        </button>
+                    </h5>
+                </div>
+                <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
+                    <div class="card-body">
+                        <div id="_ClientArchiveIndexViewComponent"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    $('#_FamilyInfoManageViewComponent').load('@Url.Action("FamilyInfoManageViewComponent", "Family")', { clientId: '@Model', clientApplicantId: '@clientApplicantId'}, function () {
+        $('.date').datepicker({
+            format: 'dd/mm/yyyy', language: 'pt-BR', autoclose: true, onSelect: function (dateText, inst, elem) {
+                $(elem.el).change();
+            }
+        });
+    });
+
+    $('#_ClientArchiveIndexViewComponent').load('@Url.Action("ClientArchiveComponent", "Client")', {clientId: '@Model', clientApplicantId: '@clientApplicantId'});
+
+    function changeClientApplicant(clientApplicantId) {
+        $.each($('.nav-link'), function (i, e) {
+            $(e).removeClass('active');
+        });
+
+        $('#removeApplicant').val(clientApplicantId);
+
+        $('#nav-link-' + clientApplicantId).addClass('active');
+        $('#_FamilyInfoManageViewComponent').empty();
+        $('#_FamilyInfoManageViewComponent').load('@Url.Action("FamilyInfoManageViewComponent", "Family")', { clientId: '@Model', clientApplicantId: clientApplicantId}, function () {
+            $('.date').datepicker({
+                format: 'dd/mm/yyyy', language: 'pt-BR', autoclose: true, onSelect: function (dateText, inst, elem) {
+                    $(elem.el).change();
+                }
+            });
+        });
+
+        $('#_ClientArchiveIndexViewComponent').load('@Url.Action("ClientArchiveComponent", "Client")', {clientId: '@Model', clientApplicantId: clientApplicantId});
+    }
+
+    function removeApplicant() {
+        if (IsNullOrWhiteSpace($('#removeApplicant').val())) {
+            alert('Houve um erro na exclusão, recarre a página e tente novamente.');
+            return;
+        }
+
+        $('#loading').show();
+        window.location.href = '@Url.Action("Remove", "Family")?clientApplicantId=' + $('#removeApplicant').val();
+    }
+</script>

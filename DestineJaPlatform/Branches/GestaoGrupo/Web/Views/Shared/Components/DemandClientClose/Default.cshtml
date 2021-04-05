@@ -1,0 +1,232 @@
+﻿@model List<DTO.Demand.DemandClientListViewModel>
+@inject Services.Demand.DemandServices demandServices
+
+@{
+    ApplicationDbContext.Models.Demand demand = null;
+
+    if (Model.Count > 0)
+    {
+        demand = await demandServices.GetDataByIdAsync(Model[0].DemandId.Value);
+    }
+}
+<style type="text/css">
+    @@media (min-width: 1100px) {
+        #demand-client-manage-modal .modal-lg {
+            max-width: 1000px;
+        }
+    }
+
+    #demand-client-table th:last-child, #demand-client-table td:last-child {
+        padding-left: 0;
+        padding-right: 0;
+        /*width: 100px;*/
+        white-space: nowrap;
+    }
+</style>
+
+<div class="row">
+    <div class="col table-responsive">
+        <table class="display table table-striped table-bordered table-condensed" id="demand-client-table" style="border-collapse: collapse !important;">
+            <thead>
+                <tr>
+                    <th style="text-align:center">Seq</th>
+                    <th style="text-align:center">MTR</th>
+                    <th style="text-align:center">Cód. Gerador</th>
+                    <th style="text-align:center">Gerador</th>
+                    <th style="text-align:center">Visitou?</th>
+                    <th style="text-align:center">Coletou?</th>
+                    <th style="text-align:center">Chegada</th>
+                    <th style="text-align:center">Saída</th>
+                    <th style="text-align:center">Motivo de não coleta</th>
+                    <th style="text-align:center">Receptor</th>
+                    <th style="text-align:center">Cert.</th>
+                    <th style="width: 60px !important;">&nbsp;</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.OrderBy(x => x.Order))
+                {
+                    <tr data-address-id="@item.ClientCollectionAddressId" data-contract-id="@item.ContractId" data-service-id="@item.ServiceId">
+                        <td class="text-center">@item.Order</td>
+                        <td class="text-center">@($"{demand.DemandId}/{demand.CreatedDate.Year}/{item.Order}")</td>
+                        <td class="text-center"><a data-disabledAll="false" href="@Url.Action("Manage", "Client", new { id = item.ClientId})" target="_blank">@item.ClientId</a></td>
+                        <td>@item.CompanyName</td>
+                        <td class="text-center">@(!item.Visited.HasValue? (object)"-" : Html.Raw(item.Visited.Value? "<span class=\"badge badge-pill badge-success\">Sim</span>" : "<span class=\"badge badge-pill badge-danger\">Não</span>"))</td>
+                        <td class="text-center">@(!item.Collected.HasValue? (object)"-" : Html.Raw(item.Collected.Value? "<span class=\"badge badge-pill badge-success\">Sim</span>" : "<span class=\"badge badge-pill badge-danger\">Não</span>"))</td>
+                        <td class="text-center">@item._ArrivedTime.IfNullChange("-")</td>
+                        <td class="text-center">@item._DepartureTime.IfNullChange("-")</td>
+                        <td>@item.NonCollectingReason.IfNullChange("-")</td>
+                        <td>@item.ReceptorName.IfNullChange("-")</td>
+                        <td class=""><h6 style="font-weight: bold; font-size:12px">@(item.CertificateId.HasValue? item.DestineJaCertificateId : "-")</h6></td>
+                        <td>
+                            <div class="text-center">
+                                <a href="javascript:editClientAddress(@item.DemandClientId)" class="badge badge-pill badge-info"><i class="simple-icon-note"></i></a>&nbsp;
+                                @if (item.HasMTRFile)
+                                {
+                                   
+                                        <a href="@Url.Action("GetMTRFile", "Demand", new { id = item.DemandClientId })" target="_blank" class="badge badge-pill badge-primary" title="MTR de Coleta"><i class="simple-icon-cloud-download"></i></a>
+                                    
+                                }
+                                @if (item.Collected.HasValue && item.Collected.Value)
+                                {
+                                    
+                                        <a href="@Url.Action("Certificate", "Demand", new { id = item.DemandClientId })" target="_blank" class="badge badge-pill badge-secondary" title="Certificado"><i class="simple-icon-docs"></i></a>
+                                    
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="modal fade" id="demand-client-manage-modal" tabindex="-1" role="dialog" aria-labelledby="demand-client-manage-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-lg w-100" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold" id="demand-client-manage-modal-title"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="demand-client-manage-view-component"></div>
+            </div>
+            <div class="modal-footer" style="display:block;">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="simple-icon-close"></i>&nbsp;Fechar</button>
+                <button type="button" class="btn btn-success float-right" id="demand-client-manage-button"><i class="simple-icon-check"></i>&nbsp;Salvar</button>
+                @*@if (!demand.Closed)
+                {
+                    <button type="button" class="btn btn-success float-right" id="demand-client-manage-button"><i class="simple-icon-check"></i>&nbsp;Salvar</button>
+                }*@
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="demand-client-residue-modal" tabindex="-1" role="dialog" aria-labelledby="demand-client-residue-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-lg w-100" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold" id="demand-client-residue-modal-title"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="demand-client-residue-view-component"></div>
+            </div>
+            <div class="modal-footer" style="display:block;">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="simple-icon-close"></i>&nbsp;Fechar</button>
+                <button type="button" class="btn btn-success float-right" id="demand-client-residue-add-button"><i class="simple-icon-check"></i>&nbsp;Adicionar Resíduos</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="mtr-file-modal" tabindex="-1" role="dialog" aria-labelledby="mtr-file-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg w-100" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold" id="mtr-file-modal-title">Arquivo MTR</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="mtr-file-view-component"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript" asp-cut-key="demand-client">
+    $(document).ready(function () {
+        demandClientTable = $('#demand-client-table').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            dom: 'tip',
+            scrollY: '400px',
+            scrollCollapse: true,
+            paging: false,
+            drawCallback: function () {
+                $('#demand-client-table').DataTable().columns.adjust();
+            }
+            //columnDefs: [
+            //    { orderable: false, targets: [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] }
+            //],
+            //drawCallback: function () {
+            //    $('#demand-client-table').DataTable().columns.adjust();
+            //}
+        });
+
+        if (typeof setFamilyNames == 'function') {
+            setFamilyNames([@(Html.Raw(string.Join(",",  Model.Select(x => string.Join(",", x._ResidueFamilyName.Select(c => $"'{c}'"))))))]);
+        }
+    });
+
+    function editClientAddress(demandClientId) {
+        $('#demand-client-manage-modal').modal('show');
+
+        $('#demand-client-manage-view-component').load('@Url.Action("LoadDemandClientManageViewComponent", "Demand")', { demandClientId, viewMode: '@DTO.Shared.ViewMode.Editable' });
+    }
+
+    function visualizeClientAddress(demandClientId) {
+        $('#demand-client-manage-modal').modal('show');
+
+        $('#demand-client-manage-view-component').load('@Url.Action("LoadDemandClientManageViewComponent", "Demand")', { demandClientId, viewMode: '@DTO.Shared.ViewMode.NonEditable' });
+    }
+
+    function downloadCertificate(demandClientId) {
+
+    }
+
+    $('#demand-client-residue-add-button').click(function () {
+        $('#demand-client-residue-modal').modal('hide');
+
+        if (typeof insertResiduesIntoClientResidueTable != 'function' || typeof getDemandClientResidue != 'function') return;
+
+        insertResiduesIntoClientResidueTable(getDemandClientResidue());
+    });
+
+    $('#demand-client-manage-button').click(function () {
+    
+        if (typeof saveDemandClient != 'function') return;
+
+        saveDemandClient(function (d) {
+            $('#demand-client-manage-button').removeAttr('disabled');
+
+            bootbox.alert(d.message);
+            if (d.hasError) return;
+
+            $('#demand-client-manage-modal').modal('hide');
+        });
+    });
+
+    function openMTRFileModal(demandClient)
+    {
+        $('#mtr-file-view-component').load('@Url.Action("LoadFileViewComponent", "Demand")', { viewComponentId: "1", id: demandClient.DemandClientId, guidName: demandClient.MTRFileGuidName, fileName: demandClient.MTRFileName, getUrl: '@Url.Action("GetMTRFile", "Demand")?id=' + demandClient.DemandClientId, setUrl: '@Url.Action("UploadMTRFile", "Demand")', downloadUrl: '@Url.Action("DownloadMTRFile", "Demand")?id=' + demandClient.DemandClientId, removeUrl: '@Url.Action("RemoveMTRFile", "Demand")?id=' + demandClient.DemandClientId, isModal: true });
+
+        if ($('#demand-client-manage-modal').length > 0) {
+            $('#demand-client-manage-modal').modal('hide');
+            //$('#demand-client-manage-modal').css('opacity', 0);
+        }
+
+        $('#mtr-file-modal').modal('show');
+
+        $('#mtr-file-modal').on('hidden.bs.modal', function () {
+            if ($('#demand-client-manage-modal').length > 0) {
+                //$('#demand-client-manage-modal').css('opacity', 1);
+
+                $('#demand-client-manage-modal').modal('show');
+            }
+        });
+
+        $('#demand-client-manage-modal').on('shown.bs.modal', function () {
+            $('#demand-client-table').DataTable().columns.adjust();
+        });
+    }
+</script>

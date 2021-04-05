@@ -1,0 +1,56 @@
+﻿@inject Services.Class.ClassService classService
+@inject Services.Period.PeriodService periodService
+
+@{
+    ViewData["Title"] = "Gerar Lista de Precença";
+}
+
+<form action="@Url.Action("PresenceList", "Report")">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="course">Turma</span>
+                </div>
+                <select id="class" class="form-control" aria-describedby="course" onchange="$('#period').val($('#class option:selected').data('period-id'))">
+                    @foreach (var item in await classService.List())
+                    {
+                        <option value="@item.ClassId" data-period-id="@item.PeriodId">@item.ClassFullName</option>
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="date">Data</span>
+                </div>
+                <input type="text" class="form-control date" placeholder="Data" aria-label="Username" aria-describedby="date">
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="period">Período</span>
+                </div>
+                <select class="form-control" aria-describedby="period" id="period">
+                    @foreach (var item in await periodService.List())
+                    {
+                        <option value="@item.PeriodId">@item.Description</option>
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <button class="btn btn-primary">Buscar</button>
+        </div>
+    </div>
+</form>
+
+@section Scripts{
+    <script type="text/javascript">
+        $(function () {
+            InitializeFunctions();
+        });
+    </script>
+}

@@ -1,0 +1,26 @@
+﻿@model int
+@inject Services.ClassStudent.ClassStudentService classStudentService
+@inject Services.Class.ClassService classService
+@{
+    var student = await classStudentService.GetClassStudentInfoViewModel(Model);
+    var _class = await classService.GetById(student.ClassId);
+    ViewData["Title"] = "Financeiro: " + student.Name;
+}
+
+@section HeaderButtons {
+    @if (Context.Request.Query.ContainsKey("ClassId"))
+    {
+        <a href="@Url.Action("Index", "ClassStudent", new { ClassId = Context.Request.Query["ClassId"] })" class="btn btn-secondary"><i class="simple-icon-arrow-left"></i>&nbsp;Voltar</a>
+    }
+    else
+    {
+        <a href="javascript:window.open('','_self').close();" class="btn btn-secondary"><i class="simple-icon-arrow-left"></i>&nbsp;Voltar</a>
+    }
+}
+<div id="Finance"></div>
+
+@section Scripts {
+    <script type="text/javascript">
+        $('#Finance').load('@Url.Action("Finance", "ViewComponentLoader")', { classStudentId: '@Model' });
+    </script>
+}

@@ -1,0 +1,487 @@
+﻿@using Web.Helpers
+@using DTO.Utils
+
+@model DTO.Contract.ContractViewModel
+
+@inject Services.Contract.ContractPeriodicityServices contractPeriodicityServices
+@inject Services.Contract.ContractClientCollectionAddressService contractClientCollectionAddressService
+@inject Services.Contract.ContractSituationServices contractSituationServices
+@inject Services.Contract.ContractServices contractServices
+@inject Services.Contract.ContractStatusServices contractStatusServices
+@inject Services.Contract.ContractClientCollectionAddressService contractClientCollectionAddressService
+@inject Services.Demand.DemandServices demandServices
+
+@inject Web.Helpers.DropDownListHelper dropDownListHelper
+@{
+    var signedStatusId = (await contractStatusServices.GetDataByExternalCode("CONTRATOASSINADO")).ContractStatusId;
+
+    var noContractId = (await contractSituationServices.GetDataByExternalCodeAsync("SEMCONTRATO"))?.ContractSituationId;
+    var closedSituationId = (await contractSituationServices.GetDataByExternalCodeAsync("ENCERRADO"))?.ContractSituationId;
+    var compliantSituationId = (await contractSituationServices.GetDataByExternalCodeAsync("ADIMPLENTE"))?.ContractSituationId;
+    var defaultingSituationId = (await contractSituationServices.GetDataByExternalCodeAsync("INADIMPLENTE"))?.ContractSituationId;
+
+    var totalWeightCollected = 0d;
+    if (Model.ContractId.HasValue)
+    {
+        var clientCollectionAddress = (await contractClientCollectionAddressService.GetFirstDataAsync(x => x.ContractId == Model.ContractId));
+        if (clientCollectionAddress != null)
+        {
+            totalWeightCollected = await demandServices.GetWeightCollectedFromClient(Model.ContractId.Value, clientCollectionAddress.ClientCollectionAddressId) ?? 0;
+        }
+    }
+
+    var remainingWeight = Model.ContractedWeight - totalWeightCollected;
+    int? remainingCollections = null;
+
+    if (Model.ContractId.HasValue)
+    {
+        remainingCollections = await contractServices.GetRemainingCollections(Model.ContractId.Value);
+    }
+}
+<style type="text/css">
+    .card-body-darker {
+        background-color: #F2F2F2;
+        border-color: #BFBFBF
+    }
+</style>
+
+<form id="form-contract-manage" action="@Url.Action(Model.Renewing? "Renew" : "_ManageForm", "Contract")" method="post">
+    <input type="hidden" name="ContractId" data-disabled="false" value="@Model.ContractId" />
+    <div class="row" style="text-align:center">
+        <h2 class="p-3 mg-b-0 tx-uppercase tx-inverse tx-bold" style="font-size:18px; text-align:center"><i class="simple-icon-doc"></i>Contrato Nº <span id="contract-manage-contract-number" style="font-size:18px">@(Model.ContractId.HasValue ? (Model.Renewing? await contractServices.GetNewCode(Model.ClientId.Value, DateTime.Now) :  Model.Code) : "-")</span></h2>
+    </div>
+    &nbsp;
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow ">
+                <div class="card-header card-header-default tx-uppercase justify-content-between bg-gray-400">
+                    <h6 class="mg-b-0 tx-14 tx-inverse"><i class="simple-icon-people"></i>&nbsp;Gerador</h6>
+                    <div class="card-option">
+                        <a href="" class="tx-gray-600 hover-white mg-l-10" data-toggle="collapse" aria-expanded="true" data-target="#contract-manage-client-area"><i class="simple-icon-arrow-up lh-0"></i></a>
+                    </div>
+                    @*<div class="row w-100">
+                            <div class="col">
+                                <i class="simple-icon-people"></i>&nbsp;Gerador
+                            </div>
+                            <div class="col text-right p-0">
+                                <i class="simple-icon-arrow-up float-right" data-toggle="collapse" aria-expanded="true" data-target="#contract-manage-client-area"></i>
+                            </div>
+                        </div>*@
+                </div>
+                <div class="card-body bd collapse show" id="contract-manage-client-area">
+                    @(await Component.InvokeAsync<Web.ViewComponents.Contract.ContractClientViewComponent>( new { Model.ClientId, Model.ContactName, Model.ContactCpf, Model.ContactRole, Model.ContactPhone, Model.ContactMobilePhone, Model.ContactEmail, addressesId = (await contractClientCollectionAddressService.GetDataByContractIdAsync(Model.ContractId)).Select(x => x.ClientCollectionAddressId) }))
+                </div>
+            </div>
+        </div>
+    </div>
+    <br />
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow ">
+                <div class="card-header card-header-default tx-uppercase justify-content-between  bg-gray-400">
+                    <h6 class="mg-b-0 tx-14 tx-inverse"><i class="simple-icon-docs"></i>&nbsp;Contrato</h6>
+                    <div class="card-option">
+                        <a href="" class="tx-gray-600 hover-white mg-l-10" data-toggle="collapse" aria-expanded="true" data-target="#contract-manage-contract-area"><i class="simple-icon-arrow-up lh-0"></i></a>
+                    </div>
+                    @*<div class="row w-100">
+                            <div class="col">
+                                <i class="simple-icon-docs"></i>&nbsp;Contrato
+                            </div>
+                            <div class="col text-right p-0">
+                                <i class="simple-icon-arrow-up float-right" data-toggle="collapse" aria-expanded="true" data-target="#contract-manage-contract-area"></i>
+                            </div>
+                        </div>*@
+                </div>
+                <div class="card-body bd collapse show" id="contract-manage-contract-area">
+                    <div class="row">
+                        <div class="col-md form-group">
+                            <label class="required" style="white-space: nowrap;">Valor da Mensalidade</label>
+                            <input class="form-control money" placeholder="Valor da Mensalidade" name="_ParcelValue" value="@Model._ParcelValue" />
+                        </div>
+                        <div class="col-md form-group">
+                            <label class="required" style="white-space: nowrap;">Dia de Vencimento da Mensalidade</label>
+                            <input class="form-control number" placeholder="Dia de Vencimento da Mensalidade" name="DueDay" value="@Model.DueDay" />
+                        </div>
+                        <div class="col-md form-group">
+                            <label class="required" style="white-space: nowrap;">Início do Contrato</label>
+                            <input class="form-control date" placeholder="Início do Contrato" name="_StartContract" @(!Model.ContractId.HasValue ? Html.Raw("onblur=\"existContractWithClient()\"") : (object)"") value="@(Model.Renewing? DateTime.Now.ToBrazilianDateFormat() : Model._StartContract)" />
+                        </div>
+                        <div class="col-md form-group">
+                            <label class="required">Vencimento</label>
+                            <input class="form-control date" placeholder="Vencimento" name="_DueDate" value="@(Model.Renewing? "" : Model._DueDate)" />
+                        </div>
+                        @if (Model.ContractId.HasValue)
+                        {
+                            <div class="col-md form-group">
+                                <label class="required">Status@(Model.ContractStatusId != signedStatusId? Html.Raw(" - <a href=\"javascript: signContract()\">Assinar contrato</a>") : (object)"")</label>
+                                @Html.DropDownList("ContractStatusId", dropDownListHelper.ToSelectListItem<ApplicationDbContext.Models.ContractStatus, int, string>((await contractStatusServices.GetDataAsNoTrackingAsync()).OrderBy(x => x.Order), x => x.ContractStatusId, x => x.Name, Model.Renewing ? null : Model.ContractStatusId.ToString()), "Selecione", new { Class = "form-control w-100", disabled = "" })
+                            </div>
+                            if (Model.ContractStatusId == signedStatusId)
+                            {
+                                <div class="col-md form-group">
+                                    <label class="required">Situação</label>
+                                    <div class="input-group mx-auto">
+                                        @Html.DropDownList("ContractSituationId", dropDownListHelper.ToSelectListItem<ApplicationDbContext.Models.ContractSituation, int, string>(await contractSituationServices.GetDataAsNoTrackingAsync(), x => x.ContractSituationId, x => x.Name, Model.Renewing ? null : Model.ContractSituationId.ToString()), "Selecione", new { Class = "form-control w-100", data_disabled = "false", data_start_value = Model.ContractSituationId })
+                                        <div class="input-group-append" id="contract-manage-closed-reason" style="@(Model.ContractSituationId == closedSituationId ? "" : "display:none")">
+                                            <button type="button" data-target="#contract-manage-closed-reason-modal" data-toggle="modal" class="btn btn-secondary float-right"><i class="fa fa-external-link" aria-hidden="true"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <input type="hidden" name="ContractSituationId" value="@Model.ContractSituationId" />
+                            }
+                        }
+                        <div class="w-100"></div>
+
+                        @*<div class="col-md form-group" id="contract-manage-closed-reason" style="@(Model.ContractSituationId == closedSituationId? "" : "display:none")">
+                                <label class="required">Motivo do Encerramento</label>
+                                <input class="form-control" placeholder="Motivo do Encerramento" name="ClosedReason" value="@Model.ClosedReason" />
+                            </div>*@
+                        <div class="col-md form-group">
+                            <label class="required">Periodicidade</label>
+                            @Html.DropDownList("ContractPeriodicityId", dropDownListHelper.ToSelectListItem<ApplicationDbContext.Models.ContractPeriodicity, int, string>((await contractPeriodicityServices.GetDataAsNoTrackingAsync()).OrderBy(x => x.Order), x => x.ContractPeriodicityId, x => x.Name, Model.ContractPeriodicityId.ToString()), "Selecione", new { Class = "form-control w-100" })
+                        </div>
+                        <div class="col-md form-group">
+                            <label class="required">Peso Contratado</label>
+                            <input class="form-control" placeholder="Peso Contratado" name="ContractedWeight" value="@Model.ContractedWeight" />
+                        </div>
+                        <div class="col-md form-group">
+                            <label>Peso Restante</label>
+                            <input class="form-control remaining-weight" placeholder="Peso Restante" disabled value="@remainingWeight.ToWeightPtBr()" />
+                            @if (remainingWeight < 0)
+                            {
+                                <small class="text-danger">O peso restante foi excedido.</small>
+                            }
+                        </div>
+                        @*<div class="col-md-4 form-group">
+                                <label>Volume Anual</label>
+                                <input type="hidden" name="AnnualVolume" value="@(Model.AnnualVolume??"-")" />
+                                <input class="form-control" disabled value="-" />
+                            </div>*@
+                        <div class="col-md form-group">
+                            <label>Número de Coletas Restantes <a href="javascript:void(0)" class="fa fa-info-circle" data-container="body" data-toggle="popover" data-popover-color="default" data-placement="top" title="INFORMAÇÃO" data-content="O número de coletas restantes é calculado após a criação do contrato."></a></label>
+                            <input class="form-control" name="RemainingCollections" disabled value="@(!remainingCollections.HasValue ? "-" : (object)remainingCollections)" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12 form-group">
+                            <label>Observações</label>
+                            <textarea class="form-control" data-disabled="false" name="Observation" placeholder="Observações">@Model.Observation</textarea>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label>Frete do Veículo Sugador</label>
+                            <input class="form-control money" name="_SuckerFreight" value="@Model._SuckerFreight" placeholder="Frete do Veículo Sugador" />
+                        </div>
+                    </div>
+                    @if (Model.ContractId.HasValue && Context.Request.Path.HasValue && !Context.Request.Path.Value.Contains("Renew"))
+                    {
+                        <div class="row">
+                            <div class="col text-right">
+                                <button data-disabled="false" type="button" data-toggle="modal" data-target="#contract-manage-upload-modal" class="btn btn-primary"><i class="simple-icon-cloud-upload"></i>&nbsp;Upload de Contrato</button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="contract-manage-closed-reason-modal" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content" style="width: 400px;">
+                <div class="modal-header">
+                    <h5 class="modal-title tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold" id="contract-manage-closed-reason-modal-title">Motivo do Encerramento</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-12 form-group">
+                            <input class="form-control" placeholder="Motivo do Encerramento" name="ClosedReason" value="@Model.ClosedReason" />
+                        </div>
+                    </div>
+                </div>
+                @if (Model.ContractId.HasValue && !Model.Renewing)
+                {
+                    <div class="modal-footer justify-content-center">
+                        <div class="col-md-auto">
+                            <a href="javascript:closeContract()" class="btn btn-success"><i class="simple-icon-check"></i>&nbsp;Salvar</a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</form>
+<br />
+<div class="row">
+    <div class="col-md-12">
+        <div class="card shadow ">
+            <div class="card-header card-header-default tx-uppercase justify-content-between  bg-gray-400">
+                <h6 class="mg-b-0 tx-14 tx-inverse"><i class="simple-icon-basket-loaded"></i>&nbsp;Resíduos</h6>
+                <div class="card-option">
+                    <a href="" class="tx-gray-600 hover-white mg-l-10" data-toggle="collapse" aria-expanded="true" data-target="#contract-manage-residues-area"><i class="simple-icon-arrow-up lh-0"></i></a>
+                </div>
+                @*<div class="row w-100">
+                        <div class="col">
+                            <i class="simple-icon-basket-loaded"></i>&nbsp;Resíduos
+                        </div>
+                        <div class="col text-right p-0">
+                            <i class="simple-icon-arrow-up float-right" data-toggle="collapse" aria-expanded="true" data-target="#contract-manage-residues-area"></i>
+                        </div>
+                    </div>*@
+            </div>
+            <div class="card-body bd collapse show" id="contract-manage-residues-area">
+                @(await Component.InvokeAsync("ContractResidue", Model.ContractId))
+            </div>
+        </div>
+    </div>
+</div>
+
+<modal id="contract-manage-upload-modal" title-id="contract-manage-upload-s.o-modal-title" title="Upload do Contrato" modal-lg="true" hide-footer="true">
+    <div class="row">
+        <div class="col-md-12 form-group">
+            <input class="required form-control" type="file" name="Archive">
+            <label id="contract-manage-file-name" style="margin-top:.5em; @(!string.IsNullOrWhiteSpace(Model.FileGuidName)? "" : "display:none;")">@Model.FileName</label>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <hr />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4 form-group" id="contract-manage-remove-file-area" style="@(!string.IsNullOrWhiteSpace(Model.FileGuidName)? "" : "display:none;")">
+            <button class="btn btn-danger" id="contract-manage-upload-modal-remove-button" onclick="removeContractFile()"><i class="simple-icon-close"></i>&nbsp;Remover Contrato Existente</button>
+        </div>
+        <div class="col text-right form-group">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal" aria-label="Close"><i class="simple-icon-close"></i>&nbsp;Fechar</button>
+            <a href="@Url.Action("GetContractFile", "Contract", new { id = Model.ContractId })" target="_blank" class="btn btn-primary" id="contract-manage-get-file-button" style="@(!string.IsNullOrWhiteSpace(Model.FileGuidName)? "" : "display:none;")"><i class="simple-icon-magnifier"></i>&nbsp;Visualizar</a>
+            <a href="@Url.Action("DownloadContractFile", "Contract", new { id = Model.ContractId })" class="btn btn-primary" id="contract-manage-download-file-button" style="@(!string.IsNullOrWhiteSpace(Model.FileGuidName)? "" : "display:none;")"><i class="simple-icon-cloud-download"></i>&nbsp;Download</a>
+            <button class="btn btn-success" onclick="uploadContractFile()"><i class="simple-icon-cloud-upload"></i>&nbsp;Salvar</button>
+        </div>
+    </div>
+</modal>
+
+<script type="text/javascript" asp-cut-key="contract-manage">
+    $(document).ready(function () {
+        @(Model.ContractId.HasValue && !Model.TermAccepted ? Html.Raw("$('#contract-client-area [name=\"ClientId\"]').attr('disabled', 'disabled')") : (object)"")
+        @(Model.ContractId.HasValue && Model.TermAccepted? Html.Raw("disableFields('#contract-client-area')") : (object)"")
+
+        @*@(Model.ContractId.HasValue && !Model.Renewing? Html.Raw("disableFields('#form-contract-manage')") : (object)"")*@
+        @*@(Model.Renewing? Html.Raw("$('#contract-client-area [name=\"ClientId\"]').attr('disabled', 'disabled')") : (object)"")*@
+    });
+
+    $('#form-contract-manage [name="ContractedWeight"]').change(function () {
+        $('.remaining-weight').val($(this).val());
+    });
+
+    function firstContractCallback(firstContract) {
+        if (firstContract) $('#form-contract-manage [name="ContractSituationId"]').val(@noContractId);
+
+        else $('#form-contract-manage [name="ContractSituationId"]').val($('#form-contract-manage [name="ContractSituationId"] option:first').val());
+    }
+
+    function uploadContractFile() {
+        if ($('#contract-manage-upload-modal [name=\'Archive\']')[0].files.length == 0) {
+            bootbox.alert('Insira um arquivo.');
+            return;
+        }
+
+        var _d = new FormData();
+        _d.append('Archive', $('#contract-manage-upload-modal [name=\'Archive\']')[0].files[0]);
+        _d.append('ContractId', @Model.ContractId);
+
+        $.ajax({
+            url: '@Url.Action("UploadContractFile", "Contract")',
+			type: 'POST',
+			contentType: false,
+			processData: false,
+			data: _d,
+            success: function (d) {
+                bootbox.alert(d.message);
+
+                if (!d.hasError) {
+                    $('#contract-manage-upload-modal [name=\'Archive\']').val('');
+                    $('#contract-manage-remove-file-area').show();
+                    $('#contract-manage-get-file-button').show();
+                    $('#contract-manage-download-file-button').show();
+                    $('#contract-manage-file-name').show();
+                    $('#contract-manage-file-name').text(d.fileName);
+                    $('#ContractStatusId').val('@signedStatusId');
+                }
+            }
+        });
+    }
+
+
+
+    function removeContractFile() {
+        bootboxConfirm('Deseja realmente remover o arquivo de contrato existente?', function (d) {
+            if (!d) return;
+
+            $.post('@Url.Action("RemoveContractFile", "Contract")', { contractId: '@Model.ContractId' }, function (d) {
+                bootbox.alert(d.message);
+
+                if (d.success) {
+                    $('#contract-manage-remove-file-area').hide();
+                    $('#contract-manage-get-file-button').hide();
+                    $('#contract-manage-download-file-button').hide();
+                    $('#contract-manage-file-name').hide();
+                }
+            });
+        });
+    }
+
+    @if (Model.TermAccepted)
+    {
+        <text>
+    $('#contract-manage-people-table tr').removeAttr('onclick');
+        </text>
+    }
+
+    function existContractWithClient()
+    {
+        var momentDate = moment($('#form-contract-manage [name="_StartContract"]').val(), 'DD/MM/YYYY');
+        if (!momentDate._isValid || isNullOrWhiteSpace($('#contract-client-area [name="ClientId"]').val())) return;
+
+        var date = momentDate._isValid ? momentDate._d.toISOString() : null;
+
+        $.post('@Url.Action("ExistContractWithClient", "Client")', {
+            clientId: $('#contract-client-area [name="ClientId"]').val(),
+            date
+        }, function (d) {
+                if (!d) return;
+
+                bootbox.alert('Já existe um contrato deste cliente no ano informado');
+                $('#form-contract-manage [name="_StartContract"]').val('');
+        });
+    }
+
+    $('#form-contract-manage [name="ContractSituationId"]').change(function () {
+        $('#contract-manage-closed-reason').hide();
+
+        if ($(this).val() == @closedSituationId) {
+            $('#contract-manage-closed-reason').show();
+            $('#contract-manage-closed-reason-modal').modal('show');
+        }
+        @if (Model.ContractId.HasValue && !Model.Renewing)
+        {
+        <text>
+        if ($(this).val() == @compliantSituationId) {
+            compliantContract();
+        }
+
+        if ($(this).val() == @defaultingSituationId) {
+            defaultingContract();
+        }
+        </text>
+        }
+    });
+
+    function closeContract() {
+        bootboxConfirm('Deseja realmente encerrar esse contrato?', function (d) {
+            if (!d) return;
+            var form = $('<form>', { method: 'post', action: '@Url.Action("CloseSave", "Contract")' });
+
+            form.append($('<input>', { type: 'hidden', value: '@Model.ContractId', name: 'ContractId' }));
+            form.append($('<input>', { type: 'hidden', value: $('[name="ClosedReason"]').val(), name: 'ClosedReason' }));
+
+            $('body').append(form);
+            form.submit();
+        });
+    }
+
+
+    function compliantContract() {
+        bootbox.dialog({
+            message: "Deseja realmente alterar o status do contrato para Adimplente?",
+            size: 'large',
+            buttons: {
+                cancel: {
+                    label: "Não",
+                    className: 'btn-danger mr-auto float-left',
+                    callback: function () {
+                        $('#form-contract-manage [name="ContractSituationId"]').val($('#form-contract-manage [name="ContractSituationId"]').data('start-value'));
+                    }
+                },
+                ok: {
+                    label: "Salvar e voltar para lista",
+                    className: 'btn-success',
+                    callback: function () {
+                        var form = $('<form>', { method: 'post', action: '@Url.Action("CompliantSave", "Contract")' });
+                        form.append($('<input>', { type: 'hidden', value: '@Model.ContractId', name: 'ContractId' }));
+                        form.append($('<input>', { type: 'hidden', value: 'true', name: 'goToList' }));
+
+                        $('body').append(form);
+                        form.submit();
+                    }
+                },
+                confirm: {
+                    label: "Salvar e ver impressão",
+                    className: 'btn-success',
+                    callback: function () {
+                        var form = $('<form>', { method: 'post', action: '@Url.Action("CompliantSave", "Contract")' });
+                        form.append($('<input>', { type: 'hidden', value: '@Model.ContractId', name: 'ContractId' }));
+                        form.append($('<input>', { type: 'hidden', value: 'false', name: 'goToList' }));
+
+                        $('body').append(form);
+                        form.submit();
+                    }
+                }
+            }
+        });
+    }
+
+    function defaultingContract() {
+        bootbox.dialog({
+            message: "Deseja realmente alterar o status do contrato para Inadimplente?",
+            size: 'large',
+            buttons: {
+                cancel: {
+                    label: "Não",
+                    className: 'btn-danger mr-auto float-left',
+                    callback: function () {
+                        $('#form-contract-manage [name="ContractSituationId"]').val($('#form-contract-manage [name="ContractSituationId"]').data('start-value'));
+                    }
+                },
+                ok: {
+                    label: "Salvar e voltar para lista",
+                    className: 'btn-success',
+                    callback: function () {
+                        var form = $('<form>', { method: 'post', action: '@Url.Action("DefaultingSave", "Contract")' });
+
+                        form.append($('<input>', { type: 'hidden', value: '@Model.ContractId', name: 'ContractId' }));
+                        form.append($('<input>', { type: 'hidden', value: 'true', name: 'goToList' }));
+
+                        $('body').append(form);
+                        form.submit();
+                    }
+                },
+                confirm: {
+                    label: "Salvar e ver impressão",
+                    className: 'btn-success',
+                    callback: function () {
+                        var form = $('<form>', { method: 'post', action: '@Url.Action("DefaultingSave", "Contract")' });
+
+                        form.append($('<input>', { type: 'hidden', value: '@Model.ContractId', name: 'ContractId' }));
+                        form.append($('<input>', { type: 'hidden', value: 'false', name: 'goToList' }));
+
+                        $('body').append(form);
+                        form.submit();
+                    }
+                }
+            }
+        });
+    }
+
+    function signContract() {
+        $.post('@Url.Action("SignContract", "Contract")', { contractId: '@Model.ContractId' }, function () {
+            $('#form-contract-manage [name="ContractStatusId"]').val('@signedStatusId');
+
+            bootbox.alert('Contrato assinado com sucesso!');
+        });
+    }
+</script>

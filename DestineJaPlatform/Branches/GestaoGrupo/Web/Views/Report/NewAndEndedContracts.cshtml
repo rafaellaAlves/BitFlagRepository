@@ -1,0 +1,38 @@
+﻿@{
+    var startDate = new DateTime(DateTime.Now.AddMonths(-12).Year, DateTime.Now.AddMonths(-12).Month, 1);
+    var endDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month));
+
+    ViewData["Title"] = "Relatório - Contratos Novo x Encerrado";
+}
+
+<div class="card">
+    <div class="card-header">
+        <div class="row">
+            <div class="col text-center" style="font-size: 20px; color: black;">
+                Relatório - Contratos Novo x Encerrado
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <form id="new-ended-contracts-filter-form">
+            @(await Component.InvokeAsync<Web.ViewComponents.Report.Filter.FilterViewComponent>(new List<ReportFilterModel> { ReportFilterModel.StartAndEndDateFilter(new { startDate, endDate }, 4) }))
+        </form>
+        <hr />
+        <div id="new-ended-contracts-view-component">
+            @(await Component.InvokeAsync<Web.ViewComponents.Report.NewAndEndedContracts.IndexViewComponent>(new { startDate, endDate  } ))
+        </div>
+    </div>
+</div>
+@section Scripts{
+    <script src="@Url.Content("~/assets/js/report.js")"></script>
+    <script type="text/javascript" asp-paste-key="new-ended-contracts-index"></script>
+    <script type="text/javascript" asp-paste-key="new-ended-contracts-detail"></script>
+
+    <script type="text/javascript">
+        function reloadByFilter() {
+            if (!validateInputs('new-ended-contracts-filter-form') || !validateStartAndEndDate()) return;
+
+            $('#new-ended-contracts-view-component').load('@Url.Action("LoadNewAndEndedContractsViewComponent", "Report")', $('#new-ended-contracts-filter-form').serializeArray());
+        }
+    </script>
+}

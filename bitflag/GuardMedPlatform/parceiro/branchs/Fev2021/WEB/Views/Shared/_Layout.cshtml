@@ -1,0 +1,255 @@
+﻿@using Microsoft.AspNetCore.Identity;
+@using WEB.Utils;
+
+@inject SignInManager<DB.Models.AspNetUser> signInManager
+@inject UserManager<DB.Models.AspNetUser> userManager
+@{
+	var controllerName = ViewContext.RouteData.Values["controller"].ToString().ToUpper();
+	var actionName = ViewContext.RouteData.Values["action"].ToString().ToUpper();
+	var user = await userManager.GetUserAsync(User);
+
+	//usado apenas na pagina de certificado
+	int certificateType = 0;
+	if (Context.Request.Query.ContainsKey("CertificateType"))
+	{
+		certificateType = int.Parse(Context.Request.Query["CertificateType"]);
+	}
+}
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>@ViewData["Title"] - @WEB.Configuration.InsuranceConfiguration.ClientDisplayName </title>
+
+	<link rel="stylesheet" href="~/css/bootstrap/bootstrap.css">
+	<link href="~/theme/assets/css/style.css" rel="stylesheet" />
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+
+	<script src="~/js/jquery/jquery-3.3.1.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+	<script src="~/js/bootstrap/bootstrap.js"></script>
+
+	<!-- Jquery Mask -->
+	<script src="https://igorescobar.github.io/jQuery-Mask-Plugin/js/jquery.mask.min.js"></script>
+
+	<!--Select2-->
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
+
+	<!--DataTable-->
+	<link href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css" rel="stylesheet" />
+	<script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+
+	<!--Jquery UI-->
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.css" rel="stylesheet" />
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"></script>
+
+	<script src="https://cdn.es.gov.br/scripts/jquery/jquery-globalize/1.0.0/globalize.min.js"></script>
+	<script src="https://cdn.es.gov.br/scripts/jquery/jquery-globalize/1.0.0/cultures/globalize.culture.pt-BR.min.js"></script>
+
+	<script src="~/js/site.js"></script>
+
+	<script type="text/javascript">
+		$(document).ajaxStart(function () {
+			$("#loading").show();
+		});
+		$(document).ajaxStop(function () {
+			$("#loading").hide();
+		});
+
+		function ShowLoading() {
+			$("#loading").show();
+		}
+		function HideLoading() {
+			$("#loading").hide();
+		}
+	</script>
+
+	<style type="text/css">
+		@@media print {
+			page {
+				margin: 0;
+			}
+
+			body {
+				-webkit-print-color-adjust: exact;
+				margin-top: -2em;
+			}
+
+			.no-print, .no-print * {
+				display: none !important;
+			}
+
+			.page-break {
+				page-break-after: always;
+			}
+
+			.smallFont {
+				font-size: 10px;
+			}
+
+			.no-screen {
+				display: block !important;
+			}
+		}
+
+		.percent {
+			display: inline !important;
+			line-height: 21px !important;
+			z-index: auto !important;
+			font-weight: 400 !important;
+			font-size: 11px !important;
+			color: #212529 !important;
+		}
+	</style>
+
+
+	<!-- HIGHCHARTS -->
+	<script src="https://code.highcharts.com/highcharts.src.js"></script>
+</head>
+<body class="fixed-left">
+	<div id="loading" style="display: none; z-index: 1060; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6)">
+		<img src="~/image/ajax-loading.svg" style="position: absolute; left: 50%; margin-left: -100px; top: 50%; margin-top: -100px;" />
+	</div>
+	<!-- Begin page -->
+	<div id="wrapper">
+		<!-- Top Bar Start -->
+		<div class="topbar no-print">
+			<!-- LOGO -->
+			<div class="topbar-left">
+				<img src="@Url.Content(WEB.Configuration.InsuranceConfiguration.LogoFullPath)" style="height:68px; margin-top:14px;" />
+			</div>
+			<div class="navbar navbar-default" role="navigation">
+				<div class="container-fluid">
+					<!-- Page title -->
+					<ul class="nav navbar-nav list-inline navbar-left">
+						<li class="list-inline-item">
+							<button class="button-menu-mobile open-left">
+								<i class="fa fa-bars"></i>
+							</button>
+						</li>
+						<li class="list-inline-item">
+							<h4 class="page-title">@ViewData["Title"]</h4>
+						</li>
+					</ul>
+				</div><!-- end container -->
+			</div><!-- end navbar -->
+
+		</div>
+		<!-- Top Bar End -->
+		<!-- ========== Left Sidebar Start ========== -->
+		<div class="left side-menu no-print" style="overflow-y: auto;">
+			<div class="sidebar-inner slimscrollleft">
+
+				<!--- Sidemenu -->
+				<div id="sidebar-menu">
+					<ul>
+						<li class="text-muted menu-title">
+							<hr />
+							Olá, @user.FirstName @user.LastName
+						</li>
+
+						<li><a href="@Url.Action("Index","Home")" class="waves-effect @if (controllerName.Equals("HOME")){ <text>active</text> }"><i class="fas fa-home"></i>&nbsp;Home</a></li>
+						@if (this.User.IsInRole("Administrator"))
+						{
+							<li><a href="@Url.Action("Index","Account")" class="waves-effect @if (controllerName.Equals("ACCOUNT")){ <text>active</text> }"><i class="fas fa-users"></i>&nbsp;Usuários</a></li>
+							<li><a href="@Url.Action("Plataforma","Company")" class="waves-effect @if (controllerName.Equals("COMPANY") && actionName.Equals("CORRETORA")){ <text>active</text> }"><i class="fas fa-building"></i>&nbsp;@WEB.Configuration.InsuranceConfiguration.CorretoraDisplayName</a></li>
+							<li><a href="@Url.Action("Escritorio","Company")" class="waves-effect @if (controllerName.Equals("COMPANY") && actionName.Equals("IMOBILIARIA")){ <text>active</text> }"><i class="fas fa-city"></i>&nbsp;@WEB.Configuration.InsuranceConfiguration.PartnerDisplayName</a></li>
+							<li style="display: none"><a href="@Url.Action("Index","Product")" class="waves-effect @if (controllerName.Equals("PRODUCT")){ <text>active</text> }"><i class="fas fa-shopping-cart"></i>&nbsp;Produtos</a></li>
+							<li style="display: none"><a href="@Url.Action("Index","Assistance")" class="waves-effect @if (controllerName.Equals("ASSISTANCE")){ <text>active</text> }"><i class="fas fa-clipboard-list"></i>&nbsp;Assistências</a></li>
+							<li style="display: none"><a href="@Url.Action("Index","InsurancePolicy")" class="waves-effect @if (controllerName.Equals("INSURANCEPOLICY")){ <text>active</text> }"><i class="fas fa-file-contract"></i>&nbsp;Apólices</a></li>
+							<li><a href="@Url.Action("Index","MedicGroup")" target="_blank" class="waves-effect"><i class="fas fa-location-arrow"></i>&nbsp;Grupo Médico</a></li>
+						}
+						else if (this.User.IsInRole("Corretor"))
+						{
+							<li><a href="@Url.Action("Index","Account")" class="waves-effect @if (controllerName.Equals("ACCOUNT")){ <text>active</text> }"><i class="fas fa-users"></i>&nbsp;Usuários</a></li>
+							<li><a href="@Url.Action("Escritorio","Company")" class="waves-effect @if (controllerName.Equals("COMPANY") && actionName.Equals("IMOBILIARIA")){ <text>active</text> }"><i class="fas fa-building"></i>&nbsp;@WEB.Configuration.InsuranceConfiguration.PartnerDisplayName</a></li>
+							<li style="display: none"><a href="@Url.Action("Index","InsurancePolicy")" class="waves-effect @if (controllerName.Equals("INSURANCEPOLICY")){ <text>active</text> }"><i class="fas fa-scroll"></i>&nbsp;Apólices</a></li>
+						}
+						@if (this.User.IsInRole("GrupoMedico"))
+						{
+							<li><a href="@Url.Action("MedicGroupCRM","MedicGroup")" target="_blank" class="waves-effect"><i class="fas fa-location-arrow"></i>&nbsp;Grupo Médico</a></li>
+						}
+
+						<li style="padding-left: 12px; padding-right: 12px;"><hr style="margin:0; " /></li>
+						<li style="display: none"><a href="@Url.Action("Index","Certificate")?CertificateType=@((int)WEB.Utils.CertificateTypes.Emitidos)" class="waves-effect @if (controllerName.Equals("CERTIFICATE") && certificateType == (int)WEB.Utils.CertificateTypes.Emitidos){ <text>active</text> }"><i class="fas fa-file-signature"></i>Certificados Ativos</a></li>
+						<li style="display: none"><a href="@Url.Action("Index","Certificate")?CertificateType=@((int)WEB.Utils.CertificateTypes.Deletados)" class="waves-effect @if (controllerName.Equals("CERTIFICATE") && certificateType == (int)WEB.Utils.CertificateTypes.Deletados){ <text>active</text> }"><i class="far fa-file-alt"></i>Certificados Inativos</a></li>
+						<li style="display: none"><a href="@Url.Action("Index","Certificate")?CertificateType=@((int)WEB.Utils.CertificateTypes.Renovacao)" class="waves-effect @if (controllerName.Equals("CERTIFICATE") && certificateType == (int)WEB.Utils.CertificateTypes.Renovacao){ <text>active</text> }"><i class='fa fa-cloud-upload-alt'></i>Certificados à Renovar</a></li>
+
+						@if (this.User.IsInRole("Administrator"))
+						{
+							<li style="display: none"><a href="@Url.Action("Report","Certificate")" class="waves-effect @if (controllerName.Equals("CERTIFICATE") && actionName.Equals("REPORT")){ <text>active</text> }"><i class='fas fa-file-excel'></i>Relatório de Certificados</a></li>
+							<li style="display: none"><a href="@Url.Action("Index","Finances")" class="waves-effect @if (controllerName.Equals("FINANCES") && actionName.Equals("INDEX")){ <text>active</text> }"><i class='fas fa-barcode'></i>Gerenciar Boletos</a></li>
+						}
+						@if (this.User.IsInRole("GrupoMedico"))
+						{
+							<li><a href="@Url.Action("Index","Report", new { status = (int)WEB.Models.InsuranceStatus.Active})" class="waves-effect @if (controllerName.Equals("REPORT") && Context.Request.Query["status"] == (int)WEB.Models.InsuranceStatus.Active){ <text>active</text> }"><i class="fas fa-file-contract"></i>&nbsp;Adesões</a></li>
+						}else{
+							<li><a href="@Url.Action("Index","Report", new { status = (int)WEB.Models.InsuranceStatus.New })" class="waves-effect @if (controllerName.Equals("REPORT") && Context.Request.Query["status"] == (int)WEB.Models.InsuranceStatus.New){ <text>active</text> }"><i class="fas fa-file-invoice"></i>Nova Adesão</a></li>
+							<li><a href="@Url.Action("Index","Report", new { status = (int)WEB.Models.InsuranceStatus.Active})" class="waves-effect @if (controllerName.Equals("REPORT") && Context.Request.Query["status"] == (int)WEB.Models.InsuranceStatus.Active){ <text>active</text> }"><i class="fas fa-file-contract"></i>&nbsp;Adesões Ativas</a></li>
+							<li><a href="@Url.Action("Index","Report", new { status = (int)WEB.Models.InsuranceStatus.Renew })" class="waves-effect @if (controllerName.Equals("REPORT") && Context.Request.Query["status"] == (int)WEB.Models.InsuranceStatus.Renew){ <text>active</text> }"><i class="fas fa-undo-alt"></i>&nbsp;Renovação da Adesão</a></li>
+							<li><a href="@Url.Action("Index","Report", new { status = (int)WEB.Models.InsuranceStatus.Inactive })" class="waves-effect @if (controllerName.Equals("REPORT") && Context.Request.Query["status"] == (int)WEB.Models.InsuranceStatus.Inactive){ <text>active</text> }"><i class="far fa-file-alt"></i>&nbsp;Adesões Inativas</a></li>
+						}
+						<li style="padding-left: 12px; padding-right: 12px;"><hr style="margin: 0;" /></li>
+						<li><a href="@Url.Action("Logout", "Account")" class="waves-effect"><i class="fas fa-power-off"></i> Sair</a></li>
+					</ul>
+					<div class="clearfix"></div>
+				</div>
+				<!-- Sidebar -->
+				<div class="clearfix"></div>
+
+			</div>
+		</div>
+		<!-- Left Sidebar End -->
+		<!-- ============================================================== -->
+		<!-- Start right Content here -->
+		<!-- ============================================================== -->
+		<div class="content-page">
+			<!-- Start content -->
+			<div class="content">
+				<div class="container-fluid">
+					@if (!string.IsNullOrWhiteSpace(Context.Request.Query["saved"]))
+					{
+						<text>
+							<div id="SavedData" class="alert alert-success fade show text-center">
+								<b>Os dados foram salvos com sucesso!</b>
+							</div>
+							<script type="text/javascript">
+								$('#SavedData').fadeOut(5000);
+							</script>
+						</text>
+					}
+					@RenderBody()
+
+				</div> <!-- container -->
+
+			</div> <!-- content -->
+
+			<footer class="footer text-right">
+				@WEB.Configuration.InsuranceConfiguration.ClientDisplayName &copy; @DateTime.Now.Year :: Desenvolvido por Choko SYS
+			</footer>
+
+		</div>
+	</div>
+	<!-- END wrapper -->
+
+
+
+	<script src="~/theme/assets/js/jquery.core.js"></script>
+	<script src="~/theme/assets/js/jquery.app.js"></script>
+
+	<!-- BOOTSTRAP DATEPICKER -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/js/bootstrap-datepicker.js"></script>
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/css/bootstrap-datepicker.css" rel="stylesheet" />
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.8.0/locales/bootstrap-datepicker.pt-BR.min.js"></script>
+
+	@RenderSection("Scripts", required: false)
+
+	<script type="text/javascript">
+		if (window.innerWidth < 420) {
+			$.Sidemenu.openLeftBar();
+		}
+	</script>
+</body>
+</html>

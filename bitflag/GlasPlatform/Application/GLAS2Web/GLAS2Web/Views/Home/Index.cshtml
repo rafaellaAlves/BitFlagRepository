@@ -1,0 +1,179 @@
+﻿@using Microsoft.AspNetCore.Identity
+
+@model List<DTO.Company.CompanyViewModel>
+@inject DAL.GLAS2Context context
+@inject UserManager<DAL.Identity.User> UserManager
+@{
+    ViewData["Title"] = translationFunctions.GetTranslation("Minhas Unidades de Negócio", User.FindFirstValue("CultureInfo"));
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var userFunctions = new BLL.User.UserFunctions(context, UserManager);
+    var companyLawUserViewFunctions = new BLL.Company.CompanyLawUserViewFunctions(context);
+    var companyLawFunctions = new BLL.Company.CompanyLawFunctions(context);
+    var companyUserRoleFunctions = new BLL.Permission.CompanyUserRoleFunctions(context);
+
+    var user = await this.UserManager.GetUserAsync(User);
+}
+<div class="row">
+    <div class="col-md-12">
+        <h5>
+            @ViewData["Title"]<br />
+            <small>@translationFunctions.GetTranslation("Seja bem-vindo ao seu painel principal! Selecione uma unidade de negócio abaixo ou filtre através do campo de busca abaixo.", User.FindFirstValue("CultureInfo"))</small>
+        </h5>
+    </div>
+</div>
+<hr />
+<div class="card shadow">
+    <div class="card-header">
+        <div class="input-group">
+            <input id="search" type="text" class="form-control" placeholder="Procurar...">
+            <span class="input-group-addon" id="basic-addon2"><i class="fa fa-search"></i></span>
+        </div>
+    </div>
+    <div class="card-body">
+        @if (Model == null || Model.Count.Equals(0))
+        {
+            <div id="notfound" class="text-center" style="font-style: italic;">
+                Nenhuma registro encontrado.
+                <hr />
+                Provavelmente nenhuma unidade de negócio foi atribuída ao seu usuário.<br />
+                Entre em contato através do e-mail <a href="mailto:contato@biotera.com.br">contato@biotera.com.br</a> ou pelo telefone (11) 1234-5678.
+            </div>
+        }
+        else
+        {
+            <div class="list-group">
+                @foreach (var item in Model)
+                {
+                    var _companyRole = companyUserRoleFunctions.GetCompanyRoleByCompanyUser(item.CompanyId.Value, user.Id);
+                    var companyRole = _companyRole.Replace('.', ' ');
+
+                    if (string.IsNullOrWhiteSpace(companyRole))
+                    {
+                        companyRole = companyUserRoleFunctions.GetUserRole(user.Id).Name;
+                        if (companyRole == "Master")
+                        {
+                            companyRole = "System/Master";
+                        }
+                    }
+                    int unseenLaw = 0;
+
+                    //Não mostrar a qtd. de novos requisitos caso seja auditor biotera
+                    if (_companyRole != BLL.User.ProfileNames.BioteraAuditor)
+                    {
+                        unseenLaw = companyLawFunctions.GetCompanyLawUserViewCount(user.Id, item.CompanyId.Value);
+                    }
+
+                    <a href="@(_companyRole != BLL.User.ProfileNames.BioteraAuditor? Url.Action("Dashboard", "Home", new { companyId = item.CompanyId }) : Url.Action("Index", "AuditManagement", new { companyId = item.CompanyId }))" class="list-group-item list-group-item list-group-item-action">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <img class="rounded-circle" src="@Url.Action("GetCompanyLogo", "CompanyManagement", new { companyId = item.CompanyId })" data-holder-rendered="true" style="width: 75px; height: 75px;">
+                            </div>
+                            <div class="col-md-4" style="text-align: center; vertical-align: middle;">
+                                <br />
+                                @if (unseenLaw > 0)
+                                {
+                                    <span class="badge badge-pill badge-primary">
+                                        @if (unseenLaw == 1)
+                                        {
+                                            <text><b>@unseenLaw</b> novo requisito legal disponível.</text>
+                                        }
+                                        else
+                                        {
+                                            <text><b>@unseenLaw</b> novos requisitos legais disponíveis.</text>
+                                        }
+                                    </span>
+                                }
+                            </div>
+                            <div class="col-md-4 text-right">
+                                <br />
+                                <div class="NomeFantasia" style="font-weight: bold">@item.NomeFantasia</div>
+                                <div style="display: none;" class="RazaoSocial">@item.RazaoSocial</div>
+                                <div><i>@companyRole</i></div>
+                                <div class="Cnpj" style="display:none">@item.cnpj</div>
+                            </div>
+                        </div>
+                    </a>
+                }
+            </div>}
+    </div>
+</div>
+
+@if (userFunctions.LastAccessDate(user.Id) == null)
+{
+    <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Seja bem-vindo!</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Ola <b>@user.FirstName @user.LastName</b>, seja bem-vindo ao seu novo GLAS.</p>
+
+                    <p>Nos últimos meses fizemos pesquisa junto a você e agradecemos sua participação que nos ajudou a construir essa ferramenta. Reforço o agradecimento pela apoio e principalmente pela parceria que criamos e melhoramos com o tempo.</p>
+
+                    <p>Nesta versão, algumas alterações já estão disponíveis como novos relatórios, forma de busca e indexação dos requisitos legais e as obrigações, antiga lista de verificação, agora estão acopladas ao sistema.</p>
+
+                    <p>Sabemos o quanto pequenos detalhes podem fazer toda a diferença nessa ferramenta, onde buscamos aumentar a produtividade, a eficiência e a rapidez da mesma. Nosso foco é sua total satisfação e produtividade.</p>
+
+                    <p>Aplicamos o que há de mais moderno em relação a tecnologia, hospedagem de dados, backups e interfaces.</p>
+
+                    <p>No alto, a direita, há um documento que orientará caso houver dúvida, mas temos a equipe à sua disposição para esclarecimentos.</p>
+
+                    <p>A versão antiga está bloqueada, porém caso precise de algo nos comunique, ok?</p>
+
+                    <p>Novos relatórios, módulo auditoria  e indicadores entrarão em produção no decorrer deste semestre e manteremos você informado.</p>
+
+                    <p class="text-right"><i>Equipe BIOTERA</i></p>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fas fa-thumbs-up"></i>&nbsp;Entendi!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#exampleModalCenter').modal('show');
+        });
+    </script>
+    userFunctions.SetLastAccessDate(user.Id);
+}
+<script type="text/javascript">
+	var typingTimer;
+	var doneTypingInterval = 500;
+	$('#search').keyup(function () {
+		clearTimeout(typingTimer);
+		typingTimer = setTimeout(doneTyping, doneTypingInterval);
+	});
+	$('#search').keydown(function () {
+		clearTimeout(typingTimer);
+	});
+	function doneTyping() {
+		var q = $('#search').val().toLowerCase();
+		var Count = 0;
+		var TotalEmpresas = @Model.Count;
+		$.each($('.list-group').children(), function (i, e) {
+			if ($(e).find('.RazaoSocial')[0].textContent.toLowerCase().indexOf(q) == -1 && $(e).find('.NomeFantasia')[0].textContent.toLowerCase().indexOf(q) == -1 && $(e).find('.Cnpj')[0].textContent.toLowerCase().indexOf(q) == -1) {
+				$(e).hide();
+				Count++;
+			}
+			else {
+				$(e).show();
+			}
+			if (q == "") {
+				$(e).show();
+			}
+			if (Count == TotalEmpresas) {
+				$('.list-group').after('<div id="notfound" class="text-center"><i>Nenhuma unidade de negócio encontrada.</i></div>');
+			}
+			else {
+				$('#notfound').html("");
+			}
+		});
+	}
+</script>

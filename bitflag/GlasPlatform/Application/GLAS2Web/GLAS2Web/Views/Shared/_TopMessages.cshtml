@@ -1,0 +1,71 @@
+﻿@if (!string.IsNullOrWhiteSpace(Context.Request.Query["saved"]))
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+        <strong>Tudo certo!</strong> As alterações foram aplicadas com sucesso.
+    </div>
+}
+@if (!string.IsNullOrWhiteSpace(Context.Request.Query["error"]))
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+        <strong>Ops!</strong>  @if (ViewData["ErrorMessage"] != null)
+        {
+            <span>@ViewData["ErrorMessage"]</span>
+        }
+        else
+        {
+            <span>Erro ao executar tarefa.</span>
+        }
+    </div>
+}
+@if (ViewData["IdentityErrorCodes"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+        <strong>Ops!</strong> Ocorreram os seguintes erros:<br />
+        <ul>
+            @foreach (var item in (string[])ViewData["IdentityErrorCodes"])
+            {
+                switch (item)
+                {
+                    case "PasswordRequiresNonAlphanumeric":
+                        <li>A senha necessita de caracteres especiais.</li>
+                        break;
+                    case "PasswordRequiresLower":
+                        <li>A senha necessita de no mínimo uma letra minúscula.</li>
+                        break;
+                    case "PasswordRequiresUpper":
+                        <li>A senha necessita de no mínimo uma letra maiúscula.</li>
+                        break;
+                    case "DuplicateUserName":
+                    case "DuplicateName":
+                        <li>E-mail já existe na base de dados.</li>
+                        break;
+                    case "InvalidEmail":
+                        <li>E-mail inválido.</li>
+                        break;
+                    case "InvalidUserName":
+                        <li>Nome de usuário inválido.</li>
+                        break;
+                    case "PasswordTooShort":
+                        <li>Senha muito curta.</li>
+                        break;
+                    default:
+                        <li>@item</li>
+                        break;
+                }
+
+            }
+        </ul>
+    </div>
+}
+<div id="alertForm" class="alert alert-danger fade show" role="alert" style="display: none;">
+    <strong>Atenção!</strong> O formulário contém erros. Por favor, revise as informações abaixo.
+</div>

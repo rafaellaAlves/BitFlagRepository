@@ -1,0 +1,94 @@
+﻿@model List<Web.Utils.UserType>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text"><i class="simple-icon-magnifier"></i></span>
+            </div>
+            <input id="_UserIndexSearch" type="text" class="form-control" placeholder="Procurar..." />
+        </div>
+    </div>
+</div>
+<hr />
+<table id="_UserIndexTable" class="display table table-striped table-bordered table-condensed" style="border-collapse: collapse !important; width:100%;">
+    <thead>
+        <tr>
+            <th>Nome</th>
+            <th>E-mail</th>
+            <th>Telefone</th>
+            <th>Perfil</th>
+            <th>Ativo?</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<script type="text/javascript">
+
+    var _UserIndexTypingTimer;
+    var _UserIndexDoneTypingInterval = 500;
+    var datatables = $('#_UserIndexTable').DataTable({
+        serverSide: false,
+        proccessing: true,
+        searching: true,
+        lengthChange: false,
+        dom: 'tip',
+        ajax: {
+            url: '@Url.Action("List", "User")',
+            type: 'POST',
+            data: {
+                userType: '@string.Join(";", Model.Select(x => (int)x))'
+            }
+		},
+		columns: [
+            {
+                data: 'FirstName',
+                render: function (data, type, row) {
+                    return "<a href='javascript:void(0)' onclick='userSelectedCallback(" + JSON.stringify(row) + ")' >" + row.firstName + " " + (IsNullOrWhiteSpace(row.lastName) ? "" : row.lastName) + "</a>";
+                }
+            },
+            {
+                data: 'Email',
+                render: function (data, type, row) {
+                    return row.email != null? row.email : '-';
+                }
+            },
+            {
+                data: 'PhoneNumber',
+                render: function (data, type, row) {
+                    return row.phoneNumber != null ? row.phoneNumber : '-';
+                }
+            },
+            {
+                data: 'Role',
+                render: function (data, type, row) {
+                    return row.role != null ? row.role : '-';
+                }
+            },
+            {
+                orderable: false,
+                data: 'IsActive',
+                render: function (data, type, row) {
+                    var r = '<div class="text-center" style="white-space:nowrap;">';
+                    r += row.isActive ? '<span class="badge badge-pill badge-success text-center">Sim</span>' : '<span class="badge badge-pill badge-danger text-center">Não</span>';
+                    r += '</div>';
+                    return r;
+                }
+            }
+        ]
+	});
+
+    function _UserIndexDoneTyping() {
+        if ($.fn.DataTable.isDataTable('#_UserIndexTable')) {
+            datatables.search($('#_UserIndexSearch').val()).draw();
+        }
+    }
+    $('#_UserIndexSearch').keyup(function () {
+        clearTimeout(_UserIndexDoneTypingInterval);
+        _UserIndexTypingTimer = setTimeout(_UserIndexDoneTyping, _UserIndexDoneTypingInterval);
+    });
+    $('#_UserIndexSearch').keydown(function () {
+        clearTimeout(_UserIndexDoneTyping);
+    });
+</script>

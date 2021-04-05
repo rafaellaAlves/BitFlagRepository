@@ -1,0 +1,9 @@
+C:\repositorios\bitflag\GuardMedPlatform\vendas\Application\GuardMedWeb\InsurenceDbContext\bin\Debug\netcoreapp2.1\InsurenceDbContext.deps.json
+C:\repositorios\bitflag\GuardMedPlatform\vendas\Application\GuardMedWeb\InsurenceDbContext\bin\Debug\netcoreapp2.1\InsurenceDbContext.dll
+C:\repositorios\bitflag\GuardMedPlatform\vendas\Application\GuardMedWeb\InsurenceDbContext\bin\Debug\netcoreapp2.1\InsurenceDbContext.pdb
+C:\repositorios\bitflag\GuardMedPlatform\vendas\Application\GuardMedWeb\InsurenceDbContext\obj\Debug\netcoreapp2.1\InsurenceDbContext.csprojAssemblyReference.cache
+C:\repositorios\bitflag\GuardMedPlatform\vendas\Application\GuardMedWeb\InsurenceDbContext\obj\Debug\netcoreapp2.1\InsurenceDbContext.AssemblyInfoInputs.cache
+C:\repositorios\bitflag\GuardMedPlatform\vendas\Application\GuardMedWeb\InsurenceDbContext\obj\Debug\netcoreapp2.1\InsurenceDbContext.AssemblyInfo.cs
+C:\repositorios\bitflag\GuardMedPlatform\vendas\Application\GuardMedWeb\InsurenceDbContext\obj\Debug\netcoreapp2.1\InsurenceDbContext.csproj.CoreCompileInputs.cache
+C:\repositorios\bitflag\GuardMedPlatform\vendas\Application\GuardMedWeb\InsurenceDbContext\obj\Debug\netcoreapp2.1\InsurenceDbContext.dll
+C:\repositorios\bitflag\GuardMedPlatform\vendas\Application\GuardMedWeb\InsurenceDbContext\obj\Debug\netcoreapp2.1\InsurenceDbContext.pdb

@@ -1,0 +1,85 @@
+﻿@model DTO.CompanyQuestion.CompanyQuestionLawDetailViewModel
+
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-12">
+                <b>Esferas:</b>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4 text-nowrap">Requisitos Legais Federais: <b>@Model.AmountCountryLaws</b></div>
+            <div class="col-md-4 text-nowrap">Requisitos Legais Estaduais: <b>@Model.AmountStateLaws</b></div>
+            <div class="col-md-4 text-nowrap">Requisitos Legais Municipais: <b>@Model.AmountCityLaws</b></div>
+        </div>
+        <hr />
+        <div class="row">
+            <div class="col-md-12">
+                <b>Criticidades:</b>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3 text-nowrap">Fiscalização: <b>@Model.AmountPotentialityInspection</b></div>
+            <div class="col-md-3 text-nowrap">Multa: <b>@Model.AmountPotentialityFine</b></div>
+            <div class="col-md-3 text-nowrap">Intervensão: <b>@Model.AmountPotentialityInterdiction</b></div>
+            <div class="col-md-3 text-nowrap">Oportunidade: <b>@Model.AmountPotentialityOthers</b></div>
+        </div>
+        <hr />
+        <div class="row">
+            <div class="col-md-12">
+                <b>Segmentos:</b>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3 text-nowrap">Assuntos Regulatórios: <b>@Model.AmountSegmentAssuntosRegulatorios</b></div>
+            <div class="col-md-3 text-nowrap">Meio Ambiente: <b>@Model.AmountSegmentMeioAmbiente</b></div>
+            <div class="col-md-3 text-nowrap">Segurança e Saúde: <b>@Model.AmountSegmentSegurancaDoTrabalho</b></div>
+            <div class="col-md-3 text-nowrap">Outros: <b>@Model.AmountSegmentOthers</b></div>
+        </div>
+        @if (Model.Themes.Count > 0)
+        {
+            <hr />
+            <div class="row">
+                <div class="col-6">
+                    <b>Temas:</b>
+                </div>
+                <div class="col-6">
+                    <b>Subtemas:</b>
+                </div>
+            </div>
+            @foreach (var item in Model.Themes.OrderBy(x => x.ThemeName))
+            {
+                <div class="row mt-4">
+                    <div class="col-6">
+                        <div>Requisitos Legais - @item.ThemeName: <b style="font-size: 17px;">@item.Amount</b></div>
+                    </div>
+                    <div class="col-6">
+                        @foreach (var _item in Model.Subthemes.Where(x => x.ThemeId == item.ThemeId).OrderBy(x => x.SubThemeName))
+                        {
+                            <div>Requisitos Legais - @_item.SubThemeName: <b style="font-size: 17px;">@_item.Amount</b></div>
+                        }
+                    </div>
+                </div>
+            }
+
+            <div class="control-result" style="display: none;">
+                <hr />
+                <table class="table table-sm table-bordered table-stripped">
+                    <thead>
+                        <tr>
+                            <th>Principais controles a serem gerenciados</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var control in Model.Subthemes.OrderByDescending(x => x.Amount).Take(5).Select(x => x.Control).Distinct())
+                        {
+                            <tr>
+                                <td>@control</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,95 @@
+﻿@{
+    var controller = this.ViewContext.RouteData.Values["controller"].ToString();
+    var action = this.ViewContext.RouteData.Values["action"].ToString();
+}
+
+<a href="@Url.Action("Index", "Home")" class="sl-menu-link @(controller.Equals("Home")? "active" : "")">
+    <div class="sl-menu-item">
+        <i class="menu-item-icon icon simple-icon-home tx-16"></i>
+        <span class="menu-item-label">Home</span>
+    </div><!-- menu-item -->
+</a><!-- sl-menu-link -->
+<a href="@Url.Action("Index", "Client")" class="sl-menu-link @(controller.Equals("Client")? "active" : "")">
+    <div class="sl-menu-item">
+        <i class="menu-item-icon icon simple-icon-people tx-16"></i>
+        <span class="menu-item-label">Geradores</span>
+    </div><!-- menu-item -->
+</a><!-- sl-menu-link -->
+<a href="#" class="sl-menu-link @(controller.Equals("Contract") || controller.Equals("Service")? "active show-sub" : "")">
+    <div class="sl-menu-item">
+        <i class="menu-item-icon icon simple-icon-docs tx-16"></i>
+        <span class="menu-item-label">Contratos/Serviços</span>
+        <i class="menu-item-arrow fa fa-angle-down"></i>
+    </div><!-- menu-item -->
+</a><!-- sl-menu-link -->
+<ul class="sl-menu-sub nav flex-column">
+    <li class="nav-item" style="@(controller.Equals("Contract") && action.Equals("Proposal")? "display:block;" : "")"><a href="@Url.Action("Proposal", "Contract")" class="nav-link @(controller.Equals("Contract") && action.Equals("Proposal")? "active" : "")">Propostas</a></li>
+    <li class="nav-item" style="@(controller.Equals("Contract") && action.Equals("Index")? "display:block;" : "")"><a href="@Url.Action("Index", "Contract")" class="nav-link @(controller.Equals("Contract") && action.Equals("Index")? "active" : "")">Contratos</a></li>
+    <li class="nav-item" style="@(controller.Equals("Service") && action.Equals("Index")? "display:block;" : "")"><a href="@Url.Action("Index", "Service")" class="nav-link @(controller.Equals("Service") && action.Equals("Index")? "active" : "")">Serviços</a></li>
+</ul>
+<a href="@Url.Action("Index", "ResidueFamily")" class="sl-menu-link @(controller.Equals("ResidueFamily")? "active" : "")">
+    <div class="sl-menu-item">
+        <i class="menu-item-icon icon simple-icon-basket-loaded tx-16"></i>
+        <span class="menu-item-label">Resíduos</span>
+    </div><!-- menu-item -->
+</a><!-- sl-menu-link -->
+<a href="@Url.Action("Index", "Transporter")" class="sl-menu-link @(controller.Equals("Transporter")? "active" : "")">
+    <div class="sl-menu-item">
+        <i class="menu-item-icon icon simple-icon-social-dropbox tx-16"></i>
+        <span class="menu-item-label">Coletores/Transportadores</span>
+    </div><!-- menu-item -->
+</a><!-- sl-menu-link -->
+<a href="@Url.Action("Index", "Recipient")" class="sl-menu-link @(controller.Equals("Recipient")? "active" : "")">
+    <div class="sl-menu-item">
+        <i class="menu-item-icon icon simple-icon-directions tx-16"></i>
+        <span class="menu-item-label">Destinadores</span>
+    </div><!-- menu-item -->
+</a><!-- sl-menu-link -->
+<a href="@Url.Action("Index", "Route")" class="sl-menu-link @(controller.Equals("Route")? "active" : "")">
+    <div class="sl-menu-item">
+        <i class="menu-item-icon icon simple-icon-location-pin tx-16"></i>
+        <span class="menu-item-label">Rotas</span>
+    </div><!-- menu-item -->
+</a><!-- sl-menu-link -->
+<a href="@Url.Action("Index", "Demand")" class="sl-menu-link @(controller.Equals("Demand")? "active" : "")">
+    <div class="sl-menu-item">
+        <i class="menu-item-icon icon simple-icon-organization tx-16"></i>
+        <span class="menu-item-label">MTR Coleta</span>
+    </div><!-- menu-item -->
+</a><!-- sl-menu-link -->
+<a href="@Url.Action("Index", "DemandDestination")" class="sl-menu-link @(controller.Equals("DemandDestination")? "active" : "")">
+    <div class="sl-menu-item">
+        <i class="menu-item-icon icon simple-icon-directions tx-16"></i>
+        <span class="menu-item-label">MTR Destinação</span>
+    </div><!-- menu-item -->
+</a><!-- sl-menu-link -->
+<a href="#" class="sl-menu-link @(controller.Equals("User")? "active show-sub" : "")">
+    <div class="sl-menu-item">
+        <i class="menu-item-icon icon simple-icon-settings tx-16"></i>
+        <span class="menu-item-label">Administração</span>
+        <i class="menu-item-arrow fa fa-angle-down"></i>
+    </div><!-- menu-item -->
+</a><!-- sl-menu-link -->
+<ul class="sl-menu-sub nav flex-column">
+    <li class="nav-item" style="@(controller.Equals("User") && action.Equals("Administrator")? "display:block;" : "")"><a href="@Url.Action("Administrator", "User")" class="nav-link @(controller.Equals("User") && action.Equals("Administrator")? "active" : "")">Usuários Destine Já</a></li>
+    <li class="nav-item" style="@(controller.Equals("User") && action.Equals("Client")? "display:block;" : "")"><a href="@Url.Action("Client", "User")" class="nav-link @(controller.Equals("User") && action.Equals("Client")? "active" : "")">Clientes Destine Já</a></li>
+</ul>
+<a href="#" class="sl-menu-link @(controller.Equals("Report")? "active show-sub" : "")">
+    <div class="sl-menu-item">
+        <i class="menu-item-icon icon simple-icon-chart tx-16"></i>
+        <span class="menu-item-label">Relatórios</span>
+        <i class="menu-item-arrow fa fa-angle-down"></i>
+    </div><!-- menu-item -->
+</a><!-- sl-menu-link -->
+<ul class="sl-menu-sub nav flex-column">
+    <li class="nav-item" style="@(controller.Equals("Report") && action.Equals("NewContractAndService")? "display:block;" : "")"><a href="@Url.Action("NewContractAndService", "Report")" class="nav-link @(controller.Equals("Report") && action.Equals("NewContractAndService")? "active" : "")">Evolução de Novos Clientes</a></li>
+    <li class="nav-item" style="@(controller.Equals("Report") && action.Equals("NewAndEndedContracts")? "display:block;" : "")"><a href="@Url.Action("NewAndEndedContracts", "Report")" class="nav-link @(controller.Equals("Report") && action.Equals("NewAndEndedContracts")? "active" : "")">Contratos Novos x Encerrados</a></li>
+    <li class="nav-item" style="@(controller.Equals("Report") && action.Equals("EndedContracts")? "display:block;" : "")"><a href="@Url.Action("EndedContracts", "Report")" class="nav-link @(controller.Equals("Report") && action.Equals("EndedContracts")? "active" : "")">Contratos a Expirar</a></li>
+    <li class="nav-item" style="@(controller.Equals("Report") && action.Equals("Service")? "display:block;" : "")"><a href="@Url.Action("Service", "Report")" class="nav-link @(controller.Equals("Report") && action.Equals("Service")? "active" : "")">Serviços Avulsos</a></li>
+    <li class="nav-item" style="@(controller.Equals("Report") && action.Equals("Route")? "display:block;" : "")"><a href="@Url.Action("Route", "Report")" class="nav-link @(controller.Equals("Report") && action.Equals("Route")? "active" : "")">Histórico por Rota</a></li>
+    <li class="nav-item" style="@(controller.Equals("Report") && action.Equals("CollectionHistory")? "display:block;" : "")"><a href="@Url.Action("CollectionHistory", "Report")" class="nav-link @(controller.Equals("Report") && action.Equals("CollectionHistory")? "active" : "")">Histórico de Coleta</a></li>
+    <li class="nav-item" style="@(controller.Equals("Report") && action.Equals("CollectionMap")? "display:block;" : "")"><a href="@Url.Action("CollectionMap", "Report")" class="nav-link @(controller.Equals("Report") && action.Equals("CollectionMap")? "active" : "")">Mapa de Coleta - Resíduos</a></li>
+    <li class="nav-item" style="@(controller.Equals("Report") && action.Equals("CollectionYearMap")? "display:block;" : "")"><a href="@Url.Action("CollectionYearMap", "Report")" class="nav-link @(controller.Equals("Report") && action.Equals("CollectionYearMap")? "active" : "")">Mapa de Coleta por Ano</a></li>
+    <li class="nav-item" style="@(controller.Equals("Report") && action.Equals("CollectionMovement")? "display:block;" : "")"><a href="@Url.Action("CollectionMovement", "Report")" class="nav-link @(controller.Equals("Report") && action.Equals("CollectionMovement")? "active" : "")">Movimentação de Coleta</a></li>
+    <li class="nav-item" style="@(controller.Equals("Report") && action.Equals("PGRS")? "display:block;" : "")"><a href="@Url.Action("PGRS", "Report")" class="nav-link @(controller.Equals("Report") && action.Equals("PGRS")? "active" : "")">PGRS</a></li>
+</ul>

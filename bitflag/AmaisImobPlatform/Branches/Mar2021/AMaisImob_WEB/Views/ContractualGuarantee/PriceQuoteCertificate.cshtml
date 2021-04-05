@@ -1,0 +1,323 @@
+﻿@model AMaisImob_WEB.Models.ContractualContractualCertificateViewModel
+@inject AMaisImob_WEB.BLL.CategoryGuarantorProductTaxFunctions categoryGuarantorProductTaxFunctions
+
+@using AMaisImob_WEB.Utils;
+
+@{
+    Layout = "";
+
+    bool.TryParse(ViewData["OnlyReadable"]?.ToString(), out bool onlyReadable);
+}
+
+<style type="text/css">
+        @@font-face {
+            font-family: 'Avenir';
+            src: url('@Url.Content("~/assets/fonts/0078f486-8e52-42c0-ad81-3c8d3d43f48e.woff2")'), url('@Url.Content("~/assets/fonts/bc176270-17fa-4c78-a343-9fe52824e501.woff")'), url('@Url.Content("~/assets/fonts/d513e15e-8f35-4129-ad05-481815e52625.woff2")');
+        }
+</style>
+
+<style type="text/css">
+    body {
+        color-adjust: exact;
+        font-family:Avenir;
+        -webkit-print-color-adjust: exact;
+    }
+
+    .font-bold {
+        font-weight: bold;
+    }
+
+    .card {
+        position: relative;
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-box-orient: vertical;
+        -webkit-box-direction: normal;
+        -ms-flex-direction: column;
+        flex-direction: column;
+        min-width: 0;
+        word-wrap: break-word;
+        background-color: #fff;
+        background-clip: border-box;
+        border: 1px solid rgba(0, 0, 0, 0.125);
+        border-radius: 0.25rem;
+    }
+
+    .card-body {
+        -webkit-box-flex: 1;
+        -ms-flex: 1 1 auto;
+        flex: 1 1 auto;
+        padding: 1.25rem;
+    }
+
+    .card-title {
+        margin-bottom: 0.75rem;
+    }
+
+    .card-header {
+        padding: 0.75rem 1.25rem;
+        margin-bottom: 0;
+        background-color: rgba(0, 0, 0, 0.03);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    }
+
+        .col-1, .col-2, .col-3, .col-4, .col-5, .col-6, .col-7, .col-8, .col-9, .col-10, .col-11, .col-12, .col,
+        .col-auto, .col-sm-1, .col-sm-2, .col-sm-3, .col-sm-4, .col-sm-5, .col-sm-6, .col-sm-7, .col-sm-8, .col-sm-9, .col-sm-10, .col-sm-11, .col-sm-12, .col-sm,
+        .col-sm-auto, .col-md-1, .col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-7, .col-md-8, .col-md-9, .col-md-10, .col-md-11, .col-md-12, .col-md,
+        .col-md-auto, .col-lg-1, .col-lg-2, .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-6, .col-lg-7, .col-lg-8, .col-lg-9, .col-lg-10, .col-lg-11, .col-lg-12, .col-lg,
+        .col-lg-auto, .col-xl-1, .col-xl-2, .col-xl-3, .col-xl-4, .col-xl-5, .col-xl-6, .col-xl-7, .col-xl-8, .col-xl-9, .col-xl-10, .col-xl-11, .col-xl-12, .col-xl,
+        .col-xl-auto {
+            position: relative;
+            min-height: 1px;
+            padding-right: 15px;
+            padding-left: 15px;
+            /*display: inline-block;*/
+        }
+
+    @if (!onlyReadable)
+    {
+    <text>
+    @@media (min-width: 768px) {
+        </text>
+    }
+        .col-md-4 {
+            -webkit-box-flex: 0;
+            -ms-flex: 0 0 33.333333%;
+            flex: 0 0 33.333333%;
+            width: 33.333333%;
+        }
+
+        .col-md-12 {
+            -webkit-box-flex: 0;
+            -ms-flex: 0 0 100%;
+            flex: 0 0 100%;
+            width: 100%;
+        }
+
+        @if (Model.Print)
+        {
+            <text>
+            @@media print {
+                @if (!onlyReadable)
+                {
+                <text>
+                .offset-md-2 {
+                    margin-left: 16.666667%;
+                }
+
+                .offset-md-4 {
+                    margin-left: 33.333333%;
+                }
+                </text>
+                }
+                else
+                {
+                <text>
+                    .offset-md-2 {
+                        margin-left: 100px;
+                    }
+
+                    .offset-md-4 {
+                        margin-left: 200px;
+                    }
+                    </text>
+                }
+            }
+
+                .offset-md-2 {
+                    margin-left: 50%;
+                    transform: translateX(-50%);
+                }
+
+                .offset-md-4 {
+                    margin-left: 50%;
+                    transform: translateX(-50%);
+                }
+
+            </text>
+        }
+        else
+        {
+            if (!onlyReadable)
+            {
+            <text>
+            .offset-md-2 {
+                margin-left: 16.666667%;
+            }
+
+            .offset-md-4 {
+                margin-left: 33.333333%;
+            }
+            </text>
+            }
+            else
+            {
+            <text>
+                .offset-md-2 {
+                    margin-left: 100px;
+                }
+
+                .offset-md-4 {
+                    margin-left: 200px;
+                }
+                </text>
+            }
+        }
+    * {
+        -webkit-box-sizing: border-box;
+    }
+        .row {
+            display: -webkit-box;
+            display: -ms-flexbox;
+            display: flex;
+            -ms-flex-wrap: wrap;
+            flex-wrap: wrap;
+        }
+
+    .w-100 {
+        width: 100% !important;
+    }
+
+        @if (Model.Print)
+        {
+            <text>
+            .w-80 {
+                width: 80%;
+            }
+
+            .w-40 {
+                width: 40%;
+            }
+
+            @@media print {
+                .w-80 {
+                    width: 500px !important;
+                }
+
+                .w-40 {
+                    width: 300px !important;
+                }
+            }
+            </text>
+        }
+        else
+        {
+            <text>
+                .w-80 {
+                    width: 500px !important;
+                }
+
+                .w-40 {
+                    width: 300px !important;
+                }
+            </text>
+        }
+
+
+    .mb-1,
+    .my-1 {
+        margin-bottom: 0.25rem !important;
+    }
+
+    .mt-1,
+    .my-1 {
+        margin-top: 0.25rem !important;
+    }
+
+    .text-center{
+        text-align: center !important;
+    }
+
+    .smallFont {
+        font-size: 10px;
+    }
+
+    .mediumFont {
+        font-size: 12px;
+    }
+
+    .page-break {
+        break-after: always;
+    }
+
+    .btn {
+        padding: 12px 25px 12px 25px;
+        border-radius: 10px;
+        color: white;
+        text-decoration: none;
+    }
+
+    @@media print{
+        .no-print {
+            display: none;
+        }
+    }
+</style>
+
+@if (Model.Print)
+{
+    <table class="no-print" style=" width: 100%; margin: 2em 20px 2em 20px;">
+        <tr>
+            <td style="width: 50%; padding: 0 40px 0 40px;">
+                <a href="@Url.Action("Manage", "ContractualGuarantee", new { id = Model.CertificateContractual.CertificateContractualId })" class="btn" style="background: #a2a2a2;"><i class="fas fa-arrow-left"></i> Voltar</a>
+            </td>
+            <td style="padding: 0 40px 0 40px; text-align:right;">
+                <a href="javascript:window.print();" class="btn" style="background: #39b158;"><i class="fas fa-print"></i> Imprimir</a>
+            </td>
+        </tr>
+    </table>
+}
+
+@{
+    var img = Convert.ToBase64String(System.IO.File.ReadAllBytes(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "wwwroot", "image", "logo_AMaisImob_Novo.png")));
+}
+<div class="row">
+    <div class="col-md-12" style="text-align:right; margin-right: 10px; margin-top: 0;">
+        <img src="data:image/png;base64, @img" height="85" style="opacity:.6;" />
+    </div>
+</div>
+
+<div style="margin-top:1em;"></div>
+
+<div class="row">
+    <div class="col-md-12" style="text-align:left; margin-bottom:.5em;">
+        <b style="font-size: 18px;">COTAÇÃO GARANTIA LOCATÍCIA – REFERÊNCIA #@Model.CertificateContractual.Reference</b>
+    </div>
+    <div class="col-md-12" style="margin-bottom:.5em;">
+        <b>Data de cotação: @DateTime.Now.ToDatePtBR() às @DateTime.Now.ToTimePtBR()</b>
+    </div>
+    <div class="col-md-12">
+        <small>Este documento refere-se apenas a uma cotação, sem aprovação prévia. A contratação somente se dará após aprovação da ficha cadastral do pretendente.</small>
+    </div>
+</div>
+<div style="margin-top:1em;"></div>
+
+@(await Component.InvokeAsync("ContractualGuaranteeCertificateHeader", new { Model.CertificateContractual.CertificateContractualId }))
+@{
+    string guarantorProductName = "-";
+    if (Model.CategoryGuarantorProductTaxIds.Count > 0)
+    {
+        guarantorProductName = categoryGuarantorProductTaxFunctions.GetDataViewModel(new List<AMaisImob_DB.Models.CategoryGuarantorProductTax> { categoryGuarantorProductTaxFunctions.GetDataByID(Model.CategoryGuarantorProductTaxIds.First()) }).First().GuarantorProductName;
+    }
+}
+<table style="width: 100%;">
+    <tr class="amaisimob-white">
+        <td colspan="4" class="bgamaisimob-green" style="border-radius: 30px 30px 0px 0px;">
+            <small class="amaisimob-white">DADOS DA SEGURADORA E GARANTIAS ANALISADAS:</small>
+        </td>
+    </tr>
+    <tr><td style="padding:1px;"></td></tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding"><small style="text-transform: uppercase;" class="smallFont"><strong>Produto Selecionado:</strong> @guarantorProductName</small></td>
+    </tr>
+    <tr><td @*style="padding:10px*@;"></td></tr>
+</table>
+@(await Component.InvokeAsync("CategoryGuarantorProductTaxItems", new { certificateContractualId = Model.CertificateContractual.CertificateContractualId, ids = Model.CategoryGuarantorProductTaxIds }))
+
+@if (Model.Print)
+{
+    <script type="text/javascript">
+        window.print();
+    </script>
+}

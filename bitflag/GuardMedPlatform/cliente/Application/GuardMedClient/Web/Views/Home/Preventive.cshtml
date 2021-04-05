@@ -1,0 +1,231 @@
+﻿
+@{
+    ViewData["Title"] = "Preventive/Advisor";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style type="text/css">
+    .card-body a {
+        color: black !important;
+    }
+
+    .contact-item {
+        background: #355773;
+        padding: 5px 7px 5px 7px;
+        border-radius: 3px;
+        width: 100%;
+        margin-bottom: .3em;
+        max-width: 300px;
+        text-align: right;
+    }
+
+        .contact-item b {
+            background: #7496b7;
+            padding: 2px 3px 2px 3px;
+            color: #353535;
+            border-radius: 5px;
+            font-size: 11px;
+            float: left;
+        }
+
+        .contact-item a, .contact-item span {
+            color: #e8e8e8 !important;
+        }
+
+    ._table tr {
+        padding: 10px;
+    }
+
+    ._table td {
+        padding-left: 6px;
+    }
+
+    ._table {
+        border: 1px solid #f1f1f1;
+    }
+
+    .nav-tabs .nav-link {
+        border-top-left-radius: 0.25rem;
+        border-top-right-radius: 0.25rem;
+        border: 0px;
+    }
+
+        .nav-tabs .nav-link:hover {
+            background-color: #cccccc;
+            border: 1px solid #888888;
+            border-bottom: 0;
+            color: white;
+        }
+
+
+    .nav-tabs a {
+        color: #dadada;
+    }
+
+    .nav-tabs .nav-link.active {
+        color: white;
+        background-color: #b3b3b3;
+        border-color: #dee2e6 #dee2e6 #fff;
+        border: 1px solid #888888;
+        border-bottom: 0;
+    }
+
+    .nav-tabs {
+        border-bottom: 0px;
+    }
+
+    .tab-content {
+        padding-top: 20px;
+        border: none;
+        padding-bottom: 0;
+    }
+</style>
+<div class="card">
+    <div class="card-header" style="background: #3f6280; color: white;">
+        <div class="p-0">
+            <h5 class="m-0">
+                <i class="fas fa-info-circle"></i>&nbsp;O que é?
+            </h5>
+        </div>
+    </div>
+    <div class="card-body" style="background: linear-gradient(to bottom, #a5bbce, transparent);">
+        <div class="row">
+            <div class="col-md-8">
+                <p><b>Trata-se da chamada advocacia preventiva tão importante na atividade médica.</b></p>
+                <p>No Preventive/Advisor o cliente GUARDMED encontra:</p>
+                <ul>
+                    <li>Modelos de documentos e contratos ligados à atividade médica;</li>
+                    <li>Compilado de legislações pertinentes à área;</li>
+                    <li>Lista de documentos que poderão ser úteis numa eventual defesa do médico;</li>
+                    <li>Canal de comunicação direto com o jurídico para esclarecimento de dúvidas relacionadas à responsabilidade civil médica;</li>
+                    @*<li>Consultivo jurídico;</li>*@
+                </ul>
+            </div>
+            <div class="col-md-4">
+                <div style="display:none; position: absolute; width: 1px; height: 100%; border-left: 1px solid #9aa9b7;"></div>
+                <div class="w-100 text-center">
+                    <b>Contatos Jurídicos:</b>
+                </div>
+                <div class="w-100 mt-3 form-group">
+                    @if (Context.Request.Query.ContainsKey("emailSended"))
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert" id="email-sended-alert">
+                            <span style="color: #636363">E-mail enviado com sucesso!</span>
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true" style="color: #636363 !important;">&times;</span>
+                            </button>
+                        </div>
+                    }
+                    <form action="@Url.Action("SendEmailContact", "Home")" method="post" id="send-email-form">
+                        <input class="form-control required" style="padding-top: 4px; height: 35px; padding-bottom: 4px;" placeholder="Assunto" name="Subject" />
+                        <textarea class="form-control required" placeholder="Mensagem" style="margin-top: .4em;" name="Message"></textarea>
+                        <button class="btn btn-primary float-right" style="margin-top: .4em;"><i class="fas fa-paper-plane"></i>&nbsp;Envie sua dúvida</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<br />
+<div class="card card-dark-theme">
+    <div class="card-header">
+        <ul class="nav nav-tabs card-header-tabs">
+            <li class="nav-item">
+                <a class="nav-link active" id="modelos-tab" data-toggle="tab" href="#legislacao" role="tab" aria-controls="legislacao" aria-selected="true">Legislação</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="listas-tab" data-toggle="tab" href="#jurisprudencia" role="tab" aria-controls="jurisprudencia" aria-selected="false">Decisões dos Tribunais</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="modelos-tab" data-toggle="tab" href="#modelos" role="tab" aria-controls="modelos" aria-selected="true">Modelos</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="listas-tab" data-toggle="tab" href="#listas" role="tab" aria-controls="listas" aria-selected="false">Lista de Documentos</a>
+            </li>
+        </ul>
+    </div>
+    <div class="card-body">
+        <div class="tab-content" id="myTabContent">
+            <div class="tab-pane fade show active" id="legislacao" role="tabpanel" aria-labelledby="modelos-tab">
+                <div class="row">
+                    <div class="col-md-12">
+                        <ul style="list-style: none;">
+                            <li>
+                                <a target="_blank" title="Visualizar" href="http://www.planalto.gov.br/ccivil_03/_Ato2011-2014/2013/Lei/L12842.htm">
+                                    <img src="~/image/pdf_icon.png" style="height: 20px;" />&nbsp;LEI Nº 12.842, DE 10 DE JULHO DE 2013: Dispõe sobre o exercício da Medicina.
+                                </a>
+                            </li>
+                            <li><a target="_blank" title="Visualizar" href="http://www.planalto.gov.br/ccivil_03/leis/l9656.htm"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;LEI Nº 9.656, DE 3 DE JUNHO DE 1998: Dispõe sobre os planos e seguros privados de assistência à saúde.</a></li>
+                            <li><a target="_blank" title="Visualizar" href="http://www.planalto.gov.br/ccivil_03/LEIS/L9263.htm"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;LEI Nº 9.263, DE 12 DE JANEIRO DE 1996: Regula o § 7º do art. 226 da Constituição Federal, que trata do planejamento familiar, estabelece penalidades e dá outras providências.</a></li>
+                            <li><a target="_blank" title="Visualizar" href="https://a5de74b9-7468-4ca6-8656-0b231511a918.filesusr.com/ugd/d6042a_1f647b4b529947808c4ae0746d56ebed.pdf"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;RESOLUÇÃO CFM Nº 1.974/2011: Estabelece os critérios norteadores da propaganda em Medicina, conceituando os anúncios, a divulgação de assuntos médicos, o sensacionalismo, a autopromoção e as proibições referentes à matéria.</a></li>
+                            <li><a target="_blank" title="Visualizar" href="http://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/L13787.htm"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;LEI Nº 13.787, DE 27 DE DEZEMBRO DE 2018: Dispõe sobre a digitalização e a utilização de sistemas informatizados para a guarda, o armazenamento e o manuseio de prontuário de paciente.</a></li>
+                            <li><a target="_blank" title="Visualizar" href="http://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/L13709.htm"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;LEI Nº 13.709, DE AGOSTO DE 2018: Dispõe sobre a proteção de dados pessoais e altera a Lei nº 12.965, de 23 de abril de 2014 (Lei geral de proteção de dados)</a></li>
+                            <li><a target="_blank" title="Visualizar" href="https://cem.cfm.org.br/#Cap13"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;Código de ética médico</a></li>
+                            <li><a target="_blank" title="Visualizar" href="@Url.Action("Download", "Home", new { name = "Código de Processo ético profissional Médico.pdf" })"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;Código de processo ético-profissional médico</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="jurisprudencia" role="tabpanel" aria-labelledby="modelos-tab">
+                <div class="row">
+                    <div class="col-md-12">
+                        <ul style="list-style: none;">
+                            <li><a target="_blank" title="Visualizar" href="https://a5de74b9-7468-4ca6-8656-0b231511a918.filesusr.com/ugd/d6042a_107b01ae04fc4c1881314aa2f5b5f86e.pdf"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;Decisão Judicial: Falta de informação adequada sobre risco cirúrgico justifica indenização por danos morais</a></li>
+                            <li><a target="_blank" title="Visualizar" href="https://a5de74b9-7468-4ca6-8656-0b231511a918.filesusr.com/ugd/d6042a_60caea500cc34860b3c9b93067237344.pdf"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;Decisão Judicial: Médico e hospital terão de pagar indenização por erro que causou sequelas em bebê</a></li>
+                            <li><a target="_blank" title="Visualizar" href="https://a5de74b9-7468-4ca6-8656-0b231511a918.filesusr.com/ugd/d6042a_9af6c35d429b461da214d3d4415b0635.pdf"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;Decisão Judicial: Danos morais. Erro médico em cirurgia ortopédica. Responsabilidade civil solidária e subjetiva do Hospital e do médico integrante do seu corpo clínico. </a></li>
+                            <li><a target="_blank" title="Visualizar" href="@Url.Action("Download", "Home", new { name = "Anestesista  - Fio no corpo do paciente - TJSP_1010717-94.2013.8.26.0100.PDF" })"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;Anestesista  - Fio no corpo do paciente - TJSP_1010717-94.2013.8.26.0100</a></li>
+                            <li><a target="_blank" title="Visualizar" href="@Url.Action("Download", "Home", new { name = "Cirurgia Desnecessária Punsao Pulmonar - Erro Diagnostico - TJSP 0009737-76.2013.8.26.0291.PDF" })"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;Cirurgia Desnecessária Punsao Pulmonar - Erro Diagnostico - TJSP 0009737-76.2013.8.26.0291</a></li>
+                            <li><a target="_blank" title="Visualizar" href="@Url.Action("Download", "Home", new { name = "Cirurgião Plastico Erro Médico Indenização TJSC 0004237-16.2008.8.24.0079.PDF" })"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;Cirurgião Plastico Erro Médico Indenização TJSC 0004237-16.2008.8.24.0079</a></li>
+                            <li><a target="_blank" title="Visualizar" href="@Url.Action("Download", "Home", new { name = "Dermatologista - Erro Medico Laser - TJMG.PDF" })"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;Dermatologista - Erro Medico Laser - TJMG</a></li>
+                            <li><a target="_blank" title="Visualizar" href="@Url.Action("Download", "Home", new { name = "Exame - Diagnostico HIV - divulgacao - TJMG 1.0000.16.057165-9-002.PDF" })"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;Exame - Diagnostico HIV - divulgacao - TJMG 1.0000.16.057165-9-002</a></li>
+                            <li><a target="_blank" title="Visualizar" href="@Url.Action("Download", "Home", new { name = "Gastro Hernia Umbilical Pre Operatorio -  TJSP 400191783.2013.8.26.0566.PDF" })"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;Gastro Hernia Umbilical Pre Operatorio -  TJSP 400191783.2013.8.26.0566</a></li>
+                            <li><a target="_blank" title="Visualizar" href="@Url.Action("Download", "Home", new { name = "Obstetria Falecimento - TJSP 101448567.2016.8.26.0053.PDF" })"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;Obstetria Falecimento - TJSP 101448567.2016.8.26.0053</a></li>
+                            <li><a target="_blank" title="Visualizar" href="@Url.Action("Download", "Home", new { name = "Obstetria Parto Pensao Vitalicia Paralisia Cerebral  - TJSP 2018.0000815622.PDF" })"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;Obstetria Parto Pensao Vitalicia Paralisia Cerebral  - TJSP 2018.0000815622</a></li>
+                            <li><a target="_blank" title="Visualizar" href="@Url.Action("Download", "Home", new { name = "Obstetrícia médico residente óbito neonato - TJSP 2018.0000399359.pdf.PDF" })"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;Obstetrícia médico residente óbito neonato - TJSP 2018.0000399359.pdf</a></li>
+                            <li><a target="_blank" title="Visualizar" href="@Url.Action("Download", "Home", new { name = "Obstreta Pensão Vitalicia - TJSP 0001007652010.8.26.0361.PDF" })"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;Obstreta Pensão Vitalicia - TJSP 0001007652010.8.26.0361</a></li>
+                            <li><a target="_blank" title="Visualizar" href="@Url.Action("Download", "Home", new { name = "Obstretia Parto Fórceps TJSP0027510-10.2010.8.26.0625.PDF" })"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;Obstretia Parto Fórceps TJSP0027510-10.2010.8.26.0625</a></li>
+
+                        </ul>
+                        <hr />
+                        <small style="font-style:italic;">* Esse material foi compilado a partir de pesquisa junto as bases processuais dos diversos Tribunais do país e deve ser utilizado somente como consulta prévia, certo de que de modo algum exaure as demais possibilidades de prova.</small>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="modelos" role="tabpanel" aria-labelledby="modelos-tab">
+                <div class="row">
+                    <div class="col-md-12">
+                        <ul style="list-style: none;">
+                            <li><a title="Baixar" href="@Url.Action("Download", "Home", new { name = "Contrato de P SV médicos.pdf" })"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;Contrato de Prestação de Serviços Médicos</a></li>
+                            <li><a title="Baixar" href="@Url.Action("Download", "Home", new { name = "Contrato Locação comercial.pdf" })"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;Contrato de Locação Comercial</a></li>
+                            <li><a title="Baixar" href="@Url.Action("Download", "Home", new { name = "Contrato RPA médicos.pdf" })"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;Contrato de Registro de Profissional Autônomo</a></li>
+                            <li><a title="Baixar" href="@Url.Action("Download", "Home", new { name = "TERMO DE USO COMPARTILHADO DE IMÓVEL E SERVIÇOS.pdf" })"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;Termo de uso compartilhado de imóvel e serviços</a></li>
+                            <li><a title="Baixar" href="@Url.Action("Download", "Home", new { name = "MODELO DE USO DE IMAGEM PARA FINS ACADEMICOS E EVENTOS CIENTIFICOS..pdf" })"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;Modelo de uso de imagem para fins academicos e eventos cientificos</a></li>
+                            <li><a title="Baixar" href="@Url.Action("Download", "Home", new { name = "MODELO DE RECIBO DE HONORARIOS MEDICOS..pdf" })"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;Modelo de recibo de honorarios medicos</a></li>
+                            <li><a title="Baixar" href="@Url.Action("Download", "Home", new { name = "Termo de consentimento livre e esclarecido.pdf" })"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;Termo de consentimento livre e esclarecido</a></li>
+                        </ul>
+                        <hr />
+                        <small style="font-style:italic;">* A assessoria e aconselhamento de profissionais e advogados especializados é sempre fundamental e recomendada. Estes documentos pretendem espelhar termos e condições comumente utilizados e com fim meramente educativo. Existem várias estruturas e possibilidades jurídicas adequadas a cada situação específica.</small>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="listas" role="tabpanel" aria-labelledby="listas-tab">
+                <div class="row">
+                    <div class="col-md-12">
+                        <ul style="list-style: none;">
+                            <li><a title="Baixar" href="@Url.Action("Download", "Home", new { name = "Lista de documentos Consultório Clínicas.pdf" })"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;Lista de documentos Consultório / Clínicas</a></li>
+                        </ul>
+                        <hr />
+                        <small style="font-style:italic;">* O presente material se limita a orientar o médico nas suas atividades, contudo não exaure as eventuais exigências por parte dos órgãos competentes.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    setTimeout(function () { $('#email-sended-alert').fadeOut(2000); }, 8000);
+
+    $('#send-email-form').submit(function () {
+        return validateInputs('#send-email-form');
+    });
+</script>

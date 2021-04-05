@@ -1,0 +1,39 @@
+﻿@model int
+<div class="row">
+    <div class="col">
+        <table id="FinanceTable" class="display table table-striped table-bordered table-condensed" style="border-collapse: collapse !important; width:100%;">
+            <thead>
+                <tr>
+                    <th>Vencimento</th>
+                    <th>Pagamento</th>
+                    <th>Parcela</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+<script type="text/javascript">
+    var datatables;
+    $(document).ready(function () {
+        datatables = $('#FinanceTable').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: true,
+            //dom: 'tip',
+            ajax: {
+                url: '@Url.Action("ListFinance", "ClassStudent")',
+                data: function (d) {
+                    d.classStudentId = '@Model'
+                },
+                type: 'POST'
+            },
+            columns: [
+                { render: function (data, type, row) { return row.dueDate; } },
+                { render: function (data, type, row) { return row.payment; } },
+                { render: function (data, type, row) { return row.installment; } },
+            ]
+        });
+    });
+</script>

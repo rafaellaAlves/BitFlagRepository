@@ -1,0 +1,95 @@
+﻿@model int?
+@inject Services.Route.RouteTypeServices routeTypeServices
+
+@{
+    ViewData["Title"] = "Rotas";
+    var contractTypeId = (await routeTypeServices.GetDataByExternalCode("CONTRATO"))?.RouteTypeId;
+}
+
+<form id="route-manage-form" action="@Url.Action("_ManageForm", "Route")" method="post">
+    <input type="hidden" value="@Model" name="RouteId" />
+    <div class="card">
+        <div class="card-body">
+            @(await Component.InvokeAsync<Web.ViewComponents.Route.RouteManageViewComponent>(new { id = Model }))
+        </div>
+        <div class="card-footer">
+            <div class="row">
+                <div class="col">
+                    <a href="@Url.Action("Index", "Route")" data-disabledAll="false" class="btn btn-secondary"><i class="simple-icon-arrow-left"></i>&nbsp;Voltar</a>
+                </div>
+                <div class="col">
+                    <button id="client-save-button" class="btn btn-success float-right mr-2"><i class="simple-icon-cloud-upload"></i>&nbsp;Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts
+{
+    <script type="text/javascript">
+        
+        $(document).ready(function () {
+            InitializeFunctions();
+
+            $("#client-save-button").click(function () {
+                     $('#route-manage-form-area [name="FilterPeriodicity"]').val('');
+                routeClientTable.draw(); //remove o filtro de periodicidade para salvar todos itens da tabela
+
+                var r = validateInputs('route-manage-form-area');
+
+                if ($('#route-client-table tr[data-addressId]').length == 0) {
+                    if ($('#route-manage-form-area [name="RouteType"]').val() == 1) {
+                        bootbox.alert('Selecione ao menos um cliente para esta <b>Rota</b>.');
+                        r = false;
+                    }
+                }
+                else if ($('#route-client-table tr[data-addressId]').length > addressFamilyIds.length) {
+                    bootbox.alert('Selecione ao menos uma <b>Família</b> para cada <b>Cliente</b> desta <b>Rota</b>.');
+                    r = false;
+                }
+
+                    if (r) {
+                        //adiciona ao form os clientes selecionados
+                        $.each($('#route-client-table tr[data-addressId]'), function (i, e) {
+                            var addressId = $(e).data('addressid');
+
+                            $('#route-manage-form').append('<input type="hidden" name="Clients.Index" value="' + i + '" />');
+                            $('#route-manage-form').append('<input type="hidden" name="Clients[' + i + '].ClientCollectionAddressId" value="' + addressId + '" />');
+                            var rowIndex = routeClientTable.rows({ order: 'applied' }).nodes().indexOf(e) + 1;
+                            $('#route-manage-form').append('<input type="hidden" name="Clients[' + i + '].Order" value="' + rowIndex + '" />');
+
+                            if ($('#route-manage-form [name="RouteTypeId"]').val() == '@contractTypeId') {
+                                $('#route-manage-form').append('<input type="hidden" name="Clients[' + i + '].ContractId" value="' + $(e).data('contractid') + '" />');
+                            } else {
+                                $('#route-manage-form').append('<input type="hidden" name="Clients[' + i + '].ServiceId" value="' + $(e).data('serviceid') + '" />');
+                            }
+                        });
+
+                        $.each(addressFamilyIds, function (i, e) {
+                            $.each(e.familyIds, function (_i, _e) {
+                                var index = $('#route-manage-form [name="RouteResidueFamily.Index"]').length;
+                                $('#route-manage-form').append('<input type="hidden" name="RouteResidueFamily.Index" value="' + index + '" />');
+                                $('#route-manage-form').append('<input type="hidden" name="RouteResidueFamily[' + index + '].ClientCollectionAddressId" value="' + e.clientCollectionAddressId + '" />');
+                                $('#route-manage-form').append('<input type="hidden" name="RouteResidueFamily[' + index + '].ResidueFamilyId" value="' + _e + '" />');
+                            });
+                        });
+
+                        $('#route-manage-form').submit();
+                    }
+
+       
+
+            });
+        });
+  
+
+
+
+    </script>
+
+    <script asp-paste-key="route-manage"></script>
+    <script asp-paste-key="route-client"></script>
+    <script asp-paste-key="route-client-selection"></script>
+    <script asp-paste-key="route-client-family"></script>
+}

@@ -1,0 +1,105 @@
+﻿#container-client-login {
+    width: 470px;
+    background: white;
+    position: absolute;
+    padding: 23px;
+    left: 10%;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+    #container-client-login .arrow {
+        width: 0;
+        height: 0;
+        border-style: solid;
+        border-width: 0 20px 20px 20px;
+        border-color: transparent transparent white transparent;
+        position: absolute;
+        transform: translateY(-95%) translateX(-50%);
+        top: 0;
+        left: 50%;
+    }
+
+.input-group-icon {
+    background: #cecece;
+    color: white;
+    width: 65px;
+    font-size: 27px;
+    text-align: center;
+    padding: 10px;
+}
+
+.input-group-input, .input-group-input:focus {
+    border: 0;
+    background: #ececec;
+    font-size: 16px;
+}
+
+.client-login-button {
+    width: 90%;
+    margin: auto;
+    border-radius: 10px;
+    color: #636363;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.client-login-more-info-button {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    left: 70%;
+    top: 28%;
+    color: #636363;
+    border-radius: 10px;
+}
+
+    .client-login-button:hover, .client-login-more-info-button:hover {
+        color: #e0e0e0;
+    }
+
+.client-login-background {
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+}
+
+.return-login-button {
+    margin-top: 20px;
+}
+
+@media (max-width: 900px) {
+    .client-login-more-info-button {
+        transform: translate(-125%, -50%);
+        left: 100%;
+        top: 13% !important;
+    }
+    .client-login-background {
+        background-size: initial;
+    }
+}
+
+@media (max-width: 500px) {
+    #container-client-login {
+        width: 80%;
+        transform: none;
+        top: 120px;
+    }
+
+    .form-control {
+        font-size: 13px !important;
+        height: 30px !important;
+        padding: 5px !important;
+    }
+    .btn {
+        height: 30px !important;
+        padding: 5px !important;
+    }
+    .return-login-button {
+        margin-top: 8px !important;
+        font-size: 11px !important;
+    }
+    .input-group-icon {
+        font-size: 20px;
+        padding: 0px;
+    }
+}

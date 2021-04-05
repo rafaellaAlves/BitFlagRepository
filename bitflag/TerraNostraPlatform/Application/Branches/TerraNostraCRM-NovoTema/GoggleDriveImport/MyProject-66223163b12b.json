@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "active-venture-243512",
+  "private_key_id": "66223163b12b19c62c609049af7e414e081402f3",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDgawy1+CFvFGeS\nDdcy/sV+5riLfXvtmbbjGJZ4oNnFc+nfMNdodqDoWWVGSUHan1ZXY90dgfpsADMY\nFTNOl0GLm6dJn34gSyBjNhj1OoNfErYRCv168XipBhniMwJXYozDhXe9v5iQd3Kk\n+bpt534cMvMX3BCb8+tDJYWtaQGh5uRan1Po3RHBi079todNxxiY5V5fk36zdPv4\nxrzMq6c6sxKCYvsYGbdhU39WJgfQenEuG9zb0gP5t4rwGmDnp6q42N0TXvKce18w\nxtz/XHsNKQMry7CBZNA10Q1dUTt1pbJ6eKVvOy6Qpr4Bx1pvWeHOV5cRdG+UEe4V\n2Y32wUuNAgMBAAECggEAMmvK0M2dkWv3syh568KzE8Z5uxln8SPCo/ZfxF17YDIh\nXxyFoTpZ/6oqJ2cJLTn0d7D/uoP8BCztTeFhhCxWtSu1I8T6XP4UGkZKyDorzv4Q\nuvaJqgg70FoHEbvdME37i2he1VqJSBgWQXu8R7olqudFl9xBPRDKEG2LQcFgdQPT\n9m2DNgw0hSpwJe5YzTbXA3AWnFtP2G2xcvAYg6PARR3fDkD31y7ETSE5NeqU2GDQ\nf18oyKCNu9yWFAUILY8zFuZhpVhPNtUdnLYkVEF22UOxcSKx6yDtztUXvpFbNq1j\nYdpTqbhpe/btaz7BxJZfRHjvq/MLclKJDfvPbyn74QKBgQD9Wt0xCFHAytSHPkWl\natgFSyhueLAy4qnFb0f3fDKMYhZjEY7UTaD4Dt/zgBLS6adq7mRGJym3rDe/jgNW\n3Rm4MQ1s59Y6YMLkg7cDT8gFnB+aSkpZPgCQEf5auPAgXZ4Ybj44+7BF3N0WsbJE\nhJdgCdD5vrfTA5yxEevulJoKkQKBgQDiwtjSkfg9AcE7g8N84+M9gxOUUD+Rm4OG\nJ2lO/6QX4lZJVKVG+nswu5ENk6WTIml56iY2ie8l/Eie/rE/4BdhjAUdiglQaQ67\naDV/vcDKjPmuM6kMrjAM2vx1J10VtCDGj3Z1CgjQlNVfrfax1lig9foL20qPsTjg\nVsiTEN3XPQKBgQCrGwPJyqmUACg60pas2hTctl6vBTlSlHw+CCLdhPaKkvA1pjUF\nMwxkm38qb7PG1+CmuivkqSxmjJv19c5Riu+E0zQS+hxXvuPA+yfNx8L57u/0/vlp\nfhNZOZ3D3aTm5vMP4tyJFYp+FGUIn6ga2EV3qgmFsgVqMMVRXR4vOhMy0QKBgQDZ\n2RkWitdyPKpYM8jtxb09Dh0UQlgf2chsbJZ2J5CMxYvh3Sj/XIpXEgtTgMHz7X5p\nenKFuNQAqTNXVBYS6IVt2GfdrgwurQ9TKdUjyLdboD4KhmTk4r8Uypj5L/z0ad2H\nBLJn1GENib7Hscgrp2H0GPvEwkMKctbSZ21AJFcLfQKBgQD4/w9uYAXpW3ICpr7p\nAgoalCq7eZYbVFrcEuBjmEHAsST02SH29cHpUAM4sgt+BpbCGaBlkCqWGCOOZ7v0\nVidPb0QmF2NKMHUxoPpeu5bd1nose3s/7Lqw7/QjTaOkh4UxMRUJ5H9hj+zv5kpy\njIOiplNvmO3J6gQ1Z3CBg3UmKg==\n-----END PRIVATE KEY-----\n",
+  "client_email": "sistema-crm@active-venture-243512.iam.gserviceaccount.com",
+  "client_id": "110121780394029199874",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/sistema-crm%40active-venture-243512.iam.gserviceaccount.com"
+}

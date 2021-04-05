@@ -1,0 +1,9 @@
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\Application\WEB\obj\Debug\netcoreapp2.2\WEB.csprojAssemblyReference.cache
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\Application\WEB\obj\Debug\netcoreapp2.2\WEB.AssemblyInfoInputs.cache
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\Application\WEB\obj\Debug\netcoreapp2.2\WEB.AssemblyInfo.cs
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\Application\WEB\obj\Debug\netcoreapp2.2\WEB.csproj.CoreCompileInputs.cache
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\Application\WEB\obj\Debug\netcoreapp2.2\WEB.RazorAssemblyInfo.cache
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\Application\WEB\obj\Debug\netcoreapp2.2\WEB.RazorAssemblyInfo.cs
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\Application\WEB\obj\Debug\netcoreapp2.2\WEB.TagHelpers.input.cache
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\Application\WEB\obj\Debug\netcoreapp2.2\WEB.dll
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\Application\WEB\obj\Debug\netcoreapp2.2\WEB.pdb

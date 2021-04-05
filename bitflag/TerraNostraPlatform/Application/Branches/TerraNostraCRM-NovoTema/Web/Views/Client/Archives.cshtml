@@ -1,0 +1,10 @@
+﻿@model DTO.Client.ClientViewModel
+@{
+    ViewData["Title"] = "Arquivos";
+    ViewData["SubTitle"] = Model.ClientName;
+}
+<div id="_ClientArchiveIndexViewComponent"></div>
+
+<script type="text/javascript">
+    $('#_ClientArchiveIndexViewComponent').load('@Url.Action("ClientArchiveComponent", "Client")', {clientId: '@Model.ClientId'});
+</script>

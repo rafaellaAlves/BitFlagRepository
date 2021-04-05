@@ -1,0 +1,5 @@
+﻿@model AMaisImob_WEB.Models.Charge.ChargePriceItem
+
+<td>@Model?.Name</td>
+<td>@Model?.Description</td>
+<td>@(Model == null || (ViewBag.ChargeContractualGuarantee == false && Model.CertificateContractual) ? "-" : Model.AlternativeTotalPrice.HasValue? Model.AlternativeTotalPriceFormated : Model.PriceFormated)</td>

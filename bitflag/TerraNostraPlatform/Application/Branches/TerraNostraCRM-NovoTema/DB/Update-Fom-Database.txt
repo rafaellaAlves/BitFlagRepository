@@ -1,0 +1,1 @@
+Scaffold-DbContext "Server=sistema.tncidadaniaitaliana.com.br;Database=TerraNostra_Dev;User Id=TerraNostra;Password=Trocar123!;MultipleActiveResultSets=true;" Microsoft.EntityFrameworkCore.SqlServer -Force -Context TerraNostraContext

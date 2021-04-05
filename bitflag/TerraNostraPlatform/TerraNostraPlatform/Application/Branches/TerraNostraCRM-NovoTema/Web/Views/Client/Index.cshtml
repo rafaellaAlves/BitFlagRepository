@@ -1,0 +1,10 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutUplon.cshtml";
+    ViewData["Title"] = "Leads";
+}
+
+<div id="_ClientIndexViewComponent"></div>
+
+<script type="text/javascript">
+    $('#_ClientIndexViewComponent').load('@Url.Action("ClientIndexComponent", "Client")');
+</script>

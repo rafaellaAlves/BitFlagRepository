@@ -1,0 +1,108 @@
+﻿@model int?
+@{
+    ViewData["Title"] = "Gerenciar Destinador";
+}
+
+<div class="card bd-0">
+    <div class="card-header">
+        <ul class="nav nav-tabs card-header-tabs" id="recipient-pills-tab">
+            <li class="nav-item">
+                <a class="nav-link @(!Context.Request.Query.ContainsKey("success")? "active" : "")" id="pills-general-tab" data-toggle="pill" href="#pills-general" role="tab" aria-controls="pills-general" aria-selected="true">Dados Cadastrais</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(Context.Request.Query.ContainsKey("success")? "active" : "")" id="pills-contact-tab" data-toggle="pill" href="#pills-contact" role="tab" aria-controls="pills-contact" aria-selected="false">Contatos</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="pills-environmental-documentation-tab" data-toggle="pill" href="#pills-environmental-documentation" role="tab" aria-controls="pills-environmental-documentation" style="content:counters(name, string, style)" aria-selected="false">Documentação Ambiental</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="pills-residue-price-tab" data-toggle="pill" href="#pills-residue-price" role="tab" aria-controls="pills-residue-price" style="content:counters(name, string, style)" aria-selected="false">Tabela de Preços</a>
+            </li>
+        </ul>
+    </div>
+    <div class="card-body">
+        <div class="tab-content" id="pills-tabContent">
+            <div class="tab-pane fade @(!Context.Request.Query.ContainsKey("success")? "show active" : "")" id="pills-general" role="tabpanel" aria-labelledby="pills-general-tab">@(await Component.InvokeAsync("RecipientManage", new { id = Model }))</div>
+            <div class="tab-pane fade @(Context.Request.Query.ContainsKey("success")? "show active" : "")" id="pills-contact" role="tabpanel" aria-labelledby="pills-contact-tab">@(Model.HasValue ? await Component.InvokeAsync("RecipientContactIndex", new { recipientId = Model }) : (object)"")</div>
+            <div class="tab-pane fade" id="pills-environmental-documentation" role="tabpanel" aria-labelledby="pills-environmental-documentation-tab">@(Model.HasValue ? await Component.InvokeAsync("RecipientEnvironmentalDocumentationIndex", new { recipientId = Model }) : (object)"")</div>
+            <div class="tab-pane fade" id="pills-residue-price" role="tabpanel" aria-labelledby="pills-residue-price-tab">@(Model.HasValue ? await Component.InvokeAsync("ResiduePriceIndex", new { recipientId = Model }) : (object)"")</div>
+        </div>
+    </div>
+    <div class="card-footer">
+        <div class="row">
+            <div class="col-6">
+                <button id="recipient-prev-step-button" class="btn btn-secondary"><i class="simple-icon-arrow-left"></i>&nbsp;Voltar</button>
+            </div>
+            <div class="col-6">
+                &nbsp;<button id="recipient-next-step-button" style="@(!Context.Request.Query.ContainsKey("success")? "display:none;" : "")" class="btn btn-secondary float-right">Próximo&nbsp;<i class="simple-icon-arrow-right"></i></button>
+                &nbsp;<button id="recipient-save-button" style="@(Context.Request.Query.ContainsKey("success")? "display:none;" : "")" class="btn btn-success float-right mr-2"><i class="simple-icon-cloud-upload"></i>&nbsp;Salvar</button>
+                &nbsp;<a href="@Url.Action("CreationComplete", "Recipient", new { id = Model })" style="display:none" id="recipient-finish-step-button" class="btn btn-success float-right mr-2"><i class="simple-icon-like"></i>&nbsp;Finalizar</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts
+{
+    <script type="text/javascript">
+        $(document).ready(function () {
+            InitializeFunctions();
+        });
+
+        $('.nav-link').on('show.bs.tab', function (a, b, c) {
+            $('#recipient-save-button').hide();
+            $('#recipient-next-step-button').show();
+            $('#recipient-finish-step-button').hide();
+
+            if ($(this).is($('#pills-general-tab'))) {
+                $('#recipient-save-button').show();
+                $('#recipient-next-step-button').hide();
+            }
+            if ($(this).is($('#pills-residue-price-tab'))) {
+                $('#recipient-next-step-button').hide();
+                $('#recipient-finish-step-button').show();
+            }
+
+        });
+
+        $('#recipient-next-step-button').click(function () {
+            $('.nav-tabs > .nav-item > .active').parent().next('li').find('a').trigger('click');
+        });
+
+        $('#recipient-prev-step-button').click(function () {
+            if ($('#pills-general-tab').hasClass('active')) {
+                window.location.href = "@Url.Action("Index", "Recipient")";
+                return;
+            }
+            if ($('#pills-residue-price-tab').hasClass('active')) {
+                window.location.href = "@Url.Action("Index", "Recipient")";
+                return;
+            }
+
+
+            $('.nav-tabs > .nav-item > .active').parent().prev('li').find('a').trigger('click');
+        });
+    </script>
+
+    <script asp-paste-key="recipient-manage-script"></script>
+    <script asp-paste-key="recipient-environmental-documentation-index"></script>
+    <script asp-paste-key="recipient-environmental-documentation-manage"></script>
+    <script asp-paste-key="script-recipient-contact"></script>
+    <script asp-paste-key="company-script"></script>
+    <script asp-paste-key="residue-price-index"></script>
+    <script asp-paste-key="residue-price-manage"></script>
+
+
+
+    @if (!Model.HasValue)
+    {
+        <script type="text/javascript">
+            $(function () {
+                $('#pills-contact-tab').addClass('disabled');
+                $('#pills-environmental-documentation-tab').addClass('disabled');
+                $('#pills-residue-price-tab').addClass('disabled');
+                $('#recipient-next-step-button').hide();
+            });
+        </script>
+    }
+}

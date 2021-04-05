@@ -1,0 +1,76 @@
+﻿<div id="client-residue-family-chart"></div>
+
+<script type="text/javascript" asp-cut-key="home-client-residue-family">
+	$(document).ready(function () {
+
+		$.post('@Url.Action("GetHomeDemandClientResidueFamilyCollectedViewModel", "Home")', function (d) {
+			var chartData = d.map(function(x) {
+				return { name: x.name, y: x.weight };
+			});
+
+			mountDemandClientResidueFamilyCollectedChart(chartData);
+		});
+	});
+
+	function mountDemandClientResidueFamilyCollectedChart(data) {
+        var pieColors = (function () {
+            var colors = [],
+                base = Highcharts.getOptions().colors[0],
+                i;
+
+            for (i = 0; i < 10; i += 1) {
+                colors.push(Highcharts.color(base).brighten((i - 3) / 7).get());
+            }
+            return colors;
+        }());
+
+		Highcharts.chart('client-residue-family-chart', {
+			credits: {
+				enabled: false
+			},
+			exporting: {
+				enabled: false
+			},
+            chart: {
+                plotBackgroundColor: null,
+                plotBorderWidth: null,
+                plotShadow: false,
+				type: 'pie',
+                height: '265px'
+			},
+			title: {
+                text: 'Resíduos mais coletados'
+			},
+			tooltip: {
+				pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+			},
+			accessibility: {
+				point: {
+					valueSuffix: '%'
+				}
+			},
+			plotOptions: {
+				pie: {
+					allowPointSelect: true,
+                    cursor: 'pointer',
+                    colors: pieColors,
+					dataLabels: {
+						enabled: true,
+                        format: '{point.name}<br/>{point.percentage:.1f} %',
+						distance: -20,
+						style: {
+                            fontSize: '9px'
+                        }
+						//connectorColor: 'silver'
+                    },
+                    //showInLegend: true
+				}
+			},
+            series: [{
+                innerSize: '35%',
+				name: 'Porcentagem',
+				data
+			}]
+		});
+	}
+</script>

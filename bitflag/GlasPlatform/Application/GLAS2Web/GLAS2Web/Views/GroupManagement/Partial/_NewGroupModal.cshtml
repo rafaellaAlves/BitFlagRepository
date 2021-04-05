@@ -1,0 +1,62 @@
+﻿<!-- ********* -->
+<!-- NEW GROUP -->
+<!-- ********* -->
+<div class="modal fade" tabindex="-1" role="dialog" id="newGroupModal" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Novo Grupo</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="newGroupName">Nome</label>
+                    <input type="text" class="form-control" id="newGroupName" placeholder="Nome do grupo" />
+                </div>
+                <div class="form-group">
+                    <label for="newGroupDescription">Descrição</label>
+                    <input type="text" class="form-control" id="newGroupDescription" placeholder="Descrição do grupo" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" id="newGroupButtonSave"><i class="fa fa-cloud-upload-alt" aria-hidden="true"></i>&nbsp;Salvar</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-ban" aria-hidden="true"></i>&nbsp;Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $('#newGroupModal').on('shown.bs.modal', function () {
+        $('#newGroupName').val('');
+        $('#newGroupDescription').val('');
+    });
+    $('#newGroupButtonSave').click(function () {
+        if ($('#newGroupName').val() == '' || $('#newGroupName').val().length == 0) {
+            alert('Por favor, preencha o nome do grupo.');
+            return;
+        }
+        var parentNode = $('#tree').tree('getSelectedNode');
+        if (parentNode == false || parentNode.IsCompany) {
+            alert('Por favor, selecione um grupo.');
+            return;
+        }
+        var d = { ParentId: parentNode.GroupId, GroupId: null, Name: $('#newGroupName').val(), Description: $('#newGroupDescription').val() };
+        $.ajax({
+            url: '@Url.Action("Manage", "GroupManagement")',
+            type: 'POST',
+            data: d,
+            dataType: 'json',
+            success: function (data) {
+                $('#tree').tree('appendNode', data, parentNode);
+                $('#tree').tree('openNode', parentNode);
+
+                var node = $('#tree').tree('getNodeById', data.GroupId);
+                $('#tree').tree('selectNode', node);
+                $('#newGroupModal').modal('hide');
+            }
+        });
+     });
+</script>
+<!-- ********* -->

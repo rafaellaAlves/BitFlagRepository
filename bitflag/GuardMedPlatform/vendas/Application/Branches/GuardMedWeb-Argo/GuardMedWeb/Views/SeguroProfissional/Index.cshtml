@@ -1,0 +1,456 @@
+﻿@model GuardMedWeb.Models.SeguradoProfissionalViewModel
+
+@inject DAL.GuardMedWebContext context
+@inject GuardMedWeb.BLL.Insurance.Company.CompanyFunctions companyFunctions
+@inject GuardMedWeb.BLL.SeguradoProfissional.MedicGroupFunctions medicGroupFunctions
+
+@{
+    ViewData["Title"] = "GuardMed";
+
+    var especialidadeFunctions = new GuardMedWeb.BLL.SeguradoProfissional.EspecialidadeFunctions(context);
+    string _notFound = null;
+    if (ViewData["notFound"] != null)
+    {
+        _notFound = ViewData["notFound"].ToString();
+    }
+    bool notFound = false;
+    if (!string.IsNullOrWhiteSpace(_notFound))
+    {
+        bool.TryParse(_notFound, out notFound);
+    }
+    string plataformaQuery = Context.Request.Query["p"];
+    string escritorioQuery = Context.Request.Query["e"];
+    string descontoQuery = Context.Request.Query["d"];
+
+    bool NoTermRealEstate = false, NoTermRealEstateAgency = false;
+
+    if (!string.IsNullOrWhiteSpace(plataformaQuery) && !companyFunctions.TermsAreAccepted(int.Parse(plataformaQuery)))
+    {
+        NoTermRealEstateAgency = true;
+    }
+
+    if (!string.IsNullOrWhiteSpace(escritorioQuery) && !companyFunctions.TermsAreAccepted(int.Parse(escritorioQuery)))
+    {
+        NoTermRealEstate = true;
+    }
+
+    if (NoTermRealEstate || NoTermRealEstateAgency)
+    {
+        plataformaQuery = "";
+        escritorioQuery = "";
+        descontoQuery = "";
+    }
+}
+
+@if (Model == null || Model.PodeRenovar)
+{
+    Html.RenderPartial("~/Views/SeguroProfissional/Shared/_StepCotacao.cshtml");
+}
+else
+{
+    Html.RenderPartial("~/Views/SeguroProfissional/Shared/_StepCotacao_Renew.cshtml");
+}
+
+
+<div class="row">
+    @if (!string.IsNullOrWhiteSpace(plataformaQuery) || !string.IsNullOrWhiteSpace(escritorioQuery))
+    {
+        <div class="col-md-4">
+            <div class="card bg-light" style="margin-left: 55px; margin-top: 100px; text-align: center; border: none;">
+                <div class="card-body" style="background-color: #2e5071; color:white; border-radius: 15px;">
+                    Você foi direcionado para página de vendas com margem de desconto concedido pela <b>GUARDMED</b>.<br /><br />
+                    Somos uma empresa de gestão de risco e oferecemos um Programa de Proteção Profissional Médico agregando serviços a um seguro de responsabilidade civil com coberturas de R$200.000,00 e R$500.000,00.<br /><br />
+                    Para mais informações sobre nós acesse  <a style="color:white;" href="https://www.guardmed.com.br" target="_blank"><b>www.guardmed.com.br</b></a><br />
+                    <small><b>*</b> Este desconto é possível apenas por meio desse link.</small>
+                </div>
+            </div>
+        </div>
+    }
+    <div class="col-md-6 mx-auto">
+        <form id="form" action="@Url.Action("Index", "SeguroProfissional")" method="post" enctype="multipart/form-data">
+            @if (Model != null)
+            {
+                <input type="hidden" value="@Model?.SeguradoProfissionalId" name="SeguradoProfissionalId" />
+                <input type="hidden" value="@Model?.CRM" name="CRM" />
+                <input type="hidden" value="@Model?.EstadoCRM" name="EstadoCRM" />
+            }
+            <div class="card bg-light" id="card">
+                <div class="card-body">
+                    @if (Model == null)
+                    {
+                        <label class="control-label" style="text-align: justify">Olá Dr(a). Para conhecer os planos do Seguro Profissional GuardMed® preencha os dados abaixo.</label>
+                        <hr />
+                    }
+                    <div class="form-group">
+                        <label>Nome:</label>
+                        <input class="form-control" id="Nome" name="Nome" type="text" placeholder="Nome" value="@Model?.Nome" />
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label>CRM:</label>
+                            <input name="Conveniado" id="Conveniado" type="hidden" />
+                            <input class="form-control" id="CRM" name="CRM" type="text" placeholder="CRM" value="@Model?.CRM" @(Model == null ? "" : "disabled") />
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label>Estado do CRM:</label>
+                            <select class="form-control" id="EstadoCRM" name="EstadoCRM" @(Model == null ? "" : "disabled")>
+                                <option value="">Selecione</option>
+                                @foreach (var item in GuardMedWeb.BLL.Utils.Utils.GetEstados())
+                                {
+                                    <option value="@item.EstadoId" selected="@(Model?.EstadoCRM == item.EstadoId)">@item.Description</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    @if (string.IsNullOrWhiteSpace(descontoQuery))
+                    {
+                        <div class="form-row">
+                            <div class="form-group col-md-12">
+                                <label>Grupo Médico:</label>
+                                @{
+                                    var medicGroupText = "";
+                                    if (Model != null)
+                                    {
+                                        if (Model.GrupoMedico.HasValue)
+                                        {
+                                            var medicGroup = medicGroupFunctions.GetDataByID(Model?.GrupoMedico);
+
+                                            medicGroupText = $"{medicGroup.MedicGroupName} - {medicGroup.Discount} % de Desconto";
+                                        }
+                                        else
+                                        {
+                                            medicGroupText = "Você não pertence a nenhum grupo médico associado.";
+                                        }
+                                    }
+                                }
+                                <input class="form-control" id="GrupoMedico" value="@medicGroupText" type="text" disabled />
+                            </div>
+                        </div>
+                    }
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label>Celular:</label>
+                            <input class="form-control mobile" name="Celular" id="Celular" type="text" placeholder="Celular" value="@Model?.Celular" />
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label>Telefone:</label>
+                            <input class="form-control phone" name="Telefone" id="Telefone" type="text" placeholder="Telefone" value="@Model?.Telefone" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label>E-mail:</label>
+                            <input class="form-control" id="Email" name="Email" type="email" placeholder="E-mail" value="@Model?.Email" />
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label>Data de nascimento:</label>
+                            <input name="Idade" id="Idade" type="hidden" />
+                            <input class="form-control date" id="DataNascimento" name="_DataNascimento" type="text" placeholder="Data de nascimento" value="@Model?._DataNascimento" />
+                        </div>
+                    </div>
+                    <div class="form-row" id="AreaEspecialidades">
+                        <div class="form-group col-md-12">
+                            <label>Informar todas as especialidades que deseja proteção:</label>
+                            <select class="form-control" id="EspecialidadeId1" name="EspecialidadeId" onchange="ValidadarEspecialidade(1)">
+                                <option value="">Selecione</option>
+                                @foreach (var esp in especialidadeFunctions.GetData().OrderBy(x => x.Nome))
+                                {
+                                    <option value="@esp.EspecialidadeId" selected="@(Model?.Especialidade1 == esp.EspecialidadeId)">@esp.Nome</option>
+                                }
+                            </select>
+                        </div>
+                        @if (Model?.Especialidade2.HasValue == true)
+                        {
+                            <div class="form-group col-md-12" id="especilidadeProfissionalArea2">
+                                <select class="form-control" id="EspecialidadeId2" onchange="ValidadarEspecialidade(2)">
+                                    <option value="">Selecione</option>
+                                    @foreach (var esp in especialidadeFunctions.GetData().OrderBy(x => x.Nome))
+                                    {
+                                        <option value="@esp.EspecialidadeId" selected="@(Model?.Especialidade2 == esp.EspecialidadeId)">@esp.Nome</option>
+                                    }
+                                </select>
+                            </div>
+                        }
+                        @if (Model?.Especialidade3.HasValue == true)
+                        {
+                            <div class="form-group col-md-12" id="especilidadeProfissionalArea3">
+                                <select class="form-control" id="EspecialidadeId3" onchange="ValidadarEspecialidade(3)">
+                                    <option value="">Selecione</option>
+                                    @foreach (var esp in especialidadeFunctions.GetData().OrderBy(x => x.Nome))
+                                    {
+                                        <option value="@esp.EspecialidadeId" selected="@(Model?.Especialidade3 == esp.EspecialidadeId)">@esp.Nome</option>
+                                    }
+                                </select>
+                            </div>
+                        }
+                    </div>
+                    <div class="form-row">
+                        <div class="col-md-12">
+                            <a href="javascript:void(0)" id="DiminuirEspecialidade" class="float-left "><i class="fas fa-minus-circle"></i>&nbsp; Especialidade</a>
+                            <a href="javascript:void(0)" id="AumentarEspecialidade" class="float-right" ><i class="fas fa-plus-circle"></i>&nbsp; Especialidade</a>
+                        </div>
+                      
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="form-row">
+                        <div class="col-12">
+                            <table style="width:100%;">
+                                @if (Model == null)
+                                {
+                                    <tr style="display: none">
+                                        <td style="width:80%; padding-right: 15px;"><input class="form-control text-left consultor" oninput="this.value = this.value.toUpperCase();" placeholder="Consultor GuardMed" id="ConsultorGuardMed" name="ConsultorGuardMed" /></td>
+                                        <td style="width:20%;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td><input type="hidden" value="@escritorioQuery" name="EscritorioId" /></td>
+                                        <td><input type="hidden" value="@plataformaQuery" name="PlataformaId" /></td>
+                                        <td><input type="hidden" value="@descontoQuery" name="DescontoPlataforma" /></td>
+                                    </tr>
+                                }
+                                <tr>
+                                    <td style="width:80%; padding-right: 15px;">
+                                        @if (Model == null)
+                                        {
+                                            <input class="form-control text-left" placeholder="# Referência, caso possua." id="Referencia" />
+                                        }
+                                        else
+                                        {
+                                            <a href="@GuardMedWeb.Configuration.InsuranceConfiguration.InsuranceWebsite/Report/Index?status=@(Model.PodeRenovar? "3" : "2")" type="button" class="btn btn-primary"><i class="fas fa-arrow-left"></i>&nbsp;Voltar</a>
+                                        }
+                                    </td>
+                                    <td style="width:20%;"><button type="button" id="save" class="btn btn-primary float-right">Avançar&nbsp;<i class="fas fa-arrow-right"></i></button></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+<script type="text/javascript">
+    var i = @(Model == null? "1" : Model.Especialidade3.HasValue? "3" : Model.Especialidade2.HasValue ? "2" : "1");
+
+    function Validar() {
+        $('.text-danger').remove();
+        var error = false;
+
+        if (IsNullOrWhiteSpace($('#Referencia').val())) {
+
+            if (IsNullOrWhiteSpace($('#Nome').val())) {
+                $('#Nome').after('<div class="text-danger">Insira o nome!</div>');
+                error = true;
+            }
+
+            if (IsNullOrWhiteSpace($('#DataNascimento').val())) {
+                $('#DataNascimento').after('<div class="text-danger">Insira a data nascimento!</div>');
+                error = true;
+            } else {
+                var age = getAge($('#DataNascimento').val());
+                if (age < 23) {
+                    $('#DataNascimento').after('<div class="text-danger">É preciso ter mais de 23 anos.</div>');
+                    error = true;
+                }
+            }
+
+            if (IsNullOrWhiteSpace($('#Email').val())) {
+                $('#Email').after('<div class="text-danger">Insira o e-mail!</div>');
+                error = true;
+            }
+
+            if (IsNullOrWhiteSpace($('#Celular').val())) {
+                $('#Celular').after('<div class="text-danger">Insira o celular!</div>');
+                error = true;
+            }
+
+            if (IsNullOrWhiteSpace($('#CRM').val())) {
+                $('#CRM').after('<div class="text-danger">Insira o CRM!</div>');
+                error = true;
+            }
+            if (IsNullOrWhiteSpace($('#EstadoCRM').val())) {
+                $('#EstadoCRM').after('<div class="text-danger">Insira o estado do CRM!</div>');
+                error = true;
+            }
+
+            var temEspecialidade = false;
+            for (var j = 1; j <= i; j++) {
+                if (!IsNullOrWhiteSpace($('#EspecialidadeId' + j).val())) {
+                    temEspecialidade  = true;
+                }
+            }
+
+            if (!temEspecialidade) {
+                $('#AreaEspecialidades').after('<div class="text-danger">Insira ao menos uma especialidade!</div>');
+                error = true;
+            }
+
+        }
+        return (!error);
+    }
+    function Salvar() {
+        if (!IsNullOrWhiteSpace($('#Referencia').val())) {
+            var referencia = $('#Referencia').val();
+
+            window.location.href = '@Url.Action("Retornar", "SeguroProfissional")?reference=' + referencia;
+        } else {
+            var d = $('#form').serializeArray();
+            $.ajax({
+            url: '@Url.Action(Model == null? "Index" : "SaveIndexRenew", "SeguroProfissional")',
+            type: 'POST',
+            dataType: 'json',
+            data: d,
+            success: function (data) {
+                SalvarEspecialidades(data.seguradoProfissionalId, data.referencia);
+            }
+        });
+        }
+    }
+    $('#save').click(function () {
+        if (Validar()) Salvar();
+    });
+
+    @if (notFound)
+    {
+        <text>
+            alert("Referência não encontrada!");
+        </text>
+    }
+
+    $('#AumentarEspecialidade').click(function () {
+        if (i < 3) {
+            i++;
+            $('#AreaEspecialidades').append(
+                '<div class="form-group col-md-12" id="especilidadeProfissionalArea' + i + '">' +
+                '<select class="form-control" id="EspecialidadeId' + i +'" onchange="ValidadarEspecialidade(' + i + ')">' +
+                '<option value="">Selecione</option>' +
+                @foreach (var _item in especialidadeFunctions.GetData().OrderBy(x => x.Nome))
+                {
+                    <text>
+                    '<option value="@_item.EspecialidadeId">@_item.Nome</option>' +
+                    </text>
+                }
+                '</select>' +
+                '</div>');
+        } else {
+            alert('Não é possível adicionar mais especialidades.');
+        }
+    });
+    $('#DiminuirEspecialidade').click(function () {
+        if (i > 1) {
+            $('#especilidadeProfissionalArea' + (i)).remove();
+            i--;
+        } else {
+            alert('Não é possível remover mais especialidades.');
+        }
+    });
+
+
+    function SalvarEspecialidades(seguradoProfissionalId, referencia) {
+        var model = [];
+        console.log(i);
+        for (var j = 1; j <= i; j++) {
+            if (!IsNullOrWhiteSpace($('#EspecialidadeId' + j).val())) {
+                model.push({ EspecialidadeProfissionalId: null, EspecialidadeId: $('#EspecialidadeId' + j).val(), Invasivo: false, SeguradoProfissionalId: seguradoProfissionalId });
+            }
+        }
+        if (model.length == 0) {
+            model.push({ EspecialidadeProfissionalId: null, EspecialidadeId: null, Invasivo: null, SeguradoProfissionalId: seguradoProfissionalId });
+        }
+
+        $.ajax({
+            url: '@Url.Action("SalvarEspecialidades", "SeguroProfissional")',
+            type: 'POST',
+            data: JSON.stringify(model),
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            success: function (data) {
+                window.location.href = '@Url.Action(Model == null ? "Cotacao" : "QuoteRenew", "SeguroProfissional")?reference=' + referencia + '@Html.Raw(Context.Request.Query.ContainsKey("RenewToken") ? $"&RenewToken={Context.Request.Query["RenewToken"]}" : "")';
+            }
+        });
+    }
+
+    function ValidadarEspecialidade(index) {
+
+        for (var j = 1; j <= i; j++) {
+            if (j == index || IsNullOrWhiteSpace($('#EspecialidadeId' + index).val())) continue;
+            if ($('#EspecialidadeId' + index).val() == $('#EspecialidadeId' + j).val()) {
+                $('#EspecialidadeId' + index).val('');
+                alert('Esta especialidade já foi escolhida.');
+                return;
+            }
+        }
+    }
+
+    @if (string.IsNullOrWhiteSpace(descontoQuery)) {
+    <text>
+    $('#CRM').blur(function () {
+        GetMedicGroup();
+    });
+
+    $('#EstadoCRM').change(function () {
+        GetMedicGroup();
+    });
+
+    function GetMedicGroup() {
+        if (IsNullOrWhiteSpace($('#CRM').val()) || IsNullOrWhiteSpace($('#EstadoCRM').val()))
+            return;
+        $.ajax({
+            url: '@Url.Action("GetDataByCRM", "GrupoMedico")',
+            type: 'POST',
+            datatype: 'JSON',
+            data: { crm: $('#CRM').val(), crmEstado: $('#EstadoCRM').val() },
+            success: function (data) {
+                if (data != null) {
+                    $('#GrupoMedico').val(data.medicGroupName + ' - ' + data.discount + '% de Desconto' );
+                } else {
+                    $('#GrupoMedico').val('Você não pertence a nenhum grupo médico associado.');
+                }
+            }
+        });
+    }
+    </text>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(descontoQuery)) {
+        if (int.TryParse(descontoQuery, out int descontoPlataforma))
+        {
+            if (descontoPlataforma > 10)
+            {
+        <text>
+    $('[name="DescontoPlataforma"]').val('');
+    alert('Houve um erro com o desconto, por isto ele está sendo anulado.');
+        </text>
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(plataformaQuery))
+        {
+        <text>
+    $('[name="DescontoPlataforma"]').val('');
+    window.location.href = '@Url.Action("Index", "SeguroProfissional")'
+        </text>
+        }
+    }
+
+    $(document).ready(function () {
+        @if (NoTermRealEstate && NoTermRealEstateAgency) {
+            <text>
+        alert('O escritório e a plataforma ainda não estão disponíveis para utilização.');
+            </text>
+        }
+        else if (NoTermRealEstate) {
+            <text>
+        alert('O escritório ainda não esta disponível para utilização.');
+            </text>
+        }
+        else if (NoTermRealEstateAgency) {
+            <text>
+        alert('A plataforma ainda não esta disponível para utilização.');
+            </text>
+        }
+    });
+</script>

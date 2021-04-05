@@ -1,0 +1,235 @@
+﻿@model int
+<div class="row">
+    <div class="col-md form-group">
+        <div class="input-group">
+            <div class="input-group-addon">
+                <i class="simple-icon-magnifier"></i>
+            </div>
+            <input type="text" class="form-control" id="transporter-environmental-documentation-index-search" placeholder="Pesquisar..." data-toggle="search-datatable" data-target="#transporter-environmental-documentation-index-table">
+        </div>
+    </div>
+    <div class="col-md-auto col form-group">
+        <a href="javascript:openTransporterEnvironmentalDocumentationEditModal()" class="btn btn-primary text-nowrap w-100"><i class="simple-icon-plus"></i>&nbsp;Adicionar</a>
+    </div>
+</div>
+<hr />
+<div id="success-area-transporter-environmental-documentation-index"></div>
+<div class="row">
+    <div class="col-md-12 table-responsive">
+        <table id="transporter-environmental-documentation-index-table" class="display table table-striped table-bordered table-condensed w-100" style="border-collapse: collapse !important;">
+            <thead>
+                <tr>
+                    <th>Documento</th>
+                    <th>Órgão Emissor</th>
+                    <th>Nome ou Atividade</th>
+                    <th>Data de Vencimento</th>
+                    <th>Dias para o Vencimento</th>
+                    <th>Upload</th>
+                    <th style="width:20px">Documento de Licença?</th>
+                    <th>&nbsp;</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="transporter-environmental-documentation-index-modal" tabindex="-1" role="dialog" aria-labelledby="transporter-environmental-documentation-index-modal-title" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold" id="transporter-environmental-documentation-index-modal-title"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @(await Component.InvokeAsync("TransporterEnvironmentalDocumentationManage", new { transporterId = Model }))
+            </div>
+            <div class="modal-footer">
+                <div class="col-md-6">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="simple-icon-close"></i>&nbsp;Fechar</button>
+                </div>
+                <div class="col-md-6">
+                    <button type="button" class="btn btn-success float-right" id="transporter-environmental-documentation-index-modal-save-button"><i class="simple-icon-cloud-upload"></i>&nbsp;Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script asp-cut-key="transporter-environmental-documentation-index">
+    var transporterEnvironmentalDocumentationDatatables;
+    $(document).ready(function () {
+        transporterEnvironmentalDocumentationDatatables = $('#transporter-environmental-documentation-index-table').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            dom: 'tip',
+            ajax: {
+                url: '@Url.Action("List", "TransporterEnvironmentalDocumentation")',
+                data: function (d) {
+                    d.transporterId = '@Model'
+                },
+                type: 'POST'
+            },
+            columns: [
+                { render: function (data, type, row) { return row.name; } },
+                { render: function (data, type, row) { return row.issuer; } },
+                { render: function (data, type, row) { return row.activityName; } },
+                { render: function (data, type, row) { return row.dueDate == null? '-' : moment(row.dueDate).format('DD/MM/YYYY'); } },
+                { render: function (data, type, row) { return parseInt(getDaysToDueDate(moment(row.dueDate)._d)); } },
+                { render: function (data, type, row) { return '<a href=\'javascript:environmentalDocumentationDownloadBootbox(' + JSON.stringify(row) + ')\'>' + row.fileName + '</a>'; } },
+                { render: function (data, type, row) { return row.isRSSFile ? '<span class="badge badge-pill badge-success">Sim</span>' : '<span class="badge badge-pill badge-danger">Não</span>'; } },
+                {
+                    render: function (data, type, row)
+                    {
+                        return '<div class="text-center text-nowrap">' +
+                            '&nbsp;<a href=\'javascript:openTransporterEnvironmentalDocumentationEditModal(' + JSON.stringify(row) + ')\' title="Editar"><span class="badge badge-pill badge-success"><i class="simple-icon-note"></i></span></a>' +
+                            '&nbsp;<a href=\'javascript:removeTransporterEnvironmentalDocumentation(' + JSON.stringify(row) + ')\' title="Excluir"><span class="badge badge-pill badge-danger"><i class="simple-icon-trash"></i></span></a>' +
+                            '</div>';
+                    }
+                }
+            ]
+        });
+    });
+
+    function environmentalDocumentationDownloadBootbox(d) {
+        var size = 'medium';
+
+        var message = $('<div>');
+        message.append($('<h4>').append('Arquivo <b>(' + d.fileName + ')</b>'));
+
+
+        if (d.mimeType.indexOf('image') != -1) {
+            var row = $('<div>', { class: 'row mt-3' });
+            var col = $('<div>', { class: 'col-md-12 text-center' });
+            var img = $('<img>', { class: 'transporter-environmental-documentation-image', src: '@Url.Action("GetArchive", "TransporterEnvironmentalDocumentation")?id=' + d.transporterEnvironmentalDocumentationId, style: 'min-height:150px; max-height: 400px; max-width: 750px;' });
+            img.on("error", function () { imageNotFound('.transporter-environmental-documentation-image') });
+
+            message.append(row.append(col.append(img)));
+
+            size = 'large';
+        }
+
+         bootbox.dialog({
+            message: message.html(),
+            size: size,
+            buttons: {
+                download: {
+                    label: "<i class=\"simple-icon-cloud-download\"></i> Download",
+                    className: 'btn-success',
+                    callback: function () {
+                        window.location.href = '@Url.Action("GetArchive", "TransporterEnvironmentalDocumentation")?id=' + d.transporterEnvironmentalDocumentationId;
+                    }
+                }
+            }
+        });
+    }
+
+    function removeTransporterEnvironmentalDocumentation(transporterEnvironmentalDocumentation) {
+        bootboxConfirm("Deseja realmente excluir o documento \"" + transporterEnvironmentalDocumentation.name + "\"?", function(result){
+            if (!result) return;
+
+            $.post('@Url.Action("DeleteDefinitively", "TransporterEnvironmentalDocumentation")', { id: transporterEnvironmentalDocumentation.transporterEnvironmentalDocumentationId }, function () {
+
+                bootbox.alert("Documento \"" + transporterEnvironmentalDocumentation.name + "\" excluído com sucesso!");
+                transporterEnvironmentalDocumentationDatatables.ajax.reload();
+            });
+        });
+    }
+
+    function openTransporterEnvironmentalDocumentationEditModal(data) {
+        $('#form-transporter-environmental-documentation [name=\'Name\']').val(data == null? '' : data.name);
+        $('#form-transporter-environmental-documentation [name=\'Issuer\']').val(data == null? '' : data.issuer);
+        $('#form-transporter-environmental-documentation [name=\'ActivityName\']').val(data == null? '' : data.activityName);
+        $('#form-transporter-environmental-documentation [name=\'_IssuerDate\']').val(data == null? '' : moment(data.issuerDate).format('DD/MM/YYYY'));
+        $('#form-transporter-environmental-documentation [name=\'_DueDate\']').val(data == null? '' : moment(data.dueDate).format('DD/MM/YYYY'));
+        $('#form-transporter-environmental-documentation [name=\'TransporterEnvironmentalDocumentationId\']').val(data == null? '' : data.transporterEnvironmentalDocumentationId);
+        $('#form-transporter-environmental-documentation [name=\'IsRSSFile\']').val(data == null ? $('#form-transporter-environmental-documentation [name=\'IsRSSFile\'] option:first').val() : data.isRSSFile.toString());
+        $('#form-transporter-environmental-documentation [name=\'License\']').val(data == null ? '' : data.license);
+        $('#form-transporter-environmental-documentation [name=\'LicenseResidueFamilyIds\']').val(data == null ? [] : data.licenseResidueFamilyIds).trigger("change");
+        $('#form-transporter-environmental-documentation [name=\'DaysToNotify\']').val(data == null ? '' : data.daysToNotify);
+        $('#form-transporter-environmental-documentation [name=\'Email\']').val(data == null ? '' : data.email);
+        $('#form-transporter-environmental-documentation [name=\'Archive\']').val('');
+
+        if (data != null && data.isRSSFile) {
+            $('#transporter-environmental-documentation-license-area').show();
+            $('#transporter-environmental-documentation-family-area').show();
+
+        } else {
+            $('#transporter-environmental-documentation-license-area').hide();
+            $('#transporter-environmental-documentation-family-area').hide();
+        }
+
+        var r = getDaysToDueDate(moment($('#form-transporter-environmental-documentation input[name=\'_DueDate\']').val(), 'DD/MM/YYYY')._d);
+        $('#daysForDueDate').val(data == null? '' : parseInt(r));
+
+        //remove arquivos selecionado no FilePound
+        $('.filepond--file-action-button.filepond--action-remove-item').click();
+
+        $('#transporter-environmental-documentation-index-modal-title').text(data == null ? 'Novo Documento' : 'Editar Documento');
+
+        $('#transporter-environmental-documentation-index-modal').modal('show');
+
+        InitializeFunctions();
+    }
+
+    $('#transporter-environmental-documentation-index-modal').on('shown.bs.modal', function () {
+        $("#form-transporter-environmental-documentation [name=\"LicenseResidueFamilyIds\"]").select2({ width: 'resolve' });
+    });
+
+    $('#transporter-environmental-documentation-index-modal-save-button').click(function () {
+     
+        if(!validateInputs('form-transporter-environmental-documentation')) return;
+
+        if (isNullOrWhiteSpace($('#form-transporter-environmental-documentation [name=\'TransporterEnvironmentalDocumentationId\']').val()) && $('#form-transporter-environmental-documentation [name=\'Archive\']')[0].files.length == 0) {
+            bootbox.alert('Insira um arquivo.');
+            return;
+        }
+
+
+        if ($('#form-transporter-environmental-documentation [name=\'IsRSSFile\']').val() == 'true') {
+            if (isNullOrWhiteSpace($('#form-transporter-environmental-documentation [name=\'License\']').val())) {
+                $('#form-transporter-environmental-documentation [name=\'License\']').after('<small class="text-danger">Este campo deve ser preenchido.</small>');
+            }
+            if ($('#form-transporter-environmental-documentation [name=\'LicenseResidueFamilyIds\']').val() == null || $('#form-transporter-environmental-documentation [name=\'LicenseResidueFamilyIds\']').val().length == 0) {
+                $('#transporter-environmental-documentation-family-error-area').after('<small class="text-danger">Este campo deve ser preenchido.</small>');
+            }
+
+            if ($('#form-transporter-environmental-documentation [name=\'LicenseResidueFamilyIds\']').val() == null || $('#form-transporter-environmental-documentation [name=\'LicenseResidueFamilyIds\']').val().length == 0 || isNullOrWhiteSpace($('#form-transporter-environmental-documentation [name=\'License\']').val())) {
+                return;
+            }
+        }
+
+        var _d = new FormData();
+        _d.append('Archive', $('#form-transporter-environmental-documentation [name=\'Archive\']')[0].files[0]);
+        $('#form-transporter-environmental-documentation').serializeArray().forEach(function (e) {
+            _d.append(e.name, e.value);
+        });
+
+        $('#success-area-transporter-environmental-documentation-index').empty();
+
+        $.ajax({
+            url: '@Url.Action("_ManageAjax", "TransporterEnvironmentalDocumentation")',
+			type: 'POST',
+			contentType: false,
+			processData: false,
+			data: _d,
+            success: function (d) {
+                if (d.hasError) {
+                    bootbox.alert(d.message);
+                    return;
+                }
+
+                transporterEnvironmentalDocumentationDatatables.ajax.reload();
+                transporterEnvironmentalDocumentationDatatables.search($('#transporter-environmental-documentation-index-search').val()).draw();
+
+                $('#success-area-transporter-environmental-documentation-index').empty().append(successMessage());
+
+                $('#transporter-environmental-documentation-index-modal').modal('hide');
+            }
+        });
+    })
+</script>

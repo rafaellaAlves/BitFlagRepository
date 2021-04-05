@@ -1,0 +1,46 @@
+﻿@model int?
+@{
+
+    if (Model.HasValue)
+    {
+        ViewData["Title"] = "Atualização de Indicação";
+    }
+    else
+    {
+        ViewData["Title"] = "Criação de Indicação";
+    }
+}
+
+
+<div id="IndicationViewComponent"></div>
+
+<div class="row">
+    <div class="col-12">
+        <hr />
+        <a href="@Url.Action("Index","Indication")" class="btn btn-secondary float-left" style="color:white;"><i class="simple-icon-action-undo"></i>&nbsp;Voltar</a>
+        <button type="button" id="_IndicationManageButtonSubmit" class="btn btn-success float-right"><i class="simple-icon-cloud-upload"></i>&nbsp;Criar indicação</button>
+    </div>
+</div>
+<script type="text/javascript">
+    $('#IndicationViewComponent').load('@Url.Action("IndicationManageComponent", "Indication")', { "id": @if (Model.HasValue) { @Model } else { <text>null</text> } });
+
+    $('#_IndicationManageButtonSubmit').click(function () {
+        if (_IndicationManageValidate()) {
+            _IndicationManageSave();
+        }
+    });
+</script>
+@if (Model.HasValue)
+{
+    <text>
+        <script type="text/javascript">
+            $('#_IndicationManageButtonSubmit').html('<i class="simple-icon-cloud-upload"></i>&nbsp;Salvar');
+
+        </script>
+    </text>
+}
+<script type="text/javascript">
+    function _IndicationManageCallBack(data) {
+         window.location.href = '@Url.Action("Index", "Indication")?id=' + data + '&saved=true';
+    }
+</script>

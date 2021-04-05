@@ -1,0 +1,189 @@
+﻿@model PrintListViewModel<DTO.Client.Report.ClientReportGeneratorViewModel>
+@inject Services.Client.ClientServices clientServices
+@{DTO.Client.ClientViewModel userClient = null;
+
+    @if (User.IsClient())
+    {
+        userClient = await clientServices.GetViewModelByIdAsync(await clientServices.GetClientIdByLoggedUser(Context));
+    } }
+@{ Layout = "~/Views/Shared/_LayoutClean.cshtml"; }
+
+<style type="text/css">
+    body, body * {
+        -webkit-print-color-adjust: exact;
+    }
+
+    table {
+        border: 1px solid #f1f1f1 !important;
+    }
+
+    th {
+        background-color: #989898 !important;
+        color: white !important;
+        border: 1px solid #f1f1f1 !important;
+    }
+
+    td {
+        background-color: white !important;
+        border: 1px solid #f1f1f1 !important;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .w-100 {
+        width: 100%;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 0.25em 0.4em;
+        font-size: 75%;
+        font-weight: bold;
+        line-height: 1;
+        color: #fff;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: baseline;
+        border-radius: 8px;
+    }
+
+    .badge-pill {
+        padding-right: 0.6em;
+        padding-left: 0.6em;
+    }
+
+    .badge-success {
+        color: #fff;
+        background-color: #23BF08;
+    }
+
+    .badge-danger {
+        color: #fff;
+        background-color: #dc3545;
+    }
+
+    .table {
+        background-color: #e9ecef;
+        border-collapse: separate;
+        border-spacing: 0;
+        width: 100%;
+        max-width: 100%;
+        margin-bottom: 1rem;
+        background-color: transparent;
+        color: #212529;
+    }
+
+    table {
+        border: 1px solid #f1f1f1 !important;
+    }
+
+    .table thead > tr > th, .table thead > tr > td, .table tfoot > tr > th, .table tfoot > tr > td {
+        border-top: 0;
+        border-bottom: 0;
+        font-weight: 700;
+        font-size: 12px;
+        text-transform: uppercase;
+        background-color: #dee2e6;
+        color: #343a40;
+        letter-spacing: 0.5px;
+    }
+
+    .table th, .table td {
+        padding: 0.75rem;
+        vertical-align: top;
+        border-top: 1px solid #dee2e6;
+    }
+</style>
+
+
+@if (!ViewData.ContainsKey("PDF"))
+{
+    <div style="margin-bottom:5em; margin-top:3em;" class="no-print">
+        <a class="no-print btn btn-primary" style="padding: 10px 30px 10px 30px;" href="@Url.Action("Generator", "Report")"><i class="simple-icon-arrow-left"></i>&nbsp;Voltar</a>
+        <a class="no-print btn btn-success float-right" style="padding: 10px 30px 10px 30px;" href="javascript:window.print();"><i class="simple-icon-printer"></i>&nbsp;Imprimir</a>
+    </div>}
+
+<div style="width:100%; text-align:center;">
+    @{ var bytes = System.IO.File.ReadAllBytes(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "wwwroot", "Imagens", "logo2.png"));
+        var base64 = Convert.ToBase64String(bytes);
+
+        <img src="@($"data:image/png;base64, {base64}")" width="500" /> }
+</div>
+<div class="row">
+    @if (User.IsClient())
+    {
+        var client = await clientServices.GetViewModelByIdAsync(await clientServices.GetClientIdByLoggedUser(Context));
+        @await Html.PartialAsync("../Heading.cshtml");
+    }
+
+</div>
+<div class="w-100 text-center" style="font-weight: bold; font-weight: bold; font-size: 20px; margin-bottom: 1em;">
+    RELATÓRIO - GERADORES
+</div>
+@if (Model.Filters.Count(x => !string.IsNullOrWhiteSpace(x.Value)) > 0)
+{
+    <div class="w-100 text-center" style="font-weight: bold; font-weight: bold; font-size: 20px;">
+        Filtros:
+    </div>
+    <div class="w-100 text-center" style="font-weight: bold; font-weight: bold; font-size: 20px; margin-bottom: 1em;">
+        @{ var filters = Model.Filters.Where(x => !string.IsNullOrWhiteSpace(x.Value)).ToList();
+
+            for (int j = 0; j < filters.Count; j++)
+            { @($"{(j == 0 ? "" : " | ")}{filters[j].FilterName}: {filters[j].Value}") } }
+    </div>}
+
+<table class="table table-bordered table-condensed">
+    <thead>
+        <tr>
+            <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;" class="text-center">Razão Social</th>
+            <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;" class="text-center">Nome Fantasia/Nome</th>
+            <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;" class="text-center">Contato Principal</th>
+            <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;" class="text-center">Cargo</th>
+            <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;" class="text-center">Telefone</th>
+            <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;" class="text-center">Celular</th>
+            <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;" class="text-center">E-mail</th>
+            <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;" class="text-center">Contrato?</th>
+            <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;" class="text-center">Serviço?</th>
+            <th style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important;" class="text-center">Data da ultima coleta</th>
+        </tr>
+    </thead>
+    <tbody>
+        @{var companyGroups = Model.Items.GroupBy(x => x.CompanyName);
+            foreach (var companyGroup in companyGroups)
+            {
+                foreach (var item in companyGroup)
+                {
+                    <tr>
+                        <td class="text-center">@item.CompanyName</td>
+                        <td class="text-center">@item.TradeName</td>
+                        <td class="text-center">@item.Name</td>
+                        <td class="text-center">@item.Role</td>
+                        <td class="text-center">@item.Phone</td>
+                        <td class="text-center">@item.MobilePhone</td>
+                        <td class="text-center">@item.Email</td>
+                        <td class="text-center">
+                            @if (item.HasContract)
+                            {
+                                <span class="badge badge-pill badge-success">Sim</span> }
+                            else
+                            {
+                                <span class="badge badge-pill badge-danger">Não</span>}
+                        </td>
+                        <td class="text-center">
+                            @if (item.HasService)
+                            {
+                                <span class="badge badge-pill badge-success">Sim</span> }
+                            else
+                            {
+                                <span class="badge badge-pill badge-danger">Não</span>}
+                        </td>
+
+                        <td class="text-center">@item._LastCollectedDate</td>
+                    </tr>
+                }
+            }
+        }
+    </tbody>
+</table>

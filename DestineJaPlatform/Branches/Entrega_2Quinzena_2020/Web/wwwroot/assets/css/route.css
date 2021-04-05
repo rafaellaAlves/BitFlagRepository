@@ -1,0 +1,35 @@
+﻿#route-client-table tr td:first-child {
+    text-align: center;
+    cursor: pointer;
+}
+
+#route-client-table tr td:last-child, #route-client-table_wrapper tr th:last-child {
+    width: 60px !important;
+    text-align: center;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+
+#route-client-modal td {
+    padding: 8px !important;
+}
+
+.legend div {
+    height: 30px;
+    width: 30px;
+    border: 1px solid #a1a1a1;
+    display: inline-flex;
+    border-radius: 5px;
+}
+
+.legend label {
+    transform: translateY(-50%);
+    font-weight: bold;
+    margin-left: 10px;
+}
+
+.legend {
+    padding-top: 27px;
+    white-space: nowrap;
+}

@@ -1,0 +1,84 @@
+﻿@model DTO.DemandDestination.DemandDestinationViewModel
+
+<div class="row" id="demand-destination-finish-field-area">
+    <div class="col-12 col-sm-6 col-md form-group">
+        <label>Ticket de Pesagem</label>
+        <input type="text" class="form-control required" name="WeighingTicket" placeholder="Ticket de Pesagem" value="@Model.WeighingTicket" />
+    </div>
+    <div class="col-12 col-sm-6 col-md form-group">
+        <label>Peso Líquido</label>
+        <input type="text" class="form-control required" name="_Weight" onblur="weightValidate()" placeholder="Peso Líquido" value="@Model._Weight" />
+    </div>
+    <div class="col-12 col-sm-6 col-md form-group">
+        <label>Hora da Chegada</label>
+        <input type="text" class="form-control required time-2" name="_ArrivedTime" placeholder="Hora da Chegada" value="@Model._ArrivedTime" />
+    </div>
+    <div class="col-12 col-sm-6 col-md form-group">
+        <label>Hora da Saída</label>
+        <input type="text" class="form-control required time-2" name="_DepartureTime" placeholder="Hora da Saída" value="@Model._DepartureTime" />
+    </div>
+    <div class="col-12 col-sm-6 col-md form-group">
+        <label>Nº CDF <i class="simple-icon-info" data-toggle="tooltip" title="Certificado Destino Final"></i></label>
+        <input type="text" class="form-control" data-disabledAll="false" name="CDF" placeholder="Nº CDF" value="@Model.CDF" />
+    </div>
+</div>
+<div class="row">
+    <div class="col">
+        <button type="button" data-toggle="modal" data-target="#mtr-file-modal" class="btn btn-primary w-sm-100 mt-2"><i class="simple-icon-cloud-upload"></i>&nbsp;Upload MTR Assinado</button>
+        <button type="button" data-toggle="modal" data-target="#cdf-file-modal" class="btn btn-primary w-sm-100 mt-2"><i class="simple-icon-cloud-upload"></i>&nbsp;Upload CDF</button>
+    </div>
+</div>
+
+<div class="modal fade" id="mtr-file-modal" tabindex="-1" role="dialog" aria-labelledby="mtr-file-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-lg w-100" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold" id="mtr-file-modal-title">Arquivo MTR</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @(await Component.InvokeAsync<Web.ViewComponents.Shared.FileViewComponent>(new { viewComponentId = "1", id = Model.DemandDestinationId, guidName = Model.MTRFileGuidName, fileName = Model.MTRFileName, getUrl = Url.Action("GetMTRFile", "DemandDestination", new { id = Model.DemandDestinationId }), setUrl = Url.Action("UploadMTRFile", "DemandDestination"), downloadUrl = Url.Action("DownloadMTRFile", "DemandDestination", new { id = Model.DemandDestinationId }), removeUrl = Url.Action("RemoveMTRFile", "DemandDestination", new { id = Model.DemandDestinationId }), isModal = true }))
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="cdf-file-modal" tabindex="-1" role="dialog" aria-labelledby="cdf-file-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-lg w-100" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold" id="cdf-file-modal-title">Arquivo CDF</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @(await Component.InvokeAsync<Web.ViewComponents.Shared.FileViewComponent>(new { viewComponentId = "2", id = Model.DemandDestinationId, guidName = Model.CDFFileGuidName, fileName = Model.CDFFileName, getUrl = Url.Action("GetCDFFile", "DemandDestination", new { id = Model.DemandDestinationId }), setUrl = Url.Action("UploadCDFFile", "DemandDestination"), downloadUrl = Url.Action("DownloadCDFFile", "DemandDestination", new { id = Model.DemandDestinationId }), removeUrl = Url.Action("RemoveCDFFile", "DemandDestination", new { id = Model.DemandDestinationId }), isModal = true }))
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript" asp-cut-key="demand-destination-finish">
+    @*@if (Model.Finished)
+    {
+        @(Html.Raw("disableAllFields('#demand-destination-finish-field-area')"))
+    }*@
+
+    function weightValidate() {
+        if (isNaN(Globalize.parseFloat(Globalize.format(isNull($('#demand-destination-manage-form input[name=\'_Weight\']').val(), 0))))) {
+            $('#demand-destination-manage-form input[name=\'_Weight\']').after('<small class="text-danger" error-weight>O peso deve ser um valor númerico.</small>')
+            return;
+        }
+
+        $.post('@Url.Action("WeightValidate", "DemandDestination")', { demandDestinationId: '@Model.DemandDestinationId', weight: $('[name="_Weight"]').val(), demandsId: $('#demand-destination-demand-table tr[data-demand-id]').map(function (i, e) { return $(e).data('demand-id'); }).toArray() }, function (d) {
+            $('[error-weight]').remove();
+            if (!d.hasError) return;
+
+            $('#demand-destination-finish-field-area [name="_Weight"]').after('<small class="text-danger" error-weight>' + d.message + '</small>')
+        });
+    }
+</script>

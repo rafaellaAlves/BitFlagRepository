@@ -1,0 +1,12 @@
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\branchs\Fev2021\API\bin\Debug\netcoreapp2.2\API.deps.json
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\branchs\Fev2021\API\bin\Debug\netcoreapp2.2\API.dll
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\branchs\Fev2021\API\bin\Debug\netcoreapp2.2\API.pdb
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\branchs\Fev2021\API\bin\Debug\netcoreapp2.2\DB.dll
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\branchs\Fev2021\API\bin\Debug\netcoreapp2.2\DB.pdb
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\branchs\Fev2021\API\obj\Debug\netcoreapp2.2\API.csprojAssemblyReference.cache
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\branchs\Fev2021\API\obj\Debug\netcoreapp2.2\API.AssemblyInfoInputs.cache
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\branchs\Fev2021\API\obj\Debug\netcoreapp2.2\API.AssemblyInfo.cs
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\branchs\Fev2021\API\obj\Debug\netcoreapp2.2\API.csproj.CoreCompileInputs.cache
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\branchs\Fev2021\API\obj\Debug\netcoreapp2.2\API.csproj.CopyComplete
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\branchs\Fev2021\API\obj\Debug\netcoreapp2.2\API.dll
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\branchs\Fev2021\API\obj\Debug\netcoreapp2.2\API.pdb

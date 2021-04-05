@@ -1,0 +1,68 @@
+﻿@model int?
+@inject Services.ClassStudent.ClassStudentService classStudentService
+@{
+    var student = await classStudentService.GetClassStudentInfoViewModel(Model.Value);
+    ViewData["Title"] = $"Documentação: " + student.Name;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section HeaderButtons {
+    @if (Context.Request.Query.ContainsKey("ClassId"))
+    {
+        <a href="@Url.Action("Index", "ClassStudent", new { ClassId = Context.Request.Query["ClassId"] })" class="btn btn-secondary"><i class="simple-icon-arrow-left"></i>&nbsp;Voltar</a>
+    }
+    else
+    {
+        <a href="javascript:window.open('','_self').close();" class="btn btn-secondary"><i class="simple-icon-arrow-left"></i>&nbsp;Voltar</a>
+    }
+}
+
+<ul class="nav nav-pills mb-2">
+    <li class="nav-item">
+        <a class="nav-link active" data-toggle="tab" href="#studentInternship">Estágios</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#studentInstituteDocumentation">Documentação do Instituto</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#studentProfessionalDocumentation">Documentação Profissional</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#studentForwardedDocumentation">Documentos Encaminhados</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#studentThesis">Monografia</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#studentComments">Observações</a>
+    </li>
+</ul>
+<form method="post" id="form" action="@Url.Action("Document", "ClassStudent", new { classStudentId = Model, classId = Context.Request.Query["classId"] })">
+    <div class="tab-content">
+        <div id="studentInternship" class="tab-pane fade show active"></div>
+        <div id="studentInstituteDocumentation" class="tab-pane fade"></div>
+        <div id="studentProfessionalDocumentation" class="tab-pane fade"></div>
+        <div id="studentForwardedDocumentation" class="tab-pane fade"></div>
+        <div id="studentThesis" class="tab-pane fade"></div>
+        <div id="studentComments" class="tab-pane fade"></div>
+    </div>
+    <hr />
+    <div class="row">
+        <div class="col text-right">
+            <button type="submit" class="btn btn-primary"><i class="simple-icon-check"></i>&nbsp;Salvar</button>
+        </div>
+    </div>
+</form>
+
+
+@section Scripts {
+    <script type="text/javascript">
+        var id = @(Model.HasValue ? Html.Raw(Model.Value) : Html.Raw("null"));
+
+        $('#studentInternship').load('@Url.Action("StudentInternship", "ViewComponentLoader")', { classStudentId: id });
+        $('#studentInstituteDocumentation').load('@Url.Action("StudentInstituteDocumentation", "ViewComponentLoader")', { classStudentId: id });
+        $('#studentProfessionalDocumentation').load('@Url.Action("StudentProfessionalDocumentation", "ViewComponentLoader")', { classStudentId: id });
+        $('#studentForwardedDocumentation').load('@Url.Action("StudentForwardedDocumentation", "ViewComponentLoader")', { classStudentId: id });
+        $('#studentThesis').load('@Url.Action("StudentThesis", "ViewComponentLoader")', { classStudentId: id });
+        $('#studentComments').load('@Url.Action("StudentComments", "ViewComponentLoader")', { classStudentId: id });
+    </script>
+}

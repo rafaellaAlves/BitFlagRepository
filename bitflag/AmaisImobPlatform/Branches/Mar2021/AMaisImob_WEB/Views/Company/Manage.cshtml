@@ -1,0 +1,42 @@
+﻿@model AMaisImob_WEB.Models.CompanyViewModel
+@inject AMaisImob_DB.Models.AMaisImob_HomologContext context
+@{
+    ViewData["Title"] = "Gerenciar Associado";
+    var companyTypeFunctions = new AMaisImob_WEB.BLL.CompanyTypeFunctions(context);
+
+    string companyTypeName = companyTypeFunctions.GetData().Single(x => x.CompanyTypeId == Model.CompanyTypeId).Name;
+}
+
+<div class="card shadow bg-light">
+    <div class="card-header"><span id="_CompanyManageCardHeaderTitle">Criação de @Html.Raw(companyTypeName)</span></div>
+    <div class="card-body">
+        <div id="CompanyManageViewComponent"></div>
+    </div>
+    <div class="card-footer">
+        <a href="@Url.Action("Index","Company")?companyTypeId=@Model.CompanyTypeId@if (Model.ParentCompanyId.HasValue) {<text>&parentCompanyId=@Model.ParentCompanyId</text>}" class="btn btn-secondary float-left"><i class="fa fa-arrow-left"></i>&nbsp;Voltar</a>
+        <button type="button" id="buttonSubmit" class="btn btn-success float-right"><i class="fas fa-cloud-upload-alt"></i>&nbsp;Salvar</button>
+        <script type="text/javascript">
+            $('#buttonSubmit').click(function () {
+                if (_CompanyManageValidate()) _CompanyManageSave();
+            });
+        </script>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(function () {
+        $('#CompanyManageViewComponent').load('@Url.Action("CompanyManageComponent", "Company")', { "id": @if (Model.CompanyId.HasValue) { @Model.CompanyId } else { <text>null</text> }, "companyTypeId": '@Model.CompanyTypeId',"parentCompanyId": @if (Model.ParentCompanyId.HasValue) { @Model.ParentCompanyId } else { <text>null</text> } });
+    });
+
+    function _CompanyManageCallBack(data) {
+        if (data != null) {
+            window.location.href = '@Url.Action("Manage","Company")?id=' + data + '&saved=true';
+        }
+    }
+
+    @if (Model.CompanyId.HasValue) {
+        <text>
+    $('#_CompanyManageCardHeaderTitle').text('Atualização de @Html.Raw(companyTypeName)');
+        </text>
+    }
+</script>

@@ -1,0 +1,24 @@
+﻿@inject Services.Client.ClientServices clientServices
+
+<label>Cliente</label>
+<select name="ClientId" class="form-control filter-input" data-filter-name="Cliente">
+    <option value="">Selecione</option>
+    @{
+        foreach (var item in await clientServices.GetViewModelAsNoTrackingAsync(x => !x.IsDeleted))
+        {
+            <option value="@item.ClientId" data-name="@item.Name">@item.Name - @item.AlternativeName (@item.DocumentFormated)</option>
+        }
+    }
+</select>
+<script type="text/javascript" asp-cut-key="report-filter-client">
+    $('[name="ClientId"]').select2({
+        theme: "bootstrap",
+        placeholder: "Selecione",
+        allowClear: true,
+        "language": {
+            "noResults": function () {
+                return "Nenhum resultado encontrado.";
+            }
+        }
+    });
+</script>

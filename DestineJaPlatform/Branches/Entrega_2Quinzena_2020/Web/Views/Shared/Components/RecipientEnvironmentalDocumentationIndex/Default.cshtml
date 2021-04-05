@@ -1,0 +1,202 @@
+﻿@model int
+
+<div class="row">
+    <div class="col-md form-group">
+        <div class="input-group">
+            <div class="input-group-addon">
+                <i class="simple-icon-magnifier"></i>
+            </div>
+            <input type="text" class="form-control" id="recipient-environmental-documentation-index-search" placeholder="Pesquisar..." data-toggle="search-datatable" data-target="#recipient-environmental-documentation-index-table">
+        </div>
+    </div>
+    <div class="col-md-auto col">
+        <a href="javascript:openRecipientEnvironmentalDocumentationEditModal()" class="btn btn-primary float-right text-nowrap w-100"><i class="simple-icon-plus"></i>&nbsp;Adicionar</a>
+    </div>
+</div>
+<hr />
+<div id="success-area-recipient-environmental-documentation"></div>
+<div class="row">
+    <div class="col-md-12 table-responsive">
+        <table id="recipient-environmental-documentation-index-table" class="display table table-striped table-bordered table-condensed w-100" style="border-collapse: collapse !important;">
+            <thead>
+                <tr>
+                    <th>Documento</th>
+                    <th>Órgão emissor</th>
+                    <th>Nome ou Atividade</th>
+                    <th>Data de vencimento</th>
+                    <th>Dias para o Vencimento</th>
+                    <th>Upload</th>
+                    <th>&nbsp;</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="recipient-environmental-documentation-index-modal" tabindex="-1" role="dialog" aria-labelledby="recipient-environmental-documentation-index-modal-title" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold" id="recipient-environmental-documentation-index-modal-title"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @(await Component.InvokeAsync("RecipientEnvironmentalDocumentationManage", new { recipientId = Model }))
+            </div>
+            <div class="modal-footer">
+                <div class="col-md-6">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="simple-icon-close"></i>&nbsp;Fechar</button>
+                </div>
+                <div class="col-md-6">
+                    <button type="button" class="btn btn-success float-right" id="recipient-environmental-documentation-index-modal-save-button"><i class="simple-icon-cloud-upload"></i>&nbsp;Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script asp-cut-key="recipient-environmental-documentation-index">
+    var recipientEnvironmentalDocumentationDatatables;
+    $(document).ready(function () {
+        recipientEnvironmentalDocumentationDatatables = $('#recipient-environmental-documentation-index-table').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            dom: 'tip',
+            ajax: {
+                url: '@Url.Action("List", "RecipientEnvironmentalDocumentation")',
+                data: function (d) {
+                    d.recipientId = '@Model'
+                },
+                type: 'POST'
+            },
+            columns: [
+                { render: function (data, type, row) { return isNull(row.documentName, '-'); } },
+                { render: function (data, type, row) { return isNull(row.issuer, '-'); } },
+                { render: function (data, type, row) { return isNull(row.activityName, '-'); } },
+                { render: function (data, type, row) { return row.dueDate == null? '-' : moment(row.dueDate).format('DD/MM/YYYY'); } },
+                { render: function (data, type, row) { return row.dueDate == null ? '-' : parseInt(getDaysToDueDate(moment(row.dueDate)._d)); } },
+                { render: function (data, type, row) { return '<a href=\'javascript:environmentalDocumentationDownloadBootbox(' + JSON.stringify(row) + ')\'>' + row.fileName + '</a>'; } },
+               {
+                    render: function (data, type, row)
+                    {
+                        return '<div class="text-center text-nowrap">' +
+                            '&nbsp;<a href=\'javascript:openRecipientEnvironmentalDocumentationEditModal(' + JSON.stringify(row) + ')\' title="Editar"><span class="badge badge-pill badge-success"><i class="simple-icon-note"></i></span></a>' +
+                            '&nbsp;<a href=\'javascript:removeRecipientEnvironmentalDocumentation(' + JSON.stringify(row) + ')\' title="Excluir"><span class="badge badge-pill badge-danger"><i class="simple-icon-trash"></i></span></a>' +
+                            '</div>';
+                    }
+                }
+            ]
+        });
+    });
+
+    function environmentalDocumentationDownloadBootbox(d) {
+        var size = 'medium';
+
+        var message = $('<div>');
+        message.append($('<h4>').append('Arquivo <b>(' + d.fileName + ')</b>'));
+
+        if (d.mimeType.indexOf('image') != -1) {
+            var row = $('<div>', { class: 'row mt-3' });
+            var col = $('<div>', { class: 'col-md-12 text-center' });
+            var img = $('<img>', { class: 'recipient-environmental-documentation-image', src: '@Url.Action("GetArchive", "RecipientEnvironmentalDocumentation")?id=' + d.recipientEnvironmentalDocumentationId, style: 'min-height:150px; max-height: 400px; max-width: 750px;' });
+            img.on("error", function () { imageNotFound('.recipient-environmental-documentation-image') });
+
+            message.append(row.append(col.append(img)));
+
+            size = 'large';
+        }
+
+         bootbox.dialog({
+            message: message.html(),
+             size: size,
+            buttons: {
+                download: {
+                    label: "<i class=\"simple-icon-cloud-download\"></i> Download",
+                    className: 'btn-success',
+                    callback: function () {
+                        window.location.href = '@Url.Action("GetArchive", "RecipientEnvironmentalDocumentation")?id=' + d.recipientEnvironmentalDocumentationId;
+                    }
+                }
+            }
+        });
+    }
+
+    function removeRecipientEnvironmentalDocumentation(recipientEnvironmentalDocumentation) {
+        bootboxConfirm("Deseja realmente excluir o documento \"" + recipientEnvironmentalDocumentation.documentName + "\"?", function(result){
+            if (!result) return;
+
+            $.post('@Url.Action("DeleteDefinitively", "RecipientEnvironmentalDocumentation")', { id: recipientEnvironmentalDocumentation.recipientEnvironmentalDocumentationId }, function () {
+
+                bootbox.alert("Documento \"" + recipientEnvironmentalDocumentation.documentName + "\" excluído com sucesso!");
+                recipientEnvironmentalDocumentationDatatables.ajax.reload();
+            });
+        });
+    }
+
+    function openRecipientEnvironmentalDocumentationEditModal(data) {
+        $('#form-recipient-environmental-documentation [name=\'DocumentName\']').val(data == null? '' : data.documentName);
+        $('#form-recipient-environmental-documentation [name=\'Issuer\']').val(data == null? '' : data.issuer);
+        $('#form-recipient-environmental-documentation [name=\'ActivityName\']').val(data == null? '' : data.activityName);
+        $('#form-recipient-environmental-documentation [name=\'_IssuerDate\']').val(data == null? '' : moment(data.issuerDate).format('DD/MM/YYYY'));
+        $('#form-recipient-environmental-documentation [name=\'_DueDate\']').val(data == null? '' : moment(data.dueDate).format('DD/MM/YYYY'));
+        $('#form-recipient-environmental-documentation [name=\'RecipientEnvironmentalDocumentationId\']').val(data == null? '' : data.recipientEnvironmentalDocumentationId);
+        $('#form-recipient-environmental-documentation [name=\'DaysToNotify\']').val(data == null ? '' : data.daysToNotify);
+        $('#form-recipient-environmental-documentation [name=\'Email\']').val(data == null ? '' : data.email);
+        $('#form-recipient-environmental-documentation [name=\'Archive\']').val('');
+
+        var r = getDaysToDueDate(moment($('#form-recipient-environmental-documentation input[name=\'_DueDate\']').val(), 'DD/MM/YYYY')._d);
+        $('#daysForDueDate').val(data == null? '' : parseInt(r));
+
+        //remove arquivos selecionado no FilePound
+        $('.filepond--file-action-button.filepond--action-remove-item').click();
+
+        $('#recipient-environmental-documentation-index-modal-title').text(data == null ? 'Novo Documento' : 'Editar Documento');
+
+        $('#recipient-environmental-documentation-index-modal').modal('show');
+
+        InitializeFunctions();
+    }
+
+    $('#recipient-environmental-documentation-index-modal-save-button').click(function () {
+        if(!validateInputs('form-recipient-environmental-documentation')) return;
+
+        if (isNullOrWhiteSpace($('#form-recipient-environmental-documentation [name=\'RecipientEnvironmentalDocumentationId\']').val()) && $('#form-recipient-environmental-documentation [name=\'Archive\']')[0].files.length == 0) {
+            bootbox.alert('Insira um arquivo.');
+            return;
+        }
+
+        var _d = new FormData();
+        _d.append('Archive', $('#form-recipient-environmental-documentation [name=\'Archive\']')[0].files[0]);
+        $('#form-recipient-environmental-documentation').serializeArray().forEach(function (e) {
+            _d.append(e.name, e.value);
+        });
+
+        $('#success-area-recipient-environmental-documentation').empty();
+
+        $.ajax({
+            url: '@Url.Action("ManageAjax", "RecipientEnvironmentalDocumentation")',
+			type: 'POST',
+			contentType: false,
+			processData: false,
+			data: _d,
+            success: function (d) {
+                if (d.hasError) {
+                    bootbox.alert(d.message);
+                    return;
+                }
+
+                recipientEnvironmentalDocumentationDatatables.ajax.reload();
+                recipientEnvironmentalDocumentationDatatables.search($('#recipient-environmental-documentation-index-search').val()).draw();
+
+                $('#success-area-recipient-environmental-documentation').empty().append(successMessage());
+
+                $('#recipient-environmental-documentation-index-modal').modal('hide');
+            }
+        });
+    })
+</script>

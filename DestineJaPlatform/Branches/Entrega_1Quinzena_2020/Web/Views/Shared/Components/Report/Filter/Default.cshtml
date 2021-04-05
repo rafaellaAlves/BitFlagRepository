@@ -1,0 +1,13 @@
+﻿@model List<ReportFilterModel>
+
+<div class="row justify-content-center">
+    @foreach (var filter in Model)
+    {
+        <div class="@filter.Col form-group">
+            @(await Component.InvokeAsync(filter.FilterComponentType, filter.Arguments))
+        </div>
+    }
+    <div class="col-md-auto form-group align-self-end">
+        <button type="button" onclick="reloadByFilter()" class="btn btn-destineja-orange"><i class="iconsminds-filter-2"></i>&nbsp;Aplicar</button>
+    </div>
+</div>

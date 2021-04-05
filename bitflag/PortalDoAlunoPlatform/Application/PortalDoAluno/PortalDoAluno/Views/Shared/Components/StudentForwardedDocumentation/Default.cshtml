@@ -1,0 +1,56 @@
+@model DTO.ClassStudent.StudentForwardedDocumentationViewModel
+<div class="row text-center mb-2">
+    <div class="col">
+        <div class="form-check">
+            @Html.CheckBox("StudentForwardedDocumentation.RegularlyMatriculatedDeclaration", Model.RegularlyMatriculatedDeclaration, new { Class = "form-check-input", id = "RegularlyMatriculatedDeclaration" })
+            <label class="form-check-label" for="RegularlyMatriculatedDeclaration">
+                Declaração de Regularmente Matriculado(a)
+            </label>
+        </div>
+    </div>
+    <div class="col">
+        <div class="form-check">
+            @Html.CheckBox("StudentForwardedDocumentation.CertifiedOfMPTI", Model.CertifiedOfMPTI, new { Class = "form-check-input", id = "CertifiedOfMPTI" })
+            <label class="form-check-label" for="CertifiedOfMPTI">
+                Certificação do MPTI
+            </label>
+        </div>
+    </div>
+    <div class="col">
+        <div class="form-check">
+            @Html.CheckBox("StudentForwardedDocumentation.DocumentOfCNI", Model.DocumentOfCNI, new { Class = "form-check-input", id = "DocumentOfCNI" })
+            <label class="form-check-label" for="DocumentOfCNI">
+                Carteira do CNI
+            </label>
+        </div>
+    </div>
+</div>
+<div class="row text-center">
+    <div class="col">
+        <div class="form-group">
+            <label class="control-label" for="">Data da Entrega</label>
+            <input class="form-control" name="StudentForwardedDocumentation.RegularlyMatriculatedDate" value="@Model.RegularlyMatriculatedDate" type="text" />
+        </div>
+    </div>
+    <div class="col">
+        <div class="form-group">
+            <label class="control-label" for="">Data da Entrega</label>
+            <input class="form-control" name="StudentForwardedDocumentation.CertifiedOfMPTIDate" value="@Model.CertifiedOfMPTIDate" type="text" />
+        </div>
+    </div>
+    <div class="col">
+        <div class="form-group">
+            <label class="control-label" for="">Data da Entrega</label>
+            <input class="form-control" name="StudentForwardedDocumentation.DocumentOfCNIDate" value="@Model.DocumentOfCNIDate" type="text" />
+        </div>
+    </div>
+</div>
+<hr />
+<div class="row">
+    <div class="col">
+        <div class="form-group">
+            <label class="control-label">Observações</label>
+            <textarea class="form-control" name="StudentForwardedDocumentation.DocumentsSentComments" rows="10">@Model.DocumentsSentComments</textarea>
+        </div>
+    </div>
+</div>

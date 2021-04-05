@@ -1,0 +1,55 @@
+﻿@{
+	ViewData["Title"] = "Relatórios";
+}
+<style type="text/css">
+	.card-header[data-toggle="slide"] {
+		cursor: pointer;
+	}
+</style>
+
+<div class="card shadow bg-light">
+	<div class="card-header" data-toggle="slide" data-target="#_CertificateRealEstateReportBody">
+		<i class="fas fa-sort-down float-right" style="font-size: 25px;"></i>
+		<h5>Relatório de Certificados - Corretora</h5>
+	</div>
+	<div class="card-body" id="_CertificateRealEstateReportBody">
+		<div id="_CertificateRealEstateReportViewComponent"></div>
+	</div>
+</div>
+
+<div class="card shadow bg-light mt-5">
+	<div class="card-header" data-toggle="slide" data-target="#_CertificateReportBody">
+		<i class="fas fa-sort-down float-right" style="font-size: 25px;"></i>
+		<h5>Relatório de Certificados - Imobiliária</h5>
+	</div>
+	<div class="card-body" id="_CertificateReportBody">
+		<div id="_CertificateReportViewComponent"></div>
+	</div>
+</div>
+
+<div class="card shadow bg-light mt-5">
+	<div class="card-header" data-toggle="slide" data-target="#_AssistanceReportBody">
+		<i class="fas fa-sort-down float-right" style="font-size: 25px;"></i>
+		<h5>Relatório de Assistências</h5>
+	</div>
+	<div class="card-body" id="_AssistanceReportBody">
+		<div id="_AssistanceReportViewComponent"></div>
+	</div>
+</div>
+
+<script type="text/javascript">
+	$('#_CertificateRealEstateReportViewComponent').load('@Url.Action("CertificateRealEstateReportComponent", "Certificate")');
+    $('#_CertificateReportViewComponent').load('@Url.Action("CertificateReportComponent", "Certificate")');
+    $('#_AssistanceReportViewComponent').load('@Url.Action("AssistanceReportComponent", "Assistance")');
+
+    $('.card-header[data-toggle="slide"]').click(function () {
+        var time = 400;
+        var target = $(this).data('target');
+
+        if ($(target).is(':visible')) {
+            $(target).slideUp(time);
+        } else {
+            $(target).slideDown(time);
+        }
+    });
+</script>

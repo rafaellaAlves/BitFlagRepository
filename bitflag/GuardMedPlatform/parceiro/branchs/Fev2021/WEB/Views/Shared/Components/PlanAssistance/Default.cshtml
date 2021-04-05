@@ -1,0 +1,43 @@
+﻿@model DB.Models.Plan
+
+
+<div id="_PlanAssistanceManageAlertError" class="alert alert-danger fade show text-center" style="display:none;">
+    <b>Houve um erro ao salvar os dados, tente novamente.</b>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <label>Assistência:</label>
+        <select class="form-control" id="_PlanAssistanceAssistanceId" name="AssistanceId">
+            <option value="">Sem assistência</option>
+            @foreach (var assistance in (List<DB.Models.Assistance>)ViewData["Assistances"])
+            {
+                if (Model.AssistanceId == assistance.AssistanceId)
+                {
+                    <option value="@(assistance.AssistanceId)" selected >@(assistance.Name)</option>
+                    continue;
+                }
+                <option value="@(assistance.AssistanceId)">@(assistance.Name)</option>
+            }
+        </select>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function _PlanAssistanceManageSave() {
+        $.ajax({
+            url: '@Url.Action("PlanAssistanceSave", "Plan")',
+            type: 'POST',
+            datatype: 'JSON',
+            data: { planId: '@Model.PlanId', assistanceId: $('#_PlanAssistanceAssistanceId').val() },
+            success: function (data) {
+                if (data.hasError) {
+                    $('#_PlanAssistanceManageAlertError').show();
+                } else {
+                    $('#_PlanAssistanceManageAlertError').hide();
+                    _PlanAssistanceManageCallBack(data.code);
+                }
+            }
+        });
+    }
+</script>

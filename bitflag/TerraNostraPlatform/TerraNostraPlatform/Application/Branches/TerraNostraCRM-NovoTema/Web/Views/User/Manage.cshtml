@@ -1,0 +1,65 @@
+﻿@model int?
+@{
+    ViewData["Title"] = "Gerenciar usuário";
+
+    string userType = "";
+
+    if (Context.Request.Query.ContainsKey("userType"))
+    {
+        userType = Context.Request.Query["userType"];
+    }
+}
+
+@if (!string.IsNullOrWhiteSpace(Context.Request.Query["saved"]))
+{
+    <text>
+
+        <div id="_UserManageAlertSuccess" class="alert alert-success fade show text-center">
+            <b>Os dados foram salvos com sucesso!</b>
+        </div>
+        <script type="text/javascript">
+            $('#_UserManageAlertSuccess').fadeOut(5000);
+        </script>
+    </text>
+}
+@*<h1 class="card-header"><span id="_UserManageCardHeaderTitle">Criação de usuário</span></h1>*@
+<h1 style="font-size:22.4px" ><small id="_UserManageCardHeaderTitle" style="font-size:22.4px">Criação de usuário</small></h1>
+<div class="card">
+    <!-- <div class="card-header" style ="font-size: 18px "><span id="_UserManageCardHeaderTitle">Criação de usuário</span></div> -->
+    <div class="card-body">
+        <div id="UserViewComponent"></div>
+    </div>
+    <div class="card-footer">
+        <a href="@Url.Action("Index","User")@if(!string.IsNullOrWhiteSpace(userType)){<text>?userType=@userType'</text>}" class="btn btn-secondary float-left" style="color:white;"><i class="simple-icon-action-undo"></i>&nbsp;Voltar</a>
+        <button type="button" id="_UserManageButtonSubmit" class="btn btn-success float-right"><i class="simple-icon-cloud-upload"></i>&nbsp;Criar Usuário</button>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#UserViewComponent').load('@Url.Action("UserManageComponent", "User")', { "id": @if (Model.HasValue) { @Model } else { <text>null</text> } });
+
+    $('#_UserManageButtonSubmit').click(function () {
+        if (_UserManageValidate()) {
+            _UserManageSave();
+
+
+
+
+        }
+    });
+</script>
+@if (Model.HasValue)
+{
+    <text>
+        <script type="text/javascript">
+            $('#_UserManageButtonSubmit').html('<i class="simple-icon-cloud-upload"></i>&nbsp;Salvar');
+            $('#_UserManageCardHeaderTitle').text('Atualização de usuário');
+
+        </script>
+    </text>
+}
+<script type="text/javascript">
+    function _UserManageCallBack(data) {
+        window.location.href = '@Url.Action("Index","User")?id=' + data + '&saved=true'@if(!string.IsNullOrWhiteSpace(userType)){<text> + '&userType=@userType'</text>};
+    }
+</script>

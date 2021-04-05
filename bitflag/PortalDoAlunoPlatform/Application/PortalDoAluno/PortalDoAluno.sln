@@ -1,0 +1,79 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29418.71
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Web", "PortalDoAluno\Web.csproj", "{7695CE8B-A64B-4E83-B5B4-47BD693836A8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DTO", "DTO\DTO.csproj", "{F4A1A280-86A8-4B51-BD38-816629EBC2DD}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Services", "Services\Services.csproj", "{93A60B70-E2F5-4340-BC7A-5B0FA769DC43}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetIdentityDbContext", "PortalDoAlunoIdentityDbContext\AspNetIdentityDbContext.csproj", "{19179ABD-7CEF-4B41-B357-12586449C001}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationDbContext", "ApplicationDbContext\ApplicationDbContext.csproj", "{F0D17009-DDB5-4D28-9E45-23E8EBB18C8D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Migration", "Migration\Migration.csproj", "{562FC0F9-009A-4258-B8E6-7EAF9ACD2F14}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7695CE8B-A64B-4E83-B5B4-47BD693836A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7695CE8B-A64B-4E83-B5B4-47BD693836A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7695CE8B-A64B-4E83-B5B4-47BD693836A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7695CE8B-A64B-4E83-B5B4-47BD693836A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F4A1A280-86A8-4B51-BD38-816629EBC2DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F4A1A280-86A8-4B51-BD38-816629EBC2DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F4A1A280-86A8-4B51-BD38-816629EBC2DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F4A1A280-86A8-4B51-BD38-816629EBC2DD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{93A60B70-E2F5-4340-BC7A-5B0FA769DC43}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{93A60B70-E2F5-4340-BC7A-5B0FA769DC43}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{93A60B70-E2F5-4340-BC7A-5B0FA769DC43}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{93A60B70-E2F5-4340-BC7A-5B0FA769DC43}.Release|Any CPU.Build.0 = Release|Any CPU
+		{19179ABD-7CEF-4B41-B357-12586449C001}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{19179ABD-7CEF-4B41-B357-12586449C001}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{19179ABD-7CEF-4B41-B357-12586449C001}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{19179ABD-7CEF-4B41-B357-12586449C001}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F0D17009-DDB5-4D28-9E45-23E8EBB18C8D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F0D17009-DDB5-4D28-9E45-23E8EBB18C8D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F0D17009-DDB5-4D28-9E45-23E8EBB18C8D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F0D17009-DDB5-4D28-9E45-23E8EBB18C8D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{562FC0F9-009A-4258-B8E6-7EAF9ACD2F14}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{562FC0F9-009A-4258-B8E6-7EAF9ACD2F14}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{562FC0F9-009A-4258-B8E6-7EAF9ACD2F14}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{562FC0F9-009A-4258-B8E6-7EAF9ACD2F14}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E0A94E3C-3F52-4C32-A8F4-5A4A66BA1A41}
+	EndGlobalSection
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 7
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = https://dev.azure.com/bit-flag
+		SccLocalPath0 = .
+		SccProjectUniqueName1 = ApplicationDbContext\\ApplicationDbContext.csproj
+		SccProjectName1 = ApplicationDbContext
+		SccLocalPath1 = ApplicationDbContext
+		SccProjectUniqueName2 = DTO\\DTO.csproj
+		SccProjectName2 = DTO
+		SccLocalPath2 = DTO
+		SccProjectUniqueName3 = PortalDoAluno\\Web.csproj
+		SccProjectName3 = PortalDoAluno
+		SccLocalPath3 = PortalDoAluno
+		SccProjectUniqueName4 = PortalDoAlunoIdentityDbContext\\AspNetIdentityDbContext.csproj
+		SccProjectName4 = PortalDoAlunoIdentityDbContext
+		SccLocalPath4 = PortalDoAlunoIdentityDbContext
+		SccProjectUniqueName5 = Services\\Services.csproj
+		SccProjectName5 = Services
+		SccLocalPath5 = Services
+		SccProjectUniqueName6 = Migration\\Migration.csproj
+		SccProjectName6 = Migration
+		SccLocalPath6 = Migration
+	EndGlobalSection
+EndGlobal

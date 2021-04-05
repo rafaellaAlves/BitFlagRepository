@@ -1,0 +1,19 @@
+﻿@model DTO.Client.ClientViewModel
+@{
+    ViewData["Title"] = "Histórico";
+    ViewData["SubTitle"] = Model.ClientName;
+}
+<div class="mb-2">
+    <h2 style="font-size:25px;"><b>@Model.ClientName</b><br /><small>Histórico</small></h2>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+                <div id="_ClientLogViewComponent"></div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#_ClientLogViewComponent').load('@Url.Action("ClientLogComponent", "Client")', {clientId: '@Model.ClientId'});
+</script>

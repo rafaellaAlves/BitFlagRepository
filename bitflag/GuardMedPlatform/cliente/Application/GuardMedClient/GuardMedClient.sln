@@ -1,0 +1,52 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30011.22
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Web", "Web\Web.csproj", "{C3AB7BEA-64E3-4EEB-B18F-C5CC44A9AF15}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DB", "DB\DB.csproj", "{BB735FA1-22B4-4135-92F0-255C7C3DBB44}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VendasDbContext", "VendasDbContext\VendasDbContext.csproj", "{0B96F03F-D4FA-465E-B20F-3F80A8AF1866}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C3AB7BEA-64E3-4EEB-B18F-C5CC44A9AF15}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3AB7BEA-64E3-4EEB-B18F-C5CC44A9AF15}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3AB7BEA-64E3-4EEB-B18F-C5CC44A9AF15}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3AB7BEA-64E3-4EEB-B18F-C5CC44A9AF15}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB735FA1-22B4-4135-92F0-255C7C3DBB44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB735FA1-22B4-4135-92F0-255C7C3DBB44}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB735FA1-22B4-4135-92F0-255C7C3DBB44}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB735FA1-22B4-4135-92F0-255C7C3DBB44}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B96F03F-D4FA-465E-B20F-3F80A8AF1866}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B96F03F-D4FA-465E-B20F-3F80A8AF1866}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B96F03F-D4FA-465E-B20F-3F80A8AF1866}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B96F03F-D4FA-465E-B20F-3F80A8AF1866}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {76CF3A8E-B973-4AE8-AF69-CD0A77E24140}
+	EndGlobalSection
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 4
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = https://chokosysvsts.visualstudio.com/
+		SccLocalPath0 = .
+		SccProjectUniqueName1 = DB\\DB.csproj
+		SccProjectName1 = DB
+		SccLocalPath1 = DB
+		SccProjectUniqueName2 = VendasDbContext\\VendasDbContext.csproj
+		SccProjectName2 = VendasDbContext
+		SccLocalPath2 = VendasDbContext
+		SccProjectUniqueName3 = Web\\Web.csproj
+		SccProjectName3 = Web
+		SccLocalPath3 = Web
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,27 @@
+﻿
+.legend div {
+    height: 30px;
+    width: 30px;
+    border: 1px solid #a1a1a1;
+    display: inline-flex;
+    border-radius: 5px;
+}
+
+.legend label {
+    transform: translateY(-50%);
+    font-weight: bold;
+    margin-left: 10px;
+}
+
+.legend {
+    padding-top: 32px;
+    white-space: nowrap;
+}
+
+@media (max-height: 750px) {
+    .legend {
+        padding-top: 5px;
+        white-space: nowrap;
+        padding-left: 0;
+    }
+}

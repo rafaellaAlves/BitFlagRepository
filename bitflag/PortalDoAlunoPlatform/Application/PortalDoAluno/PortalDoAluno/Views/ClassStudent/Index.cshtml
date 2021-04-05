@@ -1,0 +1,107 @@
+﻿@model DTO.Class.ClassViewModel
+@inject Services.ClassStudent.ClassStudentService classStudentService
+@{
+    ViewData["Title"] = $"Matrículas da turma {Model.ClassFullName}";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section HeaderButtons {
+    <button onclick="openAddClassStudentModal()" class="btn btn-success"><i class="simple-icon-plus"></i>&nbsp;Nova Matrícula</button>
+}
+<div class="row">
+    <div class="col-md-12">
+
+    </div>
+</div>
+<table id="studentIndexTable" class="display table table-striped table-bordered table-condensed" style="border-collapse: collapse !important; width:100%;">
+    <thead>
+        <tr>
+            <th>Nome Completo</th>
+            <th>CPF</th>
+            <th>E-mail</th>
+            <th>&nbsp;</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+@section Modals {
+    <div class="modal fade" id="add-class-student-modal" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Nova Matrícula</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                </div>
+                <form method="get" action="@Url.Action("Add", "ClassStudent")">
+                    <input type="hidden" name="classId" value="@Model.ClassId.Value" />
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label">Aluno</label><br />
+                                    <select name="studentId" class="select2" style="width: 100%;">
+                                        @foreach (var item in await classStudentService.GetStudentsNotInClass(Model.ClassId.Value))
+                                        {
+                                            <option value="@item.StudentId">@item.Name</option>
+                                        }
+                                    </select>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                        <button id="add-class-button" type="submit" class="btn btn-primary">Matricular</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+}
+
+@section Scripts {
+    <script type="text/javascript">
+
+        var datatables;
+        $(document).ready(function () {
+
+            $('.select2').select2({
+                dropdownParent: $('#add-class-student-modal')
+            });
+
+            datatables = $('#studentIndexTable').DataTable({
+                serverSide: false,
+                proccessing: true,
+                searching: true,
+                lengthChange: true,
+                //dom: 'tip',
+                ajax: {
+                    url: '@Url.Action("List", "ClassStudent", new { classId = Context.Request.Query["classId"] })',
+                    type: 'GET'
+                },
+                columns: [
+                    { render: function (data, type, row) { return '<a target="_blank" href="@Url.Action("Manage", "Student")?id=' + row.studentId + '">' + row.name + '</a>'; } },
+                    { render: function (data, type, row) { return '<span class="cpf">' + row.cpf + '</span>'; } },
+                    { render: function (data, type, row) { return row.email; } },
+                    {
+                        render: function (data, type, row) {
+                            // + ' ' + '<a href="javascript: removeClassStudent(' + row.classStudentId + ');"><span class="badge badge-danger">Remover</span></a>'
+                            return '<div class="text-center">' + '<a href="@Url.Action("AdministrativeSituation", "ClassStudent")?classId=@Model.ClassId&classStudentId=' + row.classStudentId + '"><span class="badge badge-primary">Boletos</span></a>' + ' ' + '<a href="@Url.Action("Finance", "ClassStudent")?classId=@Model.ClassId&classStudentId=' + row.classStudentId + '"><span class="badge badge-primary">Financeiro</span></a>' + ' ' + '<a href="@Url.Action("Document", "ClassStudent")?classId=@Model.ClassId&classStudentId=' + row.classStudentId + '"><span class="badge badge-primary">Documentação</span></a>' + ' ' + '<a href="@Url.Action("PresentialSituation", "ClassStudent")?classId=@Model.ClassId&classStudentId=' + row.classStudentId + '"><span class="badge badge-primary">Presença</span></a>' + '</div>';
+                        }
+                    },
+                ]
+            });
+        });
+        function removeClassStudent(classStudentId) {
+            if (confirm('Deseja realmente remover esta matrícula?')) {
+                document.location.href = '@Url.Action("Remove", "ClassStudent")?classId=@Model.ClassId&classStudentId=' + classStudentId;
+            }
+        }
+        function openAddClassStudentModal() {
+            $('#add-class-student-modal').modal('show');
+        }
+    </script>
+}

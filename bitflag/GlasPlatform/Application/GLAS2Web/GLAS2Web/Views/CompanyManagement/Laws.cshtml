@@ -1,0 +1,225 @@
+﻿@model DTO.Company.CompanyViewModel
+@{
+	ViewData["Title"] = "Requisitos legais";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+	string companyId = "null";
+	if (Context.Request.Query.ContainsKey("id"))
+	{
+		companyId = Context.Request.Query["id"];
+	}
+}
+<div class="card shadow">
+	<div class="card-header">
+		Requisitos Legais Associados à Unidade de Negócio: <b>@Model.NomeFantasia (@Model.RazaoSocial)</b>
+	</div>
+	<div class="card-body">
+		<div class="row">
+			<div class="col-md-12">
+				<div class="input-group">
+					<span class="input-group-addon"><i class="fa fa-search"></i></span>
+					<input id="search" type="text" class="form-control" placeholder="Procurar..." />
+					<span class="input-group-btn">
+						<a href="@Url.Action("LawSearch","CompanyManagement")?id=@Model.CompanyId" class="btn btn-success pull-right"><i class="fa fa-plus"></i>&nbsp;Associar Requisitos legais</a>
+					</span>
+				</div>
+			</div>
+		</div>
+		<hr />
+		<table id="tableCompanyLaws" class="datatable table table-sm table-bordered table-striped" style="border-collapse: collapse !important;width: 100%;">
+			<thead>
+				<tr>
+					<th>Tipo</th>
+					<th>Órgão</th>
+					<th>Número</th>
+					<th>Título</th>
+					<th>Esfera</th>
+					<th>Aplicabilidade</th>
+					<th>Segmento</th>
+					<th>&nbsp;</th>
+				</tr>
+			</thead>
+			<tbody></tbody>
+		</table>
+	</div>
+	<div class="card-footer">
+		<div id="divControls">
+			<a href="@Url.Action("Index", "CompanyManagement", new { useFilter = true })" class="btn btn-secondary float-left"><i class="fa fa-arrow-left"></i>&nbsp;Voltar</a>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+    var typingTimer;
+    var doneTypingInterval = 500;
+    var datatables = $('#tableCompanyLaws').DataTable({
+        columnDefs: [
+            { targets: [2], orderData: [2] }
+        ]
+        , proccessing: true
+        , serverSide: true
+        , searching: true
+        , lengthChange: false
+        , dom: 'tip'
+        , ajax: {
+            url: '@Url.Action("List", "CompanyLawManagement")'
+            , type: 'POST'
+            , data: {
+                companyId: @companyId
+            }
+        }, columns: [
+            { data: 'LawTypeName' }
+            , { data: 'LawOrgaoName' }
+            , {
+                data: 'LawNumberOrdering',
+                render: function (data, type, row) {
+                    return row.LawNumber == null ? '' : row.LawNumber
+                }
+            }
+            , {
+                data: 'LawTitle', render: function (data, type, row, meta) {
+                    if (row.LawRevokedDate == null) {
+                        return row.LawTitle;
+                    } else {
+                        return '<span style="color: red; text-decoration: line-through;">' + row.LawTitle + '</b></span>&nbsp;<b>(Revogada em ' + row._LawRevokedDate + ')';
+                    }
+                }
+            }
+            , { data: 'LawEsferaName' }
+            , { data: 'CompanyLawApplicationTypeName' }
+            , { data: 'LawSegmentoName' }
+            , {
+                data: null
+                , sortable: false
+                , searchable: false
+				, render: function (data, type, row) {
+                    var r = '<div><a title="Desassociar" href="javascript:void(0)" onclick="RemoveLawFromCompany(' + row.CompanyLawId + ')">Desassociar</a>' +
+                        '&nbsp;|&nbsp;<a style="white-space: nowrap;" title="Alterações" href="javascript:openLawChagesModal(' + row.LawId + ')">Alterações</a></div>';
+
+                    return r;
+                }
+            }
+        ]
+    });
+    function doneTyping() {
+        if ($.fn.DataTable.isDataTable('#tableCompanyLaws')) {
+            datatables.search($('#search').val()).draw();
+        }
+    }
+    $('#search').keyup(function () {
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(doneTyping, doneTypingInterval);
+    });
+    $('#search').keydown(function () {
+        clearTimeout(typingTimer);
+    });
+</script>
+
+
+<!-- ******* -->
+<!-- ADD LAW -->
+<!-- ******* -->
+<div class="modal fade" tabindex="-1" role="dialog" id="addLawModal" aria-hidden="true">
+	<div class="modal-dialog modal-lg" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				Adicionar Requisito Legal à Unidade de Negócio
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				@{ Html.RenderPartial("~/Views/Shared/_LawSearch.cshtml"); }
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-times" aria-hidden="true"></i>&nbsp;Fechar</button>
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+    $('#addLawModal').on('shown.bs.modal', function () {
+        _LawSearchClearSearch();
+    });
+    function _LawSearchSelectCallBack(data) {
+        var companyId = @Context.Request.Query["id"];
+        var lawId = data.LawId;
+        LawIsInCompany(lawId, companyId, function (data2) {
+            if (data2 == true) {
+				alert('Requisito legal já está associado à unidade de negócio.');
+                return;
+            }
+            AddLawToCompany(lawId, companyId, function (data3) {
+                $('#tableCompanyLaws').DataTable().ajax.reload();
+				alert('Requisito legal associado com sucesso!');
+            });
+        });
+        $('#addLawModal').modal('toggle');
+    }
+
+    function LawIsInCompany(_lawId, _companyId, callback) {
+        var d = { lawId: _lawId, companyId: _companyId };
+        $.ajax({
+            url: '@Url.Action("LawIsInCompany", "CompanyManagement")',
+            type: 'POST',
+            data: d,
+            dataType: 'json',
+            success: callback
+        });
+    }
+    function AddLawToCompany(_lawId, _companyId, callback) {
+        var d = { lawId: _lawId, companyId: _companyId };
+        $.ajax({
+            url: '@Url.Action("AddLawToCompany", "CompanyManagement")',
+            type: 'POST',
+            data: d,
+            dataType: 'json',
+            success: callback
+        });
+    }
+
+	function RemoveLawFromCompany(_companyLawId) {
+		if (confirm('Deseja realmente desassociar esse requisito legal?')) {
+			_RemoveLawFromCompany(_companyLawId, function () {
+				$('#tableCompanyLaws').DataTable().ajax.reload();
+				alert('Requisito legal removido com sucesso!');
+			});
+		}
+    }
+    function _RemoveLawFromCompany(_companyLawId, callback) {
+        var d = { companyLawId: _companyLawId };
+        $.ajax({
+            url: '@Url.Action("RemoveLawFromCompany", "CompanyManagement")',
+            type: 'POST',
+            data: d,
+            dataType: 'json',
+            success: callback
+        });
+    }
+</script>
+<!-- ******* -->
+
+
+<div class="modal fade" id="law-changes-modal" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-lg" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Alterações do Requisito Legal</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<div id="law-change-quick-view-view-component"></div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" aria-label="Close" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-times"></i>&nbsp;Fechar</button>
+			</div>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+    function openLawChagesModal(lawId) {
+        $('#law-change-quick-view-view-component').load('@Url.Action("LoadLawChangeQuickView", "LawManagement")', { lawId }, function () {
+            $('#law-changes-modal').modal('show');
+        });
+    }
+</script>

@@ -1,0 +1,1 @@
+﻿dotnet ef dbcontext scaffold "Server=63.143.42.215;Database=AmaisVetPlatform_DEV;User Id=AmaisVetPlatform_DEV;Password=123456;MultipleActiveResultSets=true;" Microsoft.EntityFrameworkCore.SqlServer -o Models --context-dir Context -c ApplicationDbContext -f --project ApplicationDbContext

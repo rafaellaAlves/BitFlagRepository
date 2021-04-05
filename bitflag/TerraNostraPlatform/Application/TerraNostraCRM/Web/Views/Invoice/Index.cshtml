@@ -1,0 +1,15 @@
+﻿@model int?
+@{
+    ViewData["Title"] = "Orçamentos";
+}
+
+<h1 class="mb-2"><small>Orçamentos</small></h1>
+<div class="card">
+    <div class="card-body">
+        <div id="_InvoiceIndexViewComponent"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#_InvoiceIndexViewComponent').load('@Url.Action("InvoiceIndexViewComponent", "Invoice")', { "invoiceStatusId": @if (Model.HasValue) {<text>'@Model'</text>}else{<text>null</text>} });
+</script>

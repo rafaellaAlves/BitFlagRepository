@@ -1,0 +1,1077 @@
+﻿@model string
+@using WEB.Utils;
+@using Microsoft.AspNetCore.Identity;
+
+@inject WEB.BLL.UserFunctions userFunctions
+@inject UserManager<DB.Models.AspNetUser> userManager
+@inject WEB.BLL.CompanyFunctions companyFunctions
+@inject WEB.BLL.CompanyTypeFunctions companyTypeFunctions
+@inject WEB.BLL.MedicGroupFunctions medicGroupFunctions
+@inject WEB.BLL.RevenuesFormFunctions revenuesFormFunctions
+
+
+@{
+
+    ViewData["Title"] = "Grupos Médicos";
+
+    var user = await userManager.GetUserAsync(User);
+    PlataformaEscritorioViewModel plataforma = userFunctions.GetPlataformaEscritorioByUserId(user.Id);
+
+
+}
+
+@{
+    string AgenciamentoPlataforma = "", VitalicioPlataforma = "", AgenciamentoEscritorio = "", VitalicioEscritorio = "";
+}
+
+<style type="text/css">
+    .input-group-style {
+        color: #495057;
+        background-color: #e9ecef;
+        border: 1px solid rgba(0,0,0,.15);
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card" style="background-color:#e8e8e8;">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-10">
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><i class="fa fa-search guardmed-blue"></i></span>
+                            </div>
+                            <input id="MedicGroupListSearch" type="text" class="form-control" placeholder="Procurar..." />
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <a href="javascript:void(0)" onclick="AbrirGrupoModal()" class="btn btn-success w-100"><i class="fas fa-plus"></i>&nbsp;Novo</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-12" style="margin-top:1em;">
+        <div class="card">
+            <div class="card-body">
+                <div class="alert alert-success" id="AlertaSucesso" style="display:none;" role="alert">
+                    <b>Dados salvos com sucesso!</b>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <table class="table table-striped table-borderer" id="MedicGroupListTable">
+                            <thead>
+                                <tr>
+                                    <td>#</td>
+                                    <td>Nome</td>
+                                    <td style="min-width: 120px;">CNPJ</td>
+                                    <td>Desconto</td>
+                                    <td>Qtd. de CRMs</td>
+                                    <td>Ativo?</td>
+                                    <td style="min-width: 80px;">&nbsp;</td>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var MedicGroupListTypingTimer;
+    var MedicGroupListDoneTypingInterval = 500;
+    var MedicGroupDatatables = $('#MedicGroupListTable').DataTable({
+	    proccessing: true,
+        serverSide: true,
+	    searching: true,
+	    lengthChange: false,
+	    dom: 'tip',
+	    ajax: {
+            url: '@Url.Action("List", "MedicGroup")',
+		    type: 'POST'
+        },
+	    columns: [
+            {
+                data: 'MedicGroupId',
+                render: function (data, type, row) {
+                    return row.medicGroupId;
+                }
+            },
+            {
+                data: 'MedicGroupName',
+                render: function (data, type, row) {
+                    return row.medicGroupName;
+                }
+            },
+            {
+                data: 'CNPJ',
+                render: function (data, type, row) {
+                    return row.cnpj;
+                }
+            },
+            {
+                data: 'Discount',
+                render: function (data, type, row) {
+                    return '<div class="_percent">' + row.discount + '%</div>';
+                }
+            },
+            {
+                data: 'QtdCRM',
+                render: function (data, type, row) {
+                    return row.qtdCRM;
+                }
+            },
+            {
+                data: 'IsActive',
+                render: function (data, type, row) {
+                    return row.isActive ? '<span style="color:green;">Sim</span>' : '<span style="color:red;">Não</span>';
+                }
+            },
+
+            {
+                data: '',
+                orderable: false,
+                render: function (data, type, row) {
+                    return "<div class='text-center'><a href='javascript:void(0)' class='fas fa-trash guardmed-blue' onclick='RemoverGrupo(" + JSON.stringify({
+                        medicGroupId: row.medicGroupId, medicGroupName: row.medicGroupName
+                    }) + ")'></a>&nbsp;<a class='fas fa-edit guardmed-blue' href='javascript:void(0)' onclick='AbrirGrupoModal(" + JSON.stringify(row) + ")'></a>&nbsp;<a class='fas fa-user guardmed-blue' href='javascript:void(0)' onclick='AbrirModalCRM(" + JSON.stringify({ medicGroupId: row.medicGroupId, medicGroupName: row.medicGroupName }) + ")'></a></div>";
+                }
+            },
+
+	    ]
+    });
+
+    function MedicGroupListDoneTyping() {
+        if ($.fn.DataTable.isDataTable('#MedicGroupListTable')) {
+            MedicGroupDatatables.search($('#MedicGroupListSearch').val()).draw();
+        }
+    }
+    $('#MedicGroupListSearch').keyup(function () {
+        clearTimeout(MedicGroupListTypingTimer);
+        MedicGroupListTypingTimer = setTimeout(MedicGroupListDoneTyping, MedicGroupListDoneTypingInterval);
+    });
+    $('#MedicGroupListSearch').keydown(function () {
+        clearTimeout(MedicGroupListTypingTimer);
+    });
+
+
+    function RemoverGrupo(data) {
+        if (confirm("Deseja remover o grupo médico: " + data.medicGroupName + "?")) {
+            $.ajax({
+                url: '@Url.Action("RemoverMedicGroup", "MedicGroup")',
+                type: 'POST',
+                datatype: 'JSON',
+                data: { medicGroupId: data.medicGroupId },
+                success: function (data) {
+                    $('#MedicGroupListTable').DataTable().ajax.reload();
+                    alert('Grupo médico excluído com sucesso!');
+                }
+            });
+        }
+    }
+</script>
+
+<div class="modal fade" id="CRMCadastradosModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalCRMTitle"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card" style="background-color:#e8e8e8;">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text"><i class="fa fa-search guardmed-blue"></i></span>
+                                            </div>
+                                            <input id="MedicGroupCRMListSearch" type="text" class="form-control" placeholder="Procurar..." />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="btn-group" role="group" aria-label="Basic example">
+                                            <a href="javascript:void(0)" class="btn btn-primary w-100" id="ImportarCRMBotao"><i class="fas fa-file-excel"></i>&nbsp;Importar</a>
+                                            <a href="javascript:void(0)" class="btn btn-success w-100" id="NovoCRMBotao"><i class="fas fa-plus"></i>&nbsp;Novo</a>
+                                        </div>
+
+                                    </div>
+                                </div>
+                                <form id="CRMForm">
+                                    <input id="CRMMedicGroupId" name="MedicGroupId" type="hidden" />
+                                    <div class="row" style="display:none;" id="AreaNovoCRM">
+                                        <div class="col-md-12">
+                                            <hr />
+                                            <div class="alert alert-danger alert-dismissible fade show" role="alert" id="AlertaErroCRM" style="display:none;">
+                                                <b>Insira o CRM e o Estado do CRM!</b>
+                                                <button type="button" class="close" onclick="function EsconderAlerta() { $('#AlertaErroCRM').hide(); }; EsconderAlerta()">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 form-group">
+                                            <input id="Nome" name="Nome" type="text" class="form-control" placeholder="Digite o Nome." />
+                                        </div>
+                                        <div class="col-md-6 form-group">
+                                            <input id="CPF" name="CPF" type="text" class="form-control cpf" placeholder="Digite o CPF." />
+                                        </div>
+                                        <div class="col-md-6 form-group">
+                                            <input id="CRM" name="CRM" type="text" class="form-control" placeholder="Digite o CRM." />
+                                        </div>
+                                        <div class="col-md-6 form-group">
+                                            <select class="form-control" id="CRMEstado" name="CRMEstado">
+                                                <option value="">Selecione um Estado</option>
+                                                @foreach (var item in WEB.Utils.StatesUtils.GetEstados())
+                                                {
+                                                    <option value="@item.EstadoId">@item.Description</option>
+                                                }
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 form-group">
+                                            <button type="button" class="btn btn-secondary" id="CancelarCRMBotao"><i class="fas fa-times"></i>&nbsp;Cancelar</button>
+                                        </div>
+                                        <div class="col-md-6 form-group text-right">
+                                            <button type="button" class="btn btn-success" id="SalvarCRMBotao"><i class="fas fa-upload"></i>&nbsp;Salvar</button>
+                                        </div>
+                                    </div>
+                                    <div class="row" style="display:none;" id="AreaImportarCRM">
+                                        <div class="col-md-12">
+                                            <hr />
+                                            <div class="alert alert-danger alert-dismissible fade show" role="alert" id="AlertaErroImportacaoCRM" style="display:none;">
+                                                <b id="AlertaErroImportacaoCRMTexto">Insira o CRM e o Estado do CRM!</b>
+                                                <button type="button" class="close" onclick="function EsconderAlerta() { $('#AlertaErroImportacaoCRM').hide(); }; EsconderAlerta()">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12 form-group">
+                                            <div class="input-group">
+                                                <input id="Arquivo" name="Arquivo" type="file" class="form-control" placeholder="Insira o arquivo." />
+                                                <div class="input-group-append">
+                                                    <button type="button" class="btn btn-danger input-group-btn" id="CancelarImportacaoCRMBotao"><i class="fas fa-times"></i>&nbsp;Cancelar</button>
+                                                    <a href="~/assets/modeloImportacao/ModeloExportacaoProfissional.xlsx" download="ImportacaoCRMs.xlsx" class="btn btn-primary input-group-btn input-group-style"><i class="fas fa-file-download"></i>&nbsp;Modelo (xlsx)</a>
+                                                    <button type="button" class="btn btn-success input-group-btn" id="SalvarImportacaoCRMBotao"><i class="fas fa-file-upload"></i>&nbsp;Importar</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12" style="margin-top:1em;">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="alert alert-success" id="AlertaSucessoCRM" style="display:none;" role="alert">
+                                    <b>CRM adicionado com sucesso!</b>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <table class="table table-striped table-borderer" id="MedicGroupCRMListTable" style="width:100%;">
+                                            <thead>
+                                                <tr>
+                                                    <td>Nome</td>
+                                                    <td>CPF</td>
+                                                    <td>CRM</td>
+                                                    <td>UF</td>
+                                                    <td>&nbsp;</td>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="row">
+                    <div class="col-md-6 text-left">
+                        <button class="btn btn-secondary" id="FecharModalBotao" style="cursor:pointer;"><i class="fas fa-times"></i>&nbsp;Fechar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var MedicGroupCRMListTypingTimer;
+    var MedicGroupCRMListDoneTypingInterval = 500;
+    var MedicGroupCRMDatatables;
+    function AbrirModalCRM(data) {
+
+        $('#CRMMedicGroupId').val(data.medicGroupId);
+        $('#modalCRMTitle').text("CRM's vinculados ao grupo: " + data.medicGroupName);
+
+        MedicGroupCRMDatatables = $('#MedicGroupCRMListTable').DataTable({
+	        proccessing: true,
+            serverSide: true,
+	        searching: true,
+	        lengthChange: false,
+	        dom: 'tip',
+	        ajax: {
+                url: '@Url.Action("MedicGroupCRMList", "MedicGroup")',
+                data: function (d) {
+                    d.medicGroupId = data.medicGroupId
+                },
+		        type: 'POST'
+            },
+            columns: [
+                {
+                    data: 'Nome',
+                    render: function (data, type, row) {
+                        return row.nome != null? row.nome : '-';
+                    }
+                },
+                {
+                    data: 'CPF',
+                    render: function (data, type, row) {
+                        return row.cpf != null ? row.cpf : '-';
+                    }
+                },
+                {
+                    data: 'CRM',
+                    render: function (data, type, row) {
+                        return row.crm;
+                    }
+                },
+                {
+                    data: 'CRMEstado',
+                    render: function (data, type, row) {
+                        return row.crmEstado;
+                    }
+                },
+                {
+                    data: '',
+                    orderable: false,
+                    render: function (data, type, row) {
+                        return '<div class="text-center"><a href="javascript:void(0)" class="fas fa-trash guardmed-blue" onclick="RemoverCRM(' + row.medicGroupCRMId + ',' + row.crm + ')"></a></div>';
+                    }
+                }
+	        ]
+        });
+
+        $('#CRMCadastradosModal').modal('show');
+    }
+
+    $('#FecharModalBotao').click(function () {
+        $('#CRMCadastradosModal').modal('hide');
+    });
+
+    function MedicGroupCRMListDoneTyping() {
+        if ($.fn.DataTable.isDataTable('#MedicGroupCRMListTable')) {
+            MedicGroupCRMDatatables.search($('#MedicGroupCRMListSearch').val()).draw();
+        }
+    }
+    $('#MedicGroupCRMListSearch').keyup(function () {
+        clearTimeout(MedicGroupCRMListTypingTimer);
+        MedicGroupCRMListTypingTimer = setTimeout(MedicGroupCRMListDoneTyping, MedicGroupCRMListDoneTypingInterval);
+    });
+    $('#MedicGroupCRMListSearch').keydown(function () {
+        clearTimeout(MedicGroupCRMListTypingTimer);
+    });
+
+    $('#NovoCRMBotao').click(function () {
+        $("#AreaImportarCRM").slideUp("slow");
+        $("#AreaNovoCRM").slideDown("slow");
+        ClearAllInputs();
+    });
+
+    $('#ImportarCRMBotao').click(function () {
+        $("#AreaNovoCRM").slideUp("slow");
+        $("#AreaImportarCRM").slideDown("slow");
+        ClearAllInputs();
+    });
+
+    $('#CancelarCRMBotao').click(function () {
+        $('#CRMForm .text-danger').remove();
+        $('#AlertaErroCRM').hide();
+        ClearAllInputs();
+        $("#AreaNovoCRM").slideUp("slow");
+    });
+
+    $('#CancelarImportacaoCRMBotao').click(function () {
+        $('#AlertaErroImportacaoCRM').hide();
+        ClearAllInputs();
+        $("#AreaImportarCRM").slideUp("slow");
+    });
+
+    $('#SalvarCRMBotao').click(function () {
+
+        if (ValidarCRM()) {
+            SalvarCRM();
+        }
+    });
+
+    function ValidarCRM() {
+        var crm = false;
+        var estado = false;
+
+
+        $('#CRMForm .text-danger').remove();
+        $('#AlertaErroCRM').hide();
+
+        if (IsNullOrWhiteSpace($('#CRM').val())) {
+            crm = true;
+        }
+        if (IsNullOrWhiteSpace($('#CRMEstado').val())) {
+            estado = true;
+        }
+
+        var temErro = crm || estado;
+
+        if (temErro) {
+            $('#AlertaErroCRM').show();
+
+            var text = 'Insira o CRM e Estado do CRM';
+
+            if (crm && !estado) text = 'Insira o CRM';
+            if (!crm && estado) text = 'Insira o Estado do CRM';
+
+            $('#AlertaErroCRM b').text(text);
+        }
+
+        return !temErro;
+    }
+
+    function SalvarCRM() {
+        var d = $('#CRMForm').serializeArray();
+
+        $.ajax({
+            url: '@Url.Action("SalvarCRM", "MedicGroup")',
+            type: 'POST',
+            datatype: 'JSON',
+            data: d,
+            success: function (data) {
+                if (!data.temErro) {
+                    $("#AreaNovoCRM").slideUp("slow");
+                    ClearAllInputs();
+                    $('#MedicGroupCRMListTable').DataTable().ajax.reload();
+                    $('#MedicGroupListTable').DataTable().ajax.reload();
+                    $('#AlertaSucessoCRM').show();
+                    var contadorCRM;
+
+                    clearTimeout(contadorCRM);
+                    contadorCRM = setTimeout(EsconderAlertaCRM, 4000);
+
+                    function EsconderAlertaCRM() {
+                        $('#AlertaSucessoCRM').hide();
+                    }
+                }
+                else {
+                    alert(data.mensagem);
+                }
+            }
+        });
+    }
+
+    function RemoverCRM(medicGroupCRMId, crm) {
+        if (confirm("Deseja remover o CRM: " + crm + "?")) {
+            $.ajax({
+                url: '@Url.Action("RemoverCRM", "MedicGroup")',
+                type: 'POST',
+                datatype: 'JSON',
+                data: { medicGroupCRMId: medicGroupCRMId },
+                success: function (data) {
+                    $('#MedicGroupCRMListTable').DataTable().ajax.reload();
+                    $('#MedicGroupListTable').DataTable().ajax.reload();
+                    alert('CRM excluído com sucesso!');
+                }
+            });
+        }
+    }
+
+    $('#CRMCadastradosModal').on('hidden.bs.modal', function () {
+        $('#MedicGroupCRMListTable').DataTable().destroy();
+        $('#MedicGroupCRMListSearch').val('');
+        ClearAllInputs();
+        $('#AlertaErroCRM').hide();
+        $("#AreaNovoCRM").hide();
+    });
+</script>
+
+<div class="modal fade" id="GrupoMedicoModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="guardmed-blue" id="ModalGrupoTitulo">Edição de Grupo Médico</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert" id="AlertaErro" style="display:none;">
+                            <b>Há erro(s) no formulário!</b> Revise-o.
+                            <button type="button" class="close" onclick="function EsconderAlerta() { $('#AlertaErro').hide(); }; EsconderAlerta()">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        @*<div class="alert alert-danger" id="AlertaErro" style="display:none;" role="alert">
+                                <b>Há erro(s) no formulário!</b> Revise-o.
+                            </div>*@
+                        <form id="GrupoMedicoForm">
+                            <div class="card">
+                                <div class="card-body">
+                                    <input type="hidden" id="MedicGroupId" name="MedicGroupId" />
+                                    <div class="row">
+                                        <div class="col-md-6 form-group">
+                                            <label class="control-label">Nome do Grupo:</label>
+                                            <input class="form-control" type="text" id="MedicGroupName" name="MedicGroupName" placeholder="Nome do Grupo" />
+                                        </div>
+                                        <div class="col-md-6 form-group">
+                                            <label class="control-label">CNPJ:</label>
+                                            <input class="form-control cnpj" type="text" id="CNPJ" name="CNPJ" placeholder="CNPJ" />
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 form-group">
+                                            <label class="control-label"><small class="fas fa-info-circle guardmed-blue" data-toggle="tooltip" data-placement="top" title="O desconto é dado em porcentagem."></small>&nbsp;Desconto:</label>
+                                            <div class="input-group" id="AreaDiscount">
+                                                <input id="Discount" name="Discount" type="text" class="form-control _percent" placeholder="Desconto" />
+                                                <div class="input-group-append">
+                                                    <span class="input-group-text">%</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6 form-group">
+                                            <label class="control-label">Ativo?</label>
+                                            <select class="form-control" id="IsActive" name="IsActive">
+                                                <option value="true" selected>Sim</option>
+                                                <option value="false">Não</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5>Faturamento</h5>
+                                    <br />
+                                    <div class="row">
+                                        <div class="col-md-6 form-group">
+                                            <label class="control-label">Forma de Faturamento :</label>
+                                            <select class="form-control" id="RevenuesFormId" name="RevenuesFormId">
+                                                <option value="" selected>Selecione a forma de faturamento</option>
+                                                @{
+                                                    foreach (var item in revenuesFormFunctions.GetData())
+                                                    {
+                                                        <option value="@item.RevenuesFormId">@item.Name</option>
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5>Comissão</h5>
+                                    <br />
+                                    <div class="row">
+                                        <div class="form-group col-md-4">
+                                            <label class="control-label">Plataforma</label>
+                                            <select class="form-control" id="CompanyPlatformId" name="CompanyPlatformId">
+                                                <option value="">Todas Corretoras</option>
+                                                @{
+                                                    var companyTypeId = companyTypeFunctions.GetDataByExternalCode("CORRETORA").CompanyTypeId;
+                                                    foreach (var item in companyFunctions.GetData(c => !c.IsDeleted && c.CompanyTypeId == companyTypeId))
+                                                    {
+                                                        var companyName = string.IsNullOrWhiteSpace(item.RazaoSocial) ? item.FirstName + " " + item.LastName : item.RazaoSocial;
+                                                        <option value="@item.CompanyId">@companyName</option>
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3 form-group">
+                                            <label class="control-label">Agenciamento %</label>
+                                            <input class="form-control" id="PlatformAgency" name="PlatformAgency" placeholder="Agenciamento" data-last-value="@AgenciamentoPlataforma" />
+                                        </div>
+                                        <div class="col-md-3 form-group">
+                                            <label class="control-label">Vitalício %:</label>
+                                            <input class="form-control" id="PlatformLife" name="PlatformLife" placeholder="Vitalício" data-last-value="@VitalicioPlataforma" />
+                                        </div>
+                                        <div class="col-md-2 form-group">
+                                            <label class="control-label">Comissão %:</label>
+                                            <input class="form-control" id="PlatformComission" name="PlatformComission" readonly />
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="form-group col-md-4">
+                                            <label class="control-label">Escritório</label>
+                                            <select class="form-control" id="CompanyOfficeId" name="CompanyOfficeId">
+                                                <option value="">Selecione</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="col-md-3 form-group">
+                                            <label class="control-label">Agenciamento %</label>
+                                            <input class="form-control" id="OfficeAgency" name="OfficeAgency" placeholder="Agenciamento" data-last-value="@AgenciamentoEscritorio" />
+                                        </div>
+                                        <div class="col-md-3 form-group">
+                                            <label class="control-label">Vitalício %:</label>
+                                            <input class="form-control" id="OfficeLife" name="OfficeLife" placeholder="Vitalício" data-last-value="@VitalicioEscritorio" />
+                                        </div>
+                                        <div class="col-md-2 form-group">
+                                            <label class="control-label">Comissão %:</label>
+                                            <input class="form-control" id="OfficeComission" name="OfficeComission" readonly />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="col-md-6 text-left">
+                    <button class="btn btn-secondary" id="FecharModalGrupoMedicoBotao" style="cursor:pointer;"><i class="fas fa-times"></i>&nbsp;Fechar</button>
+                </div>
+                <div class="col-md-6 text-right">
+                    <button class="btn btn-success" id="SalvarGrupoMedicoBotao" style="cursor:pointer;"><i class="fas fa-upload"></i>&nbsp;Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function AbrirGrupoModal(data) {
+        
+        if (data == null) {
+            $('#ModalGrupoTitulo').text('Criação de Grupo Médico');
+            $('#MedicGroupId').val('');
+            $('#MedicGroupName').val('');
+            $('#CNPJ').val('');
+            $('#Discount').val('');
+            $('#IsActive').val('true');
+            $('#RevenuesFormId').val('');
+            $('#CompanyPlatformId').val('');
+            $('#PlatformAgency').val('');
+            $('#PlatformLife').val('');
+            $('#PlatformComission').val('');
+            $('#CompanyOfficeId').val('');
+            $('#OfficeAgency').val('');
+            $('#OfficeLife').val('');
+            $('#OfficeComission').val('');
+        }
+        else {
+            $('#ModalGrupoTitulo').text('Edição do Grupo Médico: ' + data.medicGroupName);
+            $('#MedicGroupId').val(data.medicGroupId);
+            $('#MedicGroupName').val(data.medicGroupName);
+            $('#CNPJ').val(data.cnpj);
+            $('#Discount').val(data.discountFormatted).trigger('input');
+            $('#IsActive').val((data.isActive ? 'true' : 'false'));
+            $('#RevenuesFormId').val(data.revenuesFormId);
+            $('#CompanyPlatformId').val(data.companyPlatformId);
+            $('#PlatformAgency').val(data.platformAgencyFormatted).trigger('input');
+            $('#PlatformLife').val(data.platformLifeFormatted).trigger('input');
+            $('#PlatformComission').val(data.platformComissionFormatted).trigger('input');
+            $('#CompanyOfficeId').val(data.companyOfficeId);
+            $('#OfficeAgency').val(data.officeAgencyFormatted).trigger('input');
+            $('#OfficeLife').val(data.officeLifeFormatted).trigger('input');
+            $('#OfficeComission').val(data.officeComissionFormatted).trigger('input');
+
+            if (data.companyOfficeId != null) {
+                GetRealEstates(data.companyOfficeId);
+            }
+        }
+
+        $('#GrupoMedicoModal').modal('show');
+    }
+
+    function GetRealEstates(companyOfficeId) {
+        if (IsNullOrWhiteSpace($('#CompanyPlatformId').val())) {
+            $('#CompanyOfficeId').empty();
+            $('#CompanyOfficeId').append($('<option>', { value: '' }).append('Selecione uma Plataforma.'));
+        } else {
+            $.ajax({
+                url: '@Url.Action("GetRealEstatesByRealEstateAgencyId", "Company")',
+                type: 'POST',
+                datatype: 'JSON',
+                data: { id: $('#CompanyPlatformId').val() },
+                success: function (data) {
+                    $('#CompanyOfficeId').empty();
+                    if (data == false || data.length == 0) {
+                        $('#CompanyOfficeId').append($('<option>', { value: '' }).append('Nenhum escritório encontrado.'));
+                    }
+                    if (data.length > 0) {
+                        $('#CompanyOfficeId').append($('<option>', { value: '' }).append('Selecione'));
+                        for (var i = 0; i < data.length; i++) {
+                            var companyName = IsNullOrWhiteSpace(data[i].razaoSocial) ? data[i].firstName + " " + data[i].lastName : data[i].razaoSocial;
+                            var option = $('<option>', { value: data[i].companyId }).append(companyName);
+                            $('#CompanyOfficeId').append(option);
+                        }
+                    }
+                    if (companyOfficeId != null) $('#CompanyOfficeId').val(companyOfficeId);
+                }
+            });
+        }
+    }
+
+    function ValidarGrupoMedico() {
+        var temErro = false;
+        $('#GrupoMedicoForm .text-danger').remove();
+        $('#AlertaErro').hide();
+
+        if (IsNullOrWhiteSpace($('#MedicGroupName').val())) {
+            $('#MedicGroupName').after('<div class="text-danger">Insira um nome para o grupo médico.</div>');
+            temErro = true;
+        }
+        if (IsNullOrWhiteSpace($('#CNPJ').val())) {
+            $('#CNPJ').after('<div class="text-danger">Insira o CNPJ.</div>');
+            temErro = true;
+        }
+        if (IsNullOrWhiteSpace($('#Discount').val())) {
+            $('#AreaDiscount').after('<div class="text-danger">Insira o desconto.</div>');
+            temErro = true;
+        } else {
+            var valor = $('#Discount').val();
+            if (valor.indexOf(',') != -1)  valor = valor.replace(',', '.');
+
+            if (parseFloat(valor) > 100) {
+                $('#AreaDiscount').after('<div class="text-danger">O desconto deve ser inferior ou igual a 100%.</div>');
+                temErro = true;
+            }
+            else if (parseFloat(valor) <= 0) {
+                $('#AreaDiscount').after('<div class="text-danger">O desconto deve ser superior a 0%.</div>');
+                temErro = true;
+            }
+        }
+
+        // Obrigatoriedades para quando for desenvolvido o módulo financeiro
+
+        // if (IsNullOrWhiteSpace($('#RevenuesFormId').val())) {
+        //    $('#RevenuesFormId').after('<div class="text-danger">Insira a Forma de faturamento.</div>');
+        //    temErro = true;
+        //}
+
+        //if (IsNullOrWhiteSpace($('#CompanyPlatformId').val())) {
+        //    $('#CompanyPlatformId').after('<div class="text-danger">Selecione a Plataforma.</div>');
+        //    temErro = true;
+        //}
+
+        //if (IsNullOrWhiteSpace($('#CompanyOfficeId').val())) {
+        //    $('#CompanyOfficeId').after('<div class="text-danger">Selecione o Escritório.</div>');
+        //    temErro = true;
+        //}
+
+        //if (IsNullOrWhiteSpace($('#PlatformAgency').val())) {
+        //    $('#PlatformAgency').after('<div class="text-danger">Insira o Agenciamento.</div>');
+        //    temErro = true;
+        //}
+
+        //if (IsNullOrWhiteSpace($('#PlatformLife').val())) {
+        //    $('#PlatformLife').after('<div class="text-danger">Insira o Vitalício.</div>');
+        //    temErro = true;
+        //}
+        //if (IsNullOrWhiteSpace($('#OfficeAgency').val())) {
+        //    $('#OfficeAgency').after('<div class="text-danger">Insira o Agenciamento.</div>');
+        //    temErro = true;
+        //}
+        //if (IsNullOrWhiteSpace($('#OfficeLife').val())) {
+        //    $('#OfficeLife').after('<div class="text-danger">Insira o Vitalício.</div>');
+        //    temErro = true;
+        //}
+
+        var vitalicioEscritorio = Globalize.parseFloat($('#OfficeLife').val());
+        var vitalicioPlataforma = Globalize.parseFloat($('#PlatformLife').val());
+
+        if (vitalicioEscritorio > vitalicioPlataforma) {
+            alert('Vitalício máximo ultrapassado.');
+            $('OfficeLife').val(" ");
+            return false;
+        }
+
+        if (temErro) {
+            $('#AlertaErro').show();
+        }
+
+        return !temErro;
+    }
+
+    function SalvarGrupoMedico() {
+        var d = $('#GrupoMedicoForm').serializeArray();
+
+        $.ajax({
+            url: '@Url.Action("Gerenciar", "MedicGroup")',
+            type: 'POST',
+            datatype: 'JSON',
+            data: d,
+            success: function (data) {
+                if (!data.temErro) {
+                    $('#GrupoMedicoModal').modal('hide');
+                    $('#MedicGroupListTable').DataTable().ajax.reload();
+                    $('#AlertaSucesso').show();
+                    var contador;
+
+                    clearTimeout(contador);
+                    contador = setTimeout(EsconderAlerta, 4000);
+
+                    function EsconderAlerta() {
+                        $('#AlertaSucesso').hide();
+                    }
+                }
+                else {
+                    alert(data.mensagem);
+                }
+            }
+        });
+    }
+
+    // VERIFICAR E PREENCHER CAMPOS DE COMISSAO
+    function VerificarAgenciamentoVitalicioPlataforma() {
+        var agenciamentoPlataformaValor = $('#PlatformAgency').val();
+        var vitalicioPlataformaValor = $('#PlatformLife').val();
+
+        if (agenciamentoPlataformaValor != null && vitalicioPlataformaValor != null) {
+            return true;
+        }
+        else {
+            $('#PlatformAgency').val(0);
+            $('#PlatformLife').val(0);
+            $('#PlatformComission').val(0);
+            alert('Campo de Agenciamento e Vitalício não se pode letra.');
+            return false;
+        }
+    }
+
+    function VerificarAgenciamentoVitalicioEscritorio() {
+        var agenciamentoEscritorioValor = $('#OfficeAgency').val();
+        var vitalicioEscritorioValor = $('#OfficeLife').val();
+
+        if (agenciamentoEscritorioValor != null && vitalicioEscritorioValor != null) {
+            return true;
+        } else {
+            $('#OfficeAgency').val(0);
+            $('#OfficeLife').val(0);
+            $('#OfficeComission').val(0);
+            alert('Campo de Agenciamento e Vitalício não se pode letra.');
+            return false;
+        }
+    }
+
+    function ValorComissaoPlataforma() {
+        var agenciamento = 0;
+        var vitalicio = 0;
+
+        if ($('#PlatformAgency').val()) {
+            agenciamento = Globalize.parseFloat($('#PlatformAgency').val());
+        }
+        if ($('#PlatformLife').val()) {
+            vitalicio = Globalize.parseFloat($('#PlatformLife').val());
+        }
+        var comissao = (agenciamento / 12) + (vitalicio * 11) / 12;
+
+        if (comissao == null) comissao = 0;
+
+        $('#PlatformComission').data('valor', comissao);
+        $('#PlatformComission').val(comissao.toLocaleString('pt-BR', { maximumFractionDigits: 4 }));
+    }
+
+    function ValorComissaoEscritorio() {
+        var agenciamento = 0;
+        var vitalicio = 0;
+
+        if ($('#OfficeAgency').val()) {
+            agenciamento = Globalize.parseFloat($('#OfficeAgency').val());
+        }
+        if ($('#OfficeLife').val()) {
+            vitalicio = Globalize.parseFloat($('#OfficeLife').val());
+        }
+        var comissao = (agenciamento / 12) + (vitalicio * 11) / 12;
+
+        if (comissao == null) comissao = 0;
+
+        $('#OfficeComission').data('valor', comissao);
+        $('#OfficeComission').val(comissao.toLocaleString('pt-BR', { maximumFractionDigits: 4 }));
+    }
+
+    function VerificarValorMaximoPlataforma(sel) {
+        $('.comissao-error').remove();
+
+        var lastValue = $(sel).data('last-value');
+        var agenciamentoPlataforma = Globalize.parseFloat($('#PlatformAgency').val());
+        var vitalicioPlataforma = Globalize.parseFloat($('#PlatformLife').val());
+
+        if (agenciamentoPlataforma < 0) {
+            alert('Agenciamento não pode ser negativo.');
+            $('#PlatformAgency').val(lastValue);
+            return false;
+        }
+        if (agenciamentoPlataforma > 100) {
+            alert('Agenciamento não pode ser maior que 100%.');
+            $('#PlatformAgency').val(lastValue);
+            return false;
+        }
+
+        if (vitalicioPlataforma < 0) {
+            alert('Vitalício não pode ser negativo.');
+            $('#PlatformLife').val(lastValue);
+            return false;
+        }
+        if (vitalicioPlataforma > 100) {
+            alert('Vitalício não pode ser maior que 100%.');
+            $('#PlatformLife').val(lastValue);
+            return false;
+        }
+
+        $(sel).data('last-value', $(sel).val());
+        return true;
+
+    }
+
+    function VerificarValorMaximoEscritorio(sel) {
+        var lastValue = $(sel).data('last-value');
+        var agenciamentoEscritorio = Globalize.parseFloat($('#OfficeAgency').val());
+        var vitalicioEscritorio = Globalize.parseFloat($('#OfficeLife').val());
+        var vitalicioPlataforma = Globalize.parseFloat($('#PlatformLife').val());
+
+        if (vitalicioEscritorio > vitalicioPlataforma) {
+            alert('Vitalício máximo ultrapassado.');
+            $('OfficeLife').val(" ");
+            return false;
+        }
+
+        if (agenciamentoEscritorio < 0) {
+            alert('Agenciamento não pode ser negativo.');
+            $('#OfficeAgency').val(lastValue);
+            return false;
+        }
+        if (agenciamentoEscritorio > 100) {
+            alert('Agenciamento não pode ser maior que 100%.');
+            $('#OfficeAgency').val(lastValue);
+            return false;
+        }
+
+        if (vitalicioEscritorio < 0) {
+            alert('Vitalício não pode ser negativo.');
+            $('#OfficeLife').val(lastValue);
+            return false;
+        }
+        if (vitalicioEscritorio > 100) {
+            alert('Vitalício não pode ser maior que 100%.');
+            $('#OfficeLife').val(lastValue);
+            return false;
+        }
+
+        $(sel).data('last-value', $(sel).val());
+        return true;
+    }
+
+    function ClearAllInputs() {
+        $("#CRM").val("");
+        $("#CRMEstado").val("");
+        $("#Nome").val("");
+        $("#CPF").val("");
+        $("#Arquivo").val("");
+    }
+</script>
+<script type="text/javascript">
+        $('#PlatformAgency').change(function () {
+        if (VerificarAgenciamentoVitalicioPlataforma()) {
+            VerificarValorMaximoPlataforma(this);
+            ValorComissaoPlataforma();
+
+        }
+    });
+
+    $('#PlatformLife').change(function () {
+        if (VerificarAgenciamentoVitalicioPlataforma()) {
+            VerificarValorMaximoPlataforma(this);
+            ValorComissaoPlataforma();
+
+        }
+    });
+
+    $('#OfficeAgency').change(function () {
+        if (VerificarAgenciamentoVitalicioEscritorio()) {
+            VerificarValorMaximoEscritorio(this);
+            ValorComissaoEscritorio();
+
+        }
+    });
+
+    $('#OfficeLife').change(function () {
+        if (VerificarAgenciamentoVitalicioEscritorio()) {
+            VerificarValorMaximoEscritorio(this);
+            ValorComissaoEscritorio();
+
+        }
+    });
+
+    $('#CompanyPlatformId').change(function () {
+        GetRealEstates(null);
+    });
+
+    $('#SalvarGrupoMedicoBotao').click(function () {
+        if (ValidarGrupoMedico()) {
+            SalvarGrupoMedico();
+        }
+    });
+
+    $('#FecharModalGrupoMedicoBotao').click(function () {
+        $('#GrupoMedicoModal').modal('hide');
+    });
+
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip()
+    });
+
+    $('#GrupoMedicoModal').on('hidden.bs.modal', function () {
+        $('#GrupoMedicoForm .text-danger').remove();
+        $('#AlertaErro').hide();
+    });
+
+    $('#SalvarImportacaoCRMBotao').click(function () {
+
+        var datafile = new FormData();
+        $('#AlertaErroImportacaoCRM').hide();
+
+        if (document.getElementById('Arquivo').files.length <= 0) {
+            $('#AlertaErroImportacaoCRMTexto').text('Insira um Arquivo.');
+            $('#AlertaErroImportacaoCRM').show();
+            return;
+        }
+
+        datafile.append("Arquivo", document.getElementById('Arquivo').files[0]);
+        datafile.append("medicGroupId", $('#CRMMedicGroupId').val());
+
+        $.ajax({
+            url: '@Url.Action("ImportarCRMs", "MedicGroup")',
+            type: 'POST',
+            contentType: false,
+            processData: false,
+            data: datafile,
+            success: function (data) {
+                ClearAllInputs();
+                if (data.temErro == false) {
+                    $('#AlertaErroImportacaoCRM').hide();
+                    $('#MedicGroupCRMListTable').DataTable().ajax.reload();
+                    $('#MedicGroupListTable').DataTable().ajax.reload();
+                    alert(data.mensagem);
+                    $("#AreaImportarCRM").slideUp("slow");
+                } else {
+                    $('#AlertaErroImportacaoCRM').show();
+                    $('#AlertaErroImportacaoCRMTexto').text(data.mensagem);
+                }
+            }
+        });
+    });
+</script>

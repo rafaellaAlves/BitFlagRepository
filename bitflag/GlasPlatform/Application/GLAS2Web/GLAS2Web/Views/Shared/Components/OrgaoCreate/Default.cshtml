@@ -1,0 +1,41 @@
+﻿@model DTO.Law.OrgaoViewModel
+
+<form id="OrgaoForm">
+    <input type="hidden" id="OrgaoId" name="OrgaoId" value="@Model.OrgaoId" />
+    <div class="row">
+        <div class="col-md-12">
+            <input type="text" class="form-control" id="OrgaoName" name="Name" value="@Model.Name" placeholder="Nome" />
+        </div>
+    </div>
+</form>
+<script type="text/javascript">
+    function OrgaoValidate() {
+        $('.text-danger').remove();
+        var hasError = false;
+
+        if (IsNullOrWhiteSpace($('#OrgaoName').val())) {
+            $('#OrgaoName').after($('<div>', { class: 'text-danger' }).append('Insira um nome!'));
+            hasError = true;
+        }
+
+        if (hasError)
+            $('#alertErrorOrgao').show();
+
+        return !hasError;
+    }
+
+    function OrgaoSave() {
+        var d = $('#OrgaoForm').serializeArray();
+        $.ajax({
+            url: '@Url.Action("Manage", "Orgao")',
+            type: 'POST',
+            datatype: 'JSON',
+            data: d,
+            success: function (data) {
+                OrgaoSaveCallBack(data);
+            }
+
+        });
+
+    }
+</script>

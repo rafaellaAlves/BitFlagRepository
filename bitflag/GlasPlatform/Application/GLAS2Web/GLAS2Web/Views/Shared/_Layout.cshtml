@@ -1,0 +1,337 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Authorization
+
+@inject DAL.GLAS2Context context
+@inject SignInManager<DAL.Identity.User> SignInManager
+@inject UserManager<DAL.Identity.User> UserManager
+@inject IAuthorizationService AuthorizationService
+@inject BLL.Localization.TranslationFunctions translationFunctions
+
+@{
+    var user = await UserManager.GetUserAsync(User);
+    var userRole = new DAL.Identity.Role();
+    var companyUserRoleFunctions = new BLL.Permission.CompanyUserRoleFunctions(context);
+    if (user != null)
+    {
+        userRole = companyUserRoleFunctions.GetUserRole(user.Id);
+    }
+}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+	<title>GLAS - @ViewData["Title"]</title>
+
+	<!-- Required meta tags -->
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=0.8, shrink-to-fit=yes">
+
+	<!-- Font-Awesome -->
+	<script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+
+	<!-- Bootstrap CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous" />
+
+	<!-- Optional JavaScript -->
+	<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+	<script src="~/Assets/Common/Custom/scripts/jquery.js"></script>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+
+	<!-- BOOTSTRAP DATEPICKER -->
+	<script src="https://yhnavein.github.io/pure-bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+	<script src="https://yhnavein.github.io/pure-bootstrap-datepicker/js/locales/bootstrap-datepicker.pt-BR.js"></script>
+	<link rel="stylesheet" href="https://yhnavein.github.io/pure-bootstrap-datepicker/css/datepicker.css">
+
+	<script src="https://igorescobar.github.io/jQuery-Mask-Plugin/js/jquery.mask.min.js"></script>
+	<script type="text/javascript">
+		function MaskData() {
+			$('.date').mask('00/00/0000');
+			$('.date').datepicker({ format: 'dd/mm/yyyy', language: 'pt-BR', autoclose: true });
+			$('.time').mask('00:00:00');
+			$('.date-time').mask('00/00/0000 00:00:00');
+			$('.cep').mask('00000-000');
+			$('.mobile').mask('(00) #0000-0000');
+			$('.phone').mask('(00) 0000-0000');
+			$('.percent').mask('##0,00%', { reverse: true });
+			$('.cnpj').mask('00.000.000/0000-00', { reverse: true, clearIfNotMatch: true });
+			$('.cpf').mask('000.000.000-00', { reverse: true, clearIfNotMatch: true });
+			$('.money').mask('#.##0,00', { reverse: true });
+			$('.law').mask('#.##0', { reverse: true });
+		}
+		$(function () {
+			MaskData();
+		});
+	</script>
+
+	<!-- DataTables -->
+	<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0/css/bootstrap.min.css" />
+	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap4.min.css" />
+	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/select/1.2.4/css/select.bootstrap4.min.css" />
+
+	<link href="https://cdn.datatables.net/rowreorder/1.2.7/css/rowReorder.dataTables.min.css" />
+	<link href="https://cdn.datatables.net/rowgroup/1.1.2/css/rowGroup.dataTables.min.css" />
+
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0/js/bootstrap.min.js"></script>
+
+	<script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+	<script type="text/javascript" src="https://cdn.datatables.net/1.10.16/js/dataTables.bootstrap4.min.js"></script>
+	<script type="text/javascript" src="https://cdn.datatables.net/select/1.2.4/js/dataTables.select.min.js"></script>
+
+	<script src="https://cdn.datatables.net/rowreorder/1.2.7/js/dataTables.rowReorder.min.js"></script>
+	<script src="https://cdn.datatables.net/rowgroup/1.1.2/js/dataTables.rowGroup.min.js"></script>
+
+	<script type="text/javascript">
+		$.extend(true, $.fn.dataTable.defaults, {
+			"iDisplayLength": 10,
+			'language': {
+				"sEmptyTable": "Nenhum registro encontrado",
+				"sInfo": "Mostrando de _START_ até _END_ de _TOTAL_ registros",
+				"sInfoEmpty": "Mostrando 0 até 0 de 0 registros",
+				"sInfoFiltered": "(Filtrados de _MAX_ registros)",
+				"sInfoPostFix": "",
+				"sInfoThousands": ".",
+				"sLengthMenu": "_MENU_ resultados por página",
+				"sLoadingRecords": "Carregando...",
+				"sProcessing": "Processando...",
+				"sZeroRecords": "Nenhum registro encontrado",
+				"sSearch": "Pesquisar",
+				"oPaginate": {
+					"sNext": "Próximo",
+					"sPrevious": "Anterior",
+					"sFirst": "Primeiro",
+					"sLast": "Último"
+				},
+				"oAria": {
+					"sSortAscending": ": Ordenar colunas de forma ascendente",
+					"sSortDescending": ": Ordenar colunas de forma descendente"
+				}
+			}
+		});
+		$.fn.dataTable.ext.errMode = "none";
+	</script>
+
+
+	<script src="https://mbraak.github.io/jqTree/tree.jquery.js" type="text/javascript"></script>
+
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.min.css" rel="stylesheet" />
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js"></script>
+
+	<script src="https://code.highcharts.com/highcharts.src.js"></script>
+	<script src="https://code.highcharts.com/modules/exporting.js"></script>
+	<script src="https://code.highcharts.com/modules/offline-exporting.js"></script>
+	<script src="https://code.highcharts.com/highcharts-more.js"></script>
+	<script src="https://code.highcharts.com/modules/solid-gauge.js"></script>
+
+	<!--BOOTBOX-->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.4.0/bootbox.min.js" integrity="sha256-sfG8c9ILUB8EXQ5muswfjZsKICbRIJUG/kBogvvV5sY=" crossorigin="anonymous"></script>
+	<!---->
+	<!-- MOMENT.JS -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/moment.min.js" integrity="sha256-ABVkpwb9K9PxubvRrHMkk6wmWcIHUE9eBxNZLXYQ84k=" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.20.1/locale/pt-br.js" integrity="sha256-nTjn4xdIoNcfZLulbFhB8WGMkFbY7QhYwvz5Lh5Wu7o=" crossorigin="anonymous"></script>
+	<script type="text/javascript">
+		function ValidDate(d) {
+			return moment(d, 'DD/MM/YYYY').isValid();
+		}
+	</script>
+	<!---->
+	<!-- UTILS -->
+	<script type="text/javascript">
+		function IsNullOrWhiteSpace(str) {
+			return str === null || str.match(/^ *$/) !== null;
+		}
+		function ValidEmail(email) {
+
+			var re = /^(([^<>()\[\]\\.,;:\s@@"]+(\.[^<>()\[\]\\.,;:\s@@"]+)*)|(".+"))@@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+			return re.test(email.toLowerCase());
+		}
+
+		function disableFields(parent) {
+			if (parent == null) {
+				$('input, select, textarea, button').not('[data-disabled="false"]').attr('disabled', 'disabled');
+				return;
+			}
+
+			$(parent + ' input, ' + parent + ' select, ' + parent + ' textarea, ' + parent + ' button').not('[data-disabled="false"]').attr('disabled', 'disabled');
+		}
+
+		$(document).ready(function () {
+			$('.navbar-nav [data-toggle="dropdown"]').dropdown();
+		});
+	</script>
+	<script src="@Url.Content("~/Assets/Common/Custom/scripts/utils.js")"></script>
+	<script src="@Url.Content("~/Assets/Common/Custom/scripts/datatableUtils.js")"></script>
+	<script src="@Url.Content("~/Assets/Common/Custom/scripts/slide.js")"></script>
+	<!---->
+
+	<link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet">
+	<link href="@Url.Content("~/Assets/Common/Custom/style/default.css")" rel="stylesheet" />
+	<style>
+		html {
+			height: 100%;
+		}
+
+		body {
+			height: 100%;
+			padding-top: 6rem;
+			font-family: 'Source Sans Pro', sans-serif;
+		}
+
+		.shadow {
+			box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+		}
+
+		.control-label {
+			font-weight: 500;
+		}
+
+		.table-pd-sm td, .table-pd-sm th {
+			padding: .25rem .75rem 0.25rem .75rem;
+		}
+
+		.table-font-size-14 td, .table-font-size-14 th {
+			font-size: 14px;
+		}
+	</style>
+</head>
+<body>
+    <div id="loading" style="display: none;">
+        <div style="position: fixed; top: 0; left: 0; height: 100%; width: 100%; background-color: rgba(0, 0, 0, 0.4); z-index: 10000;">
+        </div>
+        <div style="position: fixed; top: 50%; left: 50%; height: 200px; margin-top: -100px; width: 400px; margin-left: -200px; color: white; z-index: 10001; text-align: center;">
+            <img src="@Url.Content("~/Assets/Common/Custom/image/loading.svg")" />
+            <p class="hidden-sm" style="font-size: 24px;">@translationFunctions.GetTranslation("Trabalhando", User.FindFirstValue("CultureInfo"))...</p>
+        </div>
+    </div>
+    <script type="text/javascript">
+        var ajaxLoadTimeout;
+        $(document).ajaxStart(function () {
+            ajaxLoadTimeout = setTimeout(function () { $('#loading').show(); }, 500);
+        });
+        $(document).ajaxStop(function () {
+            clearTimeout(ajaxLoadTimeout);
+            $('#loading').hide();
+        });
+
+        $(document).ajaxError(function () {
+            $("#loading").hide();
+            alert('Houve um erro ao processar sua solicitação.\nSe o problema persistir faça login novamente.');
+        });
+    </script>
+
+    <nav class="navbar navbar-light bg-light navbar-expand-lg fixed-top" style="box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <img src="@Url.Content("~/Assets/Common/Custom/image/glas.png")" width="50" height="50" alt="">
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            @{
+                string _companyId = Context.Request.Query.ContainsKey("companyId") ? Context.Request.Query["companyId"].ToString() : null;
+
+            }
+            @if (SignInManager.IsSignedIn(User))
+            {
+                var userManagesAnyCompany = await AuthorizationService.AuthorizeAsync(User, "UserManagesAnyCompany");
+
+                <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+                    <ul class="navbar-nav mr-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="@Url.Action("Index", "Home")"><i class="fa fa-building"></i>&nbsp;@translationFunctions.GetTranslation("Minhas Unidades de Negócio", User.FindFirstValue("CultureInfo"))</a>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav">
+                        @*@if (userManagesAnyCompany.Succeeded || (User.IsInRole(BLL.User.ProfileNames.Master) || User.IsInRole(BLL.User.ProfileNames.Administrator) || User.IsInRole(BLL.User.ProfileNames.Biotera) || User.IsInRole(BLL.User.ProfileNames.Cliente)))
+                            {*@
+                        @if (!string.IsNullOrWhiteSpace(_companyId))
+                        {
+                            bool isClienteAdministradorSupervisor = companyUserRoleFunctions.CompanyUserHasRole(int.Parse(_companyId), user.Id, new List<string>() { BLL.User.ProfileNames.ClienteSupervisor, BLL.User.ProfileNames.ClienteAdministrador });
+                            if ((User.IsInRole(BLL.User.ProfileNames.Cliente) && isClienteAdministradorSupervisor) || User.IsInRole(BLL.User.ProfileNames.Master) || User.IsInRole(BLL.User.ProfileNames.Administrator) || User.IsInRole(BLL.User.ProfileNames.Biotera))
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link" href="@Url.Action("Index", "AuditManagement")?companyId=@_companyId"><i class="fa fa-list-ol"></i>&nbsp;@translationFunctions.GetTranslation("Auditoria", User.FindFirstValue("CultureInfo"))</a>
+                                </li>
+                            }
+                        }
+                        @*}*@
+                        @if (userManagesAnyCompany.Succeeded)
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-cogs"></i>&nbsp;@translationFunctions.GetTranslation("Ferramentas", User.FindFirstValue("CultureInfo"))</a>
+                                <div class="dropdown-menu" aria-labelledby="dropdown01">
+
+                                    @if (User.IsInRole(BLL.User.ProfileNames.Administrator) || User.IsInRole(BLL.User.ProfileNames.Master))
+                                    {
+                                        <a class="dropdown-item" href="@Url.Action("Index", "UserManagement")"><i class="fa fa-users" aria-hidden="true"></i>&nbsp;@translationFunctions.GetTranslation("Usuários", User.FindFirstValue("CultureInfo"))</a>
+                                        <a class="dropdown-item" href="@Url.Action("Index", "LawManagement")"><i class="fa fa-gavel	" aria-hidden="true"></i>&nbsp;@translationFunctions.GetTranslation("Requisitos Legais", User.FindFirstValue("CultureInfo"))</a>
+                                        <a class="dropdown-item" href="@Url.Action("CopyCompanyLaws", "CompanyLawManagement")"><i class="fa fa-gavel"></i>&nbsp;@translationFunctions.GetTranslation("Espelhar Requisito Legal", User.FindFirstValue("CultureInfo"))</a>
+                                        <a class="dropdown-item" href="@Url.Action("Index", "Orgao")"><i class="fas fa-building"></i>&nbsp;@translationFunctions.GetTranslation("Orgãos", User.FindFirstValue("CultureInfo"))</a>
+                                        <a class="dropdown-item" href="@Url.Action("Index", "Segmento")"><i class="fa fa-file"></i>&nbsp;@translationFunctions.GetTranslation("Segmento", User.FindFirstValue("CultureInfo"))</a>
+                                        <a class="dropdown-item" href="@Url.Action("Index", "CompanyManagement")"><i class="fa fa-building" aria-hidden="true"></i>&nbsp;@translationFunctions.GetTranslation("Unidades de Negócios", User.FindFirstValue("CultureInfo"))</a>
+                                        <a class="dropdown-item" href="@Url.Action("Index", "GroupManagement")"><i class="fa fa-folder-open" aria-hidden="true"></i>&nbsp;@translationFunctions.GetTranslation("Agrupamentos", User.FindFirstValue("CultureInfo"))</a>
+                                    }
+                                    else if (User.IsInRole(BLL.User.ProfileNames.Biotera))
+                                    {
+                                        <a class="dropdown-item" href="@Url.Action("Index", "CompanyManagement")"><i class="fa fa-building" aria-hidden="true"></i>&nbsp;@translationFunctions.GetTranslation("Minhas Unidades de Negócios Gerenciadas", User.FindFirstValue("CultureInfo"))</a>
+                                        <a class="dropdown-item" href="@Url.Action("Index", "UserManagement")"><i class="fa fa-users" aria-hidden="true"></i>&nbsp;@translationFunctions.GetTranslation("Usuários das Minhas Unidades de Negócio", User.FindFirstValue("CultureInfo"))</a>
+
+                                    }
+                                    else if (User.IsInRole(BLL.User.ProfileNames.Cliente))
+                                    {
+                                        <a class="dropdown-item" href="@Url.Action("Index", "UserManagement")"><i class="fa fa-users" aria-hidden="true"></i>&nbsp;@translationFunctions.GetTranslation("Usuários das Minhas Unidades de Negócio", User.FindFirstValue("CultureInfo"))</a>
+                                    }
+                                    <a class="dropdown-item" href="@Url.Action("Index", "EmailLog")"><i class="fa fa-envelope" aria-hidden="true"></i>&nbsp;@translationFunctions.GetTranslation("Registro de E-mails", User.FindFirstValue("CultureInfo"))</a>
+
+                                    @if (User.IsInRole(BLL.User.ProfileNames.Administrator) || User.IsInRole(BLL.User.ProfileNames.Master))
+                                    {
+                                        <a class="dropdown-item" href="@Url.Action("Index", "QuestionTheme")"><i class="fa fa-list-alt" aria-hidden="true"></i>&nbsp;@translationFunctions.GetTranslation("Temas", User.FindFirstValue("CultureInfo"))</a>
+                                        <a class="dropdown-item" href="@Url.Action("Index", "Question")"><i class="fa fa-pen-square" aria-hidden="true"></i>&nbsp;@translationFunctions.GetTranslation("Questionário", User.FindFirstValue("CultureInfo"))</a>
+                                    }
+                                </div>
+                            </li>
+                        }
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="javascript:void(0);" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-chart-bar" aria-hidden="true"></i>&nbsp;@translationFunctions.GetTranslation("Relatórios", User.FindFirstValue("CultureInfo"))</a>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="@Url.Action("Index", "Report", new { id = 4, companyId = _companyId })"><i class="fa fa-file-alt"></i>&nbsp;@translationFunctions.GetTranslation("Dados Estatísticos", User.FindFirstValue("CultureInfo"))</a>
+                                <a class="dropdown-item" href="@Url.Action("Index", "Report", new { id = 1, companyId = _companyId })"><i class="fa fa-file-alt"></i>&nbsp;@translationFunctions.GetTranslation("Requisitos Legais", User.FindFirstValue("CultureInfo"))</a>
+                                <a class="dropdown-item" href="@Url.Action("Index", "Report", new { id = 10, companyId = _companyId })"><i class="fa fa-file-alt"></i>&nbsp;@translationFunctions.GetTranslation("Pendências de Análise", User.FindFirstValue("CultureInfo"))</a>
+                                <a class="dropdown-item" href="@Url.Action("Index", "Report", new { id = 2, companyId = _companyId })"><i class="fa fa-file-alt"></i>&nbsp;@translationFunctions.GetTranslation("Ações", User.FindFirstValue("CultureInfo"))</a>
+                                <a class="dropdown-item" href="@Url.Action("Index", "Report", new { id = 3, companyId = _companyId })"><i class="fa fa-file-alt"></i>&nbsp;@translationFunctions.GetTranslation("Plano de Ação do Requisito Legal", User.FindFirstValue("CultureInfo"))</a>
+                                <a class="dropdown-item" href="@Url.Action("Index", "Report", new { id = 5, companyId = _companyId })"><i class="fa fa-file-alt"></i>&nbsp;@translationFunctions.GetTranslation("Órgãos Gerenciados", User.FindFirstValue("CultureInfo"))</a>
+                                <a class="dropdown-item" href="@Url.Action("Index", "Report", new { id = 6, companyId = _companyId })"><i class="fa fa-file-alt"></i>&nbsp;@translationFunctions.GetTranslation("Contabilidade Socioambiental", User.FindFirstValue("CultureInfo"))</a>
+                                <a class="dropdown-item" href="@Url.Action("Index", "Report", new { id = 7, companyId = _companyId })"><i class="fa fa-file-alt"></i>&nbsp;@translationFunctions.GetTranslation("Estatísticas do Usuário - Supervisor", User.FindFirstValue("CultureInfo"))</a>
+                                <a class="dropdown-item" href="@Url.Action("Index", "Report", new { id = 8, companyId = _companyId })"><i class="fa fa-file-alt"></i>&nbsp;@translationFunctions.GetTranslation("Estatísticas do Usuário - Responsável", User.FindFirstValue("CultureInfo"))</a>
+                                <a class="dropdown-item" href="@Url.Action("Index", "Report", new { id = 9, companyId = _companyId })"><i class="fa fa-file-alt"></i>&nbsp;@translationFunctions.GetTranslation("Informação Consolidada", User.FindFirstValue("CultureInfo"))</a>
+                            </div>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="javascript:void(0);" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-user"></i>&nbsp;@translationFunctions.GetTranslation("Olá", User.FindFirstValue("CultureInfo")), <b>@user.FirstName @user.LastName</b>!</a>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="@Url.Action("Info", "Account")">
+                                    <i class="fa fa-user" aria-hidden="true"></i>&nbsp;@translationFunctions.GetTranslation("Meu Perfil", User.FindFirstValue("CultureInfo"))&nbsp;<small>
+                                        @if (userRole != null)
+                                        {<text>(@userRole.Name)</text>}
+                                    </small>
+                                </a>
+                                <a class="dropdown-item" href="@Url.Content("~/Files/GLAS2.pdf")" target="_blank"><i class="fas fa-file-pdf" aria-hidden="true"></i>&nbsp;@translationFunctions.GetTranslation("Guia do Usuário", User.FindFirstValue("CultureInfo"))</a>
+                                <a class="dropdown-item" href="@Url.Action("LogOut", "Account")"><i class="fa fa-sign-out-alt" aria-hidden="true"></i>&nbsp;@translationFunctions.GetTranslation("Sair", User.FindFirstValue("CultureInfo"))</a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            }
+        </div>
+    </nav>
+
+    <div id="container" class="container-fluid" style="margin-bottom: 15px; margin-bottom: 48px;">
+        @RenderBody()
+    </div>
+
+    <div style="position: fixed; color: rgb(255, 211, 0); width: 100%; height: 24px; bottom: 0; left: 0; background-color: rgb(76, 78, 64); text-align: center; box-shadow: 0 -4px 8px 0 rgba(0, 0, 0, 0.2), 0 -6px 20px 0 rgba(0, 0, 0, 0.19); z-index: 1000; font-size: 0.8em; line-height: 24px;">
+        Biotera - Inteligência Sustentável nos Negócios :: GLAS versão @BLL.Utils.Version.GetVersion() - Desenvolvido por <a href="mailto:contato@bitflag.systems" target="_blank" style="color: rgb(255, 211, 0)">Bit Flag</a>.
+    </div>
+</body>
+</html>

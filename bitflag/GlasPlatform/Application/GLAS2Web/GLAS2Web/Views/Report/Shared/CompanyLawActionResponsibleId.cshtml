@@ -1,0 +1,26 @@
+﻿<div class="form-group">
+    <label class="control-label">@translationFunctions.GetTranslation("Responsável da Ação", User.FindFirstValue("CultureInfo"))</label>
+    <select id="__CompanyLawActionResponsibleId" multiple="multiple" class="form-control ReportParameter" style="width: 100%;" data-hidden-parameter="CompanyLawActionResponsibleId"></select>
+    <script type="text/javascript">
+        if ($('select[data-hidden-parameter="CompanyId"]').length > 0) {
+            $('select[data-hidden-parameter="CompanyId"]').change(function () {
+                if ($('select[data-hidden-parameter="CompanyId"]').val() != null) {
+                    var d = { 'companyIds': $('select[data-hidden-parameter="CompanyId"]').val() };
+		            $.ajax({
+			            url: '@Url.Action("GetResponsibles", "Report")',
+                        type: 'POST',
+                        data: d,
+			            dataType: 'json',
+                        success: function (data) {
+                            $('#__CompanyLawActionResponsibleId').empty();
+                            $.each(data, function (i, e) {
+                                $('#__CompanyLawActionResponsibleId').append('<option value="' + e.Id + '">' + e.FirstName + ' ' + e.LastName + '</option>');
+                            });
+                            $('#__CompanyLawActionResponsibleId').select2();
+                        }
+		            });
+                }
+            });
+        }
+    </script>
+</div>

@@ -1,0 +1,55 @@
+﻿@model List<AMaisImob_WEB.Models.CategoryGuarantorProductTaxViewModel>
+@inject AMaisImob_WEB.BLL.PaymentTypeFunctions paymentTypeFunctions
+
+@{
+    double value = 0;
+    var hasValue = double.TryParse(ViewData["Price"]?.ToString(), out value);
+
+    var annualTypeId = paymentTypeFunctions.GetByExternalCode("ANUAL").PaymentTypeId;
+
+    int i = 1;
+}
+
+<table class="table table-condensed table-striped table-bordered" style="max-height: 400px; overflow-y: auto;">
+    <thead>
+        <tr>
+            <th><input type="checkbox" id="category-guarantor-product-tax-table-select-all" /></th>
+            <th>Garantidora</th>
+            <th>Produto</th>
+            <th>Valor</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            var valor = (hasValue && value != 0 ? (item.TaxaMes * value / 100d) : 0);
+            bool isAnnual = item.GuarantorPaymentTypeId == annualTypeId;
+            if (isAnnual)
+            {
+                valor *= 12;
+            }
+            var _valor = valor.ToString("#,##0.00");
+
+            <tr>
+                <td><input type="checkbox" class="checkbox-item" data-category-guarantor-product-tax-id="@item.CategoryGuarantorProductTaxId" /></td>
+                <td>@item.GuarantorName</td>
+                <td>@item.GuarantorProductName</td>
+                <td><b>R$ @_valor</b><small>@(isAnnual ? "/Ano" : "/Mês")</small></td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<script type="text/javascript">
+    $('#category-guarantor-product-tax-table-select-all').click(function () {
+        var checked = this.checked;
+
+        $.each($('.checkbox-item'), function (i, e) { e.checked = checked; });
+    });
+
+    $('.checkbox-item').click(function () {
+        if (this.checked) return;
+
+        $('#category-guarantor-product-tax-table-select-all')[0].checked = false;
+    });
+</script>

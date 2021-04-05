@@ -1,0 +1,8 @@
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\branchs\Fev2021\DB\bin\Debug\netcoreapp2.2\DB.deps.json
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\branchs\Fev2021\DB\bin\Debug\netcoreapp2.2\DB.dll
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\branchs\Fev2021\DB\bin\Debug\netcoreapp2.2\DB.pdb
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\branchs\Fev2021\DB\obj\Debug\netcoreapp2.2\DB.AssemblyInfoInputs.cache
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\branchs\Fev2021\DB\obj\Debug\netcoreapp2.2\DB.AssemblyInfo.cs
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\branchs\Fev2021\DB\obj\Debug\netcoreapp2.2\DB.csproj.CoreCompileInputs.cache
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\branchs\Fev2021\DB\obj\Debug\netcoreapp2.2\DB.dll
+C:\repositorios\bitflag\GuardMedPlatform\parceiro\branchs\Fev2021\DB\obj\Debug\netcoreapp2.2\DB.pdb

@@ -1,0 +1,62 @@
+﻿@model List<DTO.Family.CondensedFamilyStructureItemViewModel>
+@{
+    int applicantFamilyMemberType = (int)ViewBag.ApplicantFamilyMemberTypeId;
+}
+
+<form method="post" id="FamilyFreezeForm">
+    <div class="row">
+        <div class="col-md-12">
+            <table class="display table table-striped table-bordered table-condensed" style="border-collapse: collapse !important; width:100%;">
+                <thead>
+                    <tr>
+                        <th class="text-center"><input type="checkbox" id="SelecionarTodos" /></th>
+                        <th>Parentesco</th>
+                        <th>Nome</th>
+                        <th>Local</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.OrderByDescending(x => x.FamilyStructureId))
+                    {
+                        <tr class="tr_checkbox">
+                            <td class="text-center">
+                                <input class="checkbox-family-member" type="checkbox" name="familyMemberId[]" value="@item.FamilyMemberId" data-client-applicant-id="@item.ClientApplicantId" data-family-member-type-id="@item.FamilyMemberTypeId" />
+                            </td>
+                            <td>@item.Kinship</td>
+                            <td>@item.FullName</td>
+                            @if (item.FamilyMemberTypeId == applicantFamilyMemberType) //Caso seja requerente mostra apenas o e-mail
+                            {
+                                <td>
+                                    <div class="row"><div class="col-sm-4 text-right"><b>Nascimento: </b></div><div class="col-sm-8">@item.BirthPlace @(item.BirthDate.HasValue ? "em " + item._BirthDate : "")</div></div>
+                                    <div class="row"><div class="col-sm-4 text-right"><b>Casamento: </b></div><div class="col-sm-8">@item.MarriagePlace @(item.MarriageDate.HasValue ? "em " + item._MarriageDate : "")</div></div>
+                                    <div class="row"><div class="col-sm-4 text-right"><b>Óbito: </b></div><div class="col-sm-8">@item.DeathPlace @(item.DeathDate.HasValue ? "em " + item._DeathDate : "")</div></div>
+                                </td>
+                            }
+                            else
+                            {
+                                <td>
+                                    <div class="row"><div class="col-sm-4 text-right"><b>Nascimento: </b></div><div class="col-sm-8">@item.BirthPlace @(item.BirthDate.HasValue ? "em " + item._BirthDate : "")</div></div>
+                                    <div class="row"><div class="col-sm-4 text-right"><b>Casamento: </b></div><div class="col-sm-8">@item.MarriagePlace @(item.MarriageDate.HasValue ? "em " + item._MarriageDate : "")</div></div>
+                                    <div class="row"><div class="col-sm-4 text-right"><b>Óbito: </b></div><div class="col-sm-8">@item.DeathPlace @(item.DeathDate.HasValue ? "em " + item._DeathDate : "")</div></div>
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</form>
+
+<script type="text/javascript">
+    $('.tr_checkbox').click(function () {
+        $(this).find('input')[0].checked = !$(this).find('input')[0].checked;
+    });
+    $('#SelecionarTodos').click(function () {
+        $('.checkbox-family-member').prop('checked', $(this).prop('checked'));
+    });
+
+    $("input[type=checkbox]").on("click", function (event) {
+        event.stopPropagation();
+    });
+</script>

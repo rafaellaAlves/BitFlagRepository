@@ -1,0 +1,31 @@
+﻿@{
+    var companies = (ViewData["Companies"] as List<DTO.Company.CompanyViewModel>);
+    var companyId = Context.Request.Query.ContainsKey("companyId") ? Context.Request.Query["companyId"].ToString() : null;
+    int _companyId;
+    bool companyIdIsValid = int.TryParse(companyId, out _companyId);
+
+}
+<div class="form-group">
+    <label class="control-label" for="CompanyId">@translationFunctions.GetTranslation("Unidades de Negócio", User.FindFirstValue("CultureInfo"))</label>
+    <select id="__companyId" multiple="multiple" class="form-control ReportParameter" style="width: 100%;" data-hidden-parameter="CompanyId">
+        @if (companies != null)
+        {
+            @foreach (var item in companies)
+            {
+                if (companyIdIsValid && item.CompanyId.Value == _companyId)
+                {
+                    <option selected="selected" value="@item.CompanyId">@item.NomeFantasia</option>
+                }
+                else
+                {
+                    <option value="@item.CompanyId">@item.NomeFantasia</option>
+                }
+            }
+        }
+    </select>
+</div>
+<script type="text/javascript">
+    $(document).ready(function () { 
+        $('#__companyId').change();
+    });
+</script>

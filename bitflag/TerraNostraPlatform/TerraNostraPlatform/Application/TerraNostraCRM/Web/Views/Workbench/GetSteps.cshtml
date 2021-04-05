@@ -1,0 +1,286 @@
+﻿@inject FUNCTIONS.Workbench.WorkbenchListFunctions workbenchListFunctions
+
+@{
+    ViewData["Title"] = "Área de Trabalho";
+    ViewData["SubTitle"] = "Processo #" + ViewData["ClientId"] + "/" + ViewData["JobId"];
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var job = workbenchListFunctions.GetDataByID(ViewData["JobId"]);
+}
+
+<h1 class="mb-2"><small>Processo nº <b>@(job.JobTerraNostraId != null ? (job.JobTerraNostraId + "/" + job.JobCreatedDate.Year).ToString() : "")</b></small></h1>
+<div class="row">
+    <div class="col-md-5">
+        <div class="card m-b-30">
+            <div class="card-body">
+                <h5>Últimas Informações do Processo</h5>
+                <hr />
+                <div id="_LatestJobInfoViewComponent"></div>
+                <hr />
+                <a href="javascript: JobHistoryModal();" class="btn btn-secondary pull-right"><i class="fas fa-list"></i>&nbsp;Histórico do Processo</a>
+            </div>
+        </div>
+        <br />
+        <div class="card">
+            <div class="card-body">
+                <h5>Dados do Cliente</h5>
+                <hr />
+                <div class="card-text">
+                    <div id="_ClientQuickViewViewComponent"></div>
+                    <hr />
+                    @if (User.IsInRole("Financial"))
+                    {
+                        <a class="btn btn-secondary pull-right" target="_blank" href="@Url.Action("Manage", "Client", new { id = ViewData["ClientId"] })">Visualizar Dados do Cliente&nbsp;<i class="fas fa-external-link-alt"></i></a>
+                    }
+                    else
+                    {
+                        <a class="btn btn-secondary pull-right" target="_blank" href="@Url.Action("Manage", "Client", new { id = ViewData["ClientId"] })">Editar Dados do Cliente&nbsp;<i class="fas fa-external-link-alt"></i></a>
+                    }
+
+                </div>
+            </div>
+        </div>
+        <br />
+        <div class="card">
+            <div class="card-body">
+                <h5>Links Úteis</h5>
+                <hr />
+                <div class="row">
+                    <div class="col-md-6">
+                        <a class="btn btn-primary" target="_blank" href="@Url.Action("Index", "RegistryOffice")">Cadastrar Cartório&nbsp;<i class="fas fa-external-link-alt"></i></a>
+                    </div>
+                    <div class="col-md-6">
+                        <a class="btn btn-primary" href="@Url.Action("CertificateStatus", "Workbench", new { jobId = job.JobId })">Status das Certidões&nbsp;<i class="fas fa-external-link-alt"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-body">
+                <h5>Etapas do Processo</h5>
+                <hr />
+                <div class="row">
+                    <div class="col-md-12 text-right">
+                        <small><i class="simple-icon-check"></i>&nbsp;=&nbsp;Finalizado</small>
+                        &nbsp;
+                        <small><i class="simple-icon-arrow-right"></i>&nbsp;=&nbsp;Em Andamento</small>
+                        &nbsp;
+                        <small class="m-r-10"><i class="simple-icon-exclamation"></i>&nbsp;=&nbsp;A Iniciar</small>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div id="_WorkflowViewerViewComponent"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Modals {
+    <div id="job-history-modal" class="modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Histórico do Processo</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="_JobInfoHistoryViewComponent"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="job-add-message-modal" class="modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Fazer uma Observação</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="control-label">Observações</label>
+                        <textarea id="message" class="form-control" style="width: 100%;" rows="8"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <!-- <button onclick="SaveMessage()" type="button" class="btn btn-primary float-right"><i class="simple-icon-cloud-upload"></i>Salvar</button>
+                    <button type="button" class="btn btn-secondary float-left" data-dismiss="modal">Fechar</button>-->
+                    <div class="row" style="width: 100%; margin: 0;">
+                        <div class="col-md-6">
+                            <button type="button" class="btn btn-secondary float-left" data-dismiss="modal">Fechar</button>
+                        </div>
+                        <div class="col-md-6">
+                            <button onclick="SaveMessage()" type="button" class="btn btn-success float-right"><i class="simple-icon-cloud-upload"></i> Salvar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="job-next-step-modal" class="modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Próxima Etapa</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="control-label">Observações</label>
+                        <textarea id="message-next-step" class="form-control" style="width: 100%;" rows="8"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <!-- <button type="button" class="btn btn-secondary float-left" data-dismiss="modal">Fechar</button>
+                         <button onclick="NextStep()" type="button" class="btn btn-primary float-right"><i class="simple-icon-cloud-upload"></i>Salvar</button>-->
+                    <div class="row" style="width: 100%; margin: 0;">
+                        <div class="col-md-6">
+                            <button type="button" class="btn btn-secondary float-left" data-dismiss="modal">Fechar</button>
+                        </div>
+                        <div class="col-md-6">
+                            <button onclick="NextStep()" type="button" class="btn btn-success float-right"><i class="simple-icon-cloud-upload"></i> Salvar</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="job-previous-step-modal" class="modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Voltar Etapa</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="control-label">Observações</label>
+                        <textarea id="message-previous-step" class="form-control" style="width: 100%;" rows="8"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <!-- <button onclick="PreviousStep()" type="button" class="btn btn-primary"><i class="simple-icon-cloud-upload"></i>Salvar</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button> -->
+                    <div class="row" style="width: 100%; margin: 0;">
+                        <div class="col-md-6">
+                            <button type="button" class="btn btn-secondary float-left" data-dismiss="modal">Fechar</button>
+                        </div>
+                        <div class="col-md-6">
+                            <button onclick="PreviousStep()" type="button" class="btn btn-success float-right"><i class="simple-icon-cloud-upload"></i> Salvar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts  {
+    <script type="text/javascript">
+        function LoadComponents() {
+            $('#_LatestJobInfoViewComponent').load('@Url.Action("LatestJobInfoViewComponent", "Workbench")', { jobId: @ViewData["JobId"] });
+
+            $('#_ClientQuickViewViewComponent').load('@Url.Action("ClientQuickViewViewComponent", "Client")', { clientId: @ViewData["ClientId"] });
+            $('#_WorkflowViewerViewComponent').load('@Url.Action("WorkflowViewerViewComponent", "Workflow")', { jobId: @ViewData["JobId"], workflowId: @if (ViewData["WorkflowId"] == null)
+            {<text>null</text>} else {<text>@ViewData["WorkflowId"]</text>} });
+        }
+        function JobHistoryModal() {
+            $('#_JobInfoHistoryViewComponent').load('@Url.Action("JobInfoHistoryViewComponent", "Workbench")', { jobId: @ViewData["JobId"] });
+            $('#job-history-modal').modal('show');
+        }
+
+        $('#job-add-message-modal').on('hidden.bs.modal', function (e) {
+            $('#message').val('');
+        });
+        function __AddMessageModal() {
+            $('#job-add-message-modal').modal('show');
+        }
+        function SaveMessage() {
+            if (!$('#message').val()) {
+                alert('Por favor, preencha a observação.');
+                return false;
+            }
+
+            $.get('@Url.Action("SaveCurrentStepMessage", "Workbench")', { jobId: @ViewData["JobId"], message: $('#message').val() }, function (d) {
+                if (d == true) {
+                    alert('Observação salva com sucesso!');
+
+                    LoadComponents();
+                    $('#job-add-message-modal').modal('hide');
+
+                } else {
+                    alert('Houve um erro ao salvar a observação.');
+                }
+            });
+        }
+
+        $('#job-next-step-modal').on('hidden.bs.modal', function (e) {
+            $('#message-next-step').val('');
+        });
+        function __NextStepModal() {
+            $('#job-next-step-modal').modal('show');
+        }
+        function NextStep() {
+            if (!$('#message-next-step').val()) {
+                alert('Por favor, preencha a observação.');
+                return false;
+            }
+
+            $.get('@Url.Action("GoToNextStep", "Workbench")', { jobId: @ViewData["JobId"], message: $('#message-next-step').val() }, function (d) {
+                if (d.hasError) {
+                    alert(d.message);
+                } else {
+                    LoadComponents();
+                    $('#job-next-step-modal').modal('hide');
+                }
+            });
+        }
+
+
+        $('#job-previous-step-modal').on('hidden.bs.modal', function (e) {
+            $('#message-previous-step').val('');
+        });
+        function __PreviousStepModal() {
+            $('#job-previous-step-modal').modal('show');
+        }
+        function PreviousStep() {
+            if (!$('#message-previous-step').val()) {
+                alert('Por favor, preencha a observação.');
+                return false;
+            }
+
+            $.get('@Url.Action("GoToPreviousStep", "Workbench")', { jobId: @ViewData["JobId"], message: $('#message-previous-step').val() }, function (d) {
+                if (d == true) {
+                    LoadComponents();
+                    $('#job-previous-step-modal').modal('hide');
+                } else {
+                    alert('Houve um erro ao ir para a próxima etapa.');
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            LoadComponents();
+        });
+    </script>
+}

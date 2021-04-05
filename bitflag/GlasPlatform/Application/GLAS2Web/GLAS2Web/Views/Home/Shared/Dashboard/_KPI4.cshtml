@@ -1,0 +1,95 @@
+﻿<div class="card shadow">
+    <div class="card-header">@translationFunctions.GetTranslation("Aplicáveis por Segmento", User.FindFirstValue("CultureInfo"))</div>
+    <div class="card-body">
+        <div id="kpi4" style="margin: 0 auto; height: 220px; line-height: 220px; text-align: center;"></div>
+        <small id="kpi4_Total"></small>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function ShowKPI4(_companyId) {
+        $.ajax({
+            url: '@Url.Action("GetKPI4", "Home")',
+            type: 'GET',
+            data: { companyId: _companyId },
+            contentType: 'application/json; charset=utf-8',
+            success: function (_data) {
+                var data = JSON.parse(_data);
+                if (data.length == 0) {
+                    $('#kpi4').html('<i>Nenhum requisito legal associado.</i>');
+                    return false;
+                }
+
+                var categories = [];
+                var concluido = [];
+                var naoConcluido = [];
+                var total = 0;
+
+                var axisMax = 0;
+                $.each(data, function (i, e) {
+                    categories.push(e.Name);
+                    concluido.push(e.Concluido);
+                    naoConcluido.push(e.NaoConcluido);
+
+                    if (e.Total > axisMax) axisMax = e.Total;
+
+                    total += e.Total;
+
+                    console.log(axisMax);
+                });
+
+                $('#kpi4_Total').text('Total: ' + total);
+
+                Highcharts.chart('kpi4', {
+
+                    chart: {
+                        type: 'column'
+                    },
+                    title: {
+                        text: null
+                    },
+
+                    credits: {
+                        enabled: false
+                    },
+
+                    exporting: {
+                        enabled: false
+                    },
+                    xAxis: {
+                        categories: categories
+                    },
+                    yAxis: {
+                        min: 0,
+                        tickInterval: 1,
+                        max: axisMax,
+                        title: {
+                            text: null
+                        }
+                    },
+                    tooltip: {
+                        pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.percentage:.0f}%)<br/>',
+                        shared: true
+                    },
+                    plotOptions: {
+                        column: {
+                            stacking: 'column'
+                        }
+                    },
+                    series: [{
+                        name: '@Html.Raw(translationFunctions.GetTranslation("Concluído", User.FindFirstValue("CultureInfo")))',
+                        color: '#9bd220',
+                        data: concluido
+                    }, {
+                        name: '@Html.Raw(translationFunctions.GetTranslation("Não concluído", User.FindFirstValue("CultureInfo")))',
+                        color: '#fb7035',
+                        data: naoConcluido
+                    }]
+                });
+            },
+            error: function () {
+                alert('Desculpe, houve um erro ao executar a consulta.');
+            }
+        });
+    }
+</script>

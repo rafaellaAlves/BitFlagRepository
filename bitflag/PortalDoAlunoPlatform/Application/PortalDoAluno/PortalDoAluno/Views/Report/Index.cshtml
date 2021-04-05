@@ -1,0 +1,122 @@
+﻿@{
+    ViewData["Title"] = "Consultas / Relatórios";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript">
+    _MaskData();
+</script>
+<h1><small>Relatórios</small></h1>
+<div class="card" style="height:747px; width:100%">
+    @*<div class="card-body">
+        <div id="_Report"></div>
+    </div>*@
+    <div class="card-body">
+        <div>
+            <div class="row">
+                <div class="col-md-3 ">
+                    <select id="Class" class="form-control" name="ResponsibleId">
+                        <option>Escolha o Documento</option>
+                        {
+                        <option>Certificados Entregues</option>
+                        <option>Documentação do Instituto</option>
+                        <option>Documentação Pessoal</option>
+                        <option>Documentação Profissional</option>
+                        <option>Situação de Presença</option>
+                        <option>Lista de E-mail</option>
+                        <option>Lista de Fotos</option>
+                        <option>Pagamentos (Gerar Excel)</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select id="Class" class="form-control" name="ResponsibleId">
+                        <option>Todas as Turmas</option>
+                        {
+                        <option>1</option>
+                        <option>2</option>
+                        <option>3</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <div class="input-group mb-5">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="simple-icon-magnifier"></i></span>
+                        </div>
+                        <input id="_DataSearch" type="text" class="form-control" placeholder="Procurar..." />
+                    </div>
+                </div>
+                <div class="col-md-3" align="center">
+                    <a href="@Url.Action("Manage", "Client")" class="btn btn-primary btn-lg" type="button" align="center"><i class="simple-icon-book-open"></i>&nbsp;Visualizar Consulta</a>
+                </div>
+            </div>
+        </div>
+        &nbsp;
+        <div>
+            <div class="row">
+                <div class="col-md-3">
+                    <select id="Class" class="form-control">
+                        <option>Turma</option>
+                        {
+                        <option>1</option>
+                        <option>2</option>
+                        <option>3</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select id="Class" class="form-control">
+                        <option>Período</option>
+                        {
+                        <option>Manhã</option>
+                        <option>Tarde</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <div class="input-group mb-5">
+                        <input id="_DataSearch" type="date" class="form-control" placeholder="Data" />
+                    </div>
+                </div>
+                <div class="col-md-3" align="center">
+                    <a href="@Url.Action("PresenceList", "Report")" class="btn btn-primary btn-lg" type="button" align="center"><i class="simple-icon-people"></i>&nbsp;Imprimir Lista de Presença</a>
+                </div>
+            </div>
+        </div>
+        &nbsp;
+        <div>
+            <div class="row">
+                <div class="col-md-3">
+                    <select id="Class" class="form-control">
+                        <option>Tipo</option>
+                        {
+                        <option>Detalhada</option>
+                        <option>Somente Nome</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select id="Class" class="form-control">
+                        <option>Turma</option>
+                        {
+                        <option>1</option>
+                        <option>2</option>
+                        <option>3</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3" align="center">
+                    <a href="@Url.Action("Pimaco", "Report")" class="btn btn-primary btn-lg" type="button" align="center"><i class="simple-icon-grid"></i>&nbsp;Imprimir Etiqueta Pimaco</a>
+                </div>
+            </div>
+            &nbsp;
+        </div>
+    </div>
+</div>
+&nbsp;
+
+
+
+
+

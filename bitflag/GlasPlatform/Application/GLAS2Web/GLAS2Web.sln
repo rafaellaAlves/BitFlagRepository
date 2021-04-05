@@ -1,0 +1,88 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30104.148
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GLAS2Web", "GLAS2Web\GLAS2Web.csproj", "{1EE85F29-C6D8-4C9F-9657-D9EF7D20C534}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DAL", "DAL\DAL.csproj", "{B13AC769-1424-4C8E-9311-7C4067C54990}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BLL", "BLL\BLL.csproj", "{78E83C15-2AEB-4845-9F1D-733CE669734B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DTO", "DTO\DTO.csproj", "{7D1E1813-1ADC-42E0-A0DC-811BAEFD61A7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UTILS", "UTILS\UTILS.csproj", "{C573439F-F16B-49FE-BE39-04866C5CF55A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AlanJuden.MvcReportViewer.NetCore", "MvcReportViewer\AlanJuden.MvcReportViewer.NetCore\AlanJuden.MvcReportViewer.NetCore.csproj", "{32A2ACD0-E23D-4D88-A417-32DC9ADF8908}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AvisoSender2", "AvisoSender2\AvisoSender2.csproj", "{30954071-8A77-45C6-8BFD-8190C296D438}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1EE85F29-C6D8-4C9F-9657-D9EF7D20C534}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1EE85F29-C6D8-4C9F-9657-D9EF7D20C534}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1EE85F29-C6D8-4C9F-9657-D9EF7D20C534}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1EE85F29-C6D8-4C9F-9657-D9EF7D20C534}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B13AC769-1424-4C8E-9311-7C4067C54990}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B13AC769-1424-4C8E-9311-7C4067C54990}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B13AC769-1424-4C8E-9311-7C4067C54990}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B13AC769-1424-4C8E-9311-7C4067C54990}.Release|Any CPU.Build.0 = Release|Any CPU
+		{78E83C15-2AEB-4845-9F1D-733CE669734B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{78E83C15-2AEB-4845-9F1D-733CE669734B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{78E83C15-2AEB-4845-9F1D-733CE669734B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{78E83C15-2AEB-4845-9F1D-733CE669734B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7D1E1813-1ADC-42E0-A0DC-811BAEFD61A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7D1E1813-1ADC-42E0-A0DC-811BAEFD61A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7D1E1813-1ADC-42E0-A0DC-811BAEFD61A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7D1E1813-1ADC-42E0-A0DC-811BAEFD61A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C573439F-F16B-49FE-BE39-04866C5CF55A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C573439F-F16B-49FE-BE39-04866C5CF55A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C573439F-F16B-49FE-BE39-04866C5CF55A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C573439F-F16B-49FE-BE39-04866C5CF55A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{32A2ACD0-E23D-4D88-A417-32DC9ADF8908}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32A2ACD0-E23D-4D88-A417-32DC9ADF8908}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32A2ACD0-E23D-4D88-A417-32DC9ADF8908}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32A2ACD0-E23D-4D88-A417-32DC9ADF8908}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30954071-8A77-45C6-8BFD-8190C296D438}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30954071-8A77-45C6-8BFD-8190C296D438}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30954071-8A77-45C6-8BFD-8190C296D438}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30954071-8A77-45C6-8BFD-8190C296D438}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {44DF8AA1-87B4-41E2-A2F9-959EE9512EB1}
+	EndGlobalSection
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 8
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = https://chokosysvsts.visualstudio.com/
+		SccLocalPath0 = .
+		SccProjectUniqueName1 = GLAS2Web\\GLAS2Web.csproj
+		SccProjectName1 = GLAS2Web
+		SccLocalPath1 = GLAS2Web
+		SccProjectUniqueName2 = DAL\\DAL.csproj
+		SccProjectName2 = DAL
+		SccLocalPath2 = DAL
+		SccProjectUniqueName3 = BLL\\BLL.csproj
+		SccProjectName3 = BLL
+		SccLocalPath3 = BLL
+		SccProjectUniqueName4 = DTO\\DTO.csproj
+		SccProjectName4 = DTO
+		SccLocalPath4 = DTO
+		SccProjectUniqueName5 = UTILS\\UTILS.csproj
+		SccProjectName5 = UTILS
+		SccLocalPath5 = UTILS
+		SccProjectUniqueName6 = MvcReportViewer\\AlanJuden.MvcReportViewer.NetCore\\AlanJuden.MvcReportViewer.NetCore.csproj
+		SccProjectName6 = MvcReportViewer/AlanJuden.MvcReportViewer.NetCore
+		SccLocalPath6 = MvcReportViewer\\AlanJuden.MvcReportViewer.NetCore
+		SccProjectUniqueName7 = AvisoSender2\\AvisoSender2.csproj
+		SccProjectName7 = AvisoSender2
+		SccLocalPath7 = AvisoSender2
+	EndGlobalSection
+EndGlobal

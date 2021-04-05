@@ -1,0 +1,453 @@
+﻿@model DTO.Subscription.SubscriptionViewModel
+@inject Services.OccupationArea.OccupationAreaService occupationAreaService
+@inject Services.ProfessionalSpecialty.ProfessionalSpecialtyService professionalSpecialtyService
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Atualizar Dados Assinatura";
+}
+@section Styles {
+    <style type="text/css">
+        @*#menu {
+            background-image: url('@Url.Content("~/assets/image/home-background-cover.jpeg")');
+            background-repeat: no-repeat;
+            background-size: cover;
+            min-height: 100%;
+        }*@
+
+        .form_error {
+            color: red;
+            display: none;
+        }
+
+    </style>
+}
+<div class="row">
+    <div class="col-md-6">
+        <div id="menu" class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12 text-center">
+                        @await Html.PartialAsync("../Shared/_LayoutMenuHome.cshtml");
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        @if (TempData["UpdateSucces"] != null)
+        {
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="alert alert-success">
+                        <b>Tudo certo!</b> @TempData["UpdateSucces"]
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="row">
+            <div class="col-12">
+                <div class="mb-2">
+                    <h2>
+                        Olá Dr(a), Informe abaixo o que deseja atualizar ou corrigir.
+                    </h2>
+                </div>
+                <hr />
+            </div>
+        </div>
+
+
+
+        <form id="UpdateAccount" method="post" action="@Url.Action("_UpdatePersonalInfo","Subscription", new {reference = Model.Reference})">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="card card-blue">
+                        <div class="card-body" id="Update">
+                            <div class="row">
+                                <input hidden name="SubscriptionId" value="@Model.SubscriptionId" type="text" class="form-control " />
+                              
+                                <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="control-label">Nome</label>
+                                    <input name="FullName" id="FullName" value="@Model.FullName" type="text" class="form-control" />
+                                    <span class="form_error">Campo obrigatório</span>
+                                    <span class="form_error" id="invalid-name">Digite um nome entre 5 e 30 caracteres</span>
+                                </div>
+                                 </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label">E-mail</label>
+                                        <input name="Email" id="Email" value="@Model.Email" type="email" class="form-control" />
+                                        <span class="form_error">Campo obrigatório</span>
+                                        <span class="form_error" id="invalid-email">Digite um E-mail válido</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label">Telefone</label>
+                                        <input name="PhoneNumber" id="PhoneNumber" value="@Model.PhoneNumber" type="tel" class="form-control" />
+                                        <span class="form_error">Digite um número de telefone válido</span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label">Celular</label>
+                                        <input name="MobileNumber" id="MobileNumber" value="@Model.MobileNumber" type="tel" class="form-control" />
+                                        <span class="form_error">Campo obrigatório</span>
+                                        <span class="form_error" id="invalid-mobilenumber">Digite um número de celular válido</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label class="control-label">Especialidade</label>
+                                        <select name="ProfessionalSpecialtyId" id="ProfessionalSpecialtyId" class="form-control">
+                                            <option value="">Selecione</option>
+                                            @foreach (var item in await professionalSpecialtyService.GetActiveAsync())
+                                            {
+                                                <option @(Model.ProfessionalSpecialtyId == item.ProfessionalSpecialtyId ? "selected=\"selected\"" : "") value="@item.ProfessionalSpecialtyId">@item.Name</option>
+                                            }
+                                        </select>
+                                        <span class="form_error" id="error2">Campo obrigatório</span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label class="control-label">CRMV <span data-toggle="tooltip" title="Volte a tela inicial para fazer a correção deste campo."><i class="simple-icon-question"></i></span></label>
+                                        <input value="@Model.Crmv" id="Crmv" type="text" disabled="disabled" class="form-control" />
+                                        <span class="form_error" id="error2">Campo obrigatório</span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label class="control-label">Ano de Formação</label>
+                                        <select class="form-control" id="GraduationYear" name="GraduationYear">
+                                            <option value="">Selecione</option>
+                                            @for (int i = DateTime.Now.Year; i >= 1940; i--)
+                                            {
+                                                <option @(Model.GraduationYear == i ? "selected=\"selected\"" : "") value="@i">@i</option>
+                                            }
+                                        </select>
+                                        <span class="form_error" id="error3">Campo obrigatório</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label class="control-label">CEP</label>
+                                        <input name="ZipCode" id="ZipCode" value="@Model.ZipCode" type="text" class="form-control" />
+                                        <span class="form_error">Campo obrigatório</span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label class="control-label">Endereço</label>
+                                        <input name="Address" id="Address" value="@Model.Address" type="text" class="form-control" />
+                                        <span class="form_error">Campo obrigatório</span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label class="control-label">Número</label>
+                                        <input name="AddressNumber" id="AddressNumber" value="@Model.AddressNumber" type="text" class="form-control" />
+                                        <span class="form_error">Campo obrigatório</span>
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label">Bairro</label>
+                                        <input name="Neighborhood" id="Neighborhood" value="@Model.Neighborhood" type="text" class="form-control" />
+                                        <span class="form_error">Campo obrigatório</span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="control-label">Complemento</label>
+                                        <input name="AddressAdditionalInfo" id="AddressAdditionalInfo" value="@Model.AddressAdditionalInfo" type="text" class="form-control" />
+                                        <span class="form_error">Digite um complemento entre 3 e 20 caracteres</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label class="control-label">Cidade</label>
+                                        <input name="City" id="City" value="@Model.City" type="text" class="form-control" />
+                                        <span class="form_error">Campo obrigatório</span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label class="control-label">Estado</label>
+                                        <select name="State" id="State" class="form-control">
+                                            <option value="">Selecione</option>
+                                            @foreach (var item in Services.Utils.UtilsService.GetStates())
+                                            {
+                                                <option @(Model.State == item.Code ? "selected=\"selected\"" : "") value="@item.Code">@item.Description</option>
+                                            }
+                                        </select>
+                                        <span class="form_error">Campo obrigatório</span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-4">
+                                    <div class="form-group">
+                                        <label style="visibility:hidden" class="control-label ">botão</label><br />
+                                        <button  onclick="return validateForm()" type="submit" class="btn btn-primary">Validar</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/assets/js/Utils.js"></script>
+    <script type="text/javascript">
+
+        function validateForm() {
+            var name = $('#FullName').val();
+            var email = $('#Email').val();
+            var telefone = $('#PhoneNumber').val();
+            var celular = $('#MobileNumber').val();
+            var especialidade = $('#ProfessionalSpecialtyId').val();
+            var crmv = $('#Crmv').val();            
+            var ano = $('#GraduationYear').val();           
+            var cep = $('#ZipCode').val();
+            var endereco = $('#Address').val();
+            var numero = $('#AddressNumber').val();
+            var bairro = $('#Neighborhood').val();
+            var complemento = $('#AddressAdditionalInfo').val();          
+            var cidade = $('#City').val();
+            var estado = $('#State').val();
+            var cont = 0;
+
+            //NOME
+            if (name == '') {
+                $('#FullName').next().show();
+                $('#invalid-name').hide();
+                focus('#FullName');
+                cont = 1;
+
+            } else if (name.length < 5 || name.length > 30) {
+                $('#invalid-name').show();
+                $('#FullName').next().hide();
+                focus('#FullName');
+                cont = 1;
+
+            } else {
+                forceFocus('#FullName');
+                $('#FullName').next().hide();
+                $('#invalid-name').hide();
+            }
+
+            //EMAIL
+            if (email == '') {
+                $('#Email').next().show();
+                $('#invalid_email').hide();
+                focus('#Email');
+                cont = 1;
+            } else {
+                forceFocus('#Email');
+                $('#Email').next().hide();
+                $('#invalid-email').hide();
+            }
+
+            //TELEFONE
+            if (telefone == '') {
+                forceFocus('#PhoneNumber');
+                $('#PhoneNumber').next().hide();
+                cont = 1;
+            } else {
+                forceFocus('#PhoneNumber');
+                $('#PhoneNumber').next().hide();
+            }
+
+            //CELULAR
+            if (celular == '') {
+                $('#MobileNumber').next().show();
+                $('#invalid_mobilenumber').hide();
+                focus('#MobileNumber');
+                cont = 1;
+            } else {
+                forceFocus('#MobileNumber');
+                $('#MobileNumber').next().hide();
+                $('#invalid-mobilephone').hide();
+            }
+
+            //CRMV E INFORMAÇÕES VET
+            if (especialidade == '') {
+                $('#error2').show();
+                focus('#ProfessionalSpecialtyId');
+                cont = 1;
+            } else {
+                forceFocus('#ProfessionalSpecialtyId');
+                $('#error2').hide();
+            }
+
+            if (crmv == '') {
+                $('#Crmv').next().show();
+                focus('#Crmv');
+                cont = 1;
+
+            } else {
+                forceFocus('#Crmv');
+                $('#Crmv').next().hide();
+            }
+
+
+            if (ano == '') {
+                $('#error3').show();
+                focus('#GraduationYear');
+                cont = 1;
+            } else {
+                forceFocus('#GraduationYear');
+                $('#error3').hide();
+            }       
+                     
+
+            //CEP
+            if (cep == '') {
+                $('#ZipCode').next().show();
+                focus('#ZipCode');
+                cont = 1;
+            } else {
+                forceFocus('#ZipCode');
+                $('#ZipCode').next().hide();
+            }
+
+            //ENDEREÇO
+            if (endereco == '') {
+                $('#Address').next().show();
+                focus('#Address');
+                cont = 1;
+            } else {
+                forceFocus('#Address');
+                $('#Address').next().hide();
+            }
+
+            //NUMERO
+            if (numero == '') {
+                $('#AddressNumber').next().show();
+                focus('#AddressNumber');
+                cont = 1;
+            } else {
+                forceFocus('#AddressNumber');
+                $('#AddressNumber').next().hide();
+            }
+
+            //BAIRRO
+            if (bairro == '') {
+                $('#Neighborhood').next().show();
+                focus('#Neighborhood');
+                cont = 1;
+            } else {
+                forceFocus('#Neighborhood');
+                $('#Neighborhood').next().hide();
+            }
+
+            //COMPLEMENTO
+            if (complemento.length < 3 || complemento.length > 20) {
+                $('#AddressAdditionalInfo').next().hide();
+                focus('#AddressAdditionalInfo');
+                cont = 1;
+            } else {
+                forceFocus('#AddressAdditionalInfo');
+                $('#AddressAdditionalInfo').next().hide();
+            }
+           
+            //CIDADE
+            if (cidade == '') {
+                $('#City').next().show();
+                focus('#City');
+                cont = 1;
+            } else {
+                forceFocus('#City');
+                $('#City').next().hide();
+            }
+
+            //ESTADO
+            if (estado == '') {
+                $('#State').next().show();
+                focus('#State');
+                cont = 1;
+            } else {
+                forceFocus('#State');
+                $('#State').next().hide();
+            }
+
+            if (cont == 1) {
+                return false;
+            } else if(cont == 0){
+                $("#UpdateAccount").submit();
+                
+            }
+          
+        }
+
+        $(document).ready(function () {
+            //MASCARAS
+
+            $('#ZipCode').mask('99999-999');
+            $('#Cpf').mask('999.999.999-99');
+
+            //PREENCHE ENDEREÇO AUTOMÁTICO
+            $('#ZipCode').blur(function () {
+
+                var cep = $(this).val().replace(/\D/g, '');
+
+                if (cep != "") {
+                    var validacep = /^[0-9]{8}$/;
+                    if (validacep.test(cep)) {
+
+                        $("#rua").val("...");
+                        $("#bairro").val("...");
+                        $("#cidade").val("...");
+                        $("#uf").val("...");
+
+
+                        $.getJSON("//viacep.com.br/ws/" + cep + "/json/?callback=?", function (dados) {
+
+                            if (!("erro" in dados)) {
+                                $('#Address').val(dados.logradouro);
+                                $('#Neighborhood').val(dados.bairro);
+                                $('#City').val(dados.localidade);
+                                $('#State').val(dados.uf);
+
+                            }
+                            else {
+                                clearFormZipcode();
+                                alert("CEP não encontrado.");
+                            }
+                        });
+                    }
+                    else {
+                        clearFormZipcode();
+                        alert("Formato de CEP inválido.");
+                    }
+                }
+                else {
+
+                    clearFormZipcode();
+                }
+            })
+        });
+    </script>
+
+
+
+
+
+}
+
+

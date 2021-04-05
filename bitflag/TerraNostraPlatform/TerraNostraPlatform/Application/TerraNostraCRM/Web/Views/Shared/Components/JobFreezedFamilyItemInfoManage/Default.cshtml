@@ -1,0 +1,579 @@
+﻿@model DTO.Job.JobFreezedFamilyInfoContainerViewModel
+@inject FUNCTIONS.RegistryOffice.RegistryOfficeFunctions registryOfficeFunctions
+@inject FUNCTIONS.Job.JobFunctions jobFunctions
+@{
+    var registryOffices = registryOfficeFunctions.GetData(x => !x.IsDeleted);
+}
+<style type="text/css">
+    #table1 td {
+        vertical-align: middle;
+    }
+</style>
+
+<h5 class="text-center">
+    @Model.Title
+    @if (Model.IsPrintMode)
+    {
+        <br />
+        <small>@DateTime.Now.ToString("dd/MM/yyyy HH:MM:ss")</small>
+    }
+</h5>
+<hr />
+<div style="width: 100%; @(!Model.IsPrintMode ? "overflow-x: auto;" : string.Empty)">
+    <table id="table1" class="display table table-bordered table-condensed" style=" @(Model.IsPrintMode ? string.Empty : "table-layout: fixed;")">
+        <thead>
+            <tr>
+                <th style="width: 150px;">Grau de Parentesco</th>
+                <th style="width: 150px;">Nome</th>
+                <th style="width: 150px;">Certidão</th>
+                <th style="width: 150px;">Data</th>
+                <th style="width: 250px; @Model.HideColumnStyle("RegistryOfficeId")">Cartório / Cidade de Registro</th>
+                @*Solicitação de Certidões*@
+                <th style="width: 100px; @Model.HideColumnStyle("RegistryOfficeBook")">Livro</th>
+                <th style="width: 100px; @Model.HideColumnStyle("RegistryOfficePage")">Folha</th>
+                <th style="width: 100px; @Model.HideColumnStyle("RegistryOfficeTerm")">Termo</th>
+                <th style="width: 150px; @Model.HideColumnStyle("RegistryOfficePhone")">Telefone</th>
+                <th style="width: 250px; @Model.HideColumnStyle("RegistryOfficeEmail")">E-mail</th>
+                <th style="width: 150px; @Model.HideColumnStyle("RegistryOfficeRequirementSent")">Requerimento Enviado?</th>
+                <th style="width: 150px; @Model.HideColumnStyle("RegistryOfficeRequirementSentDate")">Solicitação da Certidão</th>
+                <th style="width: 150px; @Model.HideColumnStyle("RegistryOfficeFeedbackId")">Retorno Cartório</th>
+                @*Check-list das Certidões*@
+                <th style="width: 150px; @Model.HideColumnStyle("RegistryOfficeCertificateCheck")">&nbsp;</th>
+                @*Levantamento Cartório*@
+                <th style="width: 150px; @Model.HideColumnStyle("RegistryOfficeRequirementSentEmailDate")">Data de Envio do E-mail</th>
+                <th style="width: 150px; @Model.HideColumnStyle("RegistryOfficeRequirementCheck")">Requerimento</th>
+                @*Pagamento Cartório*@
+                <th style="width: 150px; @Model.HideColumnStyle("RegistryOfficeCertificatePrice")">Valor da Certidão (R$)</th>
+                <th style="width: 150px; @Model.HideColumnStyle("RegistryOfficeShippingPrice")">Correio (R$)</th>
+                <th style="width: 150px; @Model.HideColumnStyle("RegistryOfficeTotalPrice")">Valor de Pagamento (R$)</th>
+                <th style="width: 150px; @Model.HideColumnStyle("RegistryOfficePaymentDate")">Data de Pagamento</th>
+                <th style="width: 150px; @Model.HideColumnStyle("RegistryOfficeShippingDate")">Data de Envio Certidão</th>
+                <th style="width: 150px; @Model.HideColumnStyle("RegistryOfficeCertificateShippingArrivalDate")">Recebimento da Certidão</th>
+                @*Traduções*@
+                <th style="width: 150px; @Model.HideColumnStyle("TranslationSentDate")">Data de Envio Tradução</th>
+                <th style="width: 150px; @Model.HideColumnStyle("TranslationReceiveDate")">Data de Recebimento Tradução</th>
+                @*Apostilamento*@
+                <th style="width: 150px; @Model.HideColumnStyle("HaiaHandoutSentDate")">Data de Envio Apostilamento</th>
+                <th style="width: 150px; @Model.HideColumnStyle("HaiaHandoutReceiveDate")">Data de Recebimento Apostilamento</th>
+                @*Documentos Enviados para a Itália*@
+                <th style="width: 150px; @Model.HideColumnStyle("ItalyProtocolTranslationCheck")">Tradução</th>
+                <th style="width: 150px; @Model.HideColumnStyle("ItalyProtocolHaiaCheck")">Apostilamento</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.JobFreezedFamilyInfoViewModels.OrderByDescending(x => x.FamilyMemberTypeId))
+            {
+                foreach (var certificate in item.Items)
+                {
+                    var _registryOffice = certificate.RegistryOfficeId.HasValue ? registryOffices.SingleOrDefault(x => x.RegistryOfficeId == certificate.RegistryOfficeId.Value) : null;
+
+                    <tr class="row-data" style="@(certificate.CertificateTypeId == 4 ? "font-weight: bold;" : "")" data-job-freezed-family-item-info-id="@certificate.JobFreezedFamilyItemInfoId" data-invoice-freezed-family-item-id="@certificate.InvoiceFreezedFamilyItemId" data-certificate-type-id="@certificate.CertificateTypeId">
+                        @if (item.Items.IndexOf(certificate) == 0)
+                        {
+                            <td class="text-center" rowspan="@item.Items.Count">@item.FullFamilyStruct.Replace("Você", "Requerente")</td>
+                            <td class="text-center" rowspan="@item.Items.Count">
+                                <b>@item.FullName</b>
+                                @if (!string.IsNullOrWhiteSpace(item.ConsortFullName))
+                                {
+                                    <br /><span>Cônjuge: @item.ConsortFullName</span>
+                                }
+                            </td>
+                        }
+                        <td class="text-center">
+                            @certificate.CertificateType
+                        </td>
+                        <td class="text-center">
+                            @if (certificate.CertificateTypeId == 4)
+                            {
+                                if (Model.IsPrintMode)
+                                {
+                                    <span>@certificate._CertificateDate</span>
+                                }
+                                else
+                                {
+                                    <input name="CertificateDate" title="@item.FullName" value="@certificate._CertificateDate" class="form-control date" type="text" />
+                                }
+
+                            }
+                            else
+                            {
+                                <input name="CertificateDate" title="@item.FullName" value="@certificate._CertificateDate" type="hidden" />
+                                <span>@certificate._CertificateDate</span>
+                            }
+                        </td>
+                        <td style="@Model.HideColumnStyle("RegistryOfficeId")">
+                            @if (Model.IsPrintMode)
+                            {
+                                <span>@(_registryOffice == null ? "-" : $"{_registryOffice.Country} / {_registryOffice.State} / {_registryOffice.City} / {_registryOffice.Name}")</span>
+                            }
+                            else
+                            {
+                                <select name="RegistryOfficeId" title="@item.FullName" class="form-control">
+                                    <option value="">Selecione</option>
+                                    @foreach (var registryOffice in registryOffices)
+                                    {
+                                        if (registryOffice.RegistryOfficeId == certificate.RegistryOfficeId)
+                                        {
+                                            <option selected="selected" value="@registryOffice.RegistryOfficeId">@registryOffice.Country / @registryOffice.State / @registryOffice.City  / @registryOffice.Name</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@registryOffice.RegistryOfficeId">@registryOffice.Country / @registryOffice.State / @registryOffice.City  / @registryOffice.Name</option>
+                                        }
+
+                                    }
+                                </select>
+                            }
+                        </td>
+                        <td style="@Model.HideColumnStyle("RegistryOfficeBook")">
+                            @if (Model.IsPrintMode)
+                            {
+                                <span>@certificate.RegistryOfficeBook</span>
+                            }
+                            else
+                            {
+                                <input name="RegistryOfficeBook" value="@certificate.RegistryOfficeBook" title="@item.FullName" class="form-control" type="text" />
+                            }
+                        </td>
+                        <td style="@Model.HideColumnStyle("RegistryOfficePage")">
+                            @if (Model.IsPrintMode)
+                            {
+                                <span>@certificate.RegistryOfficePage</span>
+                            }
+                            else
+                            {
+                                <input name="RegistryOfficePage" value="@certificate.RegistryOfficePage" title="@item.FullName" class="form-control" type="text" />
+                            }
+                        </td>
+                        <td style="@Model.HideColumnStyle("RegistryOfficeTerm")">
+                            @if (Model.IsPrintMode)
+                            {
+                                <span>@certificate.RegistryOfficeTerm</span>
+                            }
+                            else
+                            {
+                                <input name="RegistryOfficeTerm" value="@certificate.RegistryOfficeTerm" title="@item.FullName" class="form-control" type="text" />
+                            }
+                        </td>
+                        <td style="@Model.HideColumnStyle("RegistryOfficePhone")">
+                            @if (Model.IsPrintMode)
+                            {
+                                <span>@(_registryOffice == null ? "-" : _registryOffice.Phone)</span>
+                            }
+                            else
+                            {
+                                @(_registryOffice == null ? "-" : _registryOffice.Phone)
+                            }
+                        </td>
+                        <td style="@Model.HideColumnStyle("RegistryOfficeEmail")">
+                            @if (Model.IsPrintMode)
+                            {
+                                <span>@(_registryOffice == null ? "-" : _registryOffice.Email)</span>
+                            }
+                            else
+                            {
+                                @(_registryOffice == null ? "-" : _registryOffice.Email)
+                            }
+                        </td>
+                        <td style="@Model.HideColumnStyle("RegistryOfficeRequirementSent")">
+                            @if (Model.IsPrintMode)
+                            {
+                                <span>@(certificate.RegistryOfficeRequirementSent ? "Sim" : "Não")</span>
+                            }
+                            else
+                            {
+                                <input name="RegistryOfficeRequirementSent" title="@item.FullName" @(certificate.RegistryOfficeRequirementSent ? "checked=\"checked\"" : "") class="form-control" type="checkbox" />
+                            }
+                        </td>
+                        <td style="@Model.HideColumnStyle("RegistryOfficeRequirementSentDate")">
+                            @if (Model.IsPrintMode)
+                            {
+                                <span>@certificate._RegistryOfficeRequirementSentDate</span>
+                            }
+                            else
+                            {
+                                <input name="RegistryOfficeRequirementSentDate" title="@item.FullName" value="@certificate._RegistryOfficeRequirementSentDate" class="form-control date" type="text" />
+                            }
+                        </td>
+                        <td class="text-center" style="@Model.HideColumnStyle("RegistryOfficeFeedbackId")">
+                            @if (Model.IsPrintMode)
+                            {
+                                <span>&nbsp;</span>
+                            }
+                            else
+                            {
+                                <a href="javascript: openJobFreezedFamilyInfoRegistryOfficeModal(@certificate.JobFreezedFamilyItemInfoId);" class="badge badge-primary"><span class="simple-icon-pencil"></span></a>
+                            }
+                        </td>
+                        <td style="@Model.HideColumnStyle("RegistryOfficeCertificateCheck")">
+                            @if (Model.IsPrintMode)
+                            {
+                                <span>@(certificate.RegistryOfficeCertificateCheck ? "Sim" : "Não")</span>
+                            }
+                            else
+                            {
+                                <input name="RegistryOfficeCertificateCheck" title="@item.FullName" @(certificate.RegistryOfficeCertificateCheck ? "checked=\"checked\"" : "") class="form-control" type="checkbox" />
+                            }
+                        </td>
+                        <td style="@Model.HideColumnStyle("RegistryOfficeRequirementSentEmailDate")">
+                            @if (Model.IsPrintMode)
+                            {
+                                <span>@certificate._RegistryOfficeRequirementSentEmailDate</span>
+                            }
+                            else
+                            {
+                                <input name="RegistryOfficeRequirementSentEmailDate" title="@item.FullName" value="@certificate._RegistryOfficeRequirementSentEmailDate" class="form-control date" type="text" />
+                            }
+                        </td>
+                        <td style="@Model.HideColumnStyle("RegistryOfficeRequirementCheck")">
+                            @if (Model.IsPrintMode)
+                            {
+                                <span>@(certificate.RegistryOfficeRequirementCheck ? "Sim" : "Não")</span>
+                            }
+                            else
+                            {
+                                <input name="RegistryOfficeRequirementCheck" title="@item.FullName" @(certificate.RegistryOfficeRequirementCheck ? "checked=\"checked\"" : "") class="form-control" type="checkbox" />
+                            }
+                        </td>
+                        <td style="@Model.HideColumnStyle("RegistryOfficeCertificatePrice")">
+                            @if (Model.IsPrintMode)
+                            {
+                                <span>@certificate._RegistryOfficeCertificatePrice</span>
+                            }
+                            else
+                            {
+                                <input name="RegistryOfficeCertificatePrice" title="@item.FullName" value="@certificate._RegistryOfficeCertificatePrice" class="form-control money" type="text" />
+                            }
+                        </td>
+                        <td style="@Model.HideColumnStyle("RegistryOfficeShippingPrice")">
+                            @if (Model.IsPrintMode)
+                            {
+                                <span>@certificate._RegistryOfficeShippingPrice</span>
+                            }
+                            else
+                            {
+                                <input name="RegistryOfficeShippingPrice" title="@item.FullName" value="@certificate._RegistryOfficeShippingPrice" class="form-control money" type="text" />
+                            }
+                        </td>
+                        <td style="@Model.HideColumnStyle("RegistryOfficeTotalPrice")">
+                            @if (Model.IsPrintMode)
+                            {
+                                <span>@certificate._RegistryOfficeTotalPrice</span>
+                            }
+                            else
+                            {
+                                <input name="RegistryOfficeTotalPrice" title="@item.FullName" value="@certificate._RegistryOfficeTotalPrice" class="form-control money" type="text" />
+                            }
+                        </td>
+                        <td style="@Model.HideColumnStyle("RegistryOfficePaymentDate")">
+                            @if (Model.IsPrintMode)
+                            {
+                                <span>@certificate._RegistryOfficePaymentDate</span>
+                            }
+                            else
+                            {
+                                <input name="RegistryOfficePaymentDate" title="@item.FullName" value="@certificate._RegistryOfficePaymentDate" class="form-control date" type="text" />
+                            }
+                        </td>
+                        <td style="@Model.HideColumnStyle("RegistryOfficeShippingDate")">
+                            @if (Model.IsPrintMode)
+                            {
+                                <span>@certificate._RegistryOfficeShippingDate</span>
+                            }
+                            else
+                            {
+                                <input name="RegistryOfficeShippingDate" title="@item.FullName" value="@certificate._RegistryOfficeShippingDate" class="form-control date" type="text" />
+                            }
+                        </td>
+                        <td style="@Model.HideColumnStyle("RegistryOfficeCertificateShippingArrivalDate")">
+                            @if (Model.IsPrintMode)
+                            {
+                                <span>@certificate._RegistryOfficeCertificateShippingArrivalDate</span>
+                            }
+                            else
+                            {
+                                <input name="RegistryOfficeCertificateShippingArrivalDate" title="@item.FullName" value="@certificate._RegistryOfficeCertificateShippingArrivalDate" class="form-control date" type="text" />
+                            }
+                        </td>
+                        <td style="@Model.HideColumnStyle("TranslationSentDate")">
+                            @if (Model.IsPrintMode)
+                            {
+                                <span>@certificate._TranslationSentDate</span>
+                            }
+                            else
+                            {
+                                <input name="TranslationSentDate" title="@item.FullName" value="@certificate._TranslationSentDate" class="form-control date" type="text" />
+                            }
+                        </td>
+                        <td style="@Model.HideColumnStyle("TranslationReceiveDate")">
+                            @if (Model.IsPrintMode)
+                            {
+                                <span>@certificate._TranslationReceiveDate</span>
+                            }
+                            else
+                            {
+                                <input name="TranslationReceiveDate" title="@item.FullName" value="@certificate._TranslationReceiveDate" class="form-control date" type="text" />
+                            }
+                        </td>
+                        <td style="@Model.HideColumnStyle("HaiaHandoutSentDate")">
+                            @if (Model.IsPrintMode)
+                            {
+                                <span>@certificate._HaiaHandoutSentDate</span>
+                            }
+                            else
+                            {
+                                <input name="HaiaHandoutSentDate" title="@item.FullName" value="@certificate._HaiaHandoutSentDate" class="form-control date" type="text" />
+                            }
+                        </td>
+                        <td style="@Model.HideColumnStyle("HaiaHandoutReceiveDate")">
+                            @if (Model.IsPrintMode)
+                            {
+                                <span>@certificate._HaiaHandoutReceiveDate</span>
+                            }
+                            else
+                            {
+                                <input name="HaiaHandoutReceiveDate" title="@item.FullName" value="@certificate._HaiaHandoutReceiveDate" class="form-control date" type="text" />
+                            }
+                        </td>
+                        <td style="@Model.HideColumnStyle("ItalyProtocolTranslationCheck")">
+                            @if (Model.IsPrintMode)
+                            {
+                                <span>@(certificate.ItalyProtocolTranslationCheck ? "Sim" : "Não")</span>
+                            }
+                            else
+                            {
+                                <input name="ItalyProtocolTranslationCheck" title="@item.FullName" @(certificate.ItalyProtocolTranslationCheck ? "checked=\"checked\"" : "") class="form-control" type="checkbox" />
+                            }
+                        </td>
+                        <td style="@Model.HideColumnStyle("ItalyProtocolHaiaCheck")">
+                            @if (Model.IsPrintMode)
+                            {
+                                <span>@(certificate.ItalyProtocolHaiaCheck ? "Sim" : "Não")</span>
+                            }
+                            else
+                            {
+                                <input name="ItalyProtocolHaiaCheck" title="@item.FullName" @(certificate.ItalyProtocolHaiaCheck ? "checked=\"checked\"" : "") class="form-control" type="checkbox" />
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (Model.HasModule("ItalyProtocol"))
+{
+    var sentDate = jobFunctions.ItalyProtocolModuleGetSentDate(Model.JobId);
+    var date = sentDate == null ? DateTime.Now : sentDate.Value;
+    int day = date.Day;
+    string month = System.Globalization.CultureInfo.GetCultureInfo("pt-br").DateTimeFormat.GetMonthName(date.Month);
+    int year = date.Year;
+
+    <div class="text-center">
+        <div class="form-group">
+            <label class="control-label">Documentos Adicionais:</label>
+            <textarea id="ItalyProtocolAdditionalDocuments" class="form-control" rows="8">@Html.Raw(jobFunctions.GetItalyProtocolAdditionalDocuments(Model.JobId))</textarea>
+        </div>
+    </div>
+    <div class="text-center" id="JobFreezedFamilyInfoConfirmItalyProtocolContainer">
+        <div style="border: 1px solid #f3f3f3 !important; padding: 1em;">
+            <div class="no-print" style="text-align: left">
+                <input id="JobFreezedFamilyInfoConfirmItalyProtocolNoPrint" type="checkbox" /> Não Imprimir
+            </div>
+            <h5>
+                São Caetano do Sul - BR, @string.Format("{0} de {1} de {2}", day, month, year)
+                @if (sentDate == null)
+                {
+                    <br />
+                    <small><a href="javascript: jobFreezedFamilyInfoConfirmItalyProtocol()">Confirmar entrega para esta data.</a></small>
+                }
+            </h5>
+            <div style="width: 400px; border-top: 1px solid black; margin: 0 auto; margin-top: 6em; padding: 1em;">
+                Assinatura
+            </div>
+            <div style="width: 400px; border-top: 1px solid black; margin: 0 auto; margin-top: 4em; padding: 1em;">
+                Razão Social da Empresa
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        function jobFreezedFamilyInfoConfirmSaveItalyProtocolDocuments(callback) {
+            $.post('@Url.Action("SaveItalyProtocolAdditionalDocuments", "Workbench")', { jobId: @Model.JobId, documents: $('#ItalyProtocolAdditionalDocuments').val() }, function (d) {
+                callback();
+            });
+        }
+        function jobFreezedFamilyInfoConfirmItalyProtocol() {
+            if (confirm("Deseja realmente confirmar o envio para a Itália?")) {
+                $.post('@Url.Action("ItalyProtocolModuleSaveSentDate", "Workbench")', { jobId: @Model.JobId }, function (d) {
+                    document.location.href = '@Url.Action("GetSteps", "Workbench", new { jobId = Model.JobId })';
+                });
+            }
+        }
+        $('#JobFreezedFamilyInfoConfirmItalyProtocolNoPrint').click(function () {
+            var checked = $(this).prop('checked');
+            if (checked) {
+                $('#JobFreezedFamilyInfoConfirmItalyProtocolContainer').addClass('no-print');
+            } else {
+                $('#JobFreezedFamilyInfoConfirmItalyProtocolContainer').removeClass('no-print');
+            }
+        });
+    </script>
+}
+
+
+@if (!Model.IsPrintMode)
+{
+    <text>
+        <div id="jobFreezedFamilyInfoRegistryOfficeModal" class="modal" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Retorno do Cartório</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="jobFreezedFamilyItemInfoId" />
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <textarea name="message" class="form-control" rows="8"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" onclick="saveJobFreezedFamilyInfoRegistryOfficeModal()"><span class="simple-icon-cloud-upload"></span>&nbsp;Salvar</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script type="text/javascript">
+            function openJobFreezedFamilyInfoRegistryOfficeModal(jobFreezedFamilyItemInfoId) {
+                $('#jobFreezedFamilyInfoRegistryOfficeModal').find('input[name="jobFreezedFamilyItemInfoId"]').val(jobFreezedFamilyItemInfoId);
+                $('#jobFreezedFamilyInfoRegistryOfficeModal').find('textarea[name="message"]').val('');
+                $.get('@Url.Action("GetJobFreezedFamilyItemInfoRegistryOffice", "Workbench")', { jobFreezedFamilyItemInfoId }, function (d) {
+                    $('#jobFreezedFamilyInfoRegistryOfficeModal').find('textarea[name="message"]').val(d);
+                    $('#jobFreezedFamilyInfoRegistryOfficeModal').modal('show');
+                })
+            }
+            function saveJobFreezedFamilyInfoRegistryOfficeModal() {
+                var jobFreezedFamilyItemInfoId = $('#jobFreezedFamilyInfoRegistryOfficeModal').find('input[name="jobFreezedFamilyItemInfoId"]').val();
+                var message = $('#jobFreezedFamilyInfoRegistryOfficeModal').find('textarea[name="message"]').val();
+                $.post('@Url.Action("SaveJobFreezedFamilyItemInfoRegistryOffice", "Workbench")', { jobFreezedFamilyItemInfoId, message }, function (d) {
+                    alert('Dados salvos com sucesso!');
+                    $('#jobFreezedFamilyInfoRegistryOfficeModal').find('textarea[name="message"]').val(d);
+                    $('#jobFreezedFamilyInfoRegistryOfficeModal').modal('hide');
+                })
+
+            }
+        </script>
+        <script type="text/javascript">
+            $('.date').mask('99/99/9999');
+            $('.date').datepicker({ format: 'dd/mm/yyyy', language: 'pt-BR', autoclose: true });
+            $('.money').mask('#.##0,00', { reverse: true });
+
+        @if (Model.Block)
+        {
+        <text>
+            $(document).ready(function () {
+                $('.row-data').each(function (i, e) {
+                    $(e).find('input[name="CertificateDate"]').prop('disabled', true);
+                    $(e).find('select[name="RegistryOfficeId"]').prop('disabled', true);
+                    $(e).find('input[name="RegistryOfficeBook"]').prop('disabled', true);
+                    $(e).find('input[name="RegistryOfficePage"]').prop('disabled', true);
+                    $(e).find('input[name="RegistryOfficeTerm"]').prop('disabled', true);
+                    $(e).find('input[name="RegistryOfficeRequirementSent"]').prop('checked');
+                    $(e).find('input[name="RegistryOfficeRequirementSentDate"]').prop('disabled', true);
+                    $(e).find('input[name="RegistryOfficeCertificateCheck"]').prop('disabled', true);
+                    $(e).find('input[name="RegistryOfficeRequirementSentEmailDate"]').prop('disabled', true);
+                    $(e).find('input[name="RegistryOfficeRequirementCheck"]').prop('disabled', true);
+                    $(e).find('input[name="RegistryOfficeCertificatePrice"]').prop('disabled', true);
+                    $(e).find('input[name="RegistryOfficeShippingPrice"]').prop('disabled', true);
+                    $(e).find('input[name="RegistryOfficeTotalPrice"]').prop('disabled', true);
+                    $(e).find('input[name="RegistryOfficePaymentDate"]').prop('disabled', true);
+                    $(e).find('input[name="RegistryOfficeShippingDate"]').prop('disabled', true);
+                    $(e).find('input[name="RegistryOfficeCertificateShippingArrivalDate"]').prop('disabled', true);
+                    $(e).find('input[name="TranslationSentDate"]').prop('disabled', true);
+                    $(e).find('input[name="TranslationReceiveDate"]').prop('disabled', true);
+                    $(e).find('input[name="HaiaHandoutSentDate"]').prop('disabled', true);
+                    $(e).find('input[name="HaiaHandoutReceiveDate"]').prop('disabled', true);
+                });
+            });
+        </text>
+        }
+        else
+        {
+        <text>
+            function jobFreezedFamilyItemInfoManageViewComponentGetForm() {
+                var form = [];
+                $('.row-data').each(function (i, e) {
+                    form.push({ name: '[' + i + '].JobFreezedFamilyItemInfoId', value: $(e).data('job-freezed-family-item-info-id') });
+                    form.push({ name: '[' + i + '].InvoiceFreezedFamilyItemId', value: $(e).data('invoice-freezed-family-item-id') });
+                    form.push({ name: '[' + i + '].CertificateTypeId', value: $(e).data('certificate-type-id') });
+
+                    form.push({ name: '[' + i + '].CertificateDate', value: $(e).find('input[name="CertificateDate"]').val() });
+                    form.push({ name: '[' + i + '].RegistryOfficeId', value: $(e).find('select[name="RegistryOfficeId"]').val() });
+                    form.push({ name: '[' + i + '].RegistryOfficeBook', value: $(e).find('input[name="RegistryOfficeBook"]').val() });
+                    form.push({ name: '[' + i + '].RegistryOfficePage', value: $(e).find('input[name="RegistryOfficePage"]').val() });
+                    form.push({ name: '[' + i + '].RegistryOfficeTerm', value: $(e).find('input[name="RegistryOfficeTerm"]').val() });
+                    form.push({ name: '[' + i + '].RegistryOfficeRequirementSent', value: $(e).find('input[name="RegistryOfficeRequirementSent"]').prop('checked') });
+                    form.push({ name: '[' + i + '].RegistryOfficeRequirementSentDate', value: $(e).find('input[name="RegistryOfficeRequirementSentDate"]').val() });
+                    form.push({ name: '[' + i + '].RegistryOfficeCertificateCheck', value: $(e).find('input[name="RegistryOfficeCertificateCheck"]').prop('checked') });
+                    form.push({ name: '[' + i + '].RegistryOfficeRequirementSentEmailDate', value: $(e).find('input[name="RegistryOfficeRequirementSentEmailDate"]').val() });
+                    form.push({ name: '[' + i + '].RegistryOfficeRequirementCheck', value: $(e).find('input[name="RegistryOfficeRequirementCheck"]').prop('checked') });
+                    form.push({ name: '[' + i + '].RegistryOfficeCertificatePrice', value: $(e).find('input[name="RegistryOfficeCertificatePrice"]').val() });
+                    form.push({ name: '[' + i + '].RegistryOfficeShippingPrice', value: $(e).find('input[name="RegistryOfficeShippingPrice"]').val() });
+                    form.push({ name: '[' + i + '].RegistryOfficeTotalPrice', value: $(e).find('input[name="RegistryOfficeTotalPrice"]').val() });
+                    form.push({ name: '[' + i + '].RegistryOfficePaymentDate', value: $(e).find('input[name="RegistryOfficePaymentDate"]').val() });
+                    form.push({ name: '[' + i + '].RegistryOfficeShippingDate', value: $(e).find('input[name="RegistryOfficeShippingDate"]').val() });
+                    form.push({ name: '[' + i + '].RegistryOfficeCertificateShippingArrivalDate', value: $(e).find('input[name="RegistryOfficeCertificateShippingArrivalDate"]').val() });
+                    form.push({ name: '[' + i + '].TranslationSentDate', value: $(e).find('input[name="TranslationSentDate"]').val() });
+                    form.push({ name: '[' + i + '].TranslationReceiveDate', value: $(e).find('input[name="TranslationReceiveDate"]').val() });
+                    form.push({ name: '[' + i + '].HaiaHandoutSentDate', value: $(e).find('input[name="HaiaHandoutSentDate"]').val() });
+                    form.push({ name: '[' + i + '].HaiaHandoutReceiveDate', value: $(e).find('input[name="HaiaHandoutReceiveDate"]').val() });
+                    form.push({ name: '[' + i + '].ItalyProtocolTranslationCheck', value: $(e).find('input[name="ItalyProtocolTranslationCheck"]').prop('checked') });
+                    form.push({ name: '[' + i + '].ItalyProtocolHaiaCheck', value: $(e).find('input[name="ItalyProtocolHaiaCheck"]').prop('checked') });
+                });
+                return form;
+            }
+            function jobFreezedFamilyItemInfoManageViewComponentSave(data, callback) {
+                @if (Model.HasModule("ItalyProtocol"))
+                {
+                <text>
+                jobFreezedFamilyInfoConfirmSaveItalyProtocolDocuments(function () {
+                    $.post('@Url.Action("SaveJobFreezedFamilyItemInfo", "Workbench")', data, function(d) {
+                        callback(d);
+                    });
+                });
+                </text>
+                }
+                else
+                {
+                <text>
+                $.post('@Url.Action("SaveJobFreezedFamilyItemInfo", "Workbench")', data, function(d) {
+                    callback(d);
+                });
+                </text>
+                }
+
+        }
+        </text>
+        }
+
+        </script>
+        </text>
+    }
+    else
+    {
+        <text>
+            <script type="text/javascript">
+                $('#button-print').click(function () {
+                    window.print();
+                });
+            </script>
+        </text>
+    }

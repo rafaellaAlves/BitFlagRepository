@@ -1,0 +1,31 @@
+﻿@inject Web.Helpers.DropDownListHelper dropDownListHelper
+@inject Services.Client.ClientCollectionAddressServices clientCollectionAddressServices
+
+<label>Estado e Cidade</label>
+<div class="input-group">
+    @Html.DropDownList("State", dropDownListHelper.GetStates(""), "Estado", new { Class = "form-control w-100 filter-input", onchange = "updateCitySelect()", style = "max-width: 185px;", onload = "updateCitySelect()", data_filter_name = "Estado" })
+    <select name="City" class="form-control filter-input" data-filter-name="Cidade">
+        <option value="">Cidade</option>
+        @{
+            foreach (var item in await clientCollectionAddressServices.GetAllCities())
+            {
+                <option data-state="@item.State" value="@item.City">@item.City</option>
+            }
+        }
+    </select>
+</div>
+
+<script type="text/javascript">
+    function updateCitySelect() {
+        $('#new-contract-service-filter-form [name="City"]').val('');
+
+        var state = $('#new-contract-service-filter-form [name="State"]').val();
+
+        $('#new-contract-service-filter-form [name="City"] option').hide();
+
+        $('#new-contract-service-filter-form [name="City"] option').each(function (i, e) {
+            if ($(e).data('state') == state) $(e).show();
+        });
+        $('#new-contract-service-filter-form [name="City"] option[value=""]').show();
+    }
+</script>

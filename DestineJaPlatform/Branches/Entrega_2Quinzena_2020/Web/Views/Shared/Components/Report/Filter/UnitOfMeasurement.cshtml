@@ -1,0 +1,12 @@
+﻿@inject Services.Residue.UnitOfMeasurementServices unitOfMeasurementServices
+
+<label>Unidade de Medida</label>
+<select name="UnitOfMeasurementId" class="form-control filter-input" data-filter-name="Unidade de Medida">
+    <option value="">Selecione</option>
+    @{
+        foreach (var item in (await unitOfMeasurementServices.GetViewModelAsNoTrackingAsync()).OrderBy(x => x.Order))
+        {
+            <option value="@item.UnitOfMeasurementId" data-name="@item.Name">@item.Name</option>
+        }
+    }
+</select>

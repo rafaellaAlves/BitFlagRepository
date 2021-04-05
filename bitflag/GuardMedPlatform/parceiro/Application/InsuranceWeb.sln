@@ -1,0 +1,70 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29509.3
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WEB", "WEB\WEB.csproj", "{FCC63498-51B0-490F-B30D-599A8973A7A8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DB", "DB\DB.csproj", "{F374D700-0755-4EB0-8A31-27EBF3F409D5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "API", "API\API.csproj", "{FD3AE41D-BAAC-4822-B328-DA1EB78CAD27}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "VendasDbContext", "VendasDbContext\VendasDbContext.csproj", "{992D71E7-92B4-4F6F-9968-B98B09090CBC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BackgroundService", "BackgroundService\BackgroundService.csproj", "{4543E0B0-3FAE-4A32-9FA3-3D4E5252FD24}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FCC63498-51B0-490F-B30D-599A8973A7A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FCC63498-51B0-490F-B30D-599A8973A7A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FCC63498-51B0-490F-B30D-599A8973A7A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FCC63498-51B0-490F-B30D-599A8973A7A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F374D700-0755-4EB0-8A31-27EBF3F409D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F374D700-0755-4EB0-8A31-27EBF3F409D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F374D700-0755-4EB0-8A31-27EBF3F409D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F374D700-0755-4EB0-8A31-27EBF3F409D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD3AE41D-BAAC-4822-B328-DA1EB78CAD27}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD3AE41D-BAAC-4822-B328-DA1EB78CAD27}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD3AE41D-BAAC-4822-B328-DA1EB78CAD27}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD3AE41D-BAAC-4822-B328-DA1EB78CAD27}.Release|Any CPU.Build.0 = Release|Any CPU
+		{992D71E7-92B4-4F6F-9968-B98B09090CBC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{992D71E7-92B4-4F6F-9968-B98B09090CBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{992D71E7-92B4-4F6F-9968-B98B09090CBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{992D71E7-92B4-4F6F-9968-B98B09090CBC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4543E0B0-3FAE-4A32-9FA3-3D4E5252FD24}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4543E0B0-3FAE-4A32-9FA3-3D4E5252FD24}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4543E0B0-3FAE-4A32-9FA3-3D4E5252FD24}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4543E0B0-3FAE-4A32-9FA3-3D4E5252FD24}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {85B5FF71-7BB2-4D28-95A2-D2BB76AEF367}
+	EndGlobalSection
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 6
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = https://chokosysvsts.visualstudio.com/
+		SccLocalPath0 = .
+		SccProjectUniqueName1 = API\\API.csproj
+		SccProjectName1 = API
+		SccLocalPath1 = API
+		SccProjectUniqueName2 = DB\\DB.csproj
+		SccProjectName2 = DB
+		SccLocalPath2 = DB
+		SccProjectUniqueName3 = WEB\\WEB.csproj
+		SccProjectName3 = WEB
+		SccLocalPath3 = WEB
+		SccProjectUniqueName4 = VendasDbContext\\VendasDbContext.csproj
+		SccProjectName4 = VendasDbContext
+		SccLocalPath4 = VendasDbContext
+		SccProjectUniqueName5 = BackgroundService\\BackgroundService.csproj
+		SccProjectName5 = BackgroundService
+		SccLocalPath5 = BackgroundService
+	EndGlobalSection
+EndGlobal

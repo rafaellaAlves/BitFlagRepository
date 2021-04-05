@@ -1,0 +1,148 @@
+﻿@using GuardMedWeb.BLL.Utils;
+
+@inject GuardMedWeb.DAL.GuardMedWebContext context
+@inject GuardMedWeb.BLL.SeguradoProfissional.SeguradoProfissionalFunctions seguradoProfissionalFunctions
+
+@{
+    GuardMedWeb.Models.EspecialidadePrecoViewModel precos = (GuardMedWeb.Models.EspecialidadePrecoViewModel)ViewData["Precos"];
+    var precoMensalCobertura = precos._PrecoMensalCobertura;
+    var precoMensalCoberturadesconto = precoMensalCobertura;
+    var precoMensalPuro = precos.PrecoMensal;
+    string precoMensalPuroDesconto = precoMensalPuro.ToPtBr();
+
+
+    double precoMensalDesconto = 0, precoMensal = 0;
+
+    double.TryParse(ViewData["PrecoMensal"].ToString(), out precoMensal);
+
+    bool temDesconto = false;
+    int? descontoPlataforma = Model.DescontoPlataforma;
+
+    var desconto = seguradoProfissionalFunctions.ObterDesconto((int)Model.SeguradoProfissionalId);
+
+    if (desconto != 1)
+    {
+        temDesconto = true;
+
+        precoMensalDesconto = precoMensal * desconto;
+        precoMensalCoberturadesconto = ((double)precos.PrecoMensal * desconto / 100d * 10d).ToPtBr();
+        precoMensalPuroDesconto = ((double)precos.PrecoMensal * desconto).ToPtBr();
+    }
+}
+
+@if (temDesconto)
+{
+    <style type="text/css">
+        #oldPrice {
+            text-decoration: line-through;
+            color: red;
+            display: none;
+        }
+
+            #oldPrice strong {
+                font-size: 12px;
+                color: black;
+            }
+    </style>
+}
+
+<div class="row">
+    <div class=" col-md-12 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="amaisvet-green">Produto Selecionado</h5>
+            </div>
+            <div class="card-body">
+                <div class="form-row" style="display: flex;align-items: center;">
+                    <div class="col-md-2 text-center">
+                        <div style=" font-size:3em;" class="amaisvet-green">
+                            <i style="vertical-align: middle;" class="fas fa-cart-plus"></i>
+                        </div>
+                    </div>
+                    <div class="col-md-10">
+                        <div class="form-row" id="planoClinicaInfoSelecionado" style="padding-top:10px; width:100%;">
+                            <div class="col-md-5" style="text-align: left;">
+                                <span>Programa de Proteção Profissional &nbsp;<strong>@Model.PlanoSeguroProfissionalNome</strong></span>
+                                <br />
+                                @if (Model.DiretorChefeEquipe == true && Model.CoberturaAdicionalDiretorChefeEquipe == true)
+                                {
+                                    <small>Cobertura adicional para Diretor Médico</small><br />
+                                }
+                                @if (Model.SocioEmpresaAreaMedica == true && Model.CoberturaAdicionalSocioEmpresaAreaMedica == true)
+                                {
+                                    <small>
+                                        Cobertura adicional para Pessoa Jurídica <br />
+                                    </small>
+                                }
+                                <br />
+                                <span style="font-size:20px;"><strong>Total</strong></span>
+                            </div>
+                            <div class="col-md-4">
+
+                            </div>
+                            <div class="col-md-3" style="text-align: left;">
+                                @if (temDesconto)
+                                {
+                                    <small>R$ @precoMensalPuroDesconto/mês </small>
+                                }
+                                else
+                                {
+                                    <small>R$ @precoMensalPuro.ToPtBr()/mês </small>
+                                }
+                                <br />
+                                @if (Model.DiretorChefeEquipe == true && Model.CoberturaAdicionalDiretorChefeEquipe == true)
+                                {
+
+                                    if (temDesconto)
+                                    {
+                                        <small>R$ @precoMensalCoberturadesconto/mês</small>
+                                        <br />
+
+                                    }
+                                    else
+                                    {
+                                        <small>R$ @precoMensalCobertura/mês</small>
+                                        <br />
+
+                                    }
+                                }
+                                @if (Model.SocioEmpresaAreaMedica == true && Model.CoberturaAdicionalSocioEmpresaAreaMedica == true)
+                                {
+
+
+                                    if (temDesconto)
+                                    {
+                                        <small>  R$ @precoMensalCoberturadesconto/mês </small> <br />
+
+                                    }
+                                    else
+                                    {
+                                        <small>R$ @precoMensalCobertura/mês</small> <br />
+
+                                    }
+                                }
+                                <br />
+                                <span id="oldPrice" style="font-size:20px;"><strong>R$ @precoMensal.ToPtBr()/mês</strong></span>
+                                @if (temDesconto)
+                                {
+                                    <span style="font-size:20px;"><strong>R$ @precoMensalDesconto.ToPtBr()/mês</strong> </span>
+                                }
+                            </div>
+                        </div>
+                        @*<div class="form-row" id="ProtecaoRendaInfoSelecionado" style="padding-top:10px; width:100%;">
+                                <div class="col-md-5" style="text-align:center;">
+                                    <strong>Etapa 2 - </strong>Proteção de Renda
+                                </div>
+                                <div class="col-md-4" style="text-align:center;">
+                                    <strong>@(Model.ProtecaoRenda ? "Contratado" : "Não contratado")</strong>
+                                </div>
+                                <div class="col-md-3" style="text-align:center;">
+                                    <strong>R$ @precoProtecao /mês</strong>
+                                </div>
+                            </div>*@
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

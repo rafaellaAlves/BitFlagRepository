@@ -1,0 +1,87 @@
+﻿
+<div class="row">
+    <div class="col table-responsive">
+        <table id="recipient-table" class="display table table-striped table-bordered table-condensed w-100 tablesizeline" style="border-collapse: collapse !important;">
+            <thead>
+                <tr>
+                    <th>Razão Social</th>
+                    <th>Fantasia</th>
+                    <th>CNPJ / CPF</th>
+                    <th>&nbsp;</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<script asp-cut-key="script-recipient-index">
+    var recipientDatatables;
+    $(document).ready(function () {
+        recipientDatatables = $('#recipient-table').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            pageLength: 30,
+            dom: 'tip',
+            ajax: {
+                url: '@Url.Action("List", "Recipient")',
+                type: 'POST'
+            },
+            columns: [
+                { render: function (data, type, row) { return '<a class="text-uppercase" href="@Url.Action("Manage", "Recipient")?id=' + row.recipientId + '" >' + row.name + '</a>'; } },
+                { render: function (data, type, row) { return row.alternativeName; } },
+                { render: function (data, type, row) { return '<div class="' + (row.isCompany ? 'cnpj' : 'cpf') + '">' + row.document + '</div>'; } },
+                {
+                    render: function (data, type, row)
+                    {
+                        var r = '<div class="text-center text-nowrap">'
+                        '&nbsp; <a href="@Url.Action("Manage", "Recipient")?id=' + row.recipientId + '" title="Editar"><span class="badge badge-pill badge-success"><i class="simple-icon-note"></i></span></a>';
+
+                        if (row.isActive) r += '&nbsp;<a href=\'javascript:inactiveRecipient(' + JSON.stringify(row) + ')\' title="Inativar"><span class="badge badge-pill badge-warning"><i class="fa fa-unlock"></i></span></a>';
+                        else r += '&nbsp;<a href=\'javascript:activeRecipient(' + JSON.stringify(row) + ')\' title="Ativar"><span class="badge badge-pill badge-danger"><i class="simple-icon-lock"></i></span></a>';
+
+                        r += `&nbsp;<a href=\'javascript:removeRecipient(` + JSON.stringify(row) + `)\' title="Excluir"><span class="badge badge-pill badge-danger"><i class="simple-icon-trash"></i></span></a>`;
+                        r += '</div>';
+
+                        return r;
+                    }
+                }
+            ]
+        });
+    });
+
+    function removeRecipient(recipient) {
+        bootboxConfirm("Deseja realmente excluir o destinador \"" + recipient.name + "\"?", function(result){
+            if (!result) return;
+
+            $.post('@Url.Action("Delete", "Recipient")', { id: recipient.recipientId }, function () {
+                bootbox.alert("Destinador \"" + recipient.name + "\" excluído com sucesso!");
+                recipientDatatables.ajax.reload();
+            });
+        });
+    }
+   
+    function inactiveRecipient(recipient) {
+        bootboxConfirm("Deseja realmente desativar o destinador \"" + recipient.name + "\"?", function(result){
+            if (!result) return;
+
+            $.post('@Url.Action("Inactive", "Recipient")', { id: recipient.recipientId }, function () {
+                bootbox.alert("Destinador \"" + recipient.name + "\" inativado com sucesso!");
+                recipientDatatables.ajax.reload();
+            });
+        });
+    }
+
+    function activeRecipient(recipient) {
+        bootboxConfirm("Deseja realmente ativar o destinador \"" + recipient.name + "\"?", function(result){
+            if (!result) return;
+
+            $.post('@Url.Action("Active", "Recipient")', { id: recipient.recipientId }, function () {
+                booUrlbActionActionActiontionox.alert("Destinador \"" + recipient.name + "\" ativado com sucesso!");
+                recipientDatatables.ajax.reload();
+            });
+        });
+    }
+</script>

@@ -1,0 +1,230 @@
+﻿@model DTO.Shared.EntityViewMode<List<DTO.Report.NewAndEndedContractViewModel>>
+
+<style type="text/css">
+    @@media (min-width: 992px) {
+        .modal-lg, .modal-xl {
+            max-width: 1000px;
+            width: 1000px;
+        }
+    }
+</style>
+
+<div class="card">
+    <div class="card-header card-header-default card-header-destineja-green tx-uppercase justify-content-between  bg-gray-400">
+        <h6 class="mg-b-0 tx-14 tx-inverse"><i class="fa fa-table"></i>&nbsp;Tabela</h6>
+        <div class="card-option">
+            <button type="button" class="btn btn-sm btn-primary" style="border-radius: 3px;" onclick="downloadListPrint(newEndedContractsTable, [newEndedContractsChart1, newEndedContractsChart2], 'Relatório - Contratos Novo x Encerrado')"><i class="simple-icon-cloud-download"></i> Download</button>
+            <button type="button" class="btn btn-sm btn-primary" style="border-radius: 3px;" onclick="openListPrint(newEndedContractsTable, [newEndedContractsChart1, newEndedContractsChart2], 'Relatório - Contratos Novo x Encerrado')"><i class="simple-icon-printer"></i> Imprimir</button>
+            <a href="" class="tx-gray-600 hover-white mg-l-10" data-toggle="collapse" aria-expanded="true" data-target="#new-ended-contracts-table-area"><i class="simple-icon-arrow-up lh-0"></i></a>
+        </div>
+    </div>
+    <div class="card-body bd collapse show" id="new-ended-contracts-table-area">
+        <div class="row">
+            <div class="col table-responsive" style=" overflow-x: auto;">
+                <table class="table table-bordered table-striped table-condensed" id="new-ended-contracts-table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            @foreach (var item in Model.Model)
+                            {
+                                <th>@item.DateFormated</th>
+                            }
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Novos Contratos</td>
+                            @foreach (var item in Model.Model)
+                            {
+                                <td>@item.NewContractCount</td>
+                            }
+                            <td>@Model.Model.Sum(x => x.NewContractCount)</td>
+                        </tr>
+                        <tr>
+                            <td>Contratos Encerrados</td>
+                            @foreach (var item in Model.Model)
+                            {
+                                <td>@item.EndedContractCount</td>
+                            }
+                            <td>@Model.Model.Sum(x => x.EndedContractCount)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<br />
+<div class="card">
+    <div class="card-header card-header-default card-header-destineja-green tx-uppercase justify-content-between bg-gray-400">
+        <h6 class="mg-b-0 tx-14 tx-inverse"><i class="fa fa-line-chart"></i>&nbsp;Gráficos</h6>
+        <div class="card-option">
+            <a href="" class="tx-gray-600 hover-white mg-l-10" data-toggle="collapse" aria-expanded="true" data-target="#new-ended-contracts-chart-area"><i class="simple-icon-arrow-up lh-0"></i></a>
+        </div>
+    </div>
+    <div class="card-body bd collapse show" id="new-ended-contracts-chart-area">
+        <div class="row">
+            <div class="col">
+                <div id="new-ended-contracts-chart-1"></div>
+            </div>
+        </div>
+        <hr style="border-top: 4px solid #cbe6b6" />
+        <div class="row">
+            <div class="col">
+                <div id="new-ended-contracts-chart-2"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="new-ended-contracts-detail-modal" tabindex="-1" role="dialog" aria-labelledby="new-ended-contracts-detail-title" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="new-ended-contracts-detail-title">Contratos Novos x Encerrados</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="new-ended-contracts-detail-view-component"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="simple-icon-close"></i>&nbsp;Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript" asp-cut-key="new-ended-contracts-index" asp-cut-key-load-from-controller="@Model.LoadFromController">
+    var newEndedContractsChart1, newEndedContractsChart2, newEndedContractsTable;
+
+    function mountNewAndEndedContractsChart() {
+        newEndedContractsChart1 = Highcharts.chart('new-ended-contracts-chart-1', {
+			credits: {
+				enabled: false
+			},
+			exporting: {
+				enabled: false
+			},
+			chart: {
+                type: 'line',
+                height: '300px;'
+			},
+			title: {
+				text: ''
+			},
+			xAxis: {
+				categories: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Model.Select(x => x.DateFormated))),
+				crosshair: true
+			},
+			yAxis: {
+				min: 0,
+				title: {
+					text: ''
+				}
+			},
+			tooltip: {
+				headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+				pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+					'<td style="padding:0"><b>{point.y}</b></td></tr>',
+				footerFormat: '</table>',
+				shared: true,
+				useHTML: true
+			},
+			plotOptions: {
+				column: {
+					pointPadding: 0.2,
+					borderWidth: 0
+                },
+                series: {
+                    cursor: 'pointer',
+                    point: {
+                        events: {
+                            click: function () {
+                                loadNewEndedContractsDetailViewComponent(this.options.date);
+                            }
+                        }
+                    }
+                }
+			},
+            series: [
+                @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(new { name = "Novos Contratos", data = Model.Model.Select(x => new { y = x.NewContractCount, date = x.Date }) })),
+                @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(new { name = "Contratos Encerrados", data = Model.Model.Select(x => new { y = x.EndedContractCount, date = x.Date }) })),
+            ]
+        });
+
+        newEndedContractsChart2 = Highcharts.chart('new-ended-contracts-chart-2', {
+            credits: {
+                enabled: false
+            },
+            exporting: {
+                enabled: false
+            },
+            chart: {
+                type: 'column',
+                height: '300px;'
+            },
+            title: {
+                text: ''
+            },
+            xAxis: {
+				categories: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Model.Select(x => x.DateFormated))),
+            },
+            yAxis: {
+                allowDecimals: false,
+                min: 0,
+                title: {
+                    text: ''
+                }
+            },
+            tooltip: {
+                headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+                pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+                    '<td style="padding:0"><b>{point.y}</b></td></tr>',
+                footerFormat: '</table>',
+                shared: true,
+                useHTML: true
+            },
+
+            plotOptions: {
+                column: {
+                    stacking: 'normal'
+                },
+                series: {
+                    cursor: 'pointer',
+                    point: {
+                        events: {
+                            click: function () {
+                                loadNewEndedContractsDetailViewComponent(this.options.date);
+                            }
+                        }
+                    }
+                }
+            },
+            series: [
+                @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(new { name = "Novos Contratos", stack = "Novos Contratos", data = Model.Model.Select(x => new { y = x.NewContractCount, date = x.Date }) })),
+                @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(new { name = "Contratos Encerrados", stack = "Contratos Encerrados", data = Model.Model.Select(x => new { y = x.EndedContractCount, date = x.Date }) })),
+            ]
+        });
+    }
+
+    $(document).ready(function () {
+        newEndedContractsTable = $('#new-ended-contracts-table').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            dom: 'tip',
+            ordering: false
+        });
+    });
+
+    $(document).ready(mountNewAndEndedContractsChart);
+
+    function loadNewEndedContractsDetailViewComponent(date) {
+        $('#new-ended-contracts-detail-view-component').load('@Url.Action("LoadNewEndedContractsDetailViewComponent", "Report")', { date }, function () {
+            $('#new-ended-contracts-detail-modal').modal('show');
+        });
+    }
+</script>

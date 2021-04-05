@@ -1,0 +1,147 @@
+﻿@model DTO.Shared.EntityViewMode<DTO.Report.Route.RouteReportViewModel>
+
+@{
+    var startDate = (DateTime)ViewBag.StartDate;
+    var endDate = (DateTime)ViewBag.EndDate;
+}
+
+<div class="card">
+    <div class="card-header card-header-default card-header-destineja-green tx-uppercase justify-content-between  bg-gray-400">
+        <h6 class="mg-b-0 tx-14 tx-inverse"><i class="fa fa-table"></i>&nbsp;Tabela</h6>
+        <div class="card-option d-flex">
+            <button type="button" class="btn btn-sm btn-primary d-flex mr-2" style="border-radius: 3px;" onclick="downloadListPrint(routeReportTable, [routeChart], 'Relatório - Histórico por Rotas')"><i class="simple-icon-cloud-download"></i><span class="d-none d-sm-block">&nbsp;Download</span></button>
+            <button type="button" class="btn btn-sm btn-primary d-flex" style="border-radius: 3px;" onclick="openListPrint(routeReportTable, [routeChart], 'Relatório - Histórico por Rotas')"><i class="simple-icon-printer"></i><span class="d-none d-sm-block">&nbsp;Imprimir</span></button>
+            <a href="" class="tx-gray-600 hover-white mg-l-10" data-toggle="collapse" aria-expanded="true" data-target="#route-report-table-area"><i class="simple-icon-arrow-up lh-0"></i></a>
+        </div>
+    </div>
+    <div class="card-body bd collapse show" id="route-report-table-area">
+        <div class="row">
+            <div class="col table-responsive">
+                <table class="table table-bordered table-striped table-condensed" id="route-report-table">
+                    <thead>
+                        <tr>
+                            <th>MTR</th>
+                            <th>Rota</th>
+                            <th>Data de Saída</th>
+                            <th>Data de Chegada</th>
+                            <th>Qtd. Geradores</th>
+                            <th>Qtd. Coletas</th>
+                            <th>Peso Total (Kg)</th>
+                            <th>Motorista</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Model.Data)
+                        {
+                            <tr>
+                                <td>@item.DestinaJaDemandId</td>
+                                <td>@item.RouteId - @item.RouteName</td>
+                                <td>@item.DepartureDateFormated</td>
+                                <td>@item.ArriveDateFormated</td>
+                                <td>@item.ClientCount</td>
+                                <td>@item.CollectedCount</td>
+                                <td>@item.WeightFormated</td>
+                                <td>@item.DriverName</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <hr />
+        <div class="row">
+            <div class="col-12 col-sm text-center">
+                <label>Qtd. de Geradores: <b>@Model.Model.Data.Sum(x => x.ClientCount)</b></label>
+            </div>
+            <div class="col-12 col-sm text-center">
+                <label>Qtd. de Coletas: <b>@Model.Model.Data.Sum(x => x.CollectedCount)</b></label>
+            </div>
+            <div class="col-12 col-sm text-center">
+                <label>Peso Total: <b>@Model.Model.Data.Sum(x => x.Weight).ToWeightPtBr()</b></label>
+            </div>
+        </div>
+    </div>
+</div>
+<br />
+<div class="card">
+    <div class="card-header card-header-default card-header-destineja-green tx-uppercase justify-content-between bg-gray-400">
+        <h6 class="mg-b-0 tx-14 tx-inverse"><i class="fa fa-bar-chart"></i>&nbsp;Gráfico</h6>
+        <div class="card-option">
+            <a href="" class="tx-gray-600 hover-white mg-l-10" data-toggle="collapse" aria-expanded="true" data-target="#route-chart-area"><i class="simple-icon-arrow-up lh-0"></i></a>
+        </div>
+    </div>
+    <div class="card-body bd collapse show" id="route-chart-area">
+        <div class="row">
+            <div class="col-12">
+                <div id="route-chart"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript" asp-cut-key="route-report-index" asp-cut-key-load-from-controller="@Model.LoadFromController">
+    var routeChart;
+    var routeReportTable;
+
+    $(document).ready(function () {
+        routeReportTable = $('#route-report-table').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            dom: 'tip',
+            ordering: false
+        });
+
+        mountRouteChart();
+    });
+
+
+    function mountRouteChart() {
+        routeChart = Highcharts.chart('route-chart', {
+            credits: {
+                enabled: false
+            },
+            exporting: {
+                enabled: false
+            },
+            chart: {
+                type: 'column',
+                height: '300px;',
+                scrollablePlotArea: {
+                    minWidth: 300,
+                    scrollPositionX: 1
+                }
+            },
+            title: {
+                text: ''
+            },
+            xAxis: {
+				categories: @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Model.AllDepartureDatesFormated)),
+            },
+            yAxis: {
+                allowDecimals: false,
+                min: 0,
+                title: {
+                    text: ''
+                }
+            },
+            tooltip: {
+                headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+                pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+                    '<td style="padding:0"><b>{point.y:.1f} Kg</b></td></tr>',
+                footerFormat: '</table>',
+                shared: true,
+                useHTML: true
+            },
+
+            plotOptions: {
+                column: {
+                    stacking: 'normal'
+                }
+            },
+            series: [
+                @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(new { name = "Peso Coletado", data = Model.Model.WightsPerDate }))
+            ]
+        });
+    }
+</script>

@@ -1,0 +1,136 @@
+﻿<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+    <meta charset="UTF-8">
+    <title>AmaisVet - @ViewData["Title"]</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="icon" href="~/assets/image/logo-sm.png" type="image/png">
+
+    <link rel="stylesheet" href="~/assets/theme/font/iconsmind-s/css/iconsminds.css" />
+    <link rel="stylesheet" href="~/assets/theme/font/simple-line-icons/css/simple-line-icons.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" integrity="sha512-HK5fgLBL+xu6dm/Ii3z4xhlSUyZgTT9tuc/hSrtw6uzJOvgRr2a9jyxxT1ely+B+xFAmJKVSTbpM/CuL7qxO8w==" crossorigin="anonymous" />
+
+    <link rel="stylesheet" href="~/assets/theme/css/vendor/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/assets/theme/css/vendor/bootstrap.rtl.only.min.css" />
+    <link rel="stylesheet" href="~/assets/theme/css/vendor/component-custom-switch.min.css" />
+    <link rel="stylesheet" href="~/assets/theme/css/vendor/perfect-scrollbar.css" />
+    <link href="~/assets/theme/css/vendor/bootstrap-datepicker3.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/assets/theme/css/main.css" />
+
+    <style type="text/css">
+        html, body {
+            font-family: Helvetica, Arial, sans-serif;
+            background-color: white;
+        }
+
+        .card-blue {
+            background-color: #0f4c81;
+            color: white;
+        }
+
+        .card-green {
+            background-color: #0f4c81;
+            color: #0f4c81;
+        }
+
+        .bg-green {
+            background-color: #49ba84;
+        }
+
+        .text-green {
+            color: #49ba84;
+        }
+
+        .bg-blue {
+            background-color: #0f4c81;
+        }
+
+        .text-blue {
+            color: #0f4c81;
+        }
+
+        hr {
+            color: #0f4c81;
+            background-color: #0f4c81;
+        }
+
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(73, 186, 132, 0.05) !important;
+        }
+
+        main {
+            margin-bottom: 1em;
+        }
+        #menu {
+            background-image: url('@Url.Content("~/assets/image/home-background-cover.jpeg")');
+            background-repeat: no-repeat;
+            background-size: cover;
+            min-height: 100%;
+        }
+    </style>
+
+    @(await RenderSectionAsync("Styles", false))
+</head>
+
+<body id="app-container" class="ltr menu-sub-hidden main-hidden sub-hidden">
+    <nav class="navbar fixed-top">
+        <div class="d-flex align-items-center navbar-left"></div>
+
+        <a class="navbar-logo">
+            @*<span class="logo d-none d-xs-block"></span>
+                <span class="logo-mobile d-block d-xs-none"></span>*@
+            <img src="~/assets/image/logo.png" style="max-height: 50px; width: auto;" />
+        </a>
+
+        <div class="navbar-right"></div>
+    </nav>
+
+    <main>
+        <div class="container">
+            @RenderBody()
+        </div>
+    </main>
+
+    <footer class="page-footer">
+        <div class="footer-content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-12 col-sm-6">
+                        <p class="mb-0 text-muted">AmaisVet &copy; @DateTime.Now.Year (core-version @Services.Utils.Version.GetVersion())</p>
+                    </div>
+                    <div class="col-sm-6 d-none d-sm-block text-right">
+                        <p class="mb-0 text-muted">Developed by <a target="_blank" href="http://www.bitflag.systems/">Bit Flag - Software House</a>.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <div class="theme-colors">
+        <a href="https://api.whatsapp.com/message/EFRN6YSKA5F4H1" target="_blank" class="theme-button">
+            <i class="fab fa-whatsapp"></i>
+        </a>
+    </div>
+
+
+    <script src="~/assets/theme/js/vendor/jquery-3.3.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js" integrity="sha512-pHVGpX7F/27yZ0ISY+VVjyULApbDlD0/X0rgGbTqCE7WFW5MezNTWG/dnhtbBuICzsd0WQPgpE4REBLv+UqChw==" crossorigin="anonymous"></script>
+    <script src="~/assets/theme/js/vendor/bootstrap.bundle.min.js"></script>
+    <script src="~/assets/theme/js/vendor/perfect-scrollbar.min.js"></script>
+    <script src="~/assets/theme/js/vendor/mousetrap.min.js"></script>
+    <script src="~/assets/theme/js/vendor/bootstrap-datepicker.js"></script>
+    <script type="text/javascript">
+        !function (a) { a.fn.datepicker.dates["pt-BR"] = { days: ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"], daysShort: ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"], daysMin: ["Do", "Se", "Te", "Qu", "Qu", "Se", "Sa"], months: ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"], monthsShort: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"], today: "Hoje", monthsTitle: "Meses", clear: "Limpar", format: "dd/mm/yyyy" } }(jQuery);
+    </script>
+    <script type="text/javascript">
+        var basePathForDore = '@Url.Content("~/assets/theme/")';
+    </script>
+    <script src="~/assets/theme/js/dore.script.js"></script>
+    <script src="~/assets/theme/js/scripts.js?v=@DateTime.Now.Ticks"></script>
+
+    @RenderSection("Scripts", false)
+</body>
+
+</html>
+

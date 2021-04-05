@@ -1,0 +1,67 @@
+@model DTO.Transporter.TransporterViewModel
+@using DTO.Utils
+@inject Web.Helpers.DropDownListHelper dropDownListHelper
+
+<style type="text/css">
+    .col-md-3, .col-md-4, .col-md-6, .col-md-9 {
+        margin-bottom: .5em !important;
+    }
+</style>
+
+<form id="form-transporter-manage" action="@Url.Action("ManageForm", "Transporter")" method="post">
+    <input type="hidden" name="TransporterId" value="@Model.TransporterId" />
+    <div class="row">
+        @( await Component.InvokeAsync<Web.ViewComponents.Shared.CompanyViewComponent>(new { model = Model.CopyToEntity<DTO.Shared.CompanyBaseViewModel>() }) )
+        <div class="col-md-3">
+            <div class="form-group">
+                <label class="control-label">Telefone Central</label>
+                <input class="form-control" placeholder="Telefone Central" name="Phone" value="@Model.Phone" />
+            </div>
+            @*</div><div class="col-md-3">
+        <div class="form-group">
+            <label class="control-label">Licença</label>
+            <input class="form-control" placeholder="Licença" name="Licence" maxlength="50" value="@Model.Licence" />
+        </div>*@
+        </div>
+    </div>
+    <hr />
+    @( await Component.InvokeAsync<Web.ViewComponents.Shared.AddressViewComponent>(new { model = Model.CopyToEntity<DTO.Shared.AddressBaseViewModel>(), formId = "#form-transporter-manage" }) )
+</form>
+<script type="text/javascript" asp-cut-key="transporter-manage-script">
+     $('#transporter-save-button').click(function () {
+         if (!validateInputs('form-transporter-manage')) return;
+
+        $.post('@Url.Action("ValidateTransporter")', $('#form-transporter-manage').serializeArray(), function (d) {
+            if (d.hasError) {
+                bootbox.alert(d.message);
+                return;
+            }
+
+            $('#loading').show();
+            $('#form-transporter-manage').submit();
+        });
+    });
+    $('#form-transporter-manage [name="IEExempted"]').change(function () {
+        if ($(this).is(':checked')) {
+            $('#form-transporter-manage [name="IE"]').val('ISENTO');
+        } else {
+            $('#form-transporter-manage [name="IE"]').val('');
+        }
+    });
+
+   $('#form-transporter-manage [name="CNPJ"], #form-transporter-manage [name="CPF"]').blur(function ()
+   {
+       $('.cnpj-error').remove();
+
+       $.post('@Url.Action("ValidateTransporter")', $('#form-transporter-manage').serializeArray(), function (d) {
+           if (d.hasError) {
+               if ($('#form-transporter-manage [name="CNPJ"]').is(':visible')) {
+                   $('#form-transporter-manage [name="CNPJ"]').after('<small class="text-danger cnpj-error">' + d.message + '</small>');
+               } else {
+                   $('#form-transporter-manage [name="CPF"]').after('<small class="text-danger cnpj-error">' + d.message + '</small>');
+               }
+           }
+       });
+   });
+
+</script>

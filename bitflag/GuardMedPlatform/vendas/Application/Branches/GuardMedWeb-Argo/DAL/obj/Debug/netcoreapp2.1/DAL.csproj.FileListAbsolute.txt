@@ -1,0 +1,9 @@
+C:\repositorios\bitflag\GuardMedPlatform\vendas\Application\Branches\GuardMedWeb-Argo\DAL\bin\Debug\netcoreapp2.1\DAL.deps.json
+C:\repositorios\bitflag\GuardMedPlatform\vendas\Application\Branches\GuardMedWeb-Argo\DAL\bin\Debug\netcoreapp2.1\DAL.dll
+C:\repositorios\bitflag\GuardMedPlatform\vendas\Application\Branches\GuardMedWeb-Argo\DAL\bin\Debug\netcoreapp2.1\DAL.pdb
+C:\repositorios\bitflag\GuardMedPlatform\vendas\Application\Branches\GuardMedWeb-Argo\DAL\obj\Debug\netcoreapp2.1\DAL.csprojAssemblyReference.cache
+C:\repositorios\bitflag\GuardMedPlatform\vendas\Application\Branches\GuardMedWeb-Argo\DAL\obj\Debug\netcoreapp2.1\DAL.AssemblyInfoInputs.cache
+C:\repositorios\bitflag\GuardMedPlatform\vendas\Application\Branches\GuardMedWeb-Argo\DAL\obj\Debug\netcoreapp2.1\DAL.AssemblyInfo.cs
+C:\repositorios\bitflag\GuardMedPlatform\vendas\Application\Branches\GuardMedWeb-Argo\DAL\obj\Debug\netcoreapp2.1\DAL.csproj.CoreCompileInputs.cache
+C:\repositorios\bitflag\GuardMedPlatform\vendas\Application\Branches\GuardMedWeb-Argo\DAL\obj\Debug\netcoreapp2.1\DAL.dll
+C:\repositorios\bitflag\GuardMedPlatform\vendas\Application\Branches\GuardMedWeb-Argo\DAL\obj\Debug\netcoreapp2.1\DAL.pdb

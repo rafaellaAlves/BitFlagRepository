@@ -1,0 +1,17 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace AMaisImob_DB.Models
+{
+    public partial class Product
+    {
+        public int ProductId { get; set; }
+        public string Name { get; set; }
+        public string ExternalCode { get; set; }
+        public string Code { get; set; }
+        public string Description { get; set; }
+        public bool IsDeleted { get; set; }
+        public bool Discontinue { get; set; }
+        public int? ProductFamilyId { get; set; }
+    }
+}

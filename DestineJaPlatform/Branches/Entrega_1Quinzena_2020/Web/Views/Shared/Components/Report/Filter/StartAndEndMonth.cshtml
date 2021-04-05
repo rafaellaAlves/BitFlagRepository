@@ -1,0 +1,22 @@
+﻿<label class="required">Data Inicial e Final</label>
+<div class="input-group mx-auto" id="start-and-end-month-input-group-filter">
+    <input class="form-control month-datepicker required filter-input" data-filter-name="Data Inicial" data-target="#start-and-end-month-input-group-filter" data-error-message="A Data Inicial deve ser preenchida. " placeholder="__/____" autocomplete="off" name="StartDate" value="@(((DateTime)ViewBag.StartDate).ToBrazilianDateFormatNoDay())" />
+    <div class="input-group-addon">
+        <i class="simple-icon-calendar"></i>
+    </div>
+    <input class="form-control month-datepicker required filter-input" data-filter-name="Data Final" data-target="#start-and-end-month-input-group-filter" data-error-message="A Data Final deve ser preenchida." placeholder="__/____" autocomplete="off" name="EndDate" value="@(((DateTime)ViewBag.EndDate).ToBrazilianDateFormatNoDay())" />
+</div>
+
+<script type="text/javascript">
+    function validateStartAndEndMonth() {
+        var startDate = moment($('[name="StartDate"]').val(), 'MM/YYYY');
+        var endDate = moment($('[name="EndDate"]').val(), 'MM/YYYY');
+
+        if (startDate > endDate) {
+            $('#start-and-end-month-input-group-filter').after('<div class="text-danger">A data inicial não pode ser posterior a data final.<div>');
+            return false;
+        }
+
+        return true;
+    }
+</script>

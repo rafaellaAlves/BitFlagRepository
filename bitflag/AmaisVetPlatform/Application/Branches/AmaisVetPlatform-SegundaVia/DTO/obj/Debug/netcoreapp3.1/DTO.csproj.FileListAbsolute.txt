@@ -1,0 +1,9 @@
+C:\repositorios\bitflag\AmaisVetPlatform\Application\Branches\AmaisVetPlatform-SegundaVia\DTO\bin\Debug\netcoreapp3.1\DTO.deps.json
+C:\repositorios\bitflag\AmaisVetPlatform\Application\Branches\AmaisVetPlatform-SegundaVia\DTO\bin\Debug\netcoreapp3.1\DTO.dll
+C:\repositorios\bitflag\AmaisVetPlatform\Application\Branches\AmaisVetPlatform-SegundaVia\DTO\bin\Debug\netcoreapp3.1\DTO.pdb
+C:\repositorios\bitflag\AmaisVetPlatform\Application\Branches\AmaisVetPlatform-SegundaVia\DTO\obj\Debug\netcoreapp3.1\DTO.csprojAssemblyReference.cache
+C:\repositorios\bitflag\AmaisVetPlatform\Application\Branches\AmaisVetPlatform-SegundaVia\DTO\obj\Debug\netcoreapp3.1\DTO.AssemblyInfoInputs.cache
+C:\repositorios\bitflag\AmaisVetPlatform\Application\Branches\AmaisVetPlatform-SegundaVia\DTO\obj\Debug\netcoreapp3.1\DTO.AssemblyInfo.cs
+C:\repositorios\bitflag\AmaisVetPlatform\Application\Branches\AmaisVetPlatform-SegundaVia\DTO\obj\Debug\netcoreapp3.1\DTO.csproj.CoreCompileInputs.cache
+C:\repositorios\bitflag\AmaisVetPlatform\Application\Branches\AmaisVetPlatform-SegundaVia\DTO\obj\Debug\netcoreapp3.1\DTO.dll
+C:\repositorios\bitflag\AmaisVetPlatform\Application\Branches\AmaisVetPlatform-SegundaVia\DTO\obj\Debug\netcoreapp3.1\DTO.pdb

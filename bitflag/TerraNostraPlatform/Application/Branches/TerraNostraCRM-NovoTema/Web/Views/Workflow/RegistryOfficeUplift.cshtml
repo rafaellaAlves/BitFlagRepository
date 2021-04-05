@@ -1,0 +1,200 @@
+﻿@{
+    ViewData["Title"] = "Levantamento de Cartório";
+}
+
+<style>
+    .to-label {
+        height: 30px;
+    }
+
+    .select {
+        font-size: 10px;
+        width: 70px;
+        height: 30px;
+    }
+
+    #Description, #FullName, #BirthDate, #BirthDocument, #MarriageDate, #MarriageDocument, #DeathDate, #DeathDocument, #CNN, #CNNDocument, #Spouse, #Applicant {
+        color: red;
+        font-weight: bolder;
+    }
+
+    #RegistryOfficeId, #Book, #Page, #Term, #FullNameItalian, #CNNDate, #RegistryOfficePhoneNumber, #RegistryOfficeEmail
+    {
+        color: blue;
+        font-weight: bolder;
+    }
+</style>
+
+
+<h1 class="mb-2"><small>Levantamento de Cartório</small></h1>
+<div class="card">
+    <div class="card-body">
+        <table class="table table-bordered table-condensed" style="font-size:10px">
+            <thead>
+                <tr>
+                    <td><b>Grau de Parentesco</b></td>
+                    <td style="text-align: center"><b>Nome</b></td>
+                    <td style="text-align: center"><b>Certidão</b></td>
+                    <td style="text-align: center"><b>Data</b></td>
+                    <td style="text-align: center"><b>Cartório / Cidade de Registro</b></td>
+                    <td style="text-align: center"><b>Livro</b></td>
+                    <td style="text-align: center"><b>Folha</b></td>
+                    <td style="text-align: center"><b>Termo</b></td>
+                    <td style="text-align: center"><b>Telefone</b></td>
+                    <td style="text-align: center"><b>E-mail</b></td>
+                    <td style="text-align: center"><b>Data de envio do e-mail</b></td>
+                    <td style="text-align: center; width:30px"><b>Requerimento</b></td>
+                </tr>
+            </thead>
+            <tbody>
+                @*@foreach (var item in Model.ViewModel)*@
+
+                <tr>
+                    <td rowspan="3" style="text-align: center" id="Description" name="description">Sarah Reggiani / Pai</td>
+                    <td id="FullName" name="FullName">Dalvo Paulino de Carvalho</td>
+                    <td style="text-align: center;" id="BirthDocument" name="BirthDocument">Nascimento</td>
+                    <td style="text-align: center" id="BirthDate" name="BirthDate">13/10/1943</td>
+                    <td style="text-align: center"> <select style="font-size: 11px; height: 30px;" class="form-control" id="RegistryOfficeId" name="RegistryId"><option>Selecione</option></select></td>
+                    <td style="text-align: center"><label data-value="A-348" class="editable-label" id="Book" name="Book">A-348</label></td>
+                    <td style="text-align: center"><label data-value="365V" class="editable-label" id="Page" name="Page">365V</label></td>
+                    <td style="text-align: center"><label data-value="2236" class="editable-label" id="Term" name="Term">2236</label></td>
+                    <td style="text-align: center" id="RegistryOfficePhoneNumber" name="RegistryOfficePhoneNumber">(11) 5555-5555 (cartório)</td>
+                    <td style="text-align: center" id="RegistryOfficeEmail" name="RegistryOfficeEmail">cartorio@teste.com.br</td>
+                    <td style="text-align: center"><label data-value="Informar" class="editable-label" id="SendEmailDate" name="SendEmailDate">Informar</label></td>
+                    <td style="text-align: center"><select class="form-control" style="font-size: 11px; width: 70px; height: 30px;" id="Request" name="Request"><option>Sim</option><option>Não</option></select></td>
+                </tr>
+                <tr>
+                    <td id="Spouse" name="Spouse">Conjuge: Roseli R. Reggiani</td>
+                    <td style="text-align: center" id="MarriageDocument" name="MarriageDocument">Casamento</td>
+                    <td style="text-align: center" id="MarriageDate" name="MarriageDate">05/08/1947</td>
+                    <td style="text-align: center"> <select style="font-size: 11px; height: 30px; text-align: center" class="form-control" id="RegistryOfficeId" name="RegistryId"><option>Selecione</option></select></td>
+                    <td style="text-align: center"><label data-value="B-780" class="editable-label" id="Book" name="Book">B-780</label></td>
+                    <td style="text-align: center"><label data-value="683V" class="editable-label" id="Page" name="Page">683V</label></td>
+                    <td style="text-align: center"><label data-value="8874" class="editable-label" id="Term" name="Term">8874</label></td>
+                    <td style="text-align: center" id="RegistryOfficePhoneNumber" name="RegistryOfficePhoneNumber">(11) 5555-5555 (cartório)</td>
+                    <td style="text-align: center" id="RegistryOfficeEmail" name="RegistryOfficeEmail">cartorio@teste.com.br</td>
+                    <td style="text-align: center"><label data-value="Informar" class="editable-label" id="SendEmailDate" name="SendEmailDate">Informar</label></td>
+                    <td style="text-align: center"><select class="form-control" style="font-size: 11px; width: 70px; height: 30px;" id="Request" name="Request"><option>Sim</option><option>Não</option></select></td>
+
+                </tr>
+                <tr>
+                    <td id="FullName" name="FullName">Dalvo Paulino de Carvalho</td>
+                    <td style="text-align: center" id="DeathDocument" name="DeathDocument">Óbito</td>
+                    <td style="text-align: center" id="DeathDate" name="DeathDate">27/03/2004</td>
+                    <td style="text-align: center"> <select style="font-size: 11px; height: 30px; text-align: center" class="form-control" id="RegistryOfficeId" name="RegistryId"><option>Selecione</option></select></td>
+                    <td style="text-align: center"><label data-value="C-278" class="editable-label" id="Book" name="Book">C-278</label></td>
+                    <td style="text-align: center"><label data-value="339V" class="editable-label" id="Page" name="Page">339V</label></td>
+                    <td style="text-align: center"><label data-value="4458" class="editable-label" id="Term" name="Term">4458</label></td>
+                    <td style="text-align: center" id="RegistryOfficePhoneNumber" name="RegistryOfficePhoneNumber">(11) 5555-5555 (cartório)</td>
+                    <td style="text-align: center" id="RegistryOfficeEmail" name="RegistryOfficeEmail">cartorio@teste.com.br</td>
+                    <td style="text-align: center"><label data-value="Informar" class="editable-label" id="SendEmailDate" name="SendEmailDate">Informar</label></td>
+                    <td style="text-align: center"><select class="form-control" style="font-size: 11px; width: 70px; height: 30px;" id="Request" name="Request"><option>Sim</option><option>Não</option></select></td>
+
+                </tr>
+                @*Linha para separação dos dados*@
+                <tr data-docusign-id="item.CompanyDocuSignId" data-company-id="item.CompanyId" data-reference-date="item.ReferenceDateISO">
+                    <td colspan="13"></td>
+                </tr>
+                @*Essa tabela será fixa pois pertence somente aos dados do requerente*@
+            <tr>
+                <td rowspan="2" style="text-align: center" id="Applicant" name="Applicant">Requerente</td>
+                <td id="FullName" name="FullName">Sarah Reggiani de Carvalho</td>
+                <td style="text-align: center" id="BirthDocument" name="BirthDocument">Nascimento</td>
+                <td style="text-align: center" id="BirthDate" name="BirthDate">05/05/1988</td>
+                <td style="text-align: center"> <select style="font-size: 11px; height: 30px;" class="form-control" id="RegistryOfficeId" name="RegistryId"><option>Selecione</option></select></td>
+                <td style="text-align: center"><label data-value="A-649" class="editable-label" id="Book" name="Book">A-649</label></td>
+                <td style="text-align: center"><label data-value="236V" class="editable-label" id="Page" name="Page">236V</label></td>
+                <td style="text-align: center"><label data-value="1142" class="editable-label" id="Term" name="Term">1142</label></td>
+                <td style="text-align: center" id="RegistryOfficePhoneNumber" name="RegistryOfficePhoneNumber">(11) 5555-5555 (cartório)</td>
+                <td style="text-align: center" id="RegistryOfficeEmail" name="RegistryOfficeEmail">cartorio@teste.com.br</td>
+                <td style="text-align: center"><label data-value="Informar" class="editable-label" id="SendEmailDate" name="SendEmailDate">Informar</label></td>
+                <td style="text-align: center"><select class="form-control" style="font-size: 11px; width: 70px; height: 30px;" id="Request" name="Request"><option>Sim</option><option>Não</option></select></td>
+
+            </tr>
+            <tr>
+                <td id="Spouse" name="Spouse">Conjuge: Bruno de Z. Amabile</td>
+                <td style="text-align: center" id="MarriageDocument" name="MarriageDocument">Casamento</td>
+                <td style="text-align: center" id="MarriageDate" name="MarriageDate">01/05/2016</td>
+                <td style="text-align: center"> <select style="font-size: 11px; height: 30px; text-align: center" class="form-control" id="RegistryOfficeId" name="RegistryId"><option>Selecione</option></select></td>
+                <td style="text-align: center"><label data-value="B-337" class="editable-label" id="Book" name="Book">B-337</label></td>
+                <td style="text-align: center"><label data-value="349V" class="editable-label" id="Page" name="Page">349V</label></td>
+                <td style="text-align: center"><label data-value="7763" class="editable-label" id="Term" name="Term">7763</label></td>
+                <td style="text-align: center" id="RegistryOfficePhoneNumber" name="RegistryOfficePhoneNumber">(11) 5555-5555 (cartório)</td>
+                <td style="text-align: center" id="RegistryOfficeEmail" name="RegistryOfficeEmail">cartorio@teste.com.br</td>
+                <td style="text-align: center"><label data-value="Informar" class="editable-label" id="SendEmailDate" name="SendEmailDate">Informar</label></td>
+                <td style="text-align: center"><select class="form-control" style="font-size: 11px; width: 70px; height: 30px;" id="Request" name="Request"><option>Sim</option><option>Não</option></select></td>
+            </tr>
+                @*Linha para separação dos dados*@
+                <tr>
+                    <td colspan="13"></td>
+                </tr>
+                @*Essa tabela será fixa pois pertence somente aos dados do CNN do italiano*@
+            <tr>
+                <td style="text-align: center" id="CNN" name="CNN">CNN</td>
+                <td style="text-align: center"><label data-value="Dalvo Paulino de Carvalho" class="editable-label" id="FullNameItalian" name="FullNameItalian">Dalvo Paulino de Carvalho</label></td>
+                <td style="text-align: center;" id="CNNDocument" name="CNNDocument">CNN</td>
+                <td style="text-align: center"><label data-value="05/09/1963" class="editable-label" id="CNNDate" name="CNNDate">05/09/1963</label></td>
+                <td style="text-align: center"> <select style="font-size: 11px; height: 30px;" class="form-control" id="RegistryOfficeId" name="RegistryId"><option>Selecione</option></select></td>
+                <td style="text-align: center"><label data-value="1234" class="editable-label" id="Book" name="Book">1234</label></td>
+                <td style="text-align: center"><label data-value="567V" class="editable-label" id="Page" name="Page">567V</label></td>
+                <td style="text-align: center"><label data-value="8910" class="editable-label" id="Term" name="Term">8910</label></td>
+                <td style="text-align: center" id="RegistryOfficePhoneNumber" name="RegistryOfficePhoneNumber">(11) 5555-5555 (cartório)</td>
+                <td style="text-align: center" id="RegistryOfficeEmail" name="RegistryOfficeEmail">cartorio@teste.com.br</td>
+                <td style="text-align: center"><label data-value="Informar" class="editable-label" id="SendEmailDate" name="SendEmailDate">Informar</label></td>
+                <td style="text-align: center"><select class="form-control" style="font-size: 11px; width: 70px; height: 30px;" id="Request" name="Request"><option>Sim</option><option>Não</option></select></td>
+            </tr>
+            </tbody>
+        </table>
+        &nbsp;
+        <div class="row" style="width: 100%; margin: 0;">
+            <div class="col-md-6">
+                <a class="btn btn-secondary float-left" target="_blank" href="@Url.Action("GetSteps", "Workbench")">Voltar&nbsp;<i class="fas fa-external-link-alt"></i></a>
+            </div>
+            <div class="col-md-6">
+                <button onclick="PreviousStep()" type="button" class="btn btn-success float-right">Salvar</button>
+                <button onclick="PreviousStep()" style="margin-left: 40px; margin-right:40px" type="button" class="btn btn-light float-right">Imprimir</button>
+                <button onclick="PreviousStep()" type="button" class="btn btn-info float-right">Cadastrar Cartório</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(function () {
+        initEditableLabel();
+    });
+
+    function initEditableLabel() {
+        $('.editable-label').off('click');
+
+        $(".editable-label").click(function () {
+            var input = $('<input>', { class: 'form-control to-label', value: $(this).data('value') });
+            $(this).replaceWith(input);
+            $(input).focus();
+
+
+            initToLabel();
+        });
+    }
+
+    function initToLabel() {
+        $('.to-label').off('blur').off('keypress');
+
+        $('.to-label').blur(function () {
+            toLabel(this);
+        }).keypress(function (e) {
+            if (e.which == 13) {
+                toLabel(this);
+            }
+        });
+    }
+
+    function toLabel(sel) {
+        var value = $(sel).val();
+
+        $(sel).replaceWith($('<label>', { class: 'editable-label', 'data-value': value }).text(value));
+        initEditableLabel();
+    }
+
+</script>
+

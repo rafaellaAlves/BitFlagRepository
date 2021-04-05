@@ -1,0 +1,66 @@
+﻿@model DTO.Shared.EntityViewMode<List<DTO.Contract.ContractListViewModel>>
+
+<div class="card">
+    <div class="card-header card-header-default card-header-destineja-green tx-uppercase justify-content-between  bg-gray-400">
+        <h6 class="mg-b-0 tx-14 tx-inverse"><i class="fa fa-table"></i>&nbsp;Tabela</h6>
+        <div class="card-option">
+            <button type="button" class="btn btn-sm btn-primary" style="border-radius: 3px;" onclick="downloadListPrint(endedContractTable, null, 'Relatório - Contratos a Expirar')"><i class="simple-icon-cloud-download"></i> Download</button>
+            <button type="button" class="btn btn-sm btn-primary" style="border-radius: 3px;" onclick="openListPrint(endedContractTable, null, 'Relatório - Contratos a Expirar')"><i class="simple-icon-printer"></i> Imprimir</button>
+            <a href="" class="tx-gray-600 hover-white mg-l-10" data-toggle="collapse" aria-expanded="true" data-target="#ended-contracts-table-area"><i class="simple-icon-arrow-up lh-0"></i></a>
+        </div>
+    </div>
+    <div class="card-body bd collapse show" id="ended-contracts-table-area">
+        <div class="row">
+            <div class="col table-responsive" style=" overflow-x: auto;">
+                <table class="table table-bordered table-striped table-condensed" id="ended-contract-table">
+                    <thead>
+                        <tr>
+                            <th>Cód. do Gerador</th>
+                            <th>Núm. do Contrato</th>
+                            <th>Expira em</th>
+                            <th>Gerador</th>
+                            <th>Valor da Mensalidade</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Model)
+                        {
+                            <tr>
+                                <td>@item.ClientId</td>
+                                <td>@item.Code</td>
+                                <td>@item._DueDate</td>
+                                <td>@item.ClientName</td>
+                                <td>@item.ParcelValueFormated</td>
+                                <td>@item.ContractStatusName</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <hr />
+        <div class="row">
+            <div class="col text-center">
+                <label>Total de Contratos: <b>@Model.Model.Count()</b></label>
+            </div>
+            <div class="col text-center">
+                <label>Valor da Mensalidade Total: <b>@Model.Model.Sum(x => x.ParcelValue).ToPtBR()</b></label>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript" asp-cut-key="ended-contracts-index" asp-cut-key-load-from-controller="@Model.LoadFromController">
+    var endedContractTable;
+
+    $(document).ready(function () {
+        endedContractTable = $('#ended-contract-table').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            dom: 'tip',
+            ordering: false
+        });
+    });
+</script>

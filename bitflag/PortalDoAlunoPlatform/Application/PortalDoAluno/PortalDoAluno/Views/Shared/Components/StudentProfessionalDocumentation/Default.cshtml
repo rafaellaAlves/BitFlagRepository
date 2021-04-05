@@ -1,0 +1,59 @@
+@model DTO.ClassStudent.StudentProfessionalDocumentationViewModel
+
+@inject Web.Helpers.DropDownListHelper dropDownListHelper
+
+<div class="row">
+    <div class="col">
+        <div class="form-group">
+            <label class="control-label">Diploma de Graduação</label>
+            @Html.DropDownList("StudentProfessionalDocumentation.GraduationCertificate", await dropDownListHelper.GetProfessionalDocumentStatus(Model.GraduationCertificate.ToString()), "Selecione", new { Class = "form-control w-100" })
+        </div>
+    </div>
+    <div class="col">
+        <div class="form-group">
+            <label class="control-label">Carteira do Conselho Regional</label>
+            @Html.DropDownList("StudentProfessionalDocumentation.RegionalCouncilDocument", await dropDownListHelper.GetProfessionalDocumentStatus(Model.RegionalCouncilDocument.ToString()), "Selecione", new { Class = "form-control w-100" })
+        </div>
+    </div>
+    <div class="col">
+        <div class="form-group">
+            <label class="control-label">Declaração de Chefia</label>
+            @Html.DropDownList("StudentProfessionalDocumentation.LeadershipStatement", await dropDownListHelper.GetProfessionalDocumentStatus(Model.LeadershipStatement.ToString()), "Selecione", new { Class = "form-control w-100" })
+        </div>
+    </div>
+    <div class="col">
+        <div class="form-group">
+            <label class="control-label">Resumo Curricular</label>
+            @Html.DropDownList("StudentProfessionalDocumentation.CurriculumSummary", await dropDownListHelper.GetProfessionalDocumentStatus(Model.CurriculumSummary.ToString()), "Selecione", new { Class = "form-control w-100" })
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col">
+        <div class="form-group">
+            <label class="control-label">Certificado de Especialização</label>
+            @Html.DropDownList("StudentProfessionalDocumentation.CertifiedOfSpecialization", await dropDownListHelper.GetProfessionalDocumentStatus(Model.CertifiedOfSpecialization.ToString()), "Selecione", new { Class = "form-control w-100" })
+        </div>
+    </div>
+    <div class="col">
+        <div class="form-group">
+            <label class="control-label">Declaração de Tempo de UTI</label>
+            @Html.DropDownList("StudentProfessionalDocumentation.UtiTimeDeclaration", await dropDownListHelper.GetProfessionalDocumentStatus(Model.UtiTimeDeclaration.ToString()), "Selecione", new { Class = "form-control w-100" })
+        </div>
+    </div>
+    <div class="col">
+        <div class="form-group">
+            <label class="control-label">Declaração de Docência</label>
+            @Html.DropDownList("StudentProfessionalDocumentation.TeachingDeclaration", await dropDownListHelper.GetProfessionalDocumentStatus(Model.TeachingDeclaration.ToString()), "Selecione", new { Class = "form-control w-100" })
+        </div>
+    </div>
+</div>
+<hr />
+<div class="row">
+    <div class="col">
+        <div class="form-group">
+            <label class="control-label">Observações</label>
+            <textarea class="form-control" rows="10" name="StudentProfessionalDocumentation.ProfessionalDocumentationCommets">@Model.ProfessionalDocumentationCommets</textarea>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,120 @@
+﻿@using GuardMedWeb.BLL.Utils;
+
+@inject DAL.GuardMedWebContext context
+@inject GuardMedWeb.BLL.SeguradoProfissional.SeguradoProfissionalFunctions seguradoProfissionalFunctions
+
+@{
+    var cotacao = await seguradoProfissionalFunctions.ObterCotacao((int)Model.SeguradoProfissionalId);
+}
+<style type="text/css">
+    .card1{
+        display:block;
+    }
+    .card2{
+        display:none;
+    }
+
+    @@media only screen and (max-width: 600px) {
+        .card1 {
+            display: none;
+        }
+
+        .card2 {
+            display: block;
+        }
+    }
+    @@media (min-width: 600px) and (max-width: 1024px){
+        .card1 {
+            display: none;
+        }
+
+        .card2 {
+            display: block;
+        }
+        #col-2{
+            width: 45%;
+            margin-left: 10%;
+        }
+    }
+</style>
+<div class="row">
+    <div class=" col-md-12 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="amaisvet-green">Produto Selecionado</h5>
+            </div>
+            <div class="card-body card1">
+                <div class="form-row" style="display: flex;align-items: center;">
+                    <div class="col-md-2 text-center">
+                        <div style=" font-size:3em;" class="amaisvet-green">
+                            <i style="vertical-align: middle;" class="fas fa-cart-plus"></i>
+                        </div>
+                    </div>
+                    <div class="col-md-10">
+                        <div class="form-row" id="planoClinicaInfoSelecionado" style="padding-top:10px; width:100%;">
+                            <div class="col-md-5" style="text-align: left;">
+                                <span>Programa de Proteção Profissional &nbsp;<strong>@Model.PlanoSeguroProfissionalNome</strong></span>
+                                <br />
+                                @if (cotacao.DescontoMensal > 0)
+                                {
+                                    <span>Desconto</span>
+                                }
+                                <br />
+                                <br />
+                                <span style="font-size:20px;"><strong>Total</strong></span>
+                            </div>
+                            <div class="col-md-4">
+
+                            </div>
+                            <div class="col-md-3" style="text-align: left;">
+                                <small>R$ @cotacao.PrecoMensalFormatado</small>
+                                <br />
+                                @if (cotacao.DescontoMensal > 0)
+                                {
+                                    <small>- R$ @cotacao.DescontoMensalFormatado</small>
+                                }
+                                <br />
+                                <br />
+                                <span style="font-size:20px;"><strong>R$ @cotacao.PrecoMensalTotalFormatado/mês</strong> </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body card2">
+                <div class="form-row">
+                    <div class="col-md-12" style="text-align:left;">
+                        <div style=" font-size:2em;" class="amaisvet-green">
+                            <i style="vertical-align: middle;" class="fas fa-cart-plus"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="col-md-5" id="col-1" style="text-align:left; width: 65%;">
+                        <span style="font-size:13px;">Programa de Proteção Profissional &nbsp;<strong>@Model.PlanoSeguroProfissionalNome</strong></span>
+                        <br />
+                        @if (cotacao.DescontoMensal > 0)
+                        {
+                            <span  style="font-size:13px;">Desconto</span>
+                        }
+                       <br />
+                        <br />
+                        <span><strong>Total</strong></span>
+                    </div>
+                    <div class="col-md-5" id="col-2" style="text-align:right; width: 35%;">
+                        <span style="font-size:13px;">R$ @cotacao.PrecoMensalFormatado</span>
+                        <br />
+                        @if (cotacao.DescontoMensal > 0)
+                        {
+                            <span style="font-size:13px;">- R$ @cotacao.DescontoMensalFormatado</span>
+                        }
+                        <br />
+                      <br />
+                        <span><strong>R$ @cotacao.PrecoMensalTotalFormatado/mês</strong> </span>
+                    </div>
+                </div>
+               
+            </div>
+        </div>
+    </div>
+</div>

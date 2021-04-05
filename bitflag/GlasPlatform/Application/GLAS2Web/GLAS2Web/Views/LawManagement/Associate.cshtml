@@ -1,0 +1,277 @@
+﻿@model DTO.Law.LawViewModel
+@{
+    ViewData["Title"] = "Associação de Requisito Legal";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var companies = (ViewData["Companies"] as List<DTO.Company.CompanyViewModel>);
+
+    var applicableCompanies = (ViewData["ApplicableCompany"] as List<string>);
+    var knowledgeCompanies = (ViewData["KnowledgeCompany"] as List<string>);
+}
+@{ Html.RenderPartial("~/Views/Shared/_TopMessages.cshtml"); }
+
+<style type="text/css">
+    tbody tr td {
+        font-size: 11px;
+    }
+</style>
+
+<form id="form" action="" method="post">
+    <div class="card shadow">
+        <div class="card-header">
+            Requisito Legal: @Model.Title
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">Tipo</dt>
+                <dd class="col-sm-9">@Model.LawTypeName</dd>
+
+                <dt class="col-sm-3">Número</dt>
+                <dd class="col-sm-9">@Model._Number</dd>
+
+                <dt class="col-sm-3">Título</dt>
+                <dd class="col-sm-9">@Model.Title</dd>
+
+                <dt class="col-sm-3">Data de Publicação</dt>
+                <dd class="col-sm-9">@Model.PublishDate</dd>
+
+                <dt class="col-sm-3">Vigor</dt>
+                @if (Model.ForceDate == null)
+                {
+                    <dd class="col-sm-9">-</dd>
+                }
+                else
+                {
+                    <dd class="col-sm-9">@Model.ForceDate</dd>
+                }
+
+                <dt class="col-sm-3">Sumário</dt>
+                @if (Model.Summary == null)
+                {
+                    <dd class="col-sm-9"><i>-</i></dd>
+                }
+                else
+                {
+                    <dd class="col-sm-9" id="_Sumary" style="overflow: hidden; text-overflow: ellipsis;"><i id="Sumary">@Model.Summary</i></dd>
+                }
+
+                <dt class="col-sm-3">Comentários</dt>
+                @if (Model.Comments == null)
+                {
+                    <dd class="col-sm-9"><i>-</i></dd>
+                }
+                else
+                {
+                    <dd class="col-sm-9" id="_Comments" style="overflow: hidden; text-overflow: ellipsis;"><i id="Comments" style="max-height:30px;">@Model.Comments</i></dd>
+                }
+
+                <dt class="col-sm-3">Esfera</dt>
+                @if (Model.Comments == null)
+                {
+                    <dd class="col-sm-9"><i>-</i></dd>
+                }
+                else
+                {
+                    <dd class="col-sm-9"><i>@Model.EsferaName</i></dd>
+                }
+
+                <dt class="col-sm-3">Orgão</dt>
+                @if (Model.Comments == null)
+                {
+                    <dd class="col-sm-9"><i>-</i></dd>
+                }
+                else
+                {
+                    <dd class="col-sm-9"><i>@Model.OrgaoName</i></dd>
+                }
+
+                <dt class="col-sm-3">Segmento</dt>
+                @if (Model.Comments == null)
+                {
+                    <dd class="col-sm-9"><i>-</i></dd>
+                }
+                else
+                {
+                    <dd class="col-sm-9"><i>@Model.SegmentoName</i></dd>
+                }
+
+                <dt class="col-sm-3">Estado</dt>
+                <dd class="col-sm-9"><i>@ViewData["State"]</i></dd>
+
+                <dt class="col-sm-3">Cidade</dt>
+                <dd class="col-sm-9"><i>@ViewData["City"]</i></dd>
+
+                <dt class="col-sm-3">Plavaras-chave</dt>
+                @if (Model.Comments == null)
+                {
+                    <dd class="col-sm-9"><i>-</i></dd>
+                }
+                else
+                {
+                    <dd class="col-sm-9"><i>@Model.Keywords</i></dd>
+                }
+
+            </dl>
+            <script type="text/javascript">
+                $('#_Sumary').css("max-height", parseInt($('#Sumary').css("line-height")) * 4);
+                $('#_Comments').css("max-height", parseInt($('#Comments').css("line-height")) * 4);
+            </script>
+            <hr />
+            <div class="form-row">
+                <div class="form-group col-md-6 float-left">
+                    <div class="form-control">
+                        <label>Unidades de negócios - Conhecimento:</label>
+                        @if (knowledgeCompanies.Count > 0)
+                        {
+                            foreach (var nomeFantasia in knowledgeCompanies)
+                            {
+                                <ul type="disc">
+                                    <li>@nomeFantasia;</li>
+                                </ul>
+                            }
+                        }
+                        else
+                        {
+                            <br />
+                            <i class="text-center">Nenhuma unidade associada.</i>
+                        }
+                    </div>
+                </div>
+                <div class="form-group col-md-6 float-right">
+                    <div class="form-control">
+                        <label>Unidades de negócios - Aplicável:</label>
+                        @if (applicableCompanies.Count > 0)
+                        {
+                            foreach (var nomeFantasia in applicableCompanies)
+                            {
+                                <ul type="disc">
+                                    <li>@nomeFantasia;</li>
+                                </ul>
+                            }
+                        }
+                        else
+                        {
+                            <br />
+                            <i>Nenhuma unidade associada.</i>
+                        }
+                    </div>
+                </div>
+            </div>
+            <br />
+            <a target="_blank" href="#" class="btn btn-secondary" id="AttachmentButton" data-toggle="modal" data-target="#LawAttachmentModal"><i class="fa fa-file-pdf"></i>&nbsp;Anexos do Requisito Legal</a>
+            <hr />
+            <div class="form-check">
+                <input type="checkbox" checked class="form-check-input" id="validate-by-esfera">
+                <label class="form-check-label" style="padding-left: 0;" for="validate-by-esfera">Mostrar somente unidades de negócios que se enquadram no requisito legal.</label>
+            </div>
+            <div id="associte-company-list">
+                @(await Component.InvokeAsync<GLAS2Web.ViewComponents.LawManagement.AssociateCompanyListViewComponent>(new { lawId = Model.LawId, valideByEsfera = true }))
+            </div>
+        </div>
+        <div class="card-footer">
+            <a href="@Url.Action("Index", "LawManagement", new { useFilter = true, page = Context.Request.Query["page"],  row = Context.Request.Query["row"] })" class="btn btn-secondary float-left"><i class="fa fa-arrow-left"></i>&nbsp;Voltar</a>
+            <button type="button" id="saveButton" class="btn btn-success float-right"><i class="fa fa-cloud-upload-alt"></i>&nbsp;Salvar</button>
+            <script type="text/javascript">
+                $('#saveButton').click(function () {
+                    knowledgeSelecteds = jQuery.grep(knowledgeSelecteds, function (value) { return value != null; });
+                    applicableSelecteds = jQuery.grep(applicableSelecteds, function (value) { return value != null; });
+                    if (knowledgeSelecteds.length <= 0 && applicableSelecteds.length <= 0) {
+						alert('Escolha ao menos uma unidade de negócio.');
+					}
+                    else {
+                        var data = { LawId: @Model.LawId, KnowledgeCompanyIds: knowledgeSelecteds, ApplicableCompanyIds: applicableSelecteds };
+						$.ajax({
+							url: '@Url.Action("AssociateCompaniesToLaw", "CompanyLawManagement")',
+							type: 'POST',
+							data: data,
+							dataType: 'json',
+							success: function (d) {
+								$('#knowledgeCount').text(d.knowledgeChanged);
+								$('#knowledgeTotal').text(d.knowlwdgeTotal);
+								$('#applicableCount').text(d.applicationChanged);
+								$('#applicableTotal').text(d.applicationTotal);
+								$('#saveModal').modal('show');
+							}
+						});
+					}
+				});
+            </script>
+        </div>
+    </div>
+</form>
+
+<div class="modal fade" id="saveModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Resultado da associação</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Aplicabilidade:
+                <ul>
+                    <li>Conhecimento - <b id="knowledgeCount"></b> de <b id="knowledgeTotal"></b> unidades de negócio foram afetadas;</li>
+                    <li>Aplicável - <b id="applicableCount"></b> de <b id="applicableTotal"></b> unidades de negócio foram afetadas.</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal"><i class="fas fa-check"></i>&nbsp;Ok</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="LawAttachmentModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Anexos do Requisito Legal</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @{ Html.RenderPartial("~/Views/Shared/_LawAttachment.cshtml", new ViewDataDictionary(this.Vi‌​ewData) { { "canRemove", false } }); }
+            </div>
+            <div class="modal-footer">
+                <button type="button" aria-label="Close" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-times"></i>&nbsp;Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+	$('#LawAttachmentModal').on('shown.bs.modal', function () {
+        _LawAttachmentsClearSearch();
+		_ListLawAttachments(@Model.LawId);
+		$('.LawAttachmentRemoveLink').hide();
+    });
+
+    var typingTimer = {};
+    var doneTypingIntervalBase = 1000;
+
+    function doneTyping(searchVal, table) {
+        $(table).DataTable().search(searchVal).draw();
+    }
+
+    $('input[data-toggle="search-datatable"]').on('keyup', function () {
+        clearTimeout(doneTypingIntervalBase);
+
+        var table = $(this).data('target');
+        var searchVal = $(this).val();
+        var timeout = $(this).data('timeout');
+
+        typingTimer[table] = setTimeout(function () { doneTyping(searchVal, table); }, timeout ?? doneTypingIntervalBase);
+
+    });
+    $('input[data-toggle="search-datatable"]').on('keydown', function () {
+        clearTimeout(typingTimer[$(this).data('target')]);
+    });
+
+    $('#validate-by-esfera').change(function () {
+        var valideByEsfera = this.checked;
+
+        $('#associte-company-list').load('@Url.Action("LoadAssociateCompanyListViewComponent", "LawManagement")', { valideByEsfera, lawId: '@Model.LawId' });
+    });
+</script>

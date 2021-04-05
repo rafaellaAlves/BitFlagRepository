@@ -1,0 +1,110 @@
+﻿@model AMaisImob_WEB.Models.ProductViewModel
+
+@inject AMaisImob_WEB.BLL.ProductFamilyFunctions productFamilyFunctions
+
+<script type="text/javascript">
+    _MaskData();
+</script>
+
+<script type="text/javascript">
+
+function _ProductManageSave() {
+    var d = $('#_ProductManageForm').serializeArray();
+    $.post('@Url.Action("Manage", "Product")', d, function (data) {
+            _ProductManageCallBack(data);
+	});
+}
+
+function _ProductManageValidate() {
+    var _ProductManagehasError = false;
+    $('.text-danger').remove();
+
+    if (IsNullOrWhiteSpace($('#_ProductManageName').val())) {
+        $('#_ProductManageName').after('<div class="text-danger">Preencha o nome.</div>');
+        _ProductManagehasError = true;
+	}
+
+    if (_ProductManagehasError) {
+        $('#_ProductManageAlertError').show();
+    } else {
+        $('#_ProductManageAlertError').hide();
+    }
+
+    return (!_ProductManagehasError);
+}
+
+</script>
+@if (!string.IsNullOrWhiteSpace(Context.Request.Query["saved"]))
+{
+    <text>
+        <div id="_ProductManagementAlertSuccess" class="alert alert-success fade show text-center">
+            <b>Os dados foram salvos com sucesso!</b>
+        </div>
+        <script type="text/javascript">
+            $('#_ProductManagementAlertSuccess').fadeOut(5000);
+        </script>
+    </text>
+}
+<div id="_ProductManageAlertError" class="alert alert-danger fade show text-center" role="alert" style="display: none;">
+    <strong>Atenção!</strong> O Formulário contém erros.
+</div>
+<form id="_ProductManageForm" method="post">
+    <input type="hidden" id="_ProductManageProductId" name="ProductId" value="@Model.ProductId" />
+    <div class="form-row">
+        <div class="form-group col-md-6">
+            <label class="control-label" for="_ProductManageFirstName">Nome*</label>
+            <input type="text" class="form-control" id="_ProductManageName" name="Name" value="@Model.Name" placeholder="Nome">
+        </div>
+        <div class="form-group col-md-3">
+            <label class="control-label" for="_ProductManageFirstName">Código</label>
+            <input type="text" class="form-control" id="_ProductManageExternalCode" name="ExternalCode" value="@Model.ExternalCode" placeholder="Código">
+        </div>
+        <div class="form-group col-md-3">
+            <label class="control-label" for="_ProductManageFirstName">Família</label>
+            <select class="form-control" name="ProductFamilyId">
+                <option value="">Selecionar</option>
+                @foreach (var item in productFamilyFunctions.GetData(x => !x.IsDeleted))
+                {
+                    if (Model.ProductFamilyId == item.ProductFamilyId)
+                    {
+                        <option value="@item.ProductFamilyId" selected>@item.Name</option>
+                        continue;
+                    }
+                    <option value="@item.ProductFamilyId">@item.Name</option>
+                }
+            </select>
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group col-md-12">
+            <label class="control-label" for="_ProductManageEmail">Descrição</label>
+            <textarea type="text" class="form-control" id="_ProductManageDescription" name="Description" placeholder="Descrição">@Model.Description</textarea>
+        </div>
+    </div>
+    @if (User.IsInRole("Administrator"))
+    {
+        <div class="row">
+            <div class="form-grop col-md-2">
+                <label>Deseja descontinuar o produto?</label>
+                <select class="form-control" id="Descontinuar" name="Discontinue">
+                    @if (Model.Discontinue == true)
+                    {
+                        <option selected="selected" value="True">Sim</option>
+                        <option value="False">Não</option>
+                    }
+                    else if (Model.Discontinue == false)
+                    {
+                        <option selected="selected" value="False">Não</option>
+                        <option value="True">Sim</option>
+                    }
+                    else
+                    {
+                        <option value="False">Não</option>
+                        <option value="True">Sim</option>
+                    }
+                </select>
+            </div>
+        </div>
+
+    }
+</form>

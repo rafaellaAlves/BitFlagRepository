@@ -1,0 +1,77 @@
+﻿@model DTO.Shared.CompanyBaseViewModel
+
+<div class="col-md-3">
+    <div class="form-group">
+        <label class="control-label">Tipo</label>
+        <select class="form-control" id="company-type">
+            <option @(Model.IsCompany ? "selected" : "") value="1">Pessoa Juridica</option>
+            <option @(!Model.IsCompany ? "selected" : "") value="2">Pessoa Fisica</option>
+        </select>
+    </div>
+</div>
+<div class="col-md-3 pj-area">
+    <div class="form-group">
+        <label class="control-label required">CNPJ</label>
+        <input class="form-control cnpj" placeholder="CNPJ" name="CNPJ" value="@Model.CNPJ" onblur="getCompanyBySintegra('[name=\'CNPJ\']', '[name=\'CompanyName\']', '[name=\'TradeName\']', '[name=\'IE\']', '[name=\'CEP\']', '[name=\'Address\']', '[name=\'Neighborhood\']', '[name=\'City\']', '[name=\'State\']', '[name=\'Complement\']', '[name=\'Number\']');" />
+    </div>
+</div>
+
+<div class="col-md-3 pj-area">
+    <div class="form-group">
+        <label class="control-label required">Razão Social</label>
+        <input class="form-control" placeholder="Razão Social" name="CompanyName" value="@Model.CompanyName" />
+    </div>
+</div>
+<div class="col-md-3 pj-area">
+    <div class="form-group">
+        <label class="control-label required">Nome Fantasia</label>
+        <input class="form-control" placeholder="Nome Fantasia" name="TradeName" value="@Model.TradeName" />
+    </div>
+</div>
+<div class="col-md-3 pj-area">
+    <div class="form-group">
+        <label id="ISENTO" class="control-label">Inscrição Estadual</label> <input type="checkbox" name="IEExempted" class="float mr-1 ml-2" @(Model.IEExempted.HasValue && Model.IEExempted.Value ? "checked" : "") /> <label class="float checkbox">ISENTO</label>
+        <input id="InscricaoEstadual" class="form-control required" placeholder="Inscrição Estadual" name="IE" value="@Model.IE" />
+    </div>
+</div>
+
+<div class="col-md-3 pf-area">
+    <div class="form-group">
+        <label class="control-label required">CPF</label>
+        <input class="form-control cpf" placeholder="CPF" name="CPF" value="@Model.CPF" />
+    </div>
+</div>
+<div class="col-md-3 pf-area">
+    <div class="form-group">
+        <label class="control-label required">Nome Completo</label>
+        <input class="form-control" placeholder="Nome Completo" name="FullName" value="@Model.FullName" />
+    </div>
+</div>
+<div class="col-md-3 pf-area">
+    <div class="form-group">
+        <label class="control-label required">Como gostaria de ser chamado(a)</label>
+        <input class="form-control" placeholder="Como gostaria de ser chamado(a)" name="NickName" value="@Model.NickName" />
+    </div>
+</div>
+<div class="col-md-3 pf-area">
+    <div class="form-group">
+        <label class="control-label required">RG</label>
+        <input class="form-control" placeholder="RG" name="RG" value="@Model.RG" />
+    </div>
+</div>
+
+<script asp-cut-key="company-script">
+    $('#company-type').on('change', function () {
+        if ($(this).val() == '1') {
+            $('.pf-area input, .pf-area select').val('');
+
+            $('.pf-area').hide();
+            $('.pj-area').show();
+        } else {
+            $('.pj-area input, .pj-area select').val('');
+
+            $('.pj-area').hide();
+            $('.pf-area').show();
+        }
+    }).change();
+</script>

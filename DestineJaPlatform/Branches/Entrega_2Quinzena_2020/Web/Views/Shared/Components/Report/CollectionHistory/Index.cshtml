@@ -1,0 +1,154 @@
+﻿@model DTO.Shared.EntityViewMode<List<DTO.Client.Report.ClientReportCollectionHistoryViewModel>>
+
+<div class="card">
+	<div class="card-header card-header-default card-header-destineja-green tx-uppercase justify-content-between  bg-gray-400">
+		<h6 class="mg-b-0 tx-14 tx-inverse"><i class="fa fa-table"></i>&nbsp;Tabela</h6>
+        <div class="card-option d-flex">
+            <button type="button" class="btn btn-sm btn-primary d-flex mr-2" style="border-radius: 3px;" onclick="collectionHistoryDownload('Relatório - Histórico de Coletas')"><i class="simple-icon-cloud-download"></i><span class="d-none d-sm-block">&nbsp;Download</span></button>
+            <button type="button" class="btn btn-sm btn-primary d-flex" style="border-radius: 3px;" onclick="collectionHistoryPrint('Relatório - Histórico de Coletas')"><i class="simple-icon-printer"></i><span class="d-none d-sm-block">&nbsp;Imprimir</span></button>
+            <a href="" class="tx-gray-600 hover-white mg-l-10" data-toggle="collapse" aria-expanded="true" data-target="#client-collection-table-area"><i class="simple-icon-arrow-up lh-0"></i></a>
+        </div>
+	</div>
+	<div class="card-body bd collapse show" id="client-collection-table-area">
+		<div class="row">
+			<div class="col table-responsive">
+				<table class="table nowrap table-condensed table-bordered w-100 tablesizeline" id="client-collection-list-table">
+					<thead>
+						<tr>
+							<th data-name="DestineJaDemandId" class="text-center">MTR</th>
+							<th data-name="_VisitedDate" class="text-center">Data</th>
+							<th data-name="" class="text-center">Visitou?</th>
+							<th data-name="" class="text-center">Coletou?</th>
+							<th data-name="" class="text-center">Quantidade (Kg)</th>
+							<th data-name="">Motivo</th>
+							<th data-name="">Motorista</th>
+							<th data-name="" class="text-center">Receptor</th>
+						</tr>
+					</thead>
+					<tbody>
+						@foreach (var item in Model.Model)
+						{
+							<tr>
+								<td class="text-center">@item.DestineJaDemandId</td>
+								<td class="text-center">@item._VisitedDate</td>
+								<td class="text-center">@(!item.Visited.HasValue? (object)"-" : Html.Raw(item.Visited.Value? "<span class=\"badge badge-pill badge-success\">Sim</span>" : "<span class=\"badge badge-pill badge-danger\">Não</span>"))</td>
+								<td class="text-center">@(!item.Collected.HasValue? (object)"-" : Html.Raw(item.Collected.Value? "<span class=\"badge badge-pill badge-success\">Sim</span>" : "<span class=\"badge badge-pill badge-danger\">Não</span>"))</td>
+								<td class="text-center">@item.Weight.ToWeightPtBr()</td>
+								<td>@item.NonCollectingReason.IfNullChange("-")</td>
+								<td>@item.DriverName</td>
+								<td class="text-center">@item.ReceptorName.IfNullChange("-")</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<hr />
+		<div class="row">
+			<div class="col-12 col-sm text-center" style="color: black;">
+				Total de visitas: @Model.Model.Count
+			</div>
+			<div class="col-12 col-sm text-center" style="color: black;">
+				Total de coletas: @Model.Model.Count(x => x.Collected.HasValue && x.Collected.Value)
+			</div>
+			<div class="col-12 col-sm text-center" style="color: black;">
+				Total de não coletas: @Model.Model.Count(x => !x.Collected.HasValue || !x.Collected.Value)
+			</div>
+			<div class="col-12 col-sm text-center" style="color: black;">
+				Quantidade coletada: @Model.Model.Sum(x => x.Weight).ToWeightPtBr() Kg
+			</div>
+		</div>
+	</div>
+</div>
+<br />
+
+<div class="card ">
+	<div class="card-header card-header-default card-header-destineja-green tx-uppercase justify-content-between  bg-gray-400">
+		<h6 class="mg-b-0 tx-14 tx-inverse"><i class="fa fa-pie-chart"></i>&nbsp;Gráfico</h6>
+		<div class="card-option">
+			<a href="" class="tx-gray-600 hover-white mg-l-10" data-toggle="collapse" aria-expanded="true" data-target="#client-collection-chart-area"><i class="simple-icon-arrow-up lh-0"></i></a>
+		</div>
+	</div>
+	<div class="card-body bd collapse show" id="client-collection-chart-area">
+		<div class="row">
+			<div class="col">
+				<div id="client-collection-chart"></div>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="row">
+	<div class="col">
+	</div>
+</div>
+
+<script type="text/javascript" asp-cut-key="client-collection-list" asp-cut-key-load-from-controller="@Model.LoadFromController">
+	var collectionListTable;
+	var collectionListChart;
+
+	$(document).ready(function () {
+		collectionListTable = $('#client-collection-list-table').DataTable({
+			serverSide: false,
+			proccessing: true,
+			searching: true,
+			lengthChange: false,
+			dom: 'tip',
+			ordering: false
+		});
+
+		mountClientCollectionChart();
+	});
+
+	function mountClientCollectionChart() {
+		var data = [
+			{ name: 'Não coletado', y: @Model.Model.Count(x => !x.Collected.HasValue || !x.Collected.Value), color: '#f72' },
+			{ name: 'Coletado', y: @Model.Model.Count(x => x.Collected.HasValue && x.Collected.Value), color: '#59d' },
+		];
+
+		// Build the chart
+		collectionListChart = Highcharts.chart('client-collection-chart', {
+			credits: {
+                enabled: false
+			},
+			exporting: {
+				enabled: false
+			},
+			chart: {
+				plotBackgroundColor: null,
+				plotBorderWidth: null,
+				plotShadow: false,
+                type: 'pie',
+                scrollablePlotArea: {
+                    minWidth: 300,
+                    scrollPositionX: 1
+                }
+			},
+			title: {
+				text: ''
+			},
+			tooltip: {
+				pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+			},
+			accessibility: {
+				point: {
+					valueSuffix: '%'
+				}
+			},
+			plotOptions: {
+				pie: {
+					allowPointSelect: true,
+					cursor: 'pointer',
+					dataLabels: {
+						enabled: true,
+						format: '<b>{point.name}</b>: {point.percentage:.1f} %',
+						connectorColor: 'silver'
+					}
+				}
+			},
+			series: [{
+				name: 'Porcentagem',
+				data
+			}]
+		});
+	}
+</script>

@@ -1,0 +1,74 @@
+﻿@model GuardMedWeb.Models.SeguradoClinicaVeterinariaViewModel
+@inject DAL.GuardMedWebContext context
+@{
+    ViewData["Title"] = "Seguro para Clínica, PetShop e Hospital Veterinário AmaisVet";
+}
+<style>
+    table {
+        border-collapse: collapse;
+    }
+
+        table td {
+            padding-left: 4px;
+        }
+
+    .no-screen {
+        display: none !important;
+    }
+
+    .impressao-subtitulo {
+        font-size: 13px;
+        white-space: nowrap;
+    }
+
+    .impressao-titulo {
+        font-size: 24px;
+    }
+
+    @@media print {
+        .no-screen {
+            display: block !important;
+        }
+    }
+
+    @@media screen and (max-width: 500px) {
+        .fontSize10 {
+            font-size: 12.5px;
+        }
+        .fontSize9 {
+            font-size: 9px;
+        }
+    }
+    @@media screen and (max-width: 360px) {
+        .fontSize10 {
+            font-size: 10px;
+        }
+
+        .fontSize9 {
+            font-size: 9px;
+        }
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-6">
+        @if (Model.PagamentoTipoId == 1)
+        {
+            @*<a href="#" target="_blank" class="btn btn-primary no-print"><i class="fas fa-barcode"></i>&nbsp;Ver Boleto Bancário</a>*@
+        }
+    </div>
+    <div class="col-md-6 text-right">
+        <a href="javascript:void(0)" class="btn btn-primary no-print" id="Imprimir"><i class="fas fa-print"></i>&nbsp;Imprimir</a>
+    </div>
+</div>
+
+<div style="text-align: center; margin-bottom: 1em;" class="no-screen">
+    <img src="@Url.Content("~/assets/images/logo.png")" style="width: 240px; height: 60px;" />
+</div>
+@{ Html.RenderPartial("~/Views/SeguroClinicaVeterinaria/Shared/_Impressao.cshtml"); }
+
+<script type="text/javascript">
+    $('#Imprimir').click(function () {
+        window.print();
+    });
+</script>

@@ -1,0 +1,59 @@
+﻿
+@{
+    var tiposEquipamento = (List<DAL.TipoEquipamento>)ViewData["TipoEquipamento"];
+
+    double duasVezes, tresVezes, quatroVezes;
+    int? vezes = null;
+    duasVezes = Convert.ToDouble(Model.PrecoSeguro) / 2;
+    tresVezes = Convert.ToDouble(Model.PrecoSeguro) / 3;
+    quatroVezes = Convert.ToDouble(Model.PrecoSeguro) / 4;
+    if (quatroVezes >= 100) {
+        vezes = 4;
+    }else if (tresVezes >= 100)
+    {
+        vezes = 3;
+    }else if (duasVezes >= 100)
+    {
+        vezes = 2;
+    }
+    }
+
+<div class="row">
+    <div class=" col-md-12 mx-auto">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="amaisvet-green">Produto Selecionado</h4>
+            </div>
+            <div class="card-body">
+                <div class="form-row" style="display: flex;align-items: center;">
+                    <div class="col-md-3 text-center">
+                        <div style=" font-size:3em;" class="amaisvet-green">
+                            <i style="vertical-align:middle;" class="fas fa-cart-plus"></i>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="row">
+                            <label class="control-label" style="padding-top:10px;">
+                                <strong>@Model.QtdEquipamento @if (Model.PlanoSeguroEquipamentoId == 1) { <text>Aparelho(s) Interno(s)</text>}else if (Model.PlanoSeguroEquipamentoId == 2) { <text>Aparelho(s) Externo(s)</text>}</strong><br />
+                                <strong>R$ <span class="money">@Model.PrecoSeguro</span></strong> à vista
+                                @if(vezes.HasValue){<text> ou até <strong>@vezes</strong> de <strong>R$ <span class="money">@if (vezes == 4) {<text>@quatroVezes.ToString("0.00")</text>}else if (vezes == 3) {<text>@tresVezes.ToString("0.00")</text>}else if (vezes == 2) {<text>@duasVezes.ToString("0.00")</text>}</span>&nbsp;</strong></text>}no boleto bancário.<br />
+
+                                @if(Model.Equipamentos.Count > 0)
+                                {
+                                <small>Aparelho(s):</small>
+                                <ul>
+                                    @foreach (var item in Model.Equipamentos)
+                                    {
+                                    <li><small>Tipo: @tiposEquipamento.Where(x => x.TipoEquipamentoId == item.TipoEquipamentoId).First().Nome - Modelo: @item.Modelo - Marca: @item.Marca - Série: @item.Serie - Preco: R$ <span class="money">@item.Preco</span> - Ano: @item.Ano</small></li>
+                                    }
+                                </ul>
+                                }
+                                <small>Coberturas para Acidente de Causa Externa, Roubo e/ou Subtração Mediante Arrombamento e Dano Elétrico de R$ <span class="money">@Model.PrecoEquipamento</span>.</small>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,55 @@
+﻿@model DTO.Shared.EntityViewMode<List<DTO.Service.ServiceHistoricViewModel>>
+
+<div class="row">
+    <div class="col-md-12">
+        <input data-disabledAll="false" type="text" class="form-control" placeholder="Pesquisar..." data-toggle="search-datatable" data-target="#service-historic-table" />
+    </div>
+</div>
+<hr />
+<div class="row">
+    <div class="col">
+        <table id="service-historic-table" class="display table table-striped table-bordered table-condensed w-100" style="border-collapse: collapse !important;">
+            <thead>
+                <tr>
+                    <th>Ordem de Serviço</th>
+                    <th>Demanda</th>
+                    <th>MTR</th>
+                    <th>Data de Coleta</th>
+                    <th>Receptor(a)</th>
+                    <th>Peso Total</th>
+                    <th>Valor Cobrado</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Model)
+                {
+                    <tr>
+                        <td>@(string.IsNullOrWhiteSpace(item.Code)? (object)"-" : Html.Raw($"<a data-disabledAll=\"false\" href=\"{Url.Action("View", "Service", new { id = item.ServiceId })}\" target=\"_blank\">{item.Code}</a>"))</td>
+                        <td>@(item.DemandIds??(object)"-")</td>
+                        <td>@(item.DemandDestinationIds??"-")</td>
+                        <td>@(item.CollectionDate??"-")</td>
+                        <td>@(item.Receptor??"-")</td>
+                        <td>@(item._Weight) Kg</td>
+                        <td>@(item._TotalPrice??"-")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script asp-cut-key-load-from-controller="@Model.LoadFromController" asp-cut-key="service-historic-index">
+    var serviceDatatables;
+    $(document).ready(function () {
+        serviceDatatables = $('#service-historic-table').DataTable({
+            order: [[0, "desc"]],
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            dom: 'tip',
+        });
+
+        initSearchDataTable();
+    });
+</script>

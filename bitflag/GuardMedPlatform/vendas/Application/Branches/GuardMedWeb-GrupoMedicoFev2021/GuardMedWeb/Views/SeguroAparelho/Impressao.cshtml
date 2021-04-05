@@ -1,0 +1,22 @@
+﻿@{
+    ViewData["Title"] = "Seguro Aparelho Veterinario AmaisVet";
+}
+<style>
+    table {
+        border-collapse: collapse;
+    }
+
+        table td {
+            padding-left: 4px;
+        }
+</style>
+<a href="javascript:void(0)" class="btn btn-primary no-print" style="float: right;" id="Imprimir"><i class="fas fa-print"></i>&nbsp;Imprimir</a>
+<div style="text-align: center; margin-bottom: 1em;" class="no-screen">
+    <img src="@Url.Content("~/assets/images/logo.png")" style="width: 240px; height: 60px;" />
+</div>
+@{ Html.RenderPartial("~/Views/SeguroAparelho/Shared/_Impressao.cshtml"); }
+<script type="text/javascript">
+    $('#Imprimir').click(function () {
+        window.print();
+    });
+</script>

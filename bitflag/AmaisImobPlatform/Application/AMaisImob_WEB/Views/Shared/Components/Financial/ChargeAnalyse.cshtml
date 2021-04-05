@@ -1,0 +1,112 @@
+﻿@model AMaisImob_WEB.Models.Shared.BaseViewModel<AMaisImob_WEB.Models.Charge.ChargeAnalyseViewModel>
+
+<style type="text/css">
+    .charge-analyse-item:not(:last-child)::after {
+        content: '';
+        border-bottom: 3px solid #5f7f7a;
+        width: 100%;
+        margin-top: 2em;
+    }
+</style>
+
+<form id="charge-analyse-form" action='@Url.Action("SaveChargeCertificateContractual", "Financial")' method="post">
+    <input type="hidden" name="charge.ChargeId" value="@Model.ViewModel.ChargeId" />
+    <input type="hidden" name="charge.ReferenceDate" value="@Model.ViewModel.ReferenceDateFormatedIsoString" />
+    <input type="hidden" name="charge.RealEstateId" value="@Model.ViewModel.Company.CompanyId" />
+
+    @for (int i = 0; i < Model.ViewModel.Items.Count; i++)
+    {
+        var item = Model.ViewModel.Items[i];
+
+        <div class="row charge-analyse-item">
+            @if (item.CertificateContractual)
+            {
+                <input type="hidden" name="chargeCertificateContractuals.Index" value="@i" />
+                <input type="hidden" name="chargeCertificateContractuals[@i].GuarantorId" value="@item.GuarantorId" />
+                <input type="hidden" name="chargeCertificateContractuals[@i].ChargeCertificateContractualId" value="@item.ChargeCertificateContractualId" />
+            }
+            <div class="col-12">
+                <h5 style="font-weight: bold; color: #5f7f7a;">
+                    @if (item.Certificate)
+                    {
+                        <img src="/image/Incendio.png" style="height: 30px;" />
+                    }
+                    else if (item.CertificateContractual)
+                    {
+                        <img src="/image/Doc.jpeg" style="height: 25px;" />
+                    }
+                    else if (item.DocuSign)
+                    {
+                        <img src="/image/AssinaturaDigital.png" style="height: 25px;" />
+                    }
+                    &nbsp;@item.Name
+                </h5>
+                <div class="row align-items-end">
+                    @if (!item.CertificateContractual || (item.CertificateContractual && Model.ViewModel.Company.ChargeContractualGuarantee == true))
+                    {
+                        <div class="col-6 form-group">
+                            <label>Valor Gerado Pelo Sistema @(item.ChargeCreatedDate.HasValue? $"({item.ChargeCreatedDateFormated})" : "")</label>
+                            <input disabled value="@item.PriceFormated" class="form-control money" />
+                        </div>
+                        <div class="col-6 form-group">
+                            <label>Valor</label>
+                            <input value="@(item.AlternativeTotalPrice.HasValue? item.AlternativeTotalPriceFormated : item.PriceFormated)" class="form-control required money" placeholder="Valor" name="@(item.CertificateContractual? $"chargeCertificateContractuals[{i}].AlternativePriceFormated" : item.Certificate? "charge.AlternativePriceCertificateFormated" : "charge.AlternativePriceDocuSignFormated")" />
+                        </div>
+                        <div class="col-6 form-group">
+                            <label>Quantidade Gerada Pelo Sistema @(item.ChargeCreatedDate.HasValue? $"({item.ChargeCreatedDateFormated})" : "")</label>
+                            <input disabled value="@item.Amount" class="form-control" />
+                        </div>
+                        <div class="col-6 form-group">
+                            <label>Quantidade</label>
+                            <input value="@(item.AlternativeAmount.HasValue? item.AlternativeAmount : item.Amount)" class="form-control required" placeholder="Quantidade" name="@(item.CertificateContractual? $"chargeCertificateContractuals[{i}].AlternativeTotal" : item.Certificate? "charge.AlternativeTotalCertificate" : "charge.AlternativeTotalDocuSign")" />
+                        </div>
+                    }
+                    @if (item.CertificateContractual)
+                    {
+                        <div class="col">
+                            <label>Arquivo (Para múltiplos arquivos utilize o formato .zip)</label>
+                            <input type="file" class="form-control" name="chargeCertificateContractuals[@i].File" />
+                        </div>
+                        @if (Model.ViewModel.Company.ChargeContractualGuarantee != true)
+                        {
+                            <div class="col">
+                                <label>Boleto</label>
+                                <input type="file" class="form-control" name="chargeCertificateContractuals[@i].FileInvoice" />
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</form>
+
+<script type="text/javascript" asp-cut-key="charge-analyse" asp-cut-javascript-tag="@Model.CutScript">
+    function saveChargeCertificateContractual(callback) {
+        if (!validateInputs('charge-analyse-form')) return false;
+
+        $('#charge-analyse-form').submit();
+        return true;
+    }
+
+    $(document).off("submit", "#charge-analyse-form");
+
+    $(document).on("submit", "#charge-analyse-form", function (event) {
+        event.preventDefault();
+        $.ajax({
+            url: $(this).attr("action"),
+            type: $(this).attr("method"),
+            dataType: "JSON",
+            data: new FormData(this),
+            processData: false,
+            contentType: false,
+            success: function (d) {
+                typeof saveChargeCertificateContractualCallback == 'function' && saveChargeCertificateContractualCallback(d);
+            }
+        });
+    });
+
+    $(function () {
+        _MaskData();
+    });
+</script>

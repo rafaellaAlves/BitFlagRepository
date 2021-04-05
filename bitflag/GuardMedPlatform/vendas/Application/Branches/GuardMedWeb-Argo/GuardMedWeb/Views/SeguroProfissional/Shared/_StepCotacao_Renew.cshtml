@@ -1,0 +1,67 @@
+﻿
+<div class="no-print" style="position: absolute; left: 10px; top: 140px; font-size: 19px; font-weight: bold;">Cotação para Renovação</div>
+<div class="no-print" style="margin-top: 25px;"></div>
+
+<div class="row no-print">
+    <div class="col-sm-12 mx-auto">
+        <div class="row">
+            <div class="col-md-4"></div>
+            <div class="rectangle" id="retangle1" style="height: 10px; width:17%; margin-left:8%; background:lightgrey;"></div>
+        </div>
+        <div class="row">
+            <div class="col-md-4"></div>
+            <div class="col-md-2 col-2 col-2">
+                <div class="mx-auto bigcircle" id="circle1" style="background-color: lightgrey;"></div>
+                <div class="mx-auto smallcircle" id="smallCircle1" style="background: white; display:none;"></div>
+            </div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="circle2" style="background-color: lightgrey;"></div>
+                <div class="mx-auto smallcircle" id="smallCircle2" style="background: white; display:none;"></div>
+            </div>
+        </div>
+        <div class="row" style="margin-top:1em;">
+            <div class="col-md-4"></div>
+            <div class="col-md-2 text-center" id="simulacao"><label>Simulação</label></div>
+            <div class="col-md-2 text-center" id="planos"><label>Planos / Cotação</label></div>
+        </div>
+    </div>
+</div>
+<br />
+<script type="text/javascript">
+
+    function highlightCotacao(divId1, divId2) {
+        $(divId1).css("background", "rgb(35,76,112)");
+        $(divId2).show();
+
+    }
+    function highlightRetangle(divId) {
+        $(divId).css("background", "#0080bd");
+    }
+    function shadowCotacao(divId1) {
+        $(divId1).addClass('shadow');
+    }
+    function strongEtapas(divId1) {
+        $(divId1).addClass("font-weight-bold");
+        $(divId1).css("color", "#40615f");
+    }
+
+    @if (ViewContext.RouteData.Values["Action"].ToString() == "Renew")
+    {
+    <text>
+    highlightCotacao('#circle1', '#smallCircle1');
+    shadowCotacao('#circle1');
+    strongEtapas('#simulacao')
+    </text>
+    }
+
+    @if (ViewContext.RouteData.Values["Action"].ToString() == "QuoteRenew")
+    {
+    <text>
+    highlightCotacao('#circle1');
+    highlightRetangle('#retangle1');
+    highlightCotacao('#circle2', '#smallCircle2');
+    shadowCotacao('#circle2');
+    strongEtapas('#planos')
+    </text>
+    }
+</script>

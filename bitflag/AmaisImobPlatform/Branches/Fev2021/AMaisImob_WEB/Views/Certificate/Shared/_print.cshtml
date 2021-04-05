@@ -1,0 +1,431 @@
+﻿@model AMaisImob_WEB.Models.CertificatePrintViewModel
+@inject AMaisImob_DB.Models.AMaisImob_HomologContext context
+@using AMaisImob_WEB.Utils;
+
+@{
+    ViewData["Title"] = "Impressão de Certificado";
+
+    var productFunctions = new AMaisImob_WEB.BLL.ProductFunctions(context);
+
+    var product = productFunctions.GetDataByID(Model.Certificate.ProductId);
+
+    //preco líquido mensal do plano
+    double planMonthly = Model.Certificate.PlanPrice / 1.0738;
+
+    var monthlyPrice = (Model.Certificate.PlanPrice);
+    if (Model.Certificate.AssistanceId.HasValue)
+    {
+        monthlyPrice += Model.Assistance.Value.Value;
+    }
+    var annualPrice = (monthlyPrice * 12) + Model.Certificate.TaxaInquilini;
+    var _annualPrice = annualPrice.ToString("#,##0.00");
+}
+
+<style type="text/css">
+        @@font-face {
+            font-family: 'Avenir';
+            src: url('@Url.Content("~/assets/fonts/0078f486-8e52-42c0-ad81-3c8d3d43f48e.woff2")'), url('@Url.Content("~/assets/fonts/bc176270-17fa-4c78-a343-9fe52824e501.woff")'), url('@Url.Content("~/assets/fonts/d513e15e-8f35-4129-ad05-481815e52625.woff2")');
+        }
+</style>
+
+<style>
+    body{
+        font-family:Avenir;
+    }
+</style>
+
+
+
+<script type="text/javascript">
+    _MaskData();
+</script>
+
+<div style="width: 100%; text-align: left;">
+    <strong class="impressao-titulo">
+        CERTIFICADO DE ADESÃO - @if (product.ExternalCode == "Residencial1")
+        {<text>RESIDENCIAL</text>}
+    else if (product.ExternalCode == "EMPRESARIAL001")
+    {<text>EMPRESARIAL</text>}
+else
+{<text>INDIVIDUAL</text>} DE SEGURO #@Model.Certificate.Reference
+</strong><br />
+<label class="impressao-subtitulo control-label">ESTE CERTIFICADO INDIVIDUAL DE SEGURO É EMITIDO PELA A MAIS AFINIDADES SERVIÇOS ADMINISTRATIVOS LTDA</label>
+</div>
+<br />
+
+<table style="width: 100%; text-align: left;">
+    <tr>
+        <td class="td-padding">
+            <small>Apólice coletiva com vigência em @Model.InsurancePolicy._StartDate a @Model.InsurancePolicy._EndDate, após esta data seu certificado terá um novo número de apólice, e será alterado automaticamente</small>
+        </td>
+    </tr>
+    <tr>
+        <td class="td-padding">
+            <small><strong>APÓLICE @product.Name.ToUpper() Nº:</strong> @(product.Code == "RESIDENCIALCASA"? "Em processo de emissão" : Model.InsurancePolicy.InsurancePolicyNumber)</small>&nbsp;&nbsp;<small>@(product.Code == "RESIDENCIALCASA"? "Pottencial Seguradora S.A. - Registro SUSEP 03069" : "INVESTPREV SEGURADORA S.A - Registro SUSEP 06921")</small>
+        </td>
+    </tr>
+</table>
+
+<table style="width: 100%; text-align:left;">
+    <tr>
+        <td style="text-align:left;">
+            <small><strong>INÍCIO DE VIGÊNCIA DO CERTIFICADO:</strong> 01/@Model.Certificate.CreatedDate.Month.ToString("00")/@Model.Certificate.CreatedDate.Year.ToString("0000")</small>
+        </td>
+        <td style="text-align:right;">
+            <small>
+                <strong>INÍCIO DE COBERTURA:</strong> <span class="date">
+                    @if (Model.Certificate.CopiedFrom.HasValue)
+                    {<text>@Model.Certificate._VigencyDate</text>}
+                else
+                {<text>@Model.Certificate._AdherenceDate</text>}
+            </span>
+        </small>
+    </td>
+</tr>
+</table>
+<br />
+<table style="width: 100%; margin-top:-1em; margin-bottom:1em;">
+
+    <tr>
+
+        <td colspan="4" class="bgamaisimob-green" style="border-radius: 15px 15px 0px 0px;">
+            <small class="amaisimob-white">DADOS DO ESTIPULANTE</small>
+        </td>
+    </tr>
+    <tr class="amaisimob-grey">
+        <td colspan="2" style="width:75%;" class="td-padding"><small class="smallFont"><strong>NOME DO ESTIPULANTE:</strong> ASSIST SERVIÇOS ADMINISTRATIVOS LTDA</small></td>
+        <td colspan="2" class="td-padding"><small class="smallFont"><strong>CNPJ:</strong> 33.796.693/0001-20</small></td>
+    </tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding" style="width:50%;"><small class="smallFont"><strong>ENDEREÇO:</strong> RUA MANUEL DA NÓBREGA</small></td>
+        <td class="td-padding"><small class="smallFont"><strong>Nº:</strong> 354</small></td>
+        <td class="td-padding"><small class="smallFont"><strong>COMP:</strong> 8º ANDAR</small></td>
+        <td class="td-padding">&nbsp;</td>
+    </tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding"><small class="smallFont"><strong>BAIRRO:</strong> PARAÍSO</small></td>
+        <td class="td-padding"><small class="smallFont"><strong>CEP:</strong> 04.001-001</small></td>
+        <td class="td-padding"><small class="smallFont"><strong>CIDADE:</strong> SÃO PAULO</small></td>
+        <td class="td-padding"><small class="smallFont"><strong>UF:</strong> SP</small></td>
+    </tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding" colspan="2"><small class="smallFont"><strong>E-MAIL:</strong><a href="mailto:contato@amaisimob.com.br"> contato@amaisimob.com.br</a></small></td>
+        <td class="td-padding" colspan="2"><small class="smallFont"><strong>TELEFONE:</strong> (11) 3253-3678</small></td>
+    </tr>
+</table>
+<table style="width: 100%;">
+    <tr class="amaisimob-white">
+        <td colspan="4" class="bgamaisimob-green" style="border-radius: 15px 15px 0px 0px;">
+            <small class="amaisimob-white">DADOS DO CORRETOR</small>
+        </td>
+    </tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding" style="width:75%;" colspan="2"><small class="smallFont"><strong>NOME DA CORRETORA:</strong> @Model.RealEstateAgency.CompanyName</small></td>
+        <td class="td-padding" colspan="2"><small class="smallFont"><strong>CPF/CNPJ:</strong> <span class="@(!string.IsNullOrWhiteSpace(Model.RealEstateAgency.Cnpj) ? "cnpj" : "cpf")">@Model.RealEstateAgency.CompanyDocument</span></small></td>
+    </tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding" style="width:50%;"><small class="smallFont"><strong>ENDEREÇO:</strong> @Model.RealEstateAgency.Endereco</small></td>
+        <td class="td-padding"><small class="smallFont"><strong>Nº:</strong> @Model.RealEstateAgency.Numero</small></td>
+        <td class="td-padding"><small class="smallFont"><strong>COMP:</strong> @Model.RealEstateAgency.Complemento</small></td>
+        <td class="td-padding">&nbsp;</td>
+    </tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding"><small class="smallFont"><strong>BAIRRO:</strong> @Model.RealEstateAgency.Bairro</small></td>
+        <td class="td-padding"><small class="smallFont"><strong>CEP:</strong> <span class="cep">@Model.RealEstateAgency.Cep</span></small></td>
+        <td class="td-padding"><small class="smallFont"><strong>CIDADE:</strong> @Model.RealEstateAgency.Cidade</small></td>
+        <td class="td-padding"><small class="smallFont"><strong>UF:</strong> @Model.RealEstateAgency.Uf</small></td>
+    </tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding" colspan="2"><small class="smallFont"><strong>E-MAIL:</strong> @Model.RealEstateAgency.Email</small></td>
+        <td class="td-padding" colspan="2"><small class="smallFont"><strong>TELEFONE:</strong> <span class="phone">@Model.RealEstateAgency.Telefone</span></small></td>
+    </tr>
+</table>
+<br />
+<table style="width: 100%;">
+    <tr class="amaisimob-white">
+        <td colspan="4" class="bgamaisimob-green" style="border-radius: 15px 15px 0px 0px;">
+            <small class="amaisimob-white">DADOS DA IMOBILIÁRIA</small>
+        </td>
+    </tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding" style="width:75%;" colspan="2"><small class="smallFont"><strong>NOME DA IMOBILIÁRIA:</strong> @Model.RealEstate.CompanyName</small></td>
+        <td class="td-padding" colspan="2"><small class="smallFont"><strong>CPF/CNPJ:</strong> <span class="@(!string.IsNullOrWhiteSpace(Model.RealEstate.Cnpj) ? "cnpj" : "cpf")">@Model.RealEstate.CompanyDocument</span></small></td>
+    </tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding" style="width:50%;"><small class="smallFont"><strong>ENDEREÇO:</strong> @Model.RealEstate.Endereco</small></td>
+        <td class="td-padding"><small class="smallFont"><strong>Nº:</strong> @Model.RealEstate.Numero</small></td>
+        <td class="td-padding"><small class="smallFont"><strong>COMP:</strong> @Model.RealEstate.Complemento</small></td>
+        <td class="td-padding">&nbsp;</td>
+    </tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding"><small class="smallFont"><strong>BAIRRO:</strong> @Model.RealEstate.Bairro</small></td>
+        <td class="td-padding"><small class="smallFont"><strong>CEP:</strong> <span class="cep">@Model.RealEstate.Cep</span></small></td>
+        <td class="td-padding"><small class="smallFont"><strong>CIDADE:</strong> @Model.RealEstate.Cidade</small></td>
+        <td class="td-padding"><small class="smallFont"><strong>UF:</strong> @Model.RealEstate.Uf</small></td>
+    </tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding" colspan="2"><small class="smallFont"><strong>E-MAIL:</strong> @Model.RealEstate.Email</small></td>
+        <td class="td-padding" colspan="2"><small class="smallFont"><strong>TELEFONE:</strong> <span class="phone">@Model.RealEstate.Telefone</span></small></td>
+    </tr>
+</table>
+<br />
+<table style="width: 100%;">
+    <tr class="amaisimob-white">
+        <td colspan="3" class="bgamaisimob-green" style="border-radius: 15px 15px 0px 0px;">
+            <small class="amaisimob-white">DADOS DO SEGURO</small>
+        </td>
+    </tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding" colspan="2"><small class="smallFont"><strong>NOME DO LOCATÁRIO:</strong> @Model.Certificate.RenterName</small></td>
+        <td class="td-padding"><small class="smallFont"><strong>CPF/CNPJ DO LOCATÁRIO:</strong> <span class="@(Model.Certificate.RenterCpf.Length > 11 ? "cnpj" : "cpf")">@Model.Certificate.RenterCpf</span></small></td>
+    </tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding" colspan="2">
+            <small class="smallFont">
+                <strong>E-MAIL:</strong> @if (string.IsNullOrWhiteSpace(Model.Certificate.RenterEmail))
+                {<text>-</text> }
+            else
+            { <text>@Model.Certificate.RenterEmail</text>}
+            </small>
+        </td>
+        <td class="td-padding">
+            <small class="smallFont">
+                <strong>TELEFONE:</strong> @if (string.IsNullOrWhiteSpace(Model.Certificate.RenterPhone))
+                {<text>-</text> }
+            else
+            { <text>@Model.Certificate.RenterPhone</text>}
+            </small>
+        </td>
+    </tr>
+    <tr><td colspan="4" style="padding: 0px 6px 0px 6px;"><hr /></td></tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding" colspan="2"><small class="smallFont"><strong>NOME DO LOCADOR:</strong> @Model.Certificate.LocatorName</small></td>
+        <td class="td-padding"><small class="smallFont"><strong>CPF/CNPJ DO LOCADOR:</strong> <span class="@(Model.Certificate.LocatorCpf.Length > 11 ? "cnpj" : "cpf")">@Model.Certificate.LocatorCpf</span></small></td>
+    </tr>
+    <tr><td colspan="4" style="padding: 0px 6px 0px 6px;"><hr /></td></tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding" colspan="2">
+            <small class="smallFont"><strong>ENDEREÇO:</strong> @Model.Certificate.Endereco,  @Model.Certificate.Numero</small>
+        </td>
+        <td class="td-padding">
+            <small class="smallFont">
+                <strong>COMP:</strong> @if (string.IsNullOrWhiteSpace(Model.Certificate.Complemento))
+                {<text>-</text>}
+            else
+            {<text>@Model.Certificate.Complemento</text>}
+            </small>
+        </td>
+    </tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding"><small class="smallFont"><strong>CEP:</strong> <span class="cep">@Model.Certificate.Cep</span></small></td>
+        <td class="td-padding"><small class="smallFont"><strong>BAIRRO:</strong> @Model.Certificate.Bairro</small></td>
+        <td class="td-padding"><small class="smallFont"><strong>CIDADE - UF:</strong> @Model.Certificate.Cidade -  @Model.Certificate.Uf</small></td>
+    </tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding" colspan="2"><small class="smallFont"><strong>TIPO DE CONSTRUÇÃO:</strong> @Model.Certificate.ConstructionTypeName</small></td>
+        <td class="td-padding">
+            <small class="smallFont">
+                <strong>TIPO DE HABITAÇÃO:</strong> @if (Model.Certificate.HabitationTypeId.HasValue)
+                {<text>@Model.Certificate.HabitationTypeName</text>}
+            else
+            {<text>-</text>}
+            </small>
+        </td>
+    </tr>
+    <tr class="amaisimob-grey">
+        <td class="td-padding"><small class="smallFont"><strong>TIPO DE IMÓVEL:</strong> @Model.Certificate.PropertyTypeName</small></td>
+        <td class="td-padding">
+            <small class="smallFont">
+                <strong>DESCRIÇÃO:</strong> @if (string.IsNullOrWhiteSpace(Model.Certificate.PropertyTypeDescription))
+                {<text>-</text> }
+            else
+            { <text>@Model.Certificate.PropertyTypeDescription</text>}
+            </small>
+        </td>
+        <td class="td-padding">
+            <small class="smallFont">
+                <strong>REFERÊNCIA IMOBILIÁRIA:</strong> @if (string.IsNullOrWhiteSpace(Model.Certificate.RealEstateReference))
+                {<text>-</text> }
+            else
+            { <text>@Model.Certificate.RealEstateReference</text>}
+            </small>
+        </td>
+    </tr>
+</table>
+@if (Model.Coverages.Count(x => !x.IsOptional || x.Used) <= 6)
+{
+    <br />
+}
+else
+{
+    <div style="page-break-after: always;"></div>
+}
+<table style="width: 100%;">
+    <tr class="amaisimob-white">
+        <td colspan="4" class="bgamaisimob-green" style="border-top-left-radius: 15px; border-top-right-radius: 15px; width: 40%;"><small>@Model.Plan.Name.ToUpper()</small></td>
+    </tr>
+    <tr class="amaisimob-white bgamaisimob-green">
+        <td style="width: 35%;"><small>Coberturas</small></td>
+        <td style="width: 15%; text-align: center;"><small>Garantias</small></td>
+        <td style="width: 20%; text-align: center;"><small>Franquias</small></td>
+        <td style="width: 10%; text-align: center;"><small>Valor</small></td>
+    </tr>
+    @foreach (var coverage in Model.Coverages.Where(x => !x.IsOptional || x.Used))
+    {
+        <tr>
+            <td class="bgamaisimob-white"><small class="smallFont"><strong class="amaisimob-orange">@coverage.Name</strong></small></td>
+            <td class="bgamaisimob-white" style="text-align: center; border-left: 1px solid black;"><small class="smallFont amaisimob-orange">R$ <span class="money">@coverage._Garantia</span></small></td>
+            <td class="bgamaisimob-white" style="text-align: center; border-left: 1px solid black;">
+                <small class="smallFont amaisimob-orange">
+                    @if (string.IsNullOrWhiteSpace(coverage.Franquias))
+                    {<text>-</text> }
+                else
+                { <text>@coverage.Franquias</text>}
+                </small>
+            </td>
+            <td class="bgamaisimob-white" style="text-align: center; border-left: 1px solid black;"><small class="smallFont amaisimob-orange">R$ <span class="money">@((coverage.Taxes / 100 * coverage.Garantia).Value.ToString("#,#0.00"))</span></small></td>
+        </tr>
+    }
+    <tr class="amaisimob-white">
+        <td class="bgamaisimob-green" colspan="3" style=" text-align: right;"><small>PRÊMIO TOTAL</small></td>
+        <td class="bgamaisimob-green" style=" text-align: left;">
+            <small>R$ <span class="money">@Model.Plan._MonthlyPrice</span></small>
+        </td>
+    </tr>
+    <tr class="amaisimob-white">
+        <td class="bgamaisimob-green" colspan="3" style=" text-align: right;"><small>PRÊMIO LÍQUIDO</small></td>
+        <td class="bgamaisimob-green" style=" text-align: left;">
+            <small>R$ <span class="money">@planMonthly.ToString("#,##0.00")</span></small>
+        </td>
+    </tr>
+    <tr class="amaisimob-white">
+        <td class="bgamaisimob-green" colspan="3" style=" text-align: right; border-radius: 0px 0px 0px 15px;"><small>IOF</small></td>
+        <td class="bgamaisimob-green" style=" text-align: left; border-radius: 0px 0px 15px 0px;">
+            <small>R$ <span class="money">@((Model.Certificate.PlanPrice - planMonthly).ToString("#,##0.00"))</span></small>
+        </td>
+    </tr>
+</table>
+
+@if (Model.Coverages.Count(x => !x.IsOptional || x.Used) <= 6)
+{
+    <div style="page-break-after: always;"></div>
+}
+else
+{
+    <br />
+}
+<table style="width: 100%; margin-bottom:1em;">
+    <tr class="amaisimob-white bgamaisimob-green">
+        <td colspan="2" style="border-top-left-radius: 15px; border-top-right-radius: 15px;"><small>SERVIÇOS ADICIONAIS</small></td>
+    </tr>
+    @if (Model.Certificate.AssistanceId.HasValue)
+    {
+        <tr>
+            <td colspan="2"><small class="smallFont"><strong class="amaisimob-grey">@Model.Assistance.Name</strong></small></td>
+        </tr>
+        <tr style="border-top:1px solid black;">
+            <td colspan="2"><small class="amaisimob-orange smallFont">* PRESTADORA: IKE ASSISTENCIA DO BRASIL – RODASSIST S.A. / CNPJ 07.833.406/0001-02</small></td>
+        </tr>
+        <tr class="amaisimob-white">
+            <td class="bgamaisimob-green" style="text-align: right; border-radius: 0px 0px 0px 15px; width: 80%;">
+                <small>VALOR MENSAL DA ASSISTÊNCIA</small>
+            </td>
+            <td class="bgamaisimob-green" style="text-align: left; border-radius: 0px 0px 15px 0px;">
+                <small>R$ <span class="money">@Model.Assistance._Value</span></small>
+            </td>
+        </tr>
+    }
+    @if (!Model.Certificate.AssistanceId.HasValue)
+    {
+        <tr>
+            <td colspan="2"><small class="smallFont"><strong class="amaisimob-grey">-</strong></small></td>
+        </tr>
+        <tr class="amaisimob-white">
+            <td class="bgamaisimob-green" style="text-align: right; border-radius: 0px 0px 0px 15px; width: 80%;">&nbsp;</td>
+            <td class="bgamaisimob-green" style="text-align: left; border-radius: 0px 0px 15px 0px;">&nbsp;</td>
+        </tr>
+    }
+
+</table>
+
+<table style="margin-top:1em; width:100%;">
+    <tr style="text-align:center;">
+        <td class="bgamaisimob-green amaisimob-white" valign="middle">
+            FORMA DE PAGAMENTO: @if (Model.Certificate.PaymentTimes == 12)
+            {<text>MENSAIS</text>}
+        else
+        {<text>@(Model.Certificate.PaymentTimes)X</text>} DE R$ <span class="money">@((annualPrice / Model.Certificate.PaymentTimes).ToString("#,##0.00"))</span>
+        </td>
+    </tr>
+</table>
+
+<table style="margin-top:1em; width:100%;">
+    <tr style="text-align:center;">
+        <td class="bgamaisimob-green amaisimob-white" valign="middle">
+            CUSTO ANUAL R$ <span class="money">@_annualPrice</span>
+        </td>
+    </tr>
+</table>
+
+<table style="width: 100%; margin-top:1em;">
+    <tr>
+        <td colspan="2" class="bgamaisimob-green" style="border-radius: 15px 15px 0px 0px;"><small class="amaisimob-white">PAGAMENTO DO PRÊMIO DE SEGURO</small></td>
+    </tr>
+    <tr>
+        <td colspan="2" class="amaisimob-grey"><small>O pagamento do seguro será efetuado pelo garantido, pessoa física ou jurídica, junto ao aluguel, conforme condições estabelecidas no momento da contratação, ou boleto à vista se assim desejar.</small></td>
+    </tr>
+</table>
+<table style="margin-top:.5em;">
+    <tr>
+        <td>
+            <strong>
+                <small class="amaisimob-white">
+                </small>
+            </strong>
+        </td>
+    </tr>
+    <tr>
+        <td class="bgamaisimob-green" style="border-radius: 15px 15px 0px 0px;"><small class="amaisimob-white">DADOS DO SEGURO E CONDIÇÕES GERAIS</small></td>
+    </tr>
+    <tr>
+        <td style="text-align: center;">
+            <small>
+                <strong>
+                    @if (product.Code == "RESIDENCIALCASA")
+                    {
+                        <text>
+                            Este seguro é garantido pela POTTENCIAL SEGURADORA S/A CÓDIGO SUSEP 03069 www.pottencial.com.br - Ouvidoria : 0800-2001080 ouvidoria@pottencial.com.br CNPJ: 11.699.534/0001-74. Av. Raja Gabaglia, 1143/19º andar - CEP 30.380-403 - Luxemburgo - Belo Horizonte - MG - Fone : (31) 2121-7777
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Este seguro é garantido pela Investprev Seguradora S.A - Registro SUSEP 06921 - CNPJ nº 42.366.302/0001-82, Av. Carlos Gomes, 222/1001 – Nossa Senhora Auxiliadora, Porto Alegre - RS - CEP: 90.480-000 - www.investseguradora.com.br - Telefones - 0800 646 8378
+                        </text>
+                    }
+                    <br />
+                    A MAIS ADM E CORRETORA DE SEGUROS LTDA - Registro SUSEP 100695033 - CNPJ 12.939.904/0001-66, Rua Manuel da Nobrega, 354 - 8ª andar - Paraiso, São Paulo -SP - CEP 04001-001 - Telefone 11 3253-3678 - www.amaisimob.com.br<br />
+                    ATENDIMENTO SUSEP: 0800-021-8484 - Os segurados poderão consultar informações sobre os produtos através do site:  www.susep.gov.br
+                </strong>
+
+            </small>
+
+            <br />
+
+            <small class="control-label" style="text-align:center">
+                “SUSEP – Superintendência de Seguros Privados – Autarquia Federal responsável pela fiscalização, normatização e controle dos mercados de seguro, previdência complementar aberta, capitalização, resseguro e corretagem de seguros.”. Parágrafo único. Para fins do disposto no inciso VII, caso o segurado seja estrangeiro, poderá ser utilizado o número do passaporte, com a identificação do País de expedição.<br />
+                Art. 4º As sociedades seguradoras poderão emitir uma única apólice vinculada a vários produtos de seguro, com diferentes coberturas, desde que destinada a garantir um mesmo segurado, grupo segurado ou objeto segurável, contra diversos riscos.<br />
+                Art. 5º Poderão ser estabelecidos requisitos complementares para apólices e certificados individuais em função de critérios específicos inerentes a determinados ramos de seguro.<br />
+                Art. 6º Os documentos contratuais de que trata esta Circular deverão ser entregues ao segurado por ocasião da efetivação da contratação do plano de seguro, juntamente com as condições gerais, refletindo de forma clara todas as coberturas contratadas. Parágrafo único. O disposto no caput poderá ser realizado com a utilização de meios remotos.<br />
+                Art.7º As sociedades seguradoras terão o prazo de 180 dias para se adequarem ao disposto nesta Circular.<br />
+                Art. 8º Esta Circular entra em vigor na data de sua publicação, ficando revogadas a Circular Susep nº 5, de 11 de março 1969, a Circular Susep nº 34, de 22 de junho de 1972, a Circular Susep nº 39, de 3 de novembro de 1975, a Circular Susep nº 8, de 9 de fevereiro de 1976, a Circular Susep nº 176, de 11 de dezembro de 2001, a Circular Susep nº 401, de 25 de fevereiro de 2010, a Circular Susep nº 432, de 13 de abril de 2012, e a Circular Susep nº 434, de 19 de abril de 2012.
+            </small>
+        </td>
+    </tr>
+</table>
+
+<script type="text/javascript">
+    _MaskData();
+    window.print();
+
+</script>

@@ -1,0 +1,189 @@
+﻿@model DTO.User.UserViewModel
+@{
+    var isClient = Model.Role == "Cliente";
+}
+<script type="text/javascript">
+    _MaskData();
+</script>
+
+<script type="text/javascript">
+
+function _UserManageSave() {
+    var d = $('#_UserManageForm').serializeArray();
+    d.push({ 'name': 'RoleNormalizedName', 'value': $('#_UserManageRole').val() });
+    $.post('@Url.Action("Manage", "User")', d, function (data) {
+        if (data.hasError) {
+            $('#_UserManageAlertSuccess').hide();
+            $('#alertErrorUser').show();
+            $('#' + data.selector).after('<div class="text-danger">'+data.message+'</div>');
+        }
+        else {
+            _UserManageCallBack(data.id);
+		}
+		
+	});
+    }
+
+function _UserManageValidate() {
+
+    var _UserManagehasError = false;
+	$('.text-danger').remove();
+
+    if (IsNullOrWhiteSpace($('#_UserManageFirstName').val())) {
+        $('#_UserManageFirstName').after('<div class="text-danger">Preencha o primeiro nome.</div>');
+        _UserManagehasError = true;
+	}
+
+ //   if (IsNullOrWhiteSpace($('#_UserManageLastName').val())) {
+ //       $('#_UserManageLastName').after('<div class="text-danger">Preencha o sobrenome.</div>');
+ //       _UserManagehasError = true;
+	//}
+
+    if (IsNullOrWhiteSpace($('#_UserManageEmail').val())) {
+        $('#_UserManageEmail').after('<div class="text-danger">Preencha um e-mail.</div>');
+        _UserManagehasError = true;
+    }
+
+	@if (Model.UserId == null)
+    {
+		<text>
+    if (IsNullOrWhiteSpace($('#_UserManagePassword').val())) {
+        $('#_UserManagePassword').after('<div class="text-danger">Defina uma senha.</div>');
+        _UserManagehasError = true;
+			}
+
+    if (IsNullOrWhiteSpace($('#_UserManagePasswordConfirmation').val())) {
+        $('#_UserManagePasswordConfirmation').after('<div class="text-danger">Preencha a confirmação de senha.</div>');
+        _UserManagehasError = true;
+			}
+
+    if ($('#_UserManagePasswordConfirmation').val() != $('#_UserManagePassword').val()) {
+        $('#_UserManagePasswordConfirmation').after('<div class="text-danger">Senha de Confirmação errada.</div>');
+				_UserManagehasError = true;
+			}
+		</text>
+    }
+    if (_UserManagehasError) {
+        $('#_UserManageAlertError').show();
+    } else {
+        $('#_UserManageAlertError').hide();
+    }
+
+    return (!_UserManagehasError);
+}
+
+</script>
+
+<script type="text/javascript">
+    function _UserTakeOffSuccessAlert() {
+        $('#_UserManageAlertSuccess').hide();
+    }
+</script>
+
+<div id="_UserManageAlertSuccess" class="alert alert-success fade show text-center" style="display: none;">
+    <b>Os dados foram salvos com sucesso!</b>
+</div>
+@if (isClient)
+{
+    <div id="_UserManageClientAlert" class="alert alert-warning fade show text-center">
+        <b>Atenção!</b> Este usuário é um cliente, por isso a maioria das  alterações devem ser feitas na tela de cliente.
+    </div>
+}
+<div id="_UserManageAlertError" class="alert alert-danger fade show text-center" role="alert" style="display: none;">
+    <strong>Atenção!</strong> O Formulário contém erros.
+</div>
+<form id="_UserManageForm" method="post">
+    <input type="hidden" id="_UserManageUserId" name="UserId" value="@Model.UserId" />
+    <div class="form-row">
+        <div class="form-group col-md-5">
+            <label class="control-label" for="_UserManageFirstName">Nome*</label>
+            <input type="text" class="form-control" id="_UserManageFirstName" name="FirstName" value="@Model.FirstName" placeholder="Nome">
+        </div>
+        <div class="form-group col-md-7">
+            <label class="control-label" for="_UserManageLastName">Sobrenome*</label>
+            <input type="text" class="form-control" id="_UserManageLastName" name="LastName" value="@Model.LastName" placeholder="Sobrenome">
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group col-md-2">
+            <label class="control-label">CPF*</label>
+            <input type="email" class="form-control cpf" id="_UserManageCpf" name="Cpf" value="@Model.Cpf" placeholder="CPF">
+        </div>
+        <div class="form-group col-md-4">
+            <label class="control-label" for="_UserManageEmail">E-mail*</label>
+            <input type="email" class="form-control" id="_UserManageEmail" name="Email" value="@Model.Email" placeholder="E-mail">
+        </div>
+        <div class="form-group col-md-3">
+            <label class="control-label" for="_UserManagePassword">Senha*</label>
+            <input type="password" class="form-control" id="_UserManagePassword" name="Password" value="" placeholder="Senha">
+        </div>
+        <div class="form-group col-md-3">
+            <label class="control-label" for="_UserManagePasswordConfirmation">Confirmação de Senha*</label>
+            <input type="password" class="form-control" id="_UserManagePasswordConfirmation" value="" placeholder="Confirmação de Senha">
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group col-md-3">
+            <label class="control-label" for="_UserManagePhoneNumber">Telefone</label>
+            <input type="text" class="form-control " id="_UserManagePhoneNumber" name="PhoneNumber" value="@Model.PhoneNumber" placeholder="Telefone">
+        </div>
+        <div class="form-group col-md-3">
+            <label class="control-label" for="_UserManageMobileNumber">Celular</label>
+            <input type="text" class="form-control " id="_UserManageMobileNumber" name="MobileNumber" value="@Model.MobileNumber" placeholder="Celular">
+        </div>
+        <div class="form-group col-md-4">
+            <label class="control-label">Perfil</label>
+            <select class="form-control" id="_UserManageRole">
+                @foreach (var role in ((List<TerraNostraIdentityDbContext.Role>)ViewData["Roles"]).OrderBy(x => x.Name))
+                {
+                    if (Model.RoleNormalizedName == role.NormalizedName)
+                    {
+                        <option value="@role.NormalizedName" selected>@role.Description</option>
+                        continue;
+                    }
+                    <option value="@role.NormalizedName">@role.Description</option>
+
+                }
+            </select>
+        </div>
+        <div class="form-group col-md-2">
+            <label class="control-label">Ativo?</label>
+            <select class="form-control" id="_UserManageIsActive" name="IsActive">
+                <option value="True" selected="selected">Sim</option>
+                <option value="False">Não</option>
+            </select>
+        </div>
+        @if (Model != null && Model.UserId != null)
+        {
+            <script type="text/javascript">
+            $('#_UserManageIsActive').find('[value=' + "@Model.IsActive" + ']').attr('selected', true);
+            </script>
+        }
+    </div>
+    @if (Model.RoleNormalizedName == "ADMINISTRATOR" || Model.RoleNormalizedName == "SALESMAN")
+    {
+        <div class="form-row">
+            <div class="form-group col-md-2">
+                <label class="control-label">Disponível para vendas?</label>
+                <select class="form-control" id="SalesmanAvailable" name="SalesmanAvailable">
+                    <option value="True">Sim</option>
+                    <option value="False">Não</option>
+                </select>
+               <script type="text/javascript">
+                   $('#SalesmanAvailable').val('@(Model.SalesmanAvailable ? "True" : "False")');
+               </script>
+            </div>
+        </div>
+    }
+</form>
+<script type="text/javascript">
+    @if (isClient)
+    {
+        <text>
+    var disableFields = ['_UserManageFirstName', '_UserManageLastName', '_UserManageEmail', '_UserManagePhoneNumber', '_UserManageMobileNumber', '_UserManageRole'];
+            for (var i = 0; i < disableFields.length; i++) {
+                $('#' + disableFields[i]).attr('disabled', 'disabled').attr('name', '');
+            }
+        </text>
+    }
+</script>

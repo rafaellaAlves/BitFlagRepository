@@ -1,0 +1,153 @@
+﻿@model int
+
+<div class="row">
+    <div class="col-md form-group">
+        <div class="input-group">
+            <div class="input-group-addon">
+                <i class="simple-icon-magnifier"></i>
+            </div>
+            <input type="text" class="form-control" id="transporter-contact-search" placeholder="Pesquisar..." data-toggle="search-datatable" data-target="#transporter-contact-table">
+        </div>
+    </div>
+    <div class="col-md-auto col form-group">
+        <a href="javascript:openTransporterContactEditModal()" class="btn btn-primary text-nowrap w-100"><i class="simple-icon-plus"></i>&nbsp;Adicionar</a>
+    </div>
+</div>
+<hr />
+<div id="success-area-transporter-contact"></div>
+<div class="row">
+    <div class="col-md-12 table-responsive">
+        <table id="transporter-contact-table" class="display table table-striped table-bordered table-condensed w-100" style="border-collapse: collapse !important;">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Cargo</th>
+                    <th>Telefone</th>
+                    <th>Celular</th>
+                    <th>E-mail</th>
+                    <th>&nbsp;</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="transporter-contact-modal" tabindex="-1" role="dialog" aria-labelledby="transporter-contact-modal-title" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold" id="transporter-contact-modal-title"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @(await Component.InvokeAsync("TransporterContactManage", new { id = Model }))
+            </div>
+            <div class="modal-footer">
+                <div class="col-md-6">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="simple-icon-close"></i>&nbsp;Fechar</button>
+                </div>
+                <div class="col-md-6">
+                    <button type="button" class="btn btn-success float-right" id="transporter-contact-modal-save-button"><i class="simple-icon-cloud-upload"></i>&nbsp;Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script asp-cut-key="script-transporter-contact">
+    var transporterContactDatatables;
+    $(document).ready(function () {
+        transporterContactDatatables = $('#transporter-contact-table').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            dom: 'tip',
+            ajax: {
+                url: '@Url.Action("List", "TransporterContact")',
+                data: function (d) {
+                    d.transporterId = '@Model'
+                },
+                type: 'POST'
+            },
+            columns: [
+                { render: function (data, type, row) { return row.name; } },
+                { render: function (data, type, row) { return row.role; } },
+                { render: function (data, type, row) { return row.phone; } },
+                { render: function (data, type, row) { return row.cellPhone; } },
+                { render: function (data, type, row) { return row.email; } },
+                {
+                    render: function (data, type, row)
+                    {
+                        return '<div class="text-center text-nowrap">' +
+                            '&nbsp;<a href=\'javascript:openTransporterContactEditModal(' + JSON.stringify(row) + ')\' title="Editar"><span class="badge badge-pill badge-success"><i class="simple-icon-note"></i></span></a>' +
+                            '&nbsp;<a href=\'javascript:removeTransporterContact(' + JSON.stringify(row) + ')\' title="Excluir"><span class="badge badge-pill badge-danger"><i class="simple-icon-trash"></i></span></a>'  +
+                            '</div>';
+                    }
+                }
+            ]
+        });
+    });
+
+    function removeTransporterContact(transporterContact) {
+        bootboxConfirm("Deseja realmente excluir o contato \"" + transporterContact.name + "\"?", function(result){
+            if (!result) return;
+
+            $.post('@Url.Action("DeleteDefinitively", "TransporterContact")', { id: transporterContact.transporterContactId }, function () {
+                alert("Contato \"" + transporterContact.name + "\" excluído com sucesso!");
+                transporterContactDatatables.ajax.reload();
+            });
+        });
+    }
+
+    function openTransporterContactEditModal(data) {
+        $('#form-transporter-contact [name=\'Name\']').val(data == null ? '' : data.name);
+        $('#form-transporter-contact [name=\'Role\']').val(data == null ? '' : data.role);
+        $('#form-transporter-contact [name=\'Phone\']').val(data == null ? '' : data.phone);
+        $('#form-transporter-contact [name=\'CellPhone\']').val(data == null? '' : data.cellPhone);
+        $('#form-transporter-contact [name=\'Email\']').val(data == null? '' : data.email);
+        $('#form-transporter-contact [name=\'TransporterContactId\']').val(data == null? '' : data.transporterContactId);
+
+        $('#transporter-contact-modal-title').text(data == null ? 'Novo Contato' : 'Editar Contato');
+
+        $('#transporter-contact-modal').modal('show');
+
+        InitializeFunctions();
+    }
+
+    $('#transporter-contact-modal-save-button').click(function () {
+
+        if (!validateInputs('form-transporter-contact')) return;
+
+        $('#success-area-transporter-contact').empty();
+    
+        $.ajax({
+            url: '@Url.Action("ManageAjax", "TransporterContact")',
+			type: 'POST',
+			contentType: false,
+			processData: false,
+            data: $('#form-transporter-contact').serializeArray(),
+            success: function (d) {
+                transporterContactDatatables.ajax.reload();
+                transporterContactDatatables.search($('#transporter-contact-search').val()).draw();
+
+                $('#success-area-transporter-contact').empty().append(successMessage());
+
+                $('#transporter-contact-modal').modal('hide');
+            }
+        });
+        @*$.post("@Url.Action("ManageAjax", "TransporterContact")", $('#form-transporter-contact').serializeArray(), function (d) {
+
+            transporterContactDatatables.ajax.reload();
+            transporterContactDatatables.search($('#transporter-contact-search').val()).draw();
+
+            $('#success-area-transporter-contact').empty().append(successMessage());
+
+            $('#transporter-contact-modal').modal('hide');
+        });*@
+    })
+</script>
+

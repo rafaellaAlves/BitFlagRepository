@@ -1,0 +1,88 @@
+﻿@model DTO.Shared.EntityViewMode<List<DTO.Service.ServiceListViewModel>>
+
+@inject Services.Service.ServiceStatusServices serviceStatusServices
+
+@{
+    var sendedStatusId = (await serviceStatusServices.GetDataByExternalCode("OSENVIADA")).ServiceStatusId;
+    var signedStatusId = (await serviceStatusServices.GetDataByExternalCode("OSASSINADA")).ServiceStatusId;
+    var scheduledStatusId = (await serviceStatusServices.GetDataByExternalCode("COLETAAGENDADA")).ServiceStatusId;
+    var concludedStatusId = (await serviceStatusServices.GetDataByExternalCode("COLETACONCLUIDA")).ServiceStatusId;
+}
+
+<div class="card">
+    <div class="card-header card-header-default card-header-destineja-green tx-uppercase justify-content-between  bg-gray-400">
+        <h6 class="mg-b-0 tx-14 tx-inverse"><i class="fa fa-table"></i>&nbsp;Tabela</h6>
+        <div class="card-option">
+            <button type="button" class="btn btn-sm btn-primary" style="border-radius: 3px;" onclick="downloadListPrint(serviceReportTable, null, 'Relatório - Serviços Avulsos')"><i class="simple-icon-cloud-download"></i> Download</button>
+            <button type="button" class="btn btn-sm btn-primary" style="border-radius: 3px;" onclick="openListPrint(serviceReportTable, null, 'Relatório - Serviços Avulsos')"><i class="simple-icon-printer"></i> Imprimir</button>
+            <a href="" class="tx-gray-600 hover-white mg-l-10" data-toggle="collapse" aria-expanded="true" data-target="#service-report-table-area"><i class="simple-icon-arrow-up lh-0"></i></a>
+        </div>
+    </div>
+    <div class="card-body bd collapse show" id="service-report-table-area">
+        <div class="row">
+            <div class="col table-responsive" style=" overflow-x: auto;">
+                <table class="table table-bordered table-striped table-condensed" id="service-report-table">
+                    <thead>
+                        <tr>
+                            <th>Ordem de Serviço</th>
+                            <th>Gerador</th>
+                            <th>Valor do Frete</th>
+                            <th>Valor do kg do resíduo</th>
+                            <th>Peso (Kg)</th>
+                            <th>Valor do Serviço</th>
+                            <th>Status</th>
+                            <th>Serviço feito em:</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Model)
+                        {
+                            <tr>
+                                <td>@item.ServiceId</td>
+                                <td>@item.ClientName</td>
+                                <td>R$ @item._FreightPrice</td>
+                                <td>R$ @item._ResiduePrice</td>
+                                <td>@item.WeightFormated</td>
+                                <td>R$ @item._TotalPrice</td>
+                                <td>@item.StatusName</td>
+                                <td>@item._LastDemandDate</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <hr />
+        <div class="row">
+            <div class="col text-center">
+                <label>O S Total: <b>@Model.Model.Count</b></label>
+            </div>
+            <div class="col text-center">
+                <label>O S Assinada: <b>@Model.Model.Count(x => x.ServiceStatusId == signedStatusId)</b></label>
+            </div>
+            <div class="col text-center">
+                <label>Coleta Agendada: <b>@Model.Model.Count(x => x.ServiceStatusId == scheduledStatusId)</b></label>
+            </div>
+            <div class="col text-center">
+                <label>Coleta Concluída: <b>@Model.Model.Count(x => x.ServiceStatusId == concludedStatusId)</b></label>
+            </div>
+            <div class="col text-center">
+                <label>Valor dos Serviços: <b>@Model.Model.Sum(x => x.TotalPrice).ToPtBR()</b></label>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript" asp-cut-key="service-report-index" asp-cut-key-load-from-controller="@Model.LoadFromController">
+    var serviceReportTable;
+
+    $(document).ready(function () {
+        serviceReportTable = $('#service-report-table').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            dom: 'tip',
+            ordering: false
+        });
+    });
+</script>

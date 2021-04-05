@@ -1,0 +1,43 @@
+﻿@model int?
+@inject FUNCTIONS.Client.ClientFunctions clientFunctions
+@inject FUNCTIONS.Invoice.InvoiceFunctions invoiceFunctions
+
+@{
+    ViewData["Title"] = "Orçamento";
+    int? clientId = Context.Request.Query.ContainsKey("clientId") ? (int?)int.Parse(Context.Request.Query["clientId"]) : null;
+    int? invoiceId = Context.Request.Query.ContainsKey("InvoiceId") ? (int?)int.Parse(Context.Request.Query["invoiceId"]) : null;
+    int? freezedFamilyId = Context.Request.Query.ContainsKey("freezedFamilyId") ? (int?)int.Parse(Context.Request.Query["freezedFamilyId"]) : null;
+    string nome = "";
+    if (clientId != null)
+    {
+        var client = clientFunctions.GetDataByID(clientId);
+        nome = client.FirstName + " " + client.LastName;
+    }
+    int? codInvoice = null;
+    if (invoiceId != null)
+    {
+        var invoice = invoiceFunctions.GetDataByID(invoiceId);
+        var x = clientFunctions.GetDataByID(invoice.ClientId);
+        nome = x.FirstName + " " + x.LastName;
+        codInvoice = invoice.InvoiceId;
+    }
+
+}
+@if (invoiceId == null)
+{
+    <div id="_InvoiceManageViewComponent"></div>
+}
+else
+{
+    <div class="mb-2">
+        <h2 style="font-size:25px;"><b>@nome</b></h2>
+    </div>
+    <br />
+    <br />
+    <div id="_InvoiceManageViewComponent"></div>
+}
+
+
+<script type="text/javascript">
+    $('#_InvoiceManageViewComponent').load('@Url.Action("InvoiceManageViewComponent", "Invoice")', { invoiceId: '@Model' @if (clientId.HasValue) {<text>, clientId: @clientId.Value </text>} @if (freezedFamilyId.HasValue) {<text>, freezedFamilyId: @freezedFamilyId.Value </text>} });
+</script>

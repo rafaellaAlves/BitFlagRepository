@@ -1,0 +1,1804 @@
+﻿@model int
+@inject AMaisImob_WEB.BLL.StatusTypeFunctions statusTypeFunctions
+@inject AMaisImob_WEB.BLL.PaymentWayFunctions paymentWayFunctions
+
+@inject AMaisImob_WEB.BLL.CertificateFunctions certificateFunctions;
+@inject AMaisImob_WEB.BLL.ChargeFunctions chargeFunctions;
+@inject AMaisImob_WEB.BLL.CompanyFunctions companyFunctions;
+@inject AMaisImob_WEB.BLL.UserCompanyFunctions userCompanyFunctions;
+@inject Microsoft.AspNetCore.Identity.UserManager<AMaisImob_DB.Models.User> userManager;
+@using AMaisImob_WEB.Utils;
+
+@{
+    int? userRealEstateAgencyId = null;
+    if (ViewData.ContainsKey("UserRealEstateAgencyId"))
+    {
+        userRealEstateAgencyId = (int)ViewData["UserRealEstateAgencyId"];
+    }
+
+    int? realEstateId = null, realEstateAgencyId = null;
+    if (ViewData.ContainsKey("RealEstateId"))
+    {
+        var realEstate = companyFunctions.GetDataByID((int)ViewData["RealEstateId"]);
+        realEstateAgencyId = realEstate.ParentCompanyId;
+        realEstateId = realEstate.CompanyId;
+    }
+    if (ViewData.ContainsKey("RealEstateAgencyId"))
+    {
+        realEstateAgencyId = (int)ViewData["RealEstateAgencyId"];
+    }
+}
+@{
+
+    var priceQuoteStatusId = statusTypeFunctions.GetByExternalCode("COTACAO").StatusTypeId;
+    var analyzeStatusId = statusTypeFunctions.GetByExternalCode("ANALISE").StatusTypeId;
+    var approvedStatusId = statusTypeFunctions.GetByExternalCode("APROVADO").StatusTypeId;
+    var refusedStatusId = statusTypeFunctions.GetByExternalCode("RECUSADO").StatusTypeId;
+    var waitingEmissionId = statusTypeFunctions.GetByExternalCode("AGUARDANDOEMISSAO").StatusTypeId;
+    var contractedStatusId = statusTypeFunctions.GetByExternalCode("CONTRATADO").StatusTypeId;
+    var devolutionStatusId = statusTypeFunctions.GetByExternalCode("DEVOLUCAO").StatusTypeId;
+    var pendencyStatusId = statusTypeFunctions.GetByExternalCode("PENDENCIA").StatusTypeId;
+}
+
+<link href="~/css/guarantor-slider.css" rel="stylesheet" />
+
+<style type="text/css">
+    .fa-download {
+        font-size: 12px !important;
+    }
+</style>
+
+@*Campo usado apenas para $('.money').masked()*@
+<input type="hidden" class="money" />
+
+@if (ViewData["AcceptRealEstateMessage"] != null)
+{
+    <script type="text/javascript">
+    alert('@Html.Raw(ViewData["AcceptRealEstateMessage"])');
+    </script>
+}
+
+<div class="row">
+    @if (User.IsInRealEstate() || User.IsInRole("Corretor"))
+    {
+        <input type="hidden" id="_ContractualGuaranteeRealEstateAgencyId" name="RealEstateAgencyId" value="@userRealEstateAgencyId" />
+    }
+    else
+    {
+        <div class="col-md-3">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">Corretora</span>
+                </div>
+                <select class="form-control" id="_ContractualGuaranteeRealEstateAgencyId" name="RealEstateAgencyId">
+                    <option value="">Selecione</option>
+                    @foreach (var item in (List<AMaisImob_DB.Models.Company>)ViewData["RealEstateAgency"])
+                    {
+                        var companyName = string.IsNullOrWhiteSpace(item.RazaoSocial) ? item.FirstName + " " + item.LastName : item.RazaoSocial;
+
+                        if (realEstateAgencyId == item.CompanyId)
+                        {
+                            <option selected value="@item.CompanyId">@companyName</option>
+                            continue;
+                        }
+                        <option value="@item.CompanyId">@companyName</option>
+                    }
+                </select>
+            </div>
+        </div>
+    }
+    @if (User.IsInRealEstate())
+    {
+        <input id="_ContractualGuaranteeRealEstateId" name="RealEstateId" type="hidden" value="" />
+    }
+    else
+    {
+        <div class="form-group col-md-3">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">Imobiliária</span>
+                </div>
+                <select class="form-control" id="_ContractualGuaranteeRealEstateId" data-toggle="search-datatable" data-target="#_CategoryProductIndexTable">
+                    <option value="">Selecione uma corretora</option>
+                </select>
+            </div>
+        </div>
+    }
+    @if (Model == (int)AMaisImob_WEB.Utils.ContractualGuaranteeTypes.New)
+    {
+        <div class="col-md-3">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fa fa-search"></i></span>
+                </div>
+                <input id="search" type="text" class="form-control" data-toggle="search-datatable" data-target="#_CategoryProductIndexTable" />
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="col-md-5">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fa fa-search"></i></span>
+                </div>
+                <input id="search" type="text" class="form-control" data-toggle="search-datatable" data-target="#_CategoryProductIndexTable" />
+            </div>
+        </div>
+    }
+    <div class="col-md-1">
+        <button type="button" class="btn btn-primary w-100" onclick="buscar();"><i class="fa fa-search"></i></button>
+    </div>
+    @if (Model == (int)AMaisImob_WEB.Utils.ContractualGuaranteeTypes.New)
+    {
+        <div class="col-md-2">
+            <div class="input-group">
+                <a href="@Url.Action("Manage", "ContractualGuarantee")" class="btn btn-success pull-right w-100"><i class="fas fa-plus-circle"></i>&nbsp;Nova/Cotação</a>
+            </div>
+        </div>
+    }
+</div>
+<br>
+@if (Model == (int)AMaisImob_WEB.Utils.ContractualGuaranteeTypes.New)
+{
+    <div class="row">
+        <div class="form-group col-md-2">
+            <div style="font-size: 14px;">
+                <label class="switch">
+                    <span style="position: absolute; transform: translate(100%, 2px); right: -20px; font-size: 11px !important; ">Aprovado</span>
+                    <input onchange="buscar()" type="checkbox" name="aprrovedStatus" id="aprrovedStatus" value="true" data-toggle="search-datatable" data-target="#_CategoryProductIndexTable" checked />
+                    <span class="slider round"></span>
+                </label>
+            </div>
+        </div>
+        <div class="form-group col-md-2">
+            <div style="font-size: 14px;">
+                <label class="switch">
+                    <span style="position: absolute; transform: translate(100%, 2px); right: -20px; font-size: 11px !important; ">Reprovado</span>
+                    <input onchange="buscar()" type="checkbox" name="refusedStatus" id="refusedStatus" value="true" data-toggle="search-datatable" data-target="#_CategoryProductIndexTable" checked />
+                    <span class="slider round"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="form-group col-md-2">
+            <div style="font-size: 14px;">
+                <label class="switch">
+                    <span style="position: absolute; transform: translate(100%, 2px); right: -20px; font-size: 11px !important; ">Cotação</span>
+                    <input onchange="buscar()" type="checkbox" name="priceQuoteStatus" id="priceQuoteStatus" value="true" data-toggle="search-datatable" data-target="#_CategoryProductIndexTable" checked />
+                    <span class="slider round"></span>
+                </label>
+            </div>
+        </div>
+        <div class="form-group col-md-2">
+            <div style="font-size: 14px;">
+                <label class="switch col-md-12">
+                    <span style="position: absolute; transform: translate(100%, 2px); right: -20px; font-size: 11px !important; ">Em Análise</span>
+                    <input onchange="buscar()" type="checkbox" name="analisysStatus" id="analisysStatus" value="true" data-toggle="search-datatable" data-target="#_CategoryProductIndexTable" checked />
+                    <span class="slider round"></span>
+                </label>
+            </div>
+        </div>
+        <div class="form-group col-md-2">
+            <div style="font-size: 14px;">
+                <label class="switch">
+                    <span style="position: absolute; transform: translate(100%, 2px); right: -20px; font-size: 11px !important; ">Pendência</span>
+                    <input onchange="buscar()" type="checkbox" name="pendencyStatus" id="pendencyStatus" value="true" data-toggle="search-datatable" data-target="#_CategoryProductIndexTable" checked />
+                    <span class="slider round"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+}
+
+@if (Model == (int)AMaisImob_WEB.Utils.ContractualGuaranteeTypes.Active)
+{
+    <div class="row">
+        <div class="form-group col-md-2">
+            <div style="font-size: 14px;">
+                <label class="switch">
+                    <span style="position: absolute; transform: translate(100%, -8px); right: -20px; font-size: 11px !important; ">Aguardando Emissão</span>
+                    <input onchange="buscar()" type="checkbox" name="waitingEmissionStatus" id="waitingEmissionStatus" value="true" data-toggle="search-datatable" data-target="#_CategoryProductIndexTable" checked />
+                    <span class="slider round"></span>
+                </label>
+            </div>
+        </div>
+        <div class="form-group col-md-2">
+            <div style="font-size: 14px;">
+                <label class="switch">
+                    <span style="position: absolute; transform: translate(100%, 2px); right: -20px; font-size: 11px !important; ">Emitido</span>
+                    <input onchange="buscar()" type="checkbox" name="issuedStatus" id="issuedStatus" value="true" data-toggle="search-datatable" data-target="#_CategoryProductIndexTable" checked />
+                    <span class="slider round"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+}
+
+@if (Model == (int)AMaisImob_WEB.Utils.ContractualGuaranteeTypes.Inactive)
+{
+    <div class="row">
+        <div class="form-group col-md-2">
+            <div style="font-size: 14px;">
+                <label class="switch">
+                    <span style="position: absolute; transform: translate(100%, -10px); right: -20px;font-size: 11px !important; ">Fim de Vigência</span>
+                    <input onchange="buscar()" type="checkbox" name="endOfTermStatus" id="endOfTermStatus" value="true" data-toggle="search-datatable" data-target="#_CategoryProductIndexTable" checked />
+                    <span class="slider round"></span>
+                </label>
+            </div>
+        </div>
+        <div class="form-group col-md-2">
+            <div style="font-size: 14px;">
+                <label class="switch">
+                    <span style="position: absolute; transform: translate(100%, 2px); right: -20px; font-size: 11px !important; ">Cancelado</span>
+                    <input onchange="buscar()" type="checkbox" name="cancelStatus" id="cancelStatus" value="true" data-toggle="search-datatable" data-target="#_CategoryProductIndexTable" checked />
+                    <span class="slider round"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+}
+
+
+<hr />
+<div class="table-wrapper">
+    <table id="_CategoryProductIndexTable" class="table display responsive nowrap w-100" style="border-collapse: collapse !important;">
+        <thead>
+            <tr>
+                @*Model == (int)AMaisImob_WEB.Utils.ContractualGuaranteeTypes.New*@
+                @*if ((Model == (int)AMaisImob_WEB.Utils.ContractualGuaranteeTypes.Active || Model == (int)AMaisImob_WEB.Utils.ContractualGuaranteeTypes.New) && !User.IsInRole("ImobiliariaVendas"))*@
+
+                <th>Data</th>
+                <th>Referência</th>
+                <th>Data</th>
+                <th>Motivo</th>
+                <th>Status</th>
+                <th>Início de Vigência</th>
+                <th>Fim de Vigência</th>
+                <th>Imobiliária</th>
+                <th>Solicitação feita por</th>
+                <th>Nome/Razão Social</th>
+                <th>CPF/CNPJ</th>
+                <th>Garantidora</th>
+                <th>Produto</th>
+                <th>Valor do Aluguel</th>
+                <th>Forma de Pagamento</th>
+                <th>Tipo de Pagamento</th>
+                <th>Quant. de Parcelas</th>
+                <th>
+                    Valor Total
+                    <span style="font-weight:bold;" class="text-nowrap">( R$<span class="money" id="totalValorTotal">0,00</span>)</span>
+                </th>
+                <th>Downloads / Uploads</th>
+                <th>&nbsp;</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<!-- Moment.js: -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js"></script>
+
+<!-- Brazilian locale file for moment.js-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/locale/pt-br.js"></script>
+
+<!-- Ultimate date sorting plug-in-->
+<script src="https://cdn.datatables.net/plug-ins/1.10.21/sorting/datetime-moment.js"></script>
+
+<script type="text/javascript">
+    $.fn.dataTable.moment('DD/MM/YYYY HH:MM');
+    jQuery.extend(jQuery.fn.dataTableExt.oSort, {
+        "date-br-pre": function (a) {
+            var x;
+            if ($.trim(a) !== '') {
+                var frDatea = $.trim(a).split(' ');
+                var frTimea = (undefined != frDatea[1]) ? frDatea[1].split(':') : [00, 00, 00];
+                var frDatea2 = frDatea[0].split('/');
+                x = (frDatea2[2] + frDatea2[1] + frDatea2[0] + frTimea[0] + frTimea[1] + frTimea[2]) * 1;
+            }
+            else {
+                x = Infinity;
+            }
+            return x;
+        },
+        "date-br-asc": function (a, b) {
+            return a - b;
+        },
+        "date-br-desc": function (a, b) {
+            return b - a;
+        }
+    });
+    var _AccountIndexTypingTimer;
+    var _AccountIndexDoneTypingInterval = 500;
+    var datatables = $('#_CategoryProductIndexTable').DataTable({
+        "order": [[0, "desc"]],
+        proccessing: true,
+        serverSide: true,
+        searching: true,
+        lengthChange: false,
+        dom: 'tip',
+        scrollX: true,
+        ajax: {
+            url: '@Url.Action("List", "ContractualGuarantee")',
+            type: 'POST',
+            data: function (d) {
+                d.statusId = '@Model';
+                d.search = $('#search').val();
+                d.realEstateAgencyId = $('#_ContractualGuaranteeRealEstateAgencyId').val();
+                d.realEstateId = $('#_ContractualGuaranteeRealEstateId').val();
+                d.priceQuoteStatusId = $('#priceQuoteStatus').prop('checked');
+                d.approvedStatusId = $('#aprrovedStatus').prop('checked');
+                d.refusedStatusId = $('#refusedStatus').prop('checked');
+                d.analyzeStatusId = $('#analisysStatus').prop('checked');
+                d.pendencyStatusId = $('#pendencyStatus').prop('checked');
+                d.waitingEmissionStatusId = $('#waitingEmissionStatus').prop('checked');
+                d.issuedStatusId = $('#issuedStatus').prop('checked');
+                d.renewStatusId = $('#renewStatus').prop('checked');
+                d.endOfTermStatusId = $('#endOfTermStatus').prop('checked');
+                d.cancelStatusId = $('#cancelStatus').prop('checked');
+                d.notRenewedStatus = $('#notRenewedStatus').prop('checked');
+            }
+        },
+        columns: [
+            {
+                data: 'CreatedDate',
+                visible: false,
+                render: function (data, type, row) {
+                    return row.createdDate;
+                }
+            },
+            {
+                data: 'Referencia',
+                render: function (data, type, row) {
+                    return '<a href="@Url.Action("Manage", "ContractualGuarantee")?id=' + row.certificateContractualId + '">' + row.reference + '</a>';
+                }
+            },
+            {
+                type: 'date-br',
+                ordering: true,
+                data: 'ModifiedDate',
+                  @if(Model == (int)AMaisImob_WEB.Utils.ContractualGuaranteeTypes.Active || Model == (int)AMaisImob_WEB.Utils.ContractualGuaranteeTypes.Inactive)
+                {
+                    <text>visible: false,</text>
+                }
+                render: function (data, type, row) {
+                    var date = toPtBRDateTime(row.modifiedDate);
+
+                    return type === 'sort' ? row.modifiedDate : (IsNullOrWhiteSpace(date) ? "-" : date);
+                }
+            },
+            {
+
+                data: 'Motivo',
+                @if(Model == (int)AMaisImob_WEB.Utils.ContractualGuaranteeTypes.New|| Model == (int)AMaisImob_WEB.Utils.ContractualGuaranteeTypes.Active)
+                {
+                    <text>visible: false,</text>
+                }
+                render: function (data, type, row) {
+                    return row.isDeleted ? 'Cancelado' : 'Fim de Vigência';
+                }
+            },
+            {
+                data: 'Status',
+                 @if(Model == (int)AMaisImob_WEB.Utils.ContractualGuaranteeTypes.Inactive)
+                {
+                    <text>visible: false,</text>
+                }
+                render: function (data, type, row) {
+                    @if (User.IsInRole("Administrator")) { <text> return row.isDeleted || row.outOfVigency || row.statusTypeId == @priceQuoteStatusId || row.statusTypeId == @refusedStatusId || row.statusTypeId == @contractedStatusId ? getStatusLabel(row, false) : getStatusLabel(row, true); </text> }
+                    else {<text> return getStatusLabel(row, false); </text>}
+                }
+            },
+            {
+                type: 'date-br',
+                orderable: true,
+                data: 'VigenceDate',
+                 @if(Model == (int)AMaisImob_WEB.Utils.ContractualGuaranteeTypes.New)
+                {
+                    <text>visible: false,</text>
+                }
+                render: function (data, type, row) {
+                    @if (User.IsInRole("Administrator")) { <text> return (row.isDeleted || row.outOfVigency) || (row.statusTypeId != '@approvedStatusId' && row.statusTypeId != '@contractedStatusId') ? getVigenceDateLabel(row, false) : getVigenceDateLabel(row, true); </text> }
+                    else{ <text> return getVigenceDateLabel(row, false); </text> }
+                }
+            },
+            {
+                data: 'VigenceEndDate',
+                  @if(Model == (int)AMaisImob_WEB.Utils.ContractualGuaranteeTypes.New)
+                {
+                    <text>visible: false,</text>
+                }
+                render: function (data, type, row) {
+                    @if (User.IsInRole("Administrator")) { <text> return (row.isDeleted || row.outOfVigency) || (row.statusTypeId != '@approvedStatusId' && row.statusTypeId != '@contractedStatusId') ? getVigenceEndDateLabel(row, false) : getVigenceEndDateLabel(row, true); </text> }
+                    else{ <text> return getVigenceEndDateLabel(row, false); </text> }
+                }
+            },
+            {
+
+                data: 'Imobiliaria',
+                render: function (data, type, row) {
+                    return row.realEstateNomeFantasia;
+                }
+            },
+            {
+                data: 'CreatedByName',
+                       @if(Model == (int)AMaisImob_WEB.Utils.ContractualGuaranteeTypes.New || Model == (int)AMaisImob_WEB.Utils.ContractualGuaranteeTypes.Inactive)
+                       {
+                    <text>visible: false,</text>
+                }
+                render: function (data, type, row) {
+                    return IsNullOrWhiteSpace(row.createdByName) ? '-' : row.createdByName;
+                }
+            },
+            {
+                data: 'Nome',
+                render: function (data, type, row) {
+                    return row.clientFullName;
+                }
+            },
+            {
+                data: 'CPFCNPJ',
+                render: function (data, type, row) {
+                    return row._CPFCNPJ;
+                }
+            },
+            {
+                data: 'GuarantorName',
+                render: function (data, type, row) {
+                    return row.guarantorName;
+                }
+            },
+            {
+                data: 'GuarantorProductName',
+                render: function (data, type, row) {
+                    return row.guarantorProductName;
+                }
+            },
+            {
+                data: 'ValorAluguel',
+                  @if(Model == (int)AMaisImob_WEB.Utils.ContractualGuaranteeTypes.Active || Model == (int)AMaisImob_WEB.Utils.ContractualGuaranteeTypes.Inactive)
+                {
+                    <text>visible: false,</text>
+                }
+                render: function (data, type, row) {
+                    return IsNullOrWhiteSpace(row._Aluguel) ? '-' : 'R$ ' + row._Aluguel;
+                }
+            },
+            {
+                data: 'PaymentWayName',
+                     @if(Model == (int)AMaisImob_WEB.Utils.ContractualGuaranteeTypes.New)
+                {
+                    <text>visible: false,</text>
+                }
+                render: function (data, type, row) {
+                    @if (User.IsInRole("Administrator")) { <text> return (row.isDeleted || row.outOfVigency || row.statusTypeId != @contractedStatusId) ? getPaymentWayLabel(row, false) : getPaymentWayLabel(row, true); </text> }
+                    else{ <text> return getPaymentWayLabel(row, false); </text> }
+                }
+            },
+            {
+                data: 'PaymentTypeName',
+                     @if(Model == (int)AMaisImob_WEB.Utils.ContractualGuaranteeTypes.New)
+                {
+                    <text>visible: false,</text>
+                }
+                render: function (data, type, row) {
+                    @if (User.IsInRole("Administrator")) { <text> return (row.isDeleted || row.outOfVigency || row.statusTypeId != @contractedStatusId) ? getPaymentTypeLabel(row, false) : getPaymentTypeLabel(row, true); </text> }
+                    else{ <text> return getPaymentTypeLabel(row, false); </text> }
+                }
+            },
+            {
+                data: 'InstallmentCount',
+                     @if(Model == (int)AMaisImob_WEB.Utils.ContractualGuaranteeTypes.New)
+                {
+                    <text>visible: false,</text>
+                }
+                render: function (data, type, row) {
+                    @if (User.IsInRole("Administrator")) { <text> return getInstallmentCountLabel(row, true); </text> }
+                    else{ <text> return getInstallmentCountLabel(row, false); </text> }
+                }
+            },
+            {
+                data: 'PriceQuote',
+                     @if(Model == (int)AMaisImob_WEB.Utils.ContractualGuaranteeTypes.New)
+                {
+                    <text>visible: false,</text>
+                }
+                render: function (data, type, row) {
+                    @if (User.IsInRole("Administrator")) { <text> return getInstallmentPriceLabel(row, true); </text> }
+                    else{ <text> return getInstallmentPriceLabel(row, false); </text> }
+                }
+            },
+            {
+                data: 'Downloads',
+                render: function (data, type, row, isActive) {
+
+                    @if (Model == (int)AMaisImob_WEB.Utils.ContractualGuaranteeTypes.New)
+                    {
+                        <text>
+                    var actions = [{ link: 'javascript:openPriceQuoteCertificate(' + JSON.stringify({ certificateContractualId: row.certificateContractualId }) + ')', text: 'Cotação', isActive: true }];
+
+                    @if (User.IsInRole("Administrator"))
+                    {
+                    <text>
+
+                    if (row.statusTypeId == @priceQuoteStatusId) {
+                        actions.push({ link: '@Url.Action("DownloadAnalyzeCertificate", "ContractualGuarantee")?id=' + row.certificateContractualId, text: 'Proposta', isActive: false });
+                        actions.push({ link: '', text: 'Carta', isActive: false });
+                        actions.push({ link: '', text: 'Pendência', isActive: false });
+                    }
+                    else if (row.statusTypeId == @approvedStatusId) {
+                        actions.push({ link: '@Url.Action("DownloadAnalyzeCertificate", "ContractualGuarantee")?id=' + row.certificateContractualId, text: 'Proposta', isActive: true });
+                        actions.push({ link: 'javascript:openEditApprovedFileModal(' + JSON.stringify({ certificateContractualId: row.certificateContractualId, approvedFileGUID: row.approvedFileGUID }) + ')', text: 'Carta', isActive: true });
+                        actions.push({ link: 'javascript:openPendencyFileModal(' + JSON.stringify({ certificateContractualId: row.certificateContractualId }) + ', false)', text: 'Pendência', isActive: true });
+                    }
+                    else if (row.statusTypeId == @refusedStatusId) {
+                        actions.push({ link: '@Url.Action("DownloadAnalyzeCertificate", "ContractualGuarantee")?id=' + row.certificateContractualId, text: 'Proposta', isActive: true });
+                        actions.push({ link: 'javascript:openEditRefusedFileModal(' + JSON.stringify({ certificateContractualId: row.certificateContractualId, refusedFileGUID: row.refusedFileGUID }) + ')', text: 'Carta', isActive: true });
+                        actions.push({ link: 'javascript:openPendencyFileModal(' + JSON.stringify({ certificateContractualId: row.certificateContractualId }) + ', false)', text: 'Pendência', isActive: true });
+                    }
+                    else if (row.statusTypeId == @pendencyStatusId) {
+                        actions.push({ link: '@Url.Action("DownloadAnalyzeCertificate", "ContractualGuarantee")?id=' + row.certificateContractualId, text: 'Proposta', isActive: true });
+                        actions.push({ link: '', text: 'Carta', isActive: false });
+                        actions.push({ link: 'javascript:openPendencyFileModal(' + JSON.stringify({ certificateContractualId: row.certificateContractualId }) + ', false)', text: 'Pendência', isActive: true });
+                    }
+                    else if (row.statusTypeId == @analyzeStatusId) {
+                        actions.push({ link: '@Url.Action("DownloadAnalyzeCertificate", "ContractualGuarantee")?id=' + row.certificateContractualId, text: 'Proposta', isActive: true });
+                        actions.push({ link: '', text: 'Carta', isActive: false });
+                        actions.push({ link: 'javascript:openPendencyFileModal(' + JSON.stringify({ certificateContractualId: row.certificateContractualId }) + ', false)', text: 'Pendência', isActive: true });
+                    }
+
+                    return getListActionsLink(actions)
+
+                    </text>
+                    }
+                    else
+                    {
+                        <text>
+                    if (row.statusTypeId == @priceQuoteStatusId) {
+                        actions.push({ link: '@Url.Action("DownloadAnalyzeCertificate", "ContractualGuarantee")?id=' + row.certificateContractualId, text: 'Proposta', isActive: false });
+                        actions.push({ link: '', text: 'Carta', isActive: false });
+                    }
+                    else if (row.statusTypeId == @approvedStatusId) {
+                        actions.push({ link: '@Url.Action("DownloadAnalyzeCertificate", "ContractualGuarantee")?id=' + row.certificateContractualId, text: 'Proposta', isActive: true });
+                        actions.push({ link: '@Url.Action("DownloadApprovedFile", "ContractualGuarantee")?id=' + row.certificateContractualId, text: 'Carta', isActive: true });
+                    }
+                    else if (row.statusTypeId == @refusedStatusId) {
+                        actions.push({ link: '@Url.Action("DownloadAnalyzeCertificate", "ContractualGuarantee")?id=' + row.certificateContractualId, text: 'Proposta', isActive: true });
+                        actions.push({ link: '@Url.Action("DownloadRefusedFile", "ContractualGuarantee")?id=' + row.certificateContractualId, text: 'Carta', isActive: true });
+                    }
+                    else if (row.statusTypeId == @analyzeStatusId) {
+                        actions.push({ link: '@Url.Action("DownloadAnalyzeCertificate", "ContractualGuarantee")?id=' + row.certificateContractualId, text: 'Proposta', isActive: true });
+                        actions.push({ link: '', text: 'Carta', isActive: false });
+                    }
+                    else if (row.statusTypeId == @pendencyStatusId) {
+                        actions.push({ link: '@Url.Action("DownloadAnalyzeCertificate", "ContractualGuarantee")?id=' + row.certificateContractualId, text: 'Proposta', isActive: true });
+                        actions.push({ link: '', text: 'Carta', isActive: false });
+                    }
+
+                    return getListActionsLink(actions);
+
+                    </text>
+                    }
+                    </text>
+                    }
+
+                    else
+                    {
+
+                    @if (User.IsInRole("Administrator"))
+                    {
+                    <text>
+                    if (row.statusTypeId == @waitingEmissionId) {
+                        var actions = [{ link: 'javascript:openEditContractFileModal(' + JSON.stringify({ certificateContractualId: row.certificateContractualId, contractFileGUID: row.contractFileGUID, devolutionReason: row.devolutionReason, statusTypeId: row.statusTypeId }) + ')', text: 'Contrato', isActive: true }];
+                        actions.push({ link: 'javascript:openPolicyFileModal(' + row.certificateContractualId + ')', text: 'Apólice', isActive: false });
+                    } else {
+                        var actions = [{ link: 'javascript:openEditContractFileModal(' + JSON.stringify({ certificateContractualId: row.certificateContractualId, contractFileGUID: row.contractFileGUID, devolutionReason: row.devolutionReason, statusTypeId: row.statusTypeId }) + ')', text: 'Contrato', isActive: true }];
+                        actions.push({ link: 'javascript:openPolicyFileModal(' + JSON.stringify({ certificateContractualId: row.certificateContractualId }) + ', true)' , text: 'Apólice', isActive: true });
+                    }
+
+                    return getListActionsLink(actions);
+
+                     </text>
+                    }
+
+                    else
+                    {
+                        <text>
+                    if (row.statusTypeId == @waitingEmissionId) {
+                        var actions = [{ link: '@Url.Action("DownloadContractFile", "ContractualGuarantee")?id=' + row.certificateContractualId, text: 'Contrato', isActive: true }];
+                        actions.push({ link: 'javascript:openPolicyFileModal(' + row.certificateContractualId + ')', text: 'Apólice', isActive: false });
+                    } else {
+                        var actions = [{ link: 'javascript:openEditContractFileModal(' + JSON.stringify({ certificateContractualId: row.certificateContractualId, contractFileGUID: row.contractFileGUID, devolutionReason: row.devolutionReason, statusTypeId: row.statusTypeId }) + ')', text: 'Contrato', isActive: true }];
+                        actions.push({ link: 'javascript:openPolicyFileModal(' + JSON.stringify({ certificateContractualId: row.certificateContractualId }) + ', false)', text: 'Apólice', isActive: true });
+                    }
+                    return getListActionsLink(actions);
+
+                    </text>
+
+                }
+
+
+                     }
+
+                }
+
+
+            },
+            {
+                data: 'IsDeleted',
+                render: function (data, type, row) {
+
+                    //return '<div class="text-center"><a href="javascript:removeContractualGuarantee(' + row.certificateContractualId + ')" class="fas fa-trash"></a></div>';
+                    r = '<div class="text-center">';
+                    if (row.statusTypeId == @approvedStatusId || row.statusTypeId == @refusedStatusId || row.statusTypeId == @analyzeStatusId || row.statusTypeId == @pendencyStatusId)
+                        r += '<a href="javascript:cloneContractualGuarantee(' + row.certificateContractualId + ')" title="Duplicar" class="fas fa-clone"></a>';
+                    r += `&nbsp;
+                            <a href="javascript:removeContractualGuarantee(` + row.certificateContractualId + `)" title="Excluir" class="fas fa-trash"></a>
+                        </div>`;
+
+                    return r;
+                }
+            },
+		],
+        'drawCallback': function (settings) {
+            var api = this.api();
+            setTimeout(function () { GetTotalPriceHeaders(api) }, 50);
+        }
+    });
+    function buscar() {
+        if ($.fn.DataTable.isDataTable('#_CategoryProductIndexTable')) {
+            datatables.search($('#_CategoryProductIndexTable').val()).draw();
+        }
+    }
+    $(document).ready(_MaskData);
+</script>
+
+<script type="text/javascript">
+    function GetRealEstates() {
+        if (IsNullOrWhiteSpace($('#_ContractualGuaranteeRealEstateAgencyId').val())) {
+            $('#_ContractualGuaranteeRealEstateId').empty();
+            $('#_ContractualGuaranteeRealEstateId').append($('<option>', { value: '' }).append('Selecione um corretora.'));
+        }
+        else {
+            $.ajax({
+                url: '@Url.Action("GetRealEstatesByRealEstateAgencyId", "Company")',
+                type: 'POST',
+                datatype: 'JSON',
+                data: { id: $('#_ContractualGuaranteeRealEstateAgencyId').val() },
+                success: function (data) {
+                    $('#_ContractualGuaranteeRealEstateId').empty();
+                    if (data == false || data.length == 0) {
+                        $('#_ContractualGuaranteeRealEstateId').append($('<option>', { value: '' }).append('Nenhuma imobiliária encontrada.'));
+                    }
+                    if (data.length > 0) {
+                        $('#_ContractualGuaranteeRealEstateId').append($('<option>', { value: '' }).append('Selecione'));
+                        for (var i = 0; i < data.length; i++) {
+                            var companyName = IsNullOrWhiteSpace(data[i].razaoSocial) ? data[i].firstName + " " + data[i].lastName : data[i].razaoSocial;
+                            var option = $('<option>', { value: data[i].companyId }).append(companyName);
+                            $('#_ContractualGuaranteeRealEstateId').append(option);
+                        }
+                    }
+                }
+            });
+        }
+    }
+    $('#_ContractualGuaranteeRealEstateAgencyId').change(function () {
+        GetRealEstates();
+    }).change();
+</script>
+
+<script type="text/javascript">
+    function GetTotalPriceHeaders(table) {
+        var totalPrice = 0;
+        $.each(table.rows({ search: 'applied', page: 'all' }).data(), function (i, e) {
+            totalPrice += e.allInstallmentsPaided? 0 : (e.installmentPrice == null ? e.priceQuote : e.installmentPrice);
+        });
+
+        $('#totalValorTotal').text($('.money').masked(totalPrice.toFixed(2)));
+        _MaskData();
+
+        $.post('@Url.Action("GetTotalPriceFromList", "ContractualGuarantee")', {
+            statusId: '@Model',
+            search: $('#search').val(),
+            realEstateAgencyId: $('#_ContractualGuaranteeRealEstateAgencyId').val(),
+            realEstateId: $('#_ContractualGuaranteeRealEstateId').val()
+        },
+        function (d) {
+            $('#totalValorTotal').text(d.formatedValue);
+
+            _MaskData();
+        });
+    }
+
+
+        function openPendencyFileModal(row, openFileOploadArea) {
+        $('.text-danger').remove();
+        $('#multiple-file-modal-file-upload-area').hide();
+        $('#multiple-file-modal-Save-button').hide();
+        if (openFileOploadArea) $('#multiple-file-modal-pendency-send-email-button').show();
+        else $('#multiple-file-modal-pendency-send-email-button').hide();
+
+        $('#multiple-file-modal-archive').val('');
+
+        $('#multiple-file-modal-certificate-contractual-id').val(row.certificateContractualId);
+
+        $('#multiple-file-modal').data('type', 'pendency');
+        $('#multiple-file-modal-title').text('Arquivos de Pendência');
+
+        if (openFileOploadArea) {
+            $('#multiple-file-modal-file-upload-area').show();
+            $('#multiple-file-modal-Save-button').show();
+        }
+
+        $('#multiple-file-list-view-component').load('@Url.Action("LoadCertificateContractualPendencyFileListViewComponent", "ContractualGuarantee")', { certificateContractualId: row.certificateContractualId }, function () {
+            $('#multiple-file-modal').modal('show');
+            $('#certificate-contractual-policy-file-table').DataTable().columns.adjust();
+        });
+    }
+
+
+
+    //$('.table-responsive').on('show.bs.dropdown', function () {
+    //    $('.table-responsive').css("min-height", "400px");
+    //});
+
+    //$('.table-responsive').on('hide.bs.dropdown', function () {
+    //    $('.table-responsive').css("min-height", "none");
+    //})
+
+
+    function removeContractualGuarantee(id) {
+        if (!confirm('Deseja realmente excluir esta garantia contratual?')) return;
+
+        $.post('@Url.Action("RemoveContractualGuarantee", "ContractualGuarantee")', { id }, function (d) {
+            alert(d.message);
+
+            if (!d.hasError) {
+                $('#_CategoryProductIndexTable').DataTable().ajax.reload();
+            }
+        });
+    }
+    function cloneContractualGuarantee(id) {
+        if (!confirm('Deseja realmente duplicar esta garantia contratual?')) return;
+
+        var form = $('<form>', { action: '@Url.Action("CloneContractualGuarantee", "ContractualGuarantee")', method: 'post' });
+        form.append($('<input>', { type: 'hidden', value: id, name: 'id' }));
+
+        $('body').append(form);
+
+        $('#loading').show();
+        form.submit();
+    }
+    function getStatusLabel(row, editable)
+    {
+        var approvedStatusLink = "<div class='text-center' style='white-space:nowrap;'><a href='javascript:openEditContractFileModal(" + JSON.stringify({ certificateContractualId: row.certificateContractualId, contractFileGUID: row.contractFileGUID, devolutionReason: row.devolutionReason, statusTypeId: row.statusTypeId }) + ")'>" + row.statusName + "</span></div>";
+
+        @if(!User.IsInRole("ImobiliariaVendas"))
+        {
+        <text>
+        if (row.statusTypeId == @approvedStatusId) {
+            return approvedStatusLink;
+        }
+        </text>
+        }
+
+        var r = "";
+        if (editable) {
+            r = '<div class="text-center" style="white-space:nowrap;">';
+            r += '<a href="javascript:void(0)" onclick=\'openStatusModal(' + JSON.stringify({ certificateContractualId: row.certificateContractualId, statusTypeId: row.statusTypeId, pendencyDescription: row.pendencyDescription }) + ')\' >' + (row.statusTypeId == null ? '<i><i class="fas fa-search" title="Selecione"></i>&nbsp;Selecione</i>' : '<b>' + row.statusName + '</b>') + '</a> ';
+            r += '</div>';
+
+            return r;
+        }
+
+        var pendencyStatusLink = "<div class='text-center' style='white-space:nowrap;'><a href='javascript:openPendencyFileModal(" + JSON.stringify({ certificateContractualId: row.certificateContractualId }) + ", true)'>" + row.statusName + "</a></span></div>";
+
+        @if(!User.IsInRole("ImobiliariaVendas"))
+        {
+        <text>
+        if (row.statusTypeId == @pendencyStatusId) return pendencyStatusLink;
+        </text>
+        }
+
+
+        return '<div class="text-center" style="white-space:nowrap;"><span>' + row.statusName + (row.outOfVigency ? ' (Finalizou a vigência)' : '') + '</span></div>';
+    }
+    function getVigenceDateLabel(row, editable) {
+        var date = toPtBRDate(row.vigenceDate);
+
+        var r = "";
+        if (editable) {
+            r = '<div style="white-space:nowrap;" class="text-center">';
+            r += '<a href="javascript:void(0)" onclick=\'openVigenceDateModal(' + JSON.stringify({ certificateContractualId: row.certificateContractualId, vigenceEndDate: row.vigenceEndDate, vigenceDate: row.vigenceDate }) + ', "Start")\' >' + (IsNullOrWhiteSpace(date) ? '<i>Inserir Data</i>' : '<b>' + date + '</b>') + '</a> ';
+            r += '</div>';
+
+            return r;
+        }
+
+        return '<div class="text-center" style="white-space:nowrap;"><span>' + (IsNullOrWhiteSpace(date) ? '-' : date) + '</span></div>';
+    }
+    function getVigenceEndDateLabel(row, editable) {
+        var date = toPtBRDate(row.vigenceEndDate);
+
+        var r = "";
+        if (editable) {
+            r = '<div style="white-space:nowrap;" class="text-center">';
+            r += '<a href="javascript:void(0)" onclick=\'openVigenceDateModal(' + JSON.stringify({ certificateContractualId: row.certificateContractualId, vigenceEndDate: row.vigenceEndDate, vigenceDate: row.vigenceDate }) + ', "End")\' >' + (IsNullOrWhiteSpace(date) ? '<i>Inserir Data</i>' : '<b>' + date + '</b>') + '</a> ';
+            r += '</div>';
+
+            return r;
+        }
+
+        return '<div class="text-center" style="white-space:nowrap;"><span>' + (IsNullOrWhiteSpace(date) ? '-' : date) + '</span></div>';
+    }
+    function getPaymentWayLabel(row, editable) {
+
+        var r = "-";
+        if (editable) {
+            r = '<div style="white-space:nowrap;" class="text-center">';
+            r += '<a href="javascript:void(0)" onclick=\'openPaymentWayModal(' + JSON.stringify({ certificateContractualId: row.certificateContractualId, paymentWayId: row.paymentWayId }) + ')\' >' + (IsNullOrWhiteSpace(row.paymentWayName) ? '<i>Inserir Forma de Pagamento</i>' : '<b>' + row.paymentWayName + '</b>') + '</a> ';
+            r += '</div>';
+
+            return r;
+        }
+
+        return '<div class="text-center" style="white-space:nowrap;"><span>' + (IsNullOrWhiteSpace(row.paymentWayName) ? '-' : row.paymentWayName) + '</span></div>';
+    }
+    function getPaymentTypeLabel(row, editable) {
+
+        var r = "-";
+
+        if (editable) {
+            r = '<div style="white-space:nowrap;" class="text-center">';
+            r += '<a href="javascript:void(0)" onclick=\'openPaymentTypeModal(' + JSON.stringify({ certificateContractualId: row.certificateContractualId }) + ')\' >' + (IsNullOrWhiteSpace(row.paymentTypeName) ? '<i>Inserir Tipo de Pagamento</i>' : '<b>' + row.paymentTypeName + '</b>') + '</a> ';
+            r += '</div>';
+
+            return r;
+        }
+
+        return '<div class="text-center" style="white-space:nowrap;"><span>' + (IsNullOrWhiteSpace(row.paymentTypeName) ? '-' : row.paymentTypeName) + '</span></div>';
+    }
+    function getInstallmentCountLabel(row, editable) {
+
+        //var r = "-";
+        //if (editable) {
+        //    r = '<div style="white-space:nowrap;" class="text-center">';
+        //    r += '<a href="javascript:void(0)" onclick=\'openInstallmentCountModal(' + JSON.stringify(row) + ')\' >' + (IsNullOrWhiteSpace(row.installmentCount) ? '<i>Inserir Quant. de Pagamento</i>' : '<b>' + row.installmentCount + '</b>') + '</a>';
+        //    r += '</div>';
+
+        //    return r;
+        //}
+
+        return '<div class="text-center" style="white-space:nowrap;"><span>' + (row.installmentCount == null ? '-' : row.installmentCount) + '</span></div>';
+    }
+    function getInstallmentPriceLabel(row, editable) {
+
+        var price = (IsNullOrWhiteSpace(row._PriceQuote) ? '-' : (row.allInstallmentsPaided ? 'Quitado' : 'R$ ' + (!IsNullOrWhiteSpace(row._InstallmentPrice) ? row._InstallmentPrice : row._PriceQuote)));
+
+        //var r = "-";
+        //if (editable) {
+        //    r = '<div style="white-space:nowrap;" class="text-center">';
+        //    r += '<a href="javascript:void(0)" onclick=\'openInstallmentPriceModal(' + JSON.stringify(row) + ')\' >' + price + '</a> ';
+        //    r += '</div>';
+
+        //    return r;
+        //}
+
+        return '<div class="text-center">' + price + '</div>';
+    }
+    function getArchiveLink(statusTypeId, row, editable) {
+        var r = $('<div class="text-center">');
+
+        switch (statusTypeId) {
+            case @priceQuoteStatusId:
+                r.append($('<a>', { href: 'javascript:openPriceQuoteCertificate(' + JSON.stringify({ certificateContractualId: row.certificateContractualId }) + ')' }).append($('<i>', { class: 'fas fa-download' })));
+                break;
+            case @analyzeStatusId:
+                r.append($('<a>', { href: '@Url.Action("DownloadAnalyzeCertificate", "ContractualGuarantee")?id=' + row.certificateContractualId }).append($('<i>', { class: 'fas fa-download' })));
+                break;
+            case @approvedStatusId:
+                if (editable) {
+                    r.append($('<a>', { href: 'javascript:openEditApprovedFileModal(' + JSON.stringify({ certificateContractualId: row.certificateContractualId, approvedFileGUID: row.approvedFileGUID }) + ')' }).append($('<i>', { class: 'fas fa-download' })));
+                }
+                else {
+                    if (!IsNullOrWhiteSpace(row.approvedFileGUID)) r.append($('<a>', { href: '@Url.Action("DownloadApprovedFile", "ContractualGuarantee")?id=' + row.certificateContractualId }).append($('<i>', { class: 'fas fa-download' })));
+                    else r.append($('<a>').append($('<i>', { class: 'fas fa-download', style: 'color: #a3cbe2;' })));
+                }
+                break;
+            case @refusedStatusId:
+                if (editable) {
+                    r.append($('<a>', { href: 'javascript:openEditRefusedFileModal(' + JSON.stringify({ certificateContractualId: row.certificateContractualId, refusedFileGUID: row.refusedFileGUID }) + ')' }).append($('<i>', { class: 'fas fa-download' })));
+                }
+                else {
+                    if (!IsNullOrWhiteSpace(row.refusedFileGUID)) r.append($('<a>', { href: '@Url.Action("DownloadRefusedFile", "ContractualGuarantee")?id=' + row.certificateContractualId }).append($('<i>', { class: 'fas fa-download' })));
+                    else r.append($('<a>').append($('<i>', { class: 'fas fa-download', style: 'color: #a3cbe2;' })));
+                }
+                break;
+            case @waitingEmissionId:
+                if (editable) {
+                    r.append($('<a>', { href: 'javascript:openEditContractFileModal(' + JSON.stringify({ certificateContractualId: row.certificateContractualId, contractFileGUID: row.contractFileGUID, devolutionReason: row.devolutionReason, statusTypeId: row.statusTypeId }) + ')' }).append($('<i>', { class: 'fas fa-download' })));
+                }
+                else {
+                    if (!IsNullOrWhiteSpace(row.contractFileGUID)) r.append($('<a>', { href: '@Url.Action("DownloadContractFile", "ContractualGuarantee")?id=' + row.certificateContractualId }).append($('<i>', { class: 'fas fa-download' })));
+                    else r.append($('<a>').append($('<i>', { class: 'fas fa-download', style: 'color: #a3cbe2;' })));
+                }
+                break;
+            case @contractedStatusId:
+                if (editable) {
+                    r.append($('<a>', { href: 'javascript:openPolicyFileModal(' + JSON.stringify({ certificateContractualId: row.certificateContractualId}) + ', true)' }).append($('<i>', { class: 'fas fa-download' })));
+                }
+                else {
+                    r.append($('<a>', { href: 'javascript:openPolicyFileModal(' + JSON.stringify({ certificateContractualId: row.certificateContractualId }) + ', false)' }).append($('<i>', { class: 'fas fa-download' })));
+                }
+                break;
+            case @pendencyStatusId:
+                if (editable) {
+                    r.append($('<a>', { href: 'javascript:openPendencyFileModal(' + JSON.stringify({ certificateContractualId: row.certificateContractualId }) + ', false)' }).append($('<i>', { class: 'fas fa-download' })));
+                }
+                else {
+                    r.append($('<a>').append($('<i>', { class: 'fas fa-download', style: 'color: #a3cbe2;' })));
+                }
+                break;
+            default:
+                r.append($('<a>').append($('<i>', { class: 'fas fa-download', style: 'color: #a3cbe2;' })));
+                break;
+        }
+
+        return $('<div>').append(r).html();
+    }
+
+    function openEditApprovedFileModal(row) {
+        $('#file-modal .text-warning').remove();
+        $('.text-danger').remove();
+        $('#file-modal-archive').val('');
+
+        $('#file-modal-archive').data('file-type', 'Approved');
+        $('#file-modal-certificate-contractual-id').val(row.certificateContractualId);
+        $('.file-modal-title').text('Carta de Aprovação');
+
+        $('#file-modal-download-button').show();
+        if (IsNullOrWhiteSpace(row.approvedFileGUID)) $('#file-modal-download-button').hide();
+
+        $('#file-modal').modal('show');
+    }
+
+    function openEditRefusedFileModal(row) {
+        $('#file-modal .text-warning').remove();
+        $('.text-danger').remove();
+        $('#file-modal-archive').val('');
+
+        $('#file-modal-archive').data('file-type', 'Refused');
+        $('#file-modal-certificate-contractual-id').val(row.certificateContractualId);
+        $('.file-modal-title').text('Carta de Recusa');
+
+        $('#file-modal-download-button').show();
+        if (IsNullOrWhiteSpace(row.refusedFileGUID)) $('#file-modal-download-button').hide();
+
+        $('#file-modal').modal('show');
+    }
+
+	function openEditContractFileModal(row) {
+        $('#file-modal .text-warning').remove();
+		$('.text-danger').remove();
+		$('#file-modal-archive').val('');
+
+		$('#file-modal-archive').data('file-type', 'Contract');
+		$('#file-modal-certificate-contractual-id').val(row.certificateContractualId);
+		$('.file-modal-title').text('Contrato');
+
+		$('#file-modal-download-button').show();
+		if (IsNullOrWhiteSpace(row.contractFileGUID)) $('#file-modal-download-button').hide();
+
+
+        if (!IsNullOrWhiteSpace(row.devolutionReason) && row.statusTypeId == @approvedStatusId) { // quando está em aprovado e já foi devolvido aparece uma mensagem
+            $('#file-modal-archive').after('<small class="text-warning" style="color:#c7910c !important;">Essa Garantia já foi devolvida antes, é necessário um novo upload de contrato.</small>');
+        }
+
+		$('#file-modal').modal('show');
+	}
+
+        function openEditContractFileModalAproved(row) {
+
+        $('#file-modal .text-warning').remove();
+		$('.text-danger').remove();
+		$('#file-modal-archive').val('');
+
+        $('#file-modal-archive').data('file-type', 'Contract');
+            $('#file-modal-certificate-contractual-id').val(row.certificateContractualId);
+		$('.file-modal-title').text('Contrato');
+        $('#file-modal').modal('show');
+		$('#file-modal-download-button').show();
+
+
+        if (!IsNullOrWhiteSpace(row.devolutionReason) && id == @approvedStatusId) { // quando está em aprovado e já foi devolvido aparece uma mensagem
+            $('#file-modal-archive').after('<small class="text-warning" style="color:#c7910c !important;">Essa Garantia já foi devolvida antes, é necessário um novo upload de contrato.</small>');
+        }
+
+	}
+
+        function openPolicyFileModal(row, canEdit) {
+        $('.text-danger').remove();
+        $('#multiple-file-modal-file-upload-area').show();
+        $('#multiple-file-modal-Save-button').show();
+        $('#multiple-file-modal-Save-button').show();
+        $('#multiple-file-modal-pendency-send-email-button').hide();
+
+        $('#multiple-file-modal-archive').val('');
+
+        $('#multiple-file-modal-certificate-contractual-id').val(row.certificateContractualId);
+
+        $('#multiple-file-modal').data('type', 'policy');
+        $('#multiple-file-modal-title').text('Arquivos de Apólice');
+
+        if (!canEdit) {
+            $('#multiple-file-modal-file-upload-area').hide();
+            $('#multiple-file-modal-Save-button').hide();
+        }
+
+        $('#multiple-file-list-view-component').load('@Url.Action("LoadCertificateContractualPolicyFileListViewComponent", "ContractualGuarantee")', { certificateContractualId: row.certificateContractualId, canEdit }, function () {
+            $('#multiple-file-modal').modal('show');
+            $('#certificate-contractual-policy-file-table').DataTable().columns.adjust();
+        });
+    }
+
+
+
+      function openPriceQuoteCertificate(row)
+    {
+        $('#price-quote-modal-selected-items').empty();
+
+        $('#price-quote-modal-certificate-contractual-id').val(row.certificateContractualId);
+
+        $('#price-quote-modal-table').empty().load('@Url.Action("CategoryGuarantorProctTaxItemsTable", "ContractualGuarantee")', { certificateContractualId: row.certificateContractualId }, function () {
+            $('#certificate-contractual-policy-file-table').DataTable().columns.adjust();
+        });
+
+        $('#price-quote-modal').modal('show');
+    }
+</script>
+
+<div class="modal fade" id="price-quote-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title">Gerar Certificado de Cotação</h6>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form action="@Url.Action("DownloadPriceQuoteCertificate", "ContractualGuarantee")" method="post" id="price-quote-modal-form">
+                    <input type="hidden" id="price-quote-modal-certificate-contractual-id" name="id" />
+                    <label>Selecione as garantidoras que aparecerão no certificado:</label>
+                    <div id="price-quote-modal-table"></div>
+                    <div id="price-quote-modal-selected-items"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <div class="text-right">
+                    <button class="btn btn-success" id="price-quote-modal-Save-button" style="width: 100px;"><i class="fas fa-file-pdf"></i>&nbsp;Gerar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#price-quote-modal-Save-button').click(function () {
+        if ($('#price-quote-modal-form .checkbox-item:checked').length == 0) {
+            alert('Selecione ao menos um item');
+            return;
+        }
+
+        $.each($('#price-quote-modal-form .checkbox-item:checked'), function (i, e) {
+            var input = $('<input>', { type: 'hidden', name: 'categoryGuarantorProductTaxIds[]' });
+            input.val($(e).data('category-guarantor-product-tax-id'));
+
+            $('#price-quote-modal-selected-items').append(input);
+        });
+
+        $('#price-quote-modal-form').submit();
+
+        $('#price-quote-modal').modal('hide');
+    });
+</script>
+
+<div class="modal fade" id="file-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title">Arquivo de <label style="font-size: 12px;" class="file-modal-title"></label></h6>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="file-modal-certificate-contractual-id" />
+                <div class="form-group">
+                    <label>Inserir/Atualizar <span class="file-modal-title"></span></label>
+                    <input type="file" id="file-modal-archive" class="form-control" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="text-right">
+                    <button class="btn btn-primary" id="file-modal-download-button"><i class="fas fa-download"></i>&nbsp;Download</button>
+                    <button class="btn btn-success" id="file-modal-Save-button"><i class="fa fa-cloud-upload-alt"></i>&nbsp;Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#file-modal-download-button').click(function () {
+		switch ($('#file-modal-archive').data('file-type')) {
+			case 'Approved':
+                window.location.href = '@Url.Action("DownloadApprovedFile", "ContractualGuarantee")?id=' + $('#file-modal-certificate-contractual-id').val();
+                break;
+			case 'Refused':
+                window.location.href = '@Url.Action("DownloadRefusedFile", "ContractualGuarantee")?id=' + $('#file-modal-certificate-contractual-id').val();
+                break;
+			case 'Contract':
+                window.location.href = '@Url.Action("DownloadContractFile", "ContractualGuarantee")?id=' + $('#file-modal-certificate-contractual-id').val();
+                break;
+		}
+    });
+
+    function validateFile()
+    {
+        $('.text-danger').remove();
+
+        if ($('#file-modal-archive')[0].files.length == 0) {
+            $('#file-modal-archive').after($('<div>', { class: 'text-danger' }).append('Insira um arquivo.'));
+            return false;
+        }
+
+        return true;
+    }
+
+    $('#file-modal-Save-button').click(function () {
+        if (!validateFile()) return;
+
+        var formData = new FormData();
+
+        formData.append('id', $('#file-modal-certificate-contractual-id').val());
+        formData.append('Archive', $('#file-modal-archive')[0].files[0]);
+
+        var _url = '';
+        if ($('#file-modal-archive').data('file-type') == 'Approved') _url = '@Url.Action("InsertApprovedFile", "ContractualGuarantee")';
+        else if ($('#file-modal-archive').data('file-type') == 'Refused') _url = '@Url.Action("InsertRefusedFile", "ContractualGuarantee")';
+		else if ($('#file-modal-archive').data('file-type') == 'Policy') _url = '@Url.Action("InsertPolicyFile", "ContractualGuarantee")';
+        else if ($('#file-modal-archive').data('file-type') == 'Pendency') _url = '@Url.Action("InsertPendencyFile", "ContractualGuarantee")';
+		else if ($('#file-modal-archive').data('file-type') == 'Contract') _url = '@Url.Action("InsertContractFile", "ContractualGuarantee")';
+
+        $.ajax({
+            url: _url,
+            type: 'POST',
+            contentType: false,
+            processData: false,
+            data: formData,
+            success: function (d) {
+                if (d.hasError) {
+                    alert(d.message);
+                    return;
+                }
+
+                alert('Arquivo inserido com sucesso.');
+                $('#_CategoryProductIndexTable').DataTable().ajax.reload();
+                $('#file-modal').modal('hide');
+            }
+        });
+    });
+</script>
+
+<div class="modal fade" id="multiple-file-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title" id="multiple-file-modal-title"></h6>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="multiple-file-modal-certificate-contractual-id" />
+                <div id="multiple-file-list-view-component"></div>
+                <div id="multiple-file-modal-file-upload-area">
+                    <hr />
+
+                    <div class="form-group">
+                        <label>Nome do arquivo</label>
+                        <input type="text" placeholder="Nome" id="multiple-file-modal-name" class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <input type="file" id="multiple-file-modal-archive" class="form-control" />
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="row w-100">
+                    <div class="col">
+                        <button type="button" data-dismiss="modal" class="btn btn-secondary" style="float: left;"><i class="fa fa-times"></i>&nbsp;Fechar</button>
+                    </div>
+                    <div class="col text-right">
+                        <button class="btn btn-success" id="multiple-file-modal-Save-button" style="float: right;"><i class="fa fa-cloud-upload-alt"></i>&nbsp;Salvar</button>
+                        <button class="btn btn-primary mr-2" id="multiple-file-modal-pendency-send-email-button" style="float: right;" title="Enviar arquivos para AMaisImob"><i class="fa fa-check"></i>&nbsp;Enviar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function loadCertificateContractualPolicyFileListViewComponent(certificateContractualId) {
+        if (certificateContractualId == null) certificateContractualId = $('#multiple-file-modal-certificate-contractual-id').val();
+
+        $('#multiple-file-list-view-component').load('@Url.Action("LoadCertificateContractualPolicyFileListViewComponent", "ContractualGuarantee")', { certificateContractualId });
+    }
+    function loadCertificateContractualPendencyFileListViewComponent(certificateContractualId) {
+        if (certificateContractualId == null) certificateContractualId = $('#multiple-file-modal-certificate-contractual-id').val();
+
+        $('#multiple-file-list-view-component').load('@Url.Action("LoadCertificateContractualPendencyFileListViewComponent", "ContractualGuarantee")', { certificateContractualId });
+    }
+
+    function validateMultipleFile() {
+        $('.text-danger').remove();
+        var success = true;
+
+        if ($('#multiple-file-modal-archive')[0].files.length == 0) {
+            $('#multiple-file-modal-archive').after($('<div>', { class: 'text-danger' }).append('Insira um arquivo.'));
+            success = false;
+        }
+
+        if (IsNullOrWhiteSpace($('#multiple-file-modal-name').val())) {
+            $('#multiple-file-modal-name').after($('<div>', { class: 'text-danger' }).append('Insira o nome arquivo.'));
+            success = false;
+        }
+
+        return success;
+    }
+
+    $('#multiple-file-modal-pendency-send-email-button').click(function () {
+        if ($('#multiple-file-modal-archive').get(Modelodel).files.length > 0) {
+            alert('Há um arquivo que ainda não foi salvo, clique em salvar antes de enviar o e-mail.');
+            return;
+        }
+
+        if (!confirm('Deseja realmente enviar os arquivos inseridos para a AMaisImob?')) return;
+
+        $.post('@Url.Action("SendPendencyFilesEmail", "ContractualGuarantee")', { id: $('#multiple-file-modal-certificate-contractual-id').val() }, function () {
+            alert('Arquivos enviados com sucesso!');
+            $('#_CategoryProductIndexTable').DataTable().ajax.reload();
+            $('#multiple-file-modal').modal('hide');
+        });
+    });
+
+    $('#multiple-file-modal-Save-button').click(function () {
+        if (!validateMultipleFile()) return;
+
+        var formData = new FormData();
+
+        formData.append('name', $('#multiple-file-modal-name').val());
+        formData.append('id', $('#multiple-file-modal-certificate-contractual-id').val());
+        formData.append('Archive', $('#multiple-file-modal-archive')[0].files[0]);
+
+        var url;
+        if ($('#multiple-file-modal').data('type') == 'policy') url = '@Url.Action("InsertPolicyFile", "ContractualGuarantee")';
+        if ($('#multiple-file-modal').data('type') == 'pendency') url = '@Url.Action("InsertPendencyFile", "ContractualGuarantee")';
+
+        $.ajax({
+            url,
+            type: 'POST',
+            contentType: false,
+            processData: false,
+            data: formData,
+            success: function (d) {
+                if (d.hasError) {
+                    alert(d.message);
+                    return;
+                }
+
+                alert('Arquivo inserido com sucesso.');
+                $('#_CategoryProductIndexTable').DataTable().ajax.reload();
+
+                if ($('#multiple-file-modal').data('type') == 'policy') loadCertificateContractualPolicyFileListViewComponent();
+                if ($('#multiple-file-modal').data('type') == 'pendency') loadCertificateContractualPendencyFileListViewComponent();
+
+                $('#multiple-file-modal-archive').val('');
+                $('#multiple-file-modal-name').val('');
+            }
+        });
+    });
+
+    $('#multiple-file-modal').on('hidden.bs.modal', function () {
+        $('#multiple-file-modal-archive').val('');
+        $('#multiple-file-modal-name').val('');
+    });
+
+</script>
+
+<div class="modal fade" id="status-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title">Selecione um Status</h6>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="status-modal-client-id" />
+                <div class="row">
+                    <div class="col-md-12">
+                        <select id="status-modal-select" class="form-control">
+                            @foreach (var item in statusTypeFunctions.GetData().OrderBy(x => x.Order))
+                            {
+                                var name = item.StatusName;
+                                if (item.ExternalCode == "CONTRATADO") { name = "Apólice"; }
+
+                                <option data-order="@item.Order" value="@item.StatusTypeId">@name</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="row mt-3" id="status-modal-file-area" style="display: none;">
+                    <div class="col-md-12">
+                        <label id="status-modal-file-title"></label>
+                        <input type="file" id="status-modal-file" class="form-control" />
+                    </div>
+                </div>
+                <div class="row mt-3" id="status-modal-contracted-area" style="display: none;">
+                    <div class="col-md-6">
+                        <label>Forma de pagamento</label>
+                        <select class="form-control" id="status-modal-payment-way-id">
+                            @foreach (var item in paymentWayFunctions.GetData())
+                            {
+                                <option value="@item.PaymentWayId">@item.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label>Fim da vigência</label>
+                        <input type="text" class="form-control date" id="status-modal-vigence-end-date" placeholder="Fim da vigência" />
+                    </div>
+                </div>
+                <div class="row mt-3" id="status-modal-devolution-area" style="display: none;">
+                    <div class="col-md-12">
+                        <label>Razão da Devolução</label>
+                        <textarea class="form-control" id="devolution-reason" placeholder="Razão da Devolução"></textarea>
+                    </div>
+                </div>
+                <div class="row mt-3" id="status-modal-pendency-area" style="display: none;">
+                    <div class="col-md-12">
+                        <label>Documentos Necessários</label>
+                        <textarea class="form-control" id="pendency-description" placeholder="Documentos Necessários"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="text-right">
+                    <button class="btn btn-primary mr-1" id="status-modal-send-pendency-email-button" title="Enviar por e-mail"><i class="fa fa-envelope"></i>&nbsp;Enviar</button>
+                    <button class="btn btn-success" id="status-modal-save-button"><i class="fa fa-cloud-upload-alt"></i>&nbsp;Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#status-modal-select').change(function () {
+        var val = $(this).val();
+        $('#status-modal-contracted-area').hide();
+        $('#status-modal-devolution-area').hide();
+        $('#status-modal-pendency-area').hide();
+        $('#status-modal-file-area').hide();
+        $('#status-modal-save-button').show();
+
+        if (val == @approvedStatusId) {
+            $("#status-modal-file-title").text('Carta de Aprovação');
+            $('#status-modal-file-area').show();
+        }
+        else if (val == @refusedStatusId) {
+            $("#status-modal-file-title").text('Carta de Recusa');
+            $('#status-modal-file-area').show();
+        }
+        else if (val == @contractedStatusId) {
+            $("#status-modal-file-title").text('Apólice');
+            $('#status-modal-file-area').show();
+
+            $('#status-modal-contracted-area').show();
+        }
+        else if (val == @waitingEmissionId) {
+            $("#status-modal-file-title").text('Contrato');
+            $('#status-modal-file-area').show();
+        }
+        else if (val == @devolutionStatusId) {
+            $("#status-modal-file-title").text('Devolução');
+            $('#status-modal-devolution-area').show();
+        }
+        else if (val == @pendencyStatusId) {
+            $("#status-modal-file-title").text('Pendência');
+            $('#status-modal-pendency-area').show();
+            $('#status-modal-send-pendency-email-button').show();
+            $('#status-modal-save-button').hide();
+        }
+    });
+
+    //função que exibe o menu de downloads/uploads
+    (function () {
+        var dropdownMenu;
+
+        $(window).on('show.bs.dropdown', function (e) {
+
+            dropdownMenu = $(e.target).find('.dropdown-menu');
+
+            $('body').append(dropdownMenu.detach());
+
+            var eOffset = $(e.target).offset();
+
+            dropdownMenu.css({
+                'display': 'block',
+                'top': eOffset.top + $(e.target).outerHeight(),
+                'left': eOffset.left
+            });
+        });
+
+        $(window).on('hide.bs.dropdown', function (e) {
+            $(e.target).append(dropdownMenu.detach());
+            dropdownMenu.hide();
+        });
+    })();
+
+
+    function openStatusModal(data)
+    {
+        $('#status-modal-file-area').hide();
+        $('#status-modal-contracted-area').hide();
+        $('#status-modal-pendency-area').hide();
+        $('#status-modal-send-pendency-email-button').hide();
+        $('#status-modal-save-button').show();
+        $('#pendency-description').val('');
+
+        $('#status-modal-select option').hide();
+
+        $('#status-modal-client-id').val(data.certificateContractualId);
+        if (data.statusTypeId != null) {
+            $('#status-modal-select').val(data.statusTypeId);
+        } else {
+            $('#status-modal-select').val($('#status-modal-select option:first').val());
+        }
+
+        var order = $('#status-modal-select option:selected').data('order');
+
+        //$.each($('#status-modal-select option'), function (i, e) { if ($(e).data('order') <= order) $(e).hide(); });
+
+        var nexts = $.map($('#status-modal-select option'), function (e, i) {
+            if ($(e).data('order') > order) return e;
+        })
+
+        if (nexts.length > 0) {
+            var orderNext = $($(nexts)[0]).data('order');
+            $('#status-modal-select option[data-order="' + orderNext + '"]').show();
+        }
+        $('#status-modal-select option:selected').show();
+
+        $('#status-modal-payment-way-id').val($('#status-modal-payment-way-id option:first').val());
+        $('#status-modal-vigence-end-date').val('');
+        $('#status-modal-file').val('');
+
+        $('#status-modal').modal('show');
+
+        if ($('#status-modal-select').val() == @pendencyStatusId) { // quando está em pendecia não aparece nenhuma outra opção e as informações de pendencia aparecem
+            $('#status-modal-select option:not(:selected)').hide();
+            $('#status-modal-pendency-area').show();
+            $('#pendency-description').val(data.pendencyDescription);
+            $('#status-modal-send-pendency-email-button').show();
+            $('#status-modal-save-button').hide();
+        }
+    }
+
+    $('#status-modal-send-pendency-email-button').click(function () {
+        if (!confirm('Deseja realmente enviar um e-mail de pendência para os envolvidos?')) return;
+
+        $.post('@Url.Action("SendPendencyEmail", "ContractualGuarantee")', { certId: $('#status-modal-client-id').val(), pendencyDescription: $('#pendency-description').val() }, function () {
+            alert('E-mail foi enviado com sucesso aos envolvidos!');
+            $('#_CategoryProductIndexTable').DataTable().ajax.reload();
+            $('#status-modal').modal('hide');
+        });
+    });
+
+    $('#status-modal-save-button').click(function () {
+        if (!validateStatus()) return;
+
+        var formData = new FormData();
+
+        formData.append('certId', $('#status-modal-client-id').val());
+        formData.append('statusId', $('#status-modal-select').val());
+        formData.append('paymentWayId', $('#status-modal-payment-way-id').val());
+        formData.append('devolutionReason', $('#devolution-reason').val());
+        formData.append('pendencyDescription', $('#pendency-description').val());
+
+        if (!IsNullOrWhiteSpace($('#status-modal-vigence-end-date').val())) formData.append('vigenceEndDate', fromPtBRDate($('#status-modal-vigence-end-date').val()).toISOString());
+        if ($('#status-modal-file')[0].files.length > 0) formData.append('archive', $('#status-modal-file')[0].files[0]);
+
+        $.ajax({
+            url: '@Url.Action("SaveStatus", "ContractualGuarantee")',
+            type: 'POST',
+            contentType: false,
+            processData: false,
+            data: formData,
+            success: function (d) {
+                alert(d.message);
+                if (!d.hasError) {
+                    $('#_CategoryProductIndexTable').DataTable().ajax.reload();
+
+                    $('#status-modal').modal('hide');
+                }
+            }
+        });
+    });
+
+    function validateStatus() {
+        $('.text-danger').remove();
+        var statusId = $('#status-modal-select').val();
+        var hasError = false;
+
+        if ((statusId == @approvedStatusId || statusId == @refusedStatusId || statusId == @contractedStatusId || statusId == @waitingEmissionId) && $('#status-modal-file')[0].files.length == 0)
+        {
+            $('#status-modal-file').after($('<div>', { class: 'text-danger' }).append('Insira um arquivo.'));
+            hasError = true;
+        }
+
+        if (statusId == @contractedStatusId) {
+            if (IsNullOrWhiteSpace($('#status-modal-payment-way-id').val())) {
+                $('#status-modal-payment-way-id').after($('<div>', { class: 'text-danger' }).append('Insira o tipo de pagamento.'));
+                hasError = true;
+            }
+
+            if (IsNullOrWhiteSpace($('#status-modal-vigence-end-date').val())) {
+                $('#status-modal-vigence-end-date').after($('<div>', { class: 'text-danger' }).append('Insira o fim da vigência.'));
+                hasError = true;
+            }
+        }
+
+        if (statusId == @devolutionStatusId) {
+            if (IsNullOrWhiteSpace($('#devolution-reason').val())) {
+                $('#devolution-reason').after($('<div>', { class: 'text-danger' }).append('Preencha a razão de devolução.'));
+                hasError = true;
+            }
+        }
+
+        return !hasError;
+    }
+</script>
+
+<div class="modal fade" id="vigence-date-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title">Insira uma data</h6>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="vigence-date-modal-certificate-contractual-id" />
+                <div class="input-group mb-3" id="vigence-date-area">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text" id="basic-addon1">Inicio da vigência</span>
+                    </div>
+                    <input id="vigence-date" class="form-control date" />
+                </div>
+                <div class="input-group mb-3" id="vigence-end-date-area">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text" id="basic-addon1">Data de fim da vigência</span>
+                    </div>
+                    <input id="vigence-end-date" class="form-control date" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="text-right">
+                    <button class="btn btn-success" id="vigence-date-modal-save-button"><i class="fa fa-cloud-upload-alt"></i>&nbsp;Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function openVigenceDateModal(data, type)
+    {
+        $('#vigence-end-date').val(toPtBRDate(data.vigenceEndDate));
+        $('#vigence-date').val(toPtBRDate(data.vigenceDate));
+        $('#vigence-date-modal-certificate-contractual-id').val(data.certificateContractualId);
+
+        $('#vigence-date-area').hide();
+        $('#vigence-end-date-area').hide();
+
+        if (type == 'Start') $('#vigence-date-area').show();
+        if (type == 'End') $('#vigence-end-date-area').show();
+
+        $('#vigence-date-modal').data('vigence-type', type);
+        $('#vigence-date-modal').modal('show');
+    }
+
+    $('#vigence-date-modal-save-button').click(function () {
+        if ($('#vigence-date-modal').data('vigence-type') == 'Start' && !validateVigenceDate()) return;
+        if ($('#vigence-date-modal').data('vigence-type') == 'End' && !validateVigenceEndDate()) return;
+
+        $.post('@Url.Action("UpdateVigenceDate", "ContractualGuarantee")',
+            {
+                id: $('#vigence-date-modal-certificate-contractual-id').val(),
+                vigenceEndDate: moment($('#vigence-end-date').val(), 'DD/MM/YYYY')._d.toISOString(),
+                vigenceDate: moment($('#vigence-date').val(), 'DD/MM/YYYY')._d.toISOString()
+            },
+            function (d) {
+                alert(d.message);
+
+                if (!d.hasError) {
+                    $('#_CategoryProductIndexTable').DataTable().ajax.reload();
+                    $('#vigence-date-modal').modal('hide');
+                }
+        });
+    });
+
+    function validateVigenceEndDate() {
+        $('.text-danger').remove();
+        var hasError = false;
+
+        if (!fieldHasValue('#vigence-end-date')) {
+            $('#vigence-end-date-area').after($('<div>', { class: 'text-danger' }).append('Insira a data do fim da vigência.'));
+            hasError = true;
+        } else
+        {
+            var date = moment($('#vigence-end-date').val(), 'DD/MM/YYYY')._d;
+            if (new Date() > date) {
+                $('#vigence-end-date-area').after($('<div>', { class: 'text-danger' }).append('A data deve ser posterior ao dia atual.'));
+                hasError = true;
+            }
+        }
+
+        return !hasError;
+    }
+
+    function validateVigenceDate() {
+        $('.text-danger').remove();
+        var hasError = false;
+
+        if (!fieldHasValue('#vigence-date')) {
+            $('#vigence-date-area').after($('<div>', { class: 'text-danger' }).append('Insira a data da vigência.'));
+            hasError = true;
+        }
+        else if (fieldHasValue('#vigence-end-date')) {
+            var date = moment($('#vigence-date').val(), 'DD/MM/YYYY')._d;
+            var endDate = moment($('#vigence-end-date').val(), 'DD/MM/YYYY')._d;
+
+            if (endDate < date) {
+                $('#vigence-date-area').after($('<div>', { class: 'text-danger' }).append('A data deve ser anterior a data de fim de vigência.'));
+                hasError = true;
+            }
+        }
+
+        return !hasError;
+    }
+</script>
+
+<div class="modal fade" id="payment-way-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title">Insira uma Forma de Pagamento</h6>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="payment-way-modal-certificate-contractual-id" />
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">Forma de Pagamento</span>
+                    </div>
+                    <select class="form-control" id="payment-way-modal-value">
+                        @foreach (var item in paymentWayFunctions.GetData())
+                        {
+                            <option value="@item.PaymentWayId">@item.Name</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="text-right">
+                    <button class="btn btn-success" id="payment-way-modal-save-button"><i class="fa fa-cloud-upload-alt"></i>&nbsp;Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function openPaymentWayModal(data)
+    {
+        $('#payment-way-modal-value').val(data.paymentWayId ?? $('#payment-way-modal-value option:first').val());
+        $('#payment-way-modal-certificate-contractual-id').val(data.certificateContractualId);
+
+        $('#payment-way-modal').modal('show');
+    }
+
+    $('#payment-way-modal-save-button').click(function () {
+        $.post('@Url.Action("UpdatePaymentWay", "ContractualGuarantee")',
+            {
+                id: $('#payment-way-modal-certificate-contractual-id').val(),
+                paymentWayId: $('#payment-way-modal-value').val()
+            },
+            function (d) {
+                alert(d.message);
+
+                if (!d.hasError) {
+                    $('#_CategoryProductIndexTable').DataTable().ajax.reload();
+                    $('#payment-way-modal').modal('hide');
+                }
+        });
+    });
+</script>
+
+<div class="modal fade" id="payment-type-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title">Tipo de Pagamento</h6>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="payment-type-view-component"></div>
+            </div>
+            <div class="modal-footer">
+                <div class="row w-100">
+                    <div class="col">
+                        <button type="button" data-dismiss="modal" class="btn btn-secondary" style="float: left;"><i class="fa fa-times"></i>&nbsp;Fechar</button>
+                    </div>
+                    <div class="col text-right">
+                        <button class="btn btn-success" id="payment-type-modal-save-button"><i class="fa fa-cloud-upload-alt"></i>&nbsp;Salvar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function openPaymentTypeModal(data)
+    {
+        $('#payment-type-view-component').load('@Url.Action("LoadCertificateContractualInstallmentViewComponent", "ContractualGuarantee")', { certificateContractualId: data.certificateContractualId });
+
+        $('#payment-type-modal').modal('show');
+    }
+
+    $('#payment-type-modal-save-button').click(function () {
+        if (!validateInstallments(true)) return;
+
+        if (installmentDataChangeFromStart() && !confirm('Deseja realmente alterar os dados? Isso vai fazer com que perca suas informações atuais.')) return;
+
+        var data = $('#certificate-contractual-installment-form').serializeArray();
+        $.each($('#certificate-contractual-installment-table [data-installment-index]'), function (i, e) {
+            data.push({ name: 'installments.Index', value: i });
+            data.push({ name: 'installments[' + i + '].certificateContractualInstallmentId', value: $(e).data('installment-id') });
+            data.push({ name: 'installments[' + i + '].Paid', value: $(e).data('installment-paid') });
+            data.push({ name: 'installments[' + i + '].Order', value: i });
+        });
+
+        $.post('@Url.Action("SaveCertificateContractualInstallment", "ContractualGuarantee")',
+            data,
+            function (d) {
+                alert(d.message);
+
+                if (!d.hasError) {
+                    $('#_CategoryProductIndexTable').DataTable().ajax.reload();
+                    $('#payment-type-modal').modal('hide');
+                }
+        });
+    });
+</script>

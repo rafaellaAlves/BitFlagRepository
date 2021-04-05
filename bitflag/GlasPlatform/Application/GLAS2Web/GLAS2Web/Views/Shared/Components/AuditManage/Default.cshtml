@@ -1,0 +1,319 @@
+﻿@model DTO.Audit.AuditViewModel
+@inject DAL.GLAS2Context context
+@{
+    var auditTypeFunctions = new BLL.Audit.AuditTypeFunctions(context);
+    var auditStatusFunctions = new BLL.Audit.AuditStatusFunctions(context);
+    var segmentoFunctions = new BLL.Utils.SegmentoFunctions(context);
+    var esferaFunctions = new BLL.Utils.EsferaFunctions(context);
+    var lawTypeFunctions = new BLL.Law.LawTypeFunctions(context);
+    var orgaoFunctions = new BLL.Utils.OrgaoFunctions(context);
+}
+<form id="AuditManagementViewComponentForm">
+    <input type="hidden" name="AuditId" value="@Model.AuditId" />
+    <input type="hidden" name="CompanyId" value="@Model.CompanyId" />
+    <div class="row">
+        <div class="col-md-2">
+            <div class="form-group">
+                <label class="control-label">@translationFunctions.GetTranslation("Data da Auditoria", User.FindFirstValue("CultureInfo"))</label>
+                <input type="text" id="StartDate" name="StartDate" class="form-control date" value="@Model.StartDate" />
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="form-group">
+                <label class="control-label">Tipo</label>
+                <select class="form-control" id="AuditTypeId" name="AuditTypeId">
+                    <option value="">Selecione</option>
+                    @foreach (var item in auditTypeFunctions.GetData())
+                    {
+                        <option value="@item.AuditTypeId">@item.Name</option>
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="form-group">
+                <label class="control-label">@translationFunctions.GetTranslation("Segmento", User.FindFirstValue("CultureInfo"))</label>
+                @if (Model.AuditId.HasValue)
+                {
+                    <input type="hidden" id="SegmentoId" name="SegmentoId" value="@Model.SegmentoId" />
+                    if (Model.SegmentoId == null)
+                    {
+                        <p class="form-control">Todos</p>
+                    }
+                    else
+                    {
+                        <p class="form-control">@Model.SegmentoName</p>
+                    }
+                }
+                else
+                {
+                    <select class="form-control" id="SegmentoId" name="SegmentoId">
+                        <option value="">Todos</option>
+                        @foreach (var item in segmentoFunctions.GetData())
+                        {
+                            <option value="@item.SegmentoId">@item.Name</option>
+                        }
+                    </select>
+                }
+            </div>
+            <script type="text/javascript">
+                $('#SegmentoId').change(function () {
+                    $('#FilterSegmentoId').val($(this).val()).change();
+                });
+            </script>
+        </div>
+        <div class="col-md-2">
+            <div class="form-group">
+                <label class="control-label">@translationFunctions.GetTranslation("Data da Conclusão", User.FindFirstValue("CultureInfo"))</label>
+                <input type="text" id="ConclusionDate" name="ConclusionDate" class="form-control date" value="@Model.ConclusionDate" />
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="form-group">
+                <label class="control-label">@translationFunctions.GetTranslation("Status", User.FindFirstValue("CultureInfo"))</label>
+                <select class="form-control" id="AuditStatusId" name="AuditStatusId">
+                    <option value="">Selecione</option>
+                    @foreach (var item in auditStatusFunctions.GetData())
+                    {
+                        <option value="@item.AuditStatusId">@item.Name</option>
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="form-group">
+                <label class="control-label">@translationFunctions.GetTranslation("Próxima Avaliação", User.FindFirstValue("CultureInfo"))</label>
+                <input type="text" id="ScheduleDate" name="ScheduleDate" class="form-control date" value="@Model.ScheduleDate" />
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="form-group">
+                <label class="control-label">@translationFunctions.GetTranslation("Objetivo", User.FindFirstValue("CultureInfo"))</label>
+                <textarea class="form-control" id="Objective" name="Objective">@Model.Objective</textarea>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-3">
+            <div class="form-group">
+                <label class="control-label">@translationFunctions.GetTranslation("Auditor Líder", User.FindFirstValue("CultureInfo"))</label>
+                <textarea class="form-control" id="LeaderAuditor" name="LeaderAuditor">@Model.LeaderAuditor</textarea>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label class="control-label">@translationFunctions.GetTranslation("Acompanhantes", User.FindFirstValue("CultureInfo"))</label>
+                <textarea class="form-control" id="CoAuditors" name="CoAuditors">@Model.CoAuditors</textarea>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label class="control-label">@translationFunctions.GetTranslation("Participantes", User.FindFirstValue("CultureInfo"))</label>
+                <textarea class="form-control" id="Participants" name="Participants">@Model.Participants</textarea>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label class="control-label">@translationFunctions.GetTranslation("Escopo", User.FindFirstValue("CultureInfo"))</label>
+                <textarea class="form-control" id="Scope" name="Scope">@Model.Scope</textarea>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="form-group">
+                <label class="control-label">@translationFunctions.GetTranslation("Descrição", User.FindFirstValue("CultureInfo"))</label>
+                <textarea class="form-control" id="Description" name="Description">@Model.Description</textarea>
+            </div>
+        </div>
+    </div>
+    <div id="CompanyLaws"></div>
+    @if (!Model.AuditId.HasValue)
+    {
+        <div class="row">
+            <div class="col-md-12 text-center">
+                <button type="button" id="buttonAuditCompanyLawSelectViewComponent" class="btn btn-success">@translationFunctions.GetTranslation("Escolher Requisitos Legais Para Auditoria", User.FindFirstValue("CultureInfo"))&nbsp;<span class="badge badge-light" id="buttonAuditCompanyLawSelectViewComponent_Count"></span></button>
+            </div>
+        </div>
+    }
+    else
+    {
+        <hr />
+        <text>
+            <script type="text/javascript">
+            $('#CompanyLaws').load('@Url.Action("AuditItemListViewComponent", "AuditItemManagement")', { auditId: @Model.AuditId }, function () { MaskData(); });
+            </script>
+        </text>
+
+    }
+</form>
+
+@if (!Model.AuditId.HasValue)
+{
+    <div id="modalAuditCompanyLawSelectViewComponent" class="modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document" style="overflow-y: initial !important">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span class="modal-title">Selecionar Requisitos Legais Aplicáveis</span>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="control-label">Segmento</label>
+                                <select class="form-control" id="FilterSegmentoId">
+                                    <option value="">Todos</option>
+                                    @foreach (var item in segmentoFunctions.GetData())
+                                    {
+                                        <option value="@item.SegmentoId">@item.Name</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="control-label">Esfera</label>
+                                <select class="form-control" id="FilterEsferaId">
+                                    <option value="">Selecione</option>
+                                    @foreach (var item in esferaFunctions.GetData())
+                                    {
+                                        <option value="@item.EsferaId">@item.Name</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="control-label">Tipo</label>
+                                <select class="form-control" id="FilterLawTypeId">
+                                    <option value="">Selecione</option>
+                                    @foreach (var item in lawTypeFunctions.GetData())
+                                    {
+                                        <option value="@item.LawTypeId">@item.Name</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="control-label">Órgão</label>
+                                <select class="form-control" id="FilterOrgaoId">
+                                    <option value="">Selecione</option>
+                                    @foreach (var item in orgaoFunctions.GetData())
+                                    {
+                                        <option value="@item.OrgaoId">@item.Name</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <hr />
+                    <div id="AuditCompanyLawSelectViewComponent" style="height: 500px; overflow-y: auto;"></div>
+                </div>
+                <div class="modal-footer">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <button type="button" class="btn btn-success" id="modalAuditCompanyLawSelectViewComponent_Select" style="float: left;">Selecionar</button>
+                                <script type="text/javascript">
+                                    $('#modalAuditCompanyLawSelectViewComponent_Select').click(function () {
+                                        $('#modalAuditCompanyLawSelectViewComponent').modal('toggle');
+                                        $('#CompanyLaws').empty();
+                                        var companyLaws = AuditCompanyLawSelectSave();
+                                        $.each(companyLaws, function (i, e) {
+                                            $('#CompanyLaws').append('<input type="hidden" class="CompanyLaws" name="CompanyLaws" value="' + e + '" />');
+                                        });
+                                        $('#buttonAuditCompanyLawSelectViewComponent_Count').text((companyLaws == 0 ? '' : companyLaws.length));
+                                    });
+                                </script>
+                            </div>
+                            <div class="col-md-6">
+                                <button type="button" class="btn btn-secondary" style="float: right" data-dismiss="modal">Cancelar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <text>
+        <script type="text/javascript">
+            $('#buttonAuditCompanyLawSelectViewComponent').click(function () {
+                $('#modalAuditCompanyLawSelectViewComponent').modal('show');
+            });
+            function LoadAuditCompanyLawSelectViewComponent() {
+
+                var _segmentoId = $('#FilterSegmentoId').val() == '' ? null : $('#FilterSegmentoId').val();
+                var _esferaId = $('#FilterEsferaId').val() == '' ? null : $('#FilterEsferaId').val();
+                var _lawTypeId = $('#FilterLawTypeId').val() == '' ? null : $('#FilterLawTypeId').val();
+                var _orgaoId = $('#FilterOrgaoId').val() == '' ? null : $('#FilterOrgaoId').val();
+
+                $('#AuditCompanyLawSelectViewComponent').load('@Url.Action("AuditCompanyLawSelectViewComponent", "AuditManagement")', { companyId: @Model.CompanyId, segmentoId: _segmentoId, esferaId: _esferaId, lawTypeId: _lawTypeId, orgaoId: _orgaoId }, function () {
+                    MaskData();
+                });
+            }
+            $(document).ready(function () {
+                $('#FilterSegmentoId, #FilterEsferaId, #FilterLawTypeId, #FilterOrgaoId').change(function () {
+                    LoadAuditCompanyLawSelectViewComponent();
+                });
+                LoadAuditCompanyLawSelectViewComponent();
+            });
+
+        </script>
+    </text>
+}
+
+<script type="text/javascript">
+    function AuditManageViewComponentSave() {
+        var d = $('#AuditManagementViewComponentForm').serializeArray();
+		$.post('@Url.Action("ManageAjax", "AuditManagement")', d, function (data) {
+            if (typeof (AuditManagementViewComponentSaveCallback) === 'undefined') {
+                alert('Implement "AuditManagementViewComponentSaveCallback"!');
+                return;
+            }
+            AuditManagementViewComponentSaveCallback(data);
+        });
+    }
+    function AuditManageViewComponentValidate() {
+        if ($('#StartDate').val() == '') {
+            alert('Por favor, preencha a data da auditoria.');
+            return false;
+        }
+
+        if ($('#AuditTypeId').val() == '') {
+            alert('Por favor, o tipo da auditoria.');
+            return false;
+        }
+
+        if ($('#AuditStatusId').val() == '') {
+            alert('Por favor, o status da auditoria.');
+            return false;
+        }
+
+        if ($('#Objective').val() == '') {
+            alert('Por favor, o objetivo da auditoria.');
+            return false;
+        }
+
+        @if (!Model.AuditId.HasValue)
+        {
+            <text>
+        if (AuditCompanyLawSelectSave().length == 0) {
+            alert('Por favor, selecione ao menos um requisito legal.');
+            return false;
+        }
+            </text>
+        }
+
+        return true;
+    }
+
+    $('#AuditTypeId').val('@(Model.AuditTypeId)');
+    $('#SegmentoId').val('@Model.SegmentoId');
+    $('#AuditStatusId').val('@Model.AuditStatusId');
+</script>

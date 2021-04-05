@@ -1,0 +1,72 @@
+﻿<div class="row">
+    <div class="col">
+        <div class="table-responsive">
+            <table id="client-table" class="display table table-sm table-striped table-bordered table-condensed w-100 tablesizeline" style="border-collapse: collapse !important;">
+                <thead>
+                    <tr>
+                        <th style="text-align:center" width="100px">Cód Gerador</th>
+                        <th>Razão Social / Nome</th>
+                        <th>Fantasia</th>
+                        <th>CNPJ / CPF</th>
+                        <th>Status</th>
+                        <th width="80px">&nbsp;</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script asp-cut-key="script-client-index">
+    var clientDatatables;
+    $(document).ready(function () {
+        clientDatatables = $('#client-table').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            pageLength: 30,
+            dom: 'tip',
+            ajax: {
+                url: '@Url.Action("List", "Client")',
+                type: 'POST'
+            },
+            columns: [
+                { render: function (data, type, row) { return '<div class="text-center">' + row.clientId; } },
+                { render: function (data, type, row) { return '<a class="text-uppercase" href="@Url.Action("Manage", "Client")?id=' + row.clientId + '" >' + row.name + '</a>'; } },
+                { render: function (data, type, row) { return row.alternativeName; } },
+                { render: function (data, type, row) { return '<div class="' + (row.isCompany? 'cnpj' : 'cpf') + '">' + row.document + '</div>'; } },
+                { render: function (data, type, row) { return '<div data-client-status-id="' + (row.solicitation ? 2 : 1) + '" class="text-center">' + (row.solicitation ? "Simulação" : "Gerador") + '</div>'; } },
+                {
+                    render: function (data, type, row)
+                    {
+                        return '<div class="text-center">' +
+                            '&nbsp;<a href="@Url.Action("Manage", "Client")?id=' + row.clientId + '"  title="Visualizar"><span class="badge badge-pill badge-primary"><i class="simple-icon-magnifier"></i></span></a>' +
+                            '&nbsp;<a href="@Url.Action("Manage", "Client")?id=' + row.clientId + '"  title="Editar"><span class="badge badge-pill badge-success"><i class="simple-icon-note"></i></span></a>' +
+                            '&nbsp;<a href=\'javascript:removeClient(' + JSON.stringify(row) + ')\' title="Excluir"><span class="badge badge-pill badge-danger"><i class="simple-icon-trash"></i></span></a>' +
+                            '</div>';
+                    }
+                }
+            ]
+        });
+    });
+
+    function removeClient(client) {
+        bootboxConfirm("Deseja realmente excluir o cliente \"" + client.name + "\"?", function(result){
+            if (!result) return;
+
+            $.post('@Url.Action("_Delete", "Client")', { id: client.clientId }, function (d) {
+                if (d.hasError) {
+                    bootboxConfirm(d.message, function (d) {
+                        if(d) window.location.href = '@Url.Action("Manage", "Client")?id=' + client.clientId;
+                    })
+                    return;
+                }
+
+                bootbox.alert("Cliente \"" + client.name + "\" excluído com sucesso!");
+                clientDatatables.ajax.reload();
+            });
+        });
+    }
+</script>

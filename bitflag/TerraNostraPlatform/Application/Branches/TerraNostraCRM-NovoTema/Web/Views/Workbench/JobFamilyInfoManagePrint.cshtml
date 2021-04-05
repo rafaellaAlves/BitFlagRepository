@@ -1,0 +1,22 @@
+﻿@model DTO.Workbench.JobFamilyInfoManageViewModel
+@{
+    Layout = "~/Views/Shared/_LayoutPrint.cshtml";
+}
+
+<style type="text/css">
+    @@media print {
+        .no-print, .no-print * {
+            display: none !important;
+        }
+    }
+    body {
+        background-color: white;
+    }
+    main {
+        margin: 0;
+        padding: 1em;
+    }
+</style>
+
+<button class="btn btn-primary float-right no-print" style="margin-bottom:1em;" id="button-print"><i class="simple-icon-printer"></i>&nbsp;Imprimir</button>
+@(await Component.InvokeAsync<Web.ViewComponents.Job.JobFreezedFamilyItemInfoManageViewComponent>(new { id = Model.JobId, title = Model.Title, columns = Model.Columns, modules = Model.Modules, block = Model.Block, isPrintMode = Model.IsPrintMode }))              

@@ -1,0 +1,34 @@
+﻿
+@{
+    ViewData["Title"] = "Acompanhamento de Serviço";
+    ViewData["SubTitle"] = "Cidadania Italiana";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="card">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-12 text-right">
+                <small><i class="simple-icon-check"></i>&nbsp;=&nbsp;Finalizado</small>
+                &nbsp;
+                <small><i class="far fa-dot-circle"></i>&nbsp;=&nbsp;Em Andamento</small>
+                &nbsp;
+                <small class="m-r-10"><i class="far fa-circle"></i>&nbsp;=&nbsp;A Iniciar</small>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-5">
+                <fieldset>
+                    <legend>Cliente XPTO</legend>
+                </fieldset>
+            </div>
+            <div class="col-md-7">
+                <div id="_WorkflowViewerViewComponent"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#_WorkflowViewerViewComponent').load('@Url.Action("WorkflowViewerViewComponent", "Workflow")');
+</script>

@@ -1,0 +1,38 @@
+﻿@model int?
+@{
+    ViewData["Title"] = "Gerenciar Produto";
+}
+
+<div class="card shadow bg-light">
+    <div class="card-header"><span id="_ProductManageCardHeaderTitle">Criação de produto</span></div>
+    <div class="card-body">
+        <div id="ProductManageViewComponent"></div>
+    </div>
+    <div class="card-footer">
+        <a href="@Url.Action("Index","Product")" class="btn btn-secondary float-left"><i class="fa fa-arrow-left"></i>&nbsp;Voltar</a>
+        <button type="button" id="buttonSubmit" class="btn btn-success float-right"><i class="fas fa-cloud-upload-alt"></i>&nbsp;Salvar</button>
+        <script type="text/javascript">
+            $('#buttonSubmit').click(function () {
+                if (_ProductManageValidate()) _ProductManageSave();
+            });
+        </script>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(function () {
+        $('#ProductManageViewComponent').load('@Url.Action("ProductManageComponent", "Product")', { "id": @if (Model.HasValue) { @Model } else { <text>null</text> } });
+    });
+
+    function _ProductManageCallBack(data) {
+        if (data != null) {
+            window.location.href = '@Url.Action("Manage","Product")?id=' + data + '&saved=true';
+        }
+    }
+
+    @if (Model.HasValue) {
+        <text>
+    $('#_ProductManageCardHeaderTitle').text('Atualização de produto');
+        </text>
+    }
+</script>

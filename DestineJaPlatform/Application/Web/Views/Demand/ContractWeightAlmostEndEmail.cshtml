@@ -1,0 +1,23 @@
+﻿@model DTO.Contract.ContractViewModel
+
+<div style="width: 655px; margin: auto; border: 1px solid #cecece; -webkit-box-shadow: -1px -5px 20px 0px #b5b5b5; box-shadow: -1px -5px 20px 0px #b5b5b5; background: linear-gradient(to bottom, #e2e2e2, #e2e2e2 70px, #01a89c52 250px, #05a09785);">
+    <div style="padding: 15px; font-weight: bold; font-size: 25px; text-align: center;">
+        <div style="margin-top: 1em;">
+            - Contrato - Franquia de Peso 75% -<br />
+        </div>
+    </div>
+    <div style="padding: 15px; font-size: 16px; line-height: 25px; padding-bottom: 40px;">
+        <div style="width: 80%; margin-left: 10%; padding: 10px; background: white; border-radius: 7px; box-shadow: inset 0px 0px 7px 2px #d0d0d0; -webkit-box-shadow: inset 0px 0px 7px 2px #d0d0d0; margin-bottom: 1em;">
+            <p style="margin-bottom: .3em;">Prezado(a) cliente,</p>
+            <p style="margin-bottom: .1em;">Informamos que sua franquia de peso de <b>@Model._ContractedWeight</b>, do contrato <b>@Model.Code</b> com início em @Model._StartContract e final em @Model._DueDate está em 75% de sua capacidade.</p>
+            <p style="margin-bottom: .1em;">Entre em contato com o setor comercial para não gerar excedentes na fatura.</p>
+            <ul>
+                <li><a href="mailto:comercial@destineja.com.br">comercial@destineja.com.br</a></li>
+                <li>(27) 3029-0907</li>
+            </ul>
+            <br />
+            <p style="margin-bottom: .1em;">Atenciosamente,</p>
+            <p style="margin-bottom: .1em;">Destine Já.</p>
+        </div>
+    </div>
+</div>

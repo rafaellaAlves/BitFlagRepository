@@ -1,0 +1,14 @@
+﻿@{
+    ViewData["Title"] = "Lista de MTR de Destinação";
+}
+
+<div class="card">
+    <div class="card-body">
+        @(await Component.InvokeAsync<Web.ViewComponents.DemandDestination.DemandDestinationIndexViewComponent>())
+    </div>
+</div>
+
+@section Scripts
+{
+    <script asp-paste-key="demand-destination-index"></script>
+}

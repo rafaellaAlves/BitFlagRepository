@@ -1,0 +1,60 @@
+﻿@model AMaisImob_WEB.Models.AssistanceViewModel
+
+<script type="text/javascript">
+    _MaskData();
+</script>
+
+<script type="text/javascript">
+    function _AssistanceManageSave() {
+        var d = $('#_AssistanceManageForm').serializeArray();
+        $.post('@Url.Action("Manage", "Assistance")', d, function (data) {
+            if (data.hasError) {
+                $('#alertErrorAssistance').show();
+                return;
+            }
+            _AssistanceManageCallBack(data.code);
+	    });
+    }
+
+    function _AssistanceManageValidate() {
+        var r = validateInputs('_AssistanceManageForm');
+
+        if (!r) {
+            $('#_AssistanceManageAlertError').show();
+        } else {
+            $('#_AssistanceManageAlertError').hide();
+        }
+
+        return r;
+    }
+
+</script>
+<div id="_AssistanceManageAlertError" class="alert alert-danger fade show text-center" role="alert" style="display: none;">
+    <strong>Atenção!</strong> O Formulário contém erros.
+</div>
+<form id="_AssistanceManageForm" method="post">
+    <input type="hidden" id="_AssistanceManageAssistanceId" name="AssistanceId" value="@Model.AssistanceId" />
+    <div class="form-row">
+        <div class="form-group col-md-7">
+            <label class="control-label">Nome*</label>
+            <input type="text" class="form-control required" id="_AssistanceManageName" name="Name" value="@Model.Name" placeholder="Nome">
+        </div>
+        <div class="form-group col-md-3">
+            <label class="control-label">Valor*</label>
+            <div class="input-group" id="_AssistanceManageValueArea">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">R$</span>
+                </div>
+                <input type="text" class="form-control required money" id="_AssistanceManageValue" name="_Value" value="@Model._Value" placeholder="Valor">
+            </div>
+        </div>
+        <div class="form-group col-md-2">
+            <label class="control-label">Código da Exportação*</label>
+            <input type="text" class="form-control required" name="ReportCode" value="@Model.ReportCode" placeholder="Código da Exportação">
+        </div>
+        <div class="form-group col-md-12">
+            <label class="control-label">Descrição</label>
+            <textarea class="form-control" id="_AssistanceManageDescription" name="Description" placeholder="Descrição">@Model.Description</textarea>
+        </div>
+    </div>
+</form>

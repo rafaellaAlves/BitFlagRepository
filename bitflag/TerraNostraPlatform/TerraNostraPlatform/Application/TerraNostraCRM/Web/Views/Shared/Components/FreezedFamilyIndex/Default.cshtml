@@ -1,0 +1,136 @@
+﻿@using Web.Utils
+
+<script type="text/javascript">
+    _MaskData();
+</script>
+
+<div class="row">
+    <div class="col-md-9">
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text"><i class="simple-icon-magnifier"></i></span>
+            </div>
+            <input id="_FreezedFamilyIndexSearch" type="text" class="form-control" placeholder="Procurar..." />
+        </div>
+    </div>
+    <div class="col-md-3">
+        <select id="FreezedFamilyStatusFilter" class="form-control">
+            <option value="">Todos os Status</option>
+            <option value="APPROVED">Aprovado</option>
+            <option value="REPROVED">Reprovado</option>
+            <option value="PENDING">Pendente</option>
+        </select>
+    </div>
+</div>
+<hr />
+<div class="table-wrapper">
+    <table id="_FreezedFamilyIndexTable" class="display table table-striped table-bordered table-condensed" style="border-collapse: collapse !important; width:100%;">
+        <thead>
+            <tr>
+                <th style="white-space: nowrap">&nbsp;</th>
+                <th>Cliente</th>
+                <th style="white-space: nowrap">Qtd. Membros&nbsp;</th>
+                <th style="white-space: nowrap">Gerado por</th>
+                <th>Aprovado?&nbsp;</th>
+                <th style="white-space: nowrap">Responsável</th>
+                @if (User.FreezedFamilyCanAccessEdition())
+                {
+                    <th style="white-space: nowrap">&nbsp;</th>
+                }
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+<script type="text/javascript">
+
+    var _FreezedFamilyIndexTypingTimer;
+    var _FreezedFamilyIndexDoneTypingInterval = 500;
+    var _FreezedFamilyIndexDatatables = $('#_FreezedFamilyIndexTable').DataTable({
+        proccessing: true,
+        serverSide: true,
+        searching: true,
+        lengthChange: false,
+        dom: 'tip',
+        ajax: {
+            url: '@Url.Action("FreezedFamilyList", "FreezedFamily")',
+            data: function (d) {
+                d.freezedFamilyStatusFilter = $('#FreezedFamilyStatusFilter').val()
+            },
+            type: 'POST'
+        },
+        order: [[0, 'desc']],
+        columns: [
+            {
+                data: 'FreezedFamilyTerraNostraId',
+                render: function (data, type, row) {
+                    return '<div class="text-center"><a title="Editar Registro" href="@Url.Action("Manage", "FreezedFamily")?freezedFamilyId=' + row.freezedFamilyId + '">' + row.freezedFamilyTerraNostraId + '</a></div>';
+                }
+            },
+            {
+                data: 'ClientName',
+                render: function (data, type, row) {
+                    return '<div  style="white-space: nowrap">' + row.clientName + '</div>';
+                }
+            },
+            {
+                data: 'MemberCount',
+                render: function (data, type, row) {
+                    return '<div class="text-center">' + row.memberCount + '</div>';
+                }
+            },
+            {
+                data: '_CreatedBy',
+                render: function (data, type, row) {
+                    return '<div><b>' + row._CreatedBy + '</b> em <b>' + row._CreatedDate + '</div>';
+                }
+            },
+            {
+                data: 'Accepted',
+                render: function (data, type, row) {
+                    return '<div class="text-center">' + (row.acceptedBy == null ? '<span class="badge badge-warning">Pendente</span>' : (row.accepted ? '<span class="badge badge-success">Sim</span>' : '<span class="badge badge-danger">Não</span>')) + '</div>';
+                }
+            },
+            {
+                data: '_AcceptedBy',
+                render: function (data, type, row) {
+                    return row.acceptedBy == null ? '-' : '<div><b>' + row._AcceptedBy + '</b> em <b>' + row._AcceptedDate + '</div>';
+                }
+            }
+            @if (User.FreezedFamilyCanAccessEdition())
+            {
+            <text>
+            , {
+                render: function (data, type, row) {
+                    return '<div style="text-align: center"><a href="@Url.Action("Manage", "Invoice")?clientId=' + row.clientId + '&freezedFamilyId=' + row.freezedFamilyId + '" class="btn btn-primary" style="padding: 5px;" title="Gerar Novo Orçamento"><i class="simple-icon-calculator"></i></a></div>';
+                }
+            }
+            </text>
+            }
+            , { data: '_AcceptedDate', visible: false }
+            , { data: '_CreatedDate', visible: false }
+        ],
+        drawCallback: function () {
+            _MaskData();
+        }
+	});
+
+    function _FreezedFamilyIndexDoneTyping() {
+        if ($.fn.DataTable.isDataTable('#_FreezedFamilyIndexTable')) {
+            _FreezedFamilyIndexDatatables.search($('#_FreezedFamilyIndexSearch').val()).draw();
+        }
+    }
+    $('#_FreezedFamilyIndexSearch').keyup(function () {
+        clearTimeout(_FreezedFamilyIndexDoneTypingInterval);
+        _FreezedFamilyIndexTypingTimer = setTimeout(_FreezedFamilyIndexDoneTyping, _FreezedFamilyIndexDoneTypingInterval);
+    });
+    $('#_FreezedFamilyIndexSearch').keydown(function () {
+        clearTimeout(_FreezedFamilyIndexDoneTyping);
+    });
+
+    $('#FreezedFamilyStatusFilter').change(function() {
+        if ($.fn.DataTable.isDataTable('#_FreezedFamilyIndexTable')) {
+            _FreezedFamilyIndexDatatables.search($('#_FreezedFamilyIndexSearch').val()).draw();
+        }
+    });
+</script>

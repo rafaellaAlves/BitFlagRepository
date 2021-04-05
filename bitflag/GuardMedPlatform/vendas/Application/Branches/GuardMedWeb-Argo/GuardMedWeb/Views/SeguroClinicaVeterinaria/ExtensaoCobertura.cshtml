@@ -1,0 +1,287 @@
+﻿@inject DAL.GuardMedWebContext context
+@{
+    ViewData["Title"] = "Extensão de Cobertura";
+}
+
+<script type="text/javascript">
+    var idade, crmv, indice;
+
+
+    function GetIdade(_dataNascimento) {
+        var dataNascimento = _dataNascimento.split('/');
+        var hoje = new Date();
+        var anos = (hoje.getFullYear() - dataNascimento[2]) - 1;
+        if (dataNascimento[1] < (hoje.getMonth() + 1))
+            anos++;
+        else if (dataNascimento[1] == hoje.getMonth() + 1 && dataNascimento[0] <= hoje.getDate())
+            anos++;
+
+        return anos;
+    }
+
+    function ExtensaoCoberturaMandarCookie() {
+        setCookie("_SeguroFuncionarioQtdFuncionarios", $('#QtdFuncionarios').val());
+        setCookie("_SeguroFuncionarioCobertura", $('#ExtensaoCobertura')[0].checked);
+
+        //for (var i = 0; i < $('#QtdFuncionarios').val(); i++) {
+        //    console.log(i);
+        //    setCookie("_SeguroFuncionarioIdade" + i, $('#Idade' + i).val());
+        //    setCookie("_SeguroFuncionarioNome" + i, $('#Nome' + i).val());
+        //    setCookie("_SeguroFuncionarioCPF" + i, $('#CPF' + i).val());
+        //    setCookie("_SeguroFuncionarioCRMV" + i, $('#CRMV' + i).val());
+        //    setCookie("_SeguroFuncionarioCRMVEstado" + i, $('#CRMVEstado' + i).val());
+        //    setCookie("_SeguroFuncionarioDataNascimento" + i, $('#DataNascimento' + i).val());
+        //    setCookie("_SeguroFuncionarioPlanoId" + i, $('#PlanoId' + i).val());
+        //    setCookie("_SeguroFuncionarioPlanoTitulo" + i, $('#PlanoTitulo' + i).val());
+        //}
+
+    }
+
+    function ValidarExtensaoCobertura() {
+        var extensaoCoberturaErro = false;
+        var qtdFuncionarios = $('#QtdFuncionarios').val();
+        $('.text-danger').remove();
+
+        if (IsNullOrWhiteSpace(qtdFuncionarios)) {
+            $('#QtdFuncionarios').after('<div class="text-danger">Insira a quantidade de funcionários!</div>');
+            extensaoCoberturaErro = true;
+        }
+        if (qtdFuncionarios > 0 && $('#ExtensaoCobertura')[0].checked) {
+            for (var i = 0; i < qtdFuncionarios; i++) {
+
+                if (IsNullOrWhiteSpace($('#Nome' + i).val())) {
+                    $('#Nome' + i).after('<div class="text-danger">Insira o nome!</div>');
+                    extensaoCoberturaErro = true;
+                }
+                if (IsNullOrWhiteSpace($('#CPF' + i).val())) {
+                    $('#CPF' + i).after('<div class="text-danger">Insira o CPF!</div>');
+                    extensaoCoberturaErro = true;
+                }
+                if (IsNullOrWhiteSpace($('#CRMV' + i).val())) {
+                    $('#CRMV' + i).after('<div class="text-danger">Insira o CRMV!</div>');
+                    extensaoCoberturaErro = true;
+                }
+                if (IsNullOrWhiteSpace($('#CRMVEstado' + i).val())) {
+                    $('#CRMVEstado' + i).after('<div class="text-danger">Insira o estado do CRMV!</div>');
+                    extensaoCoberturaErro = true;
+                }
+                if (IsNullOrWhiteSpace($('#DataNascimento' + i).val())) {
+                    $('#DataNascimento' + i).after('<div class="text-danger">Insira a data de nascimento!</div>');
+                    extensaoCoberturaErro = true;
+                }
+                if (IsNullOrWhiteSpace($('#PlanoId' + i).val())) {
+                    $('#Plano' + i).after('<div class="text-danger">Escolha um plano!</div>');
+                    extensaoCoberturaErro = true;
+                }
+            }
+
+        }
+
+        return (!extensaoCoberturaErro);
+    }
+
+    function PreencherFormulario() {
+        $('#FormularioFuncionarios').empty();
+        for (var i = 0; i < $('#QtdFuncionarios').val(); i++) {
+            $('#FormularioFuncionarios').append(
+                '<h5>Funcionário ' + (i + 1) + '</h5>' +
+                '<div class="form-row" id="Form' + i + '">' +
+                '<div class="form-group col-md-8">' +
+                '<h6>Nome:</h6>' +
+                '<input class="form-control" id="Nome' + i + '" type="text" placeholder="Nome" />' +
+                '</div>' +
+                '<div class="form-group col-md-4">' +
+                '<h6>CPF:</h6>' +
+                '<input class="form-control cpf" id="CPF' + i + '" type="text" placeholder="CPF" />' +
+                '</div>' +
+                '<div class="form-group col-md-4">' +
+                '<h6>CRMV:</h6>' +
+                '<input class="form-control" id="CRMV' + i + '" type="text" placeholder="CRMV" />' +
+                '</div>' +
+                '<div class="form-group col-md-3">' +
+                '<h6>Estado do CRMV:</h6>' +
+                '<input class="form-control" id="CRMVEstado' + i + '" type="text" placeholder="Estado do CRMV" />' +
+                '</div>' +
+                '<div class="col-md-3 form-group">' +
+                '<h6>Data de Nascimento:</h6>' +
+                '<input class="form-control date" id="DataNascimento' + i + '" type="text" placeholder="Data de Nascimento" />' +
+                '<input id="Idade' + i + '" type="hidden" />' +
+                '</div>' +
+                '<div class="form-group col-md-2" style="vertical-align:middle;">' +
+                '<h6>&nbsp;</h6>' +
+                '<button class="btn btn-secondary col-md-12 btnPlano" onclick="ButtonClicked(' + i + ');" id="Plano' + i + '">Escolha o plano</button>' +
+                '<input type="hidden" id="PlanoId' + i + '" value="" />' +
+                '<input type="hidden" id="PlanoTitulo' + i + '" value="" />' +
+                '</div>' +
+                '</div>' +
+                '<hr/>'
+            );
+        }
+        _MaskData();
+    }
+
+
+    function ConsultarQtdFuncionarios() {
+        if (!IsNullOrWhiteSpace($('#QtdFuncionarios').val())) {
+            if ($('#QtdFuncionarios').val() == 0) {
+                $('#CardGroup').hide();
+                $('#CheckGroup').hide();
+                if ($('#ExtensaoCobertura')[0].checked)
+                    $('#ExtensaoCobertura').click();
+            }
+            else if ($('#QtdFuncionarios').val() > 0) {
+                $('#CheckGroup').show();
+            }
+        }
+        else {
+            $('#CheckGroup').hide();
+            $('#CardGroup').hide();
+            if ($('#ExtensaoCobertura')[0].checked)
+                $('#ExtensaoCobertura').click();
+        }
+    }
+</script>
+
+<h2>Extensão de Cobertura</h2>
+
+<br />
+<div class="form-row">
+    <div class="form-group col-md-4">
+        <h6>Quantos médicos-veterinários a clínica possui?</h6>
+        <input class="form-control number" id="QtdFuncionarios" type="text" placeholder="Qtd. de Funcionarios" />
+    </div>
+</div>
+<div class="form-row" style="display:none;" id="CheckGroup">
+    <div class="form-group">
+        <h6>Gostaria de contratar seguro profissional para os médicos-veterinários de sua clínica?</h6>
+        <div class="form-check">
+            <label class="form-check-label" for="ExtensaoCobertura">
+                <input class="form-check-input" type="checkbox" id="ExtensaoCobertura">
+                Contratar seguro
+            </label>
+        </div>
+    </div>
+</div>
+<div id="CardGroup" style="display:none">
+    <hr />
+    <div id="FormularioFuncionarios">
+    </div>
+</div>
+<br />
+<div class="form-group">
+    <a href="@Url.Action("CoberturaRT","SeguroClinicaVeterinaria")" id="VoltarButton" class="btn btn-secondary"><i class="fas fa-arrow-left"></i>&nbsp;Voltar</a>
+    <button type="button" id="ContinueButton" class="btn btn-primary float-right">Continuar&nbsp;<i class="fas fa-arrow-right"></i></button>
+</div>
+
+<script type="text/javascript">
+
+    $('#ExtensaoCobertura').change(function () {
+        if ($(this)[0].checked) {
+            $('#CardGroup').show();
+            PreencherFormulario();
+        }
+        else {
+            $('#CardGroup').hide();
+        }
+    });
+
+    $('#ContinueButton').click(function () {
+        if (ValidarExtensaoCobertura()) {
+            ExtensaoCoberturaMandarCookie();
+            window.location.href = '@Url.Action("Confirmacao","SeguroClinicaVeterinaria")';
+        }
+    });
+
+    var QtdFuncionariosTypingTimer;
+    var QtdFuncionariosDoneTypingInterval = 500;
+
+
+    function QtdFuncionariosDoneTyping() {
+        PreencherFormulario();
+        ConsultarQtdFuncionarios();
+    }
+
+    $('#QtdFuncionarios').keyup(function () {
+        clearTimeout(QtdFuncionariosTypingTimer);
+        QtdFuncionariosTypingTimer = setTimeout(QtdFuncionariosDoneTyping, QtdFuncionariosDoneTypingInterval);
+    });
+
+    $('#QtdFuncionarios').keydown(function () {
+        clearTimeout(QtdFuncionariosTypingTimer);
+    });
+</script>
+
+
+<div class="modal fade" id="PlanoProfissionalModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Selecione um plano</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="ConteudoPlano">
+            </div>
+            <div class="modal-footer">
+                <button type="submit" aria-label="Close" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-times"></i>&nbsp;Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $('#PlanoProfissionalModal').on('shown.bs.modal', function () {
+        $('#ConteudoPlano').load('@Url.Action("CotacaoViewComponent", "SeguroProfissional")', { "idade": idade, "Conveniado": crmvEstado });
+    });
+</script>
+
+
+<script type="text/javascript">
+    function ButtonClicked(_indice) {
+        if (ValidadeExtensaoCobertura(_indice)) {
+            indice = _indice;
+            idade = GetIdade($('#DataNascimento' + _indice).val());
+            crmvEstado = EConveniado($('#CRMVEstado' + indice).val());
+            $('#PlanoProfissionalModal').modal('show');
+        }
+    }
+
+
+    function ValidadeExtensaoCobertura(i) {
+        var temErro = false;
+        var _idade;
+        $('.text-danger').remove();
+
+        if (IsNullOrWhiteSpace($('#DataNascimento' + i).val())) {
+            $('#DataNascimento' + i).after('<div class="text-danger">Insira sua Data de Nascimento!</div>');
+            temErro = true;
+        }
+        else {
+            _idade = GetIdade($('#DataNascimento' + i).val());
+            if (20 > _idade || _idade > 60) {
+                $('#DataNascimento' + i).after('<div class="text-danger">Você precisa ter entre 20 à 59 anos!</div>');
+                temErro = true;
+            }
+        }
+        if (IsNullOrWhiteSpace($('#CRMV' + i).val())) {
+            $('#CRMV' + i).after('<div class="text-danger">Insira seu CRMV!</div>');
+            temErro = true;
+        }
+
+        return (!temErro);
+    }
+
+    function CotacaoSelectCallBack(data) {
+        $("#Idade" + indice).val(data.idade);
+        $("#PlanoId" + indice).val(data.planoId);
+        $("#PlanoTitulo" + indice).val(data.planoTitle);
+        $("#Form" + indice + " .text-secondary").remove();
+        $("#Plano" + indice).removeClass('btn-secondary').addClass('btn-success').text('Trocar Plano').after('<div class="text-secondary">Plano: ' + data.planoTitle + '</div>');
+        $('#PlanoProfissionalModal').modal('hide');
+    }
+
+
+    function EConveniado(EstadoCrmv) {
+        return EstadoCrmv == 'SP' || EstadoCrmv == 'GO' || EstadoCrmv == 'PR' || EstadoCrmv == 'SE'
+    }
+</script>

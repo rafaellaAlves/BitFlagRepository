@@ -1,0 +1,10 @@
+﻿@model int
+@{
+    ViewData["Title"] = "Árvore Genealógica";
+}
+
+<div id="_ClientFamilyTreeViewComponent"></div>
+
+<script type="text/javascript">
+    $('#_ClientFamilyTreeViewComponent').load('@Url.Action("ClientFamilyTreeComponent", "Client")', { clientId: '@Model'});
+</script>

@@ -1,0 +1,100 @@
+﻿<div class="row">
+    <div class="col-md-10">
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text"><i class="fa fa-search"></i></span>
+            </div>
+            <input id="_SeasonIndexSearch" type="text" class="form-control" placeholder="Procurar..." />
+        </div>
+    </div>
+    <div class="col-md-2">
+        <a href="@Url.Action("Manage", "Season")" class="btn btn-success pull-right w-100"><i class="fas fa-plus-circle"></i>&nbsp;Novo</a>
+    </div>
+</div>
+<hr />
+<div class="table-wrapper">
+    <table id="_SeasonIndexTable" class="table display responsive nowrap" style="border-collapse: collapse !important;">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Data de Início</th>
+                <th>Data de Término</th>
+                <th>&nbsp;</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+<script type="text/javascript">
+
+    var _SeasonIndexTypingTimer;
+    var _SeasonIndexDoneTypingInterval = 500;
+    var datatables = $('#_SeasonIndexTable').DataTable({
+		proccessing: true,
+		serverSide: false,
+		searching: true,
+		lengthChange: false,
+		dom: 'tip',
+		ajax: {
+			url: '@Url.Action("List", "Season")',
+			type: 'POST'
+		},
+		columns: [
+			{ data: 'Name',
+            render: function (data, type, row) {
+                return '<a href="@Url.Action("Manage", "Season")?id=' + row.seasonId + '">' + row.name + '</a>';
+                }
+            },
+			{ data: 'StartDate',
+            render: function (data, type, row) {
+                return row._StartDate;
+                }
+            },
+            {
+                data: 'EndDate',
+                render: function (data, type, row) {
+                    return row._EndDate;
+                }
+            },
+			{
+				data: null,
+				render: function (data, type, row) {
+                    return '<div class="text-center"><a href="javascript:void(0)" onclick="RemoveSeason(' + row.seasonId + ')" title="Excluir" ><i class="far fa-trash-alt"></i></a></div>';
+				}
+			}
+		]
+	});
+
+    function _SeasonIndexDoneTyping() {
+        if ($.fn.DataTable.isDataTable('#_SeasonIndexTable')) {
+            datatables.search($('#_SeasonIndexSearch').val()).draw();
+        }
+    }
+    $('#_SeasonIndexSearch').keyup(function () {
+        clearTimeout(_SeasonIndexDoneTypingInterval);
+        _SeasonIndexTypingTimer = setTimeout(_SeasonIndexDoneTyping, _SeasonIndexDoneTypingInterval);
+    });
+    $('#_SeasonIndexSearch').keydown(function () {
+        clearTimeout(_SeasonIndexDoneTyping);
+    });
+
+    function RemoveSeason(seasonId) {
+		if (confirm("Deseja realmente excluir esta temporada?")) {
+            _RemoveSeason(seasonId, function () {
+                $('#_SeasonIndexTable').DataTable().ajax.reload();
+                alert("Temporada excluída com sucesso!");
+			});
+		}
+	}
+
+	function _RemoveSeason(_seasonId, callback) {
+        var d = { id: _seasonId };
+		$.ajax({
+			url: '@Url.Action("RemoveSeason", "Season")',
+			type: 'POST',
+			data: d,
+			dataType: 'Json',
+			success: callback
+		});
+	}
+</script>

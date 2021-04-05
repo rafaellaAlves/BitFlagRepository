@@ -1,0 +1,9 @@
+C:\repositorios\bitflag\Nova pasta\TerraNostraPlatform\Application\Branches\TerraNostraCRM-NovoTema\GoogleDriveAPI\bin\Debug\netcoreapp2.2\GoogleDriveAPI.deps.json
+C:\repositorios\bitflag\Nova pasta\TerraNostraPlatform\Application\Branches\TerraNostraCRM-NovoTema\GoogleDriveAPI\bin\Debug\netcoreapp2.2\GoogleDriveAPI.dll
+C:\repositorios\bitflag\Nova pasta\TerraNostraPlatform\Application\Branches\TerraNostraCRM-NovoTema\GoogleDriveAPI\bin\Debug\netcoreapp2.2\GoogleDriveAPI.pdb
+C:\repositorios\bitflag\Nova pasta\TerraNostraPlatform\Application\Branches\TerraNostraCRM-NovoTema\GoogleDriveAPI\obj\Debug\netcoreapp2.2\GoogleDriveAPI.csprojAssemblyReference.cache
+C:\repositorios\bitflag\Nova pasta\TerraNostraPlatform\Application\Branches\TerraNostraCRM-NovoTema\GoogleDriveAPI\obj\Debug\netcoreapp2.2\GoogleDriveAPI.AssemblyInfoInputs.cache
+C:\repositorios\bitflag\Nova pasta\TerraNostraPlatform\Application\Branches\TerraNostraCRM-NovoTema\GoogleDriveAPI\obj\Debug\netcoreapp2.2\GoogleDriveAPI.AssemblyInfo.cs
+C:\repositorios\bitflag\Nova pasta\TerraNostraPlatform\Application\Branches\TerraNostraCRM-NovoTema\GoogleDriveAPI\obj\Debug\netcoreapp2.2\GoogleDriveAPI.csproj.CoreCompileInputs.cache
+C:\repositorios\bitflag\Nova pasta\TerraNostraPlatform\Application\Branches\TerraNostraCRM-NovoTema\GoogleDriveAPI\obj\Debug\netcoreapp2.2\GoogleDriveAPI.dll
+C:\repositorios\bitflag\Nova pasta\TerraNostraPlatform\Application\Branches\TerraNostraCRM-NovoTema\GoogleDriveAPI\obj\Debug\netcoreapp2.2\GoogleDriveAPI.pdb

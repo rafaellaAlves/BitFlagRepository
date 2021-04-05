@@ -1,0 +1,61 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30804.86
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WEB", "WEB\WEB.csproj", "{988B4A67-2EE6-4A30-93BB-6465CBBEC5B2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DTO", "DTO\DTO.csproj", "{4D901559-8429-410C-B7E3-FC0B3A3D49A8}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApplicationDbContext", "ApplicationDbContext\ApplicationDbContext.csproj", "{F5FBC29E-58D4-48E3-9D70-254A1D913B82}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Services", "Services\Services.csproj", "{240A27E6-3129-4BBC-AFB9-26283E4647D3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{988B4A67-2EE6-4A30-93BB-6465CBBEC5B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{988B4A67-2EE6-4A30-93BB-6465CBBEC5B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{988B4A67-2EE6-4A30-93BB-6465CBBEC5B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{988B4A67-2EE6-4A30-93BB-6465CBBEC5B2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D901559-8429-410C-B7E3-FC0B3A3D49A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D901559-8429-410C-B7E3-FC0B3A3D49A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D901559-8429-410C-B7E3-FC0B3A3D49A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D901559-8429-410C-B7E3-FC0B3A3D49A8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F5FBC29E-58D4-48E3-9D70-254A1D913B82}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5FBC29E-58D4-48E3-9D70-254A1D913B82}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F5FBC29E-58D4-48E3-9D70-254A1D913B82}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F5FBC29E-58D4-48E3-9D70-254A1D913B82}.Release|Any CPU.Build.0 = Release|Any CPU
+		{240A27E6-3129-4BBC-AFB9-26283E4647D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{240A27E6-3129-4BBC-AFB9-26283E4647D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{240A27E6-3129-4BBC-AFB9-26283E4647D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{240A27E6-3129-4BBC-AFB9-26283E4647D3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E98E822F-E207-4599-B188-B4E382BF583F}
+	EndGlobalSection
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 5
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = https://dev.azure.com/bit-flag
+		SccLocalPath0 = .
+		SccProjectUniqueName1 = WEB\\WEB.csproj
+		SccProjectName1 = WEB
+		SccLocalPath1 = WEB
+		SccProjectUniqueName2 = DTO\\DTO.csproj
+		SccProjectName2 = DTO
+		SccLocalPath2 = DTO
+		SccProjectUniqueName3 = ApplicationDbContext\\ApplicationDbContext.csproj
+		SccProjectName3 = ApplicationDbContext
+		SccLocalPath3 = ApplicationDbContext
+		SccProjectUniqueName4 = Services\\Services.csproj
+		SccProjectName4 = Services
+		SccLocalPath4 = Services
+	EndGlobalSection
+EndGlobal

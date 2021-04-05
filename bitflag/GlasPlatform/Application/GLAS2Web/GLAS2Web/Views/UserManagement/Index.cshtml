@@ -1,0 +1,127 @@
+﻿@using GLAS2Web.Utils;
+
+@{
+    string title = string.Empty;
+    if (User.IsInRole(BLL.User.ProfileNames.Administrator) || User.IsInRole(BLL.User.ProfileNames.Master))
+    {
+        title = "Administração de Usuários do Sistema";
+    }
+    else
+    {
+        title = translationFunctions.GetTranslation("Usuários das Minhas Unidades de Negócio", User.FindFirstValue("CultureInfo"));
+    }
+
+    ViewData["Title"] = title;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="card shadow">
+    <div class="card-header">
+        @title
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="input-group">
+                    <span class="input-group-addon"><i class="fa fa-search"></i></span>
+                    <input id="search" type="text" class="form-control" placeholder="Procurar..." value="@ViewContext.GetSessionListFilter("search[value]")" />
+                    <span class="input-group-btn">
+                        <a href="@Url.Action("Manage", "UserManagement")" class="btn btn-success pull-right"><i class="fa fa-plus"></i>&nbsp;@translationFunctions.GetTranslation("Novo Usuário", User.FindFirstValue("CultureInfo"))</a>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <hr />
+        <table id="tableUsers" class="datatable table table-sm table-bordered table-striped" style="border-collapse: collapse !important;">
+            <thead>
+                <tr>
+                    <th>@translationFunctions.GetTranslation("Nome", User.FindFirstValue("CultureInfo"))</th>
+                    <th>@translationFunctions.GetTranslation("Sobrenome", User.FindFirstValue("CultureInfo"))</th>
+                    <th>@translationFunctions.GetTranslation("E-mail", User.FindFirstValue("CultureInfo"))</th>
+                    <th>@translationFunctions.GetTranslation("Celular", User.FindFirstValue("CultureInfo"))</th>
+                    <th>@translationFunctions.GetTranslation("Telefone", User.FindFirstValue("CultureInfo"))</th>
+                    <th>@translationFunctions.GetTranslation("Perfil", User.FindFirstValue("CultureInfo"))</th>
+                    <th>@translationFunctions.GetTranslation("Ativo", User.FindFirstValue("CultureInfo"))</th>
+                    <th>&nbsp;</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+<script type="text/javascript">
+    var typingTimer;
+    var doneTypingInterval = 500;
+    var datatables = $('#tableUsers').DataTable({
+        proccessing: true
+        , serverSide: true
+        , searching: true
+        , lengthChange: false
+        , dom: 'tip'
+        , "displayStart": "@(string.IsNullOrWhiteSpace(ViewContext.GetSessionListFilter("start"))?"0" : ViewContext.GetSessionListFilter("start"))"
+        , "oSearch": { "sSearch": "@Html.Raw(ViewContext.GetSessionListFilter("search[value]"))" }
+        , ajax: {
+            url: '@Url.Action("List", "UserManagement")'
+                , type: 'POST'
+            }
+            , columns: [
+                { data: 'FirstName' }
+                , { data: 'LastName' }
+                , { data: 'Email' }
+                , { data: 'MobileNumber' }
+                , { data: 'PhoneNumber' }
+                , { data: 'Roles' }
+				, {
+					data: 'IsActive',
+					render: function (data, type, row) {
+                        return '<div class="text-center">' + (row.IsActive == true ? 'Sim' : 'Não') + '</div>';
+					}
+				}
+                , {
+                    data: null
+                    , sortable: false
+                    , searchable: false
+                    , render: function (data, type, row) {
+                        console.log(data);
+                        var activate = (data.IsActive == true ? '<a href="javascript:Inactivate(' + data.UserId + ')>Inativar</a>' : '<a href="javascript:Activate(' + data.UserId + ')>Ativar</a>');
+
+						//return '<div class="text-center"><a href="@Url.Action("Manage", "UserManagement")/' + row.UserId + '">Editar</a> | ' + activate + ' | Excluir';
+						return '<div class="text-center"><a href="@Url.Action("Manage", "UserManagement")/' + row.UserId + '">Editar</a>&nbsp;|&nbsp;<a href="javascript:void(0)" onclick="RemoveUser(' + row.UserId + ')" title="Excluir">Excluir</a></div>';
+                    }
+                }
+            ]
+    });
+    function doneTyping() {
+        if ($.fn.DataTable.isDataTable('#tableUsers')) {
+            datatables.search($('#search').val()).draw();
+        }
+    }
+    $('#search').keyup(function () {
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(doneTyping, doneTypingInterval);
+    });
+    $('#search').keydown(function () {
+        clearTimeout(typingTimer);
+	});
+
+	function RemoveUser(_UserId) {
+		if (confirm('Deseja realmente excluir esse usuário?')) {
+			_RemoveUser(_UserId, function () {
+				$('#tableUsers').DataTable().ajax.reload();
+				alert('Usuário excluído com sucesso!');
+			});
+		}
+	}
+
+	function _RemoveUser(_UserId, callback) {
+        var d = { UserId: _UserId };
+        $.ajax({
+            url: '@Url.Action("RemoveUser", "UserManagement")',
+            type: 'POST',
+            data: d,
+			dataType: 'json',
+			success: callback
+		});
+    }
+
+</script>

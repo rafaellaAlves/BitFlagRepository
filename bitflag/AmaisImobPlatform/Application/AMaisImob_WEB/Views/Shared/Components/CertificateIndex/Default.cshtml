@@ -1,0 +1,1186 @@
+﻿@using AMaisImob_WEB.Utils;
+@model int
+
+@inject AMaisImob_WEB.BLL.CompanyFunctions companyFunctions
+
+@{
+    int? userRealEstateAgencyId = null;
+    if (ViewData.ContainsKey("UserRealEstateAgencyId"))
+    {
+        userRealEstateAgencyId = (int)ViewData["UserRealEstateAgencyId"];
+    }
+
+    int? realEstateId = null, realEstateAgencyId = null;
+    if (ViewData.ContainsKey("RealEstateId"))
+    {
+        var realEstate = companyFunctions.GetDataByID((int)ViewData["RealEstateId"]);
+        realEstateAgencyId = realEstate.ParentCompanyId;
+        realEstateId = realEstate.CompanyId;
+    }
+    if (ViewData.ContainsKey("RealEstateAgencyId"))
+    {
+        realEstateAgencyId = (int)ViewData["RealEstateAgencyId"];
+    }
+}
+
+
+<div class="row">
+    @if (User.IsInRealEstate() || User.IsInRole("Corretor"))
+    {
+        <input type="hidden" id="_CertificateManageRealEstateAgencyId" name="RealEstateAgencyId" value="@userRealEstateAgencyId" />
+    }
+    else
+    {
+        <div class="col-md-4">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">Corretora</span>
+                </div>
+                <select class="form-control" id="_CertificateManageRealEstateAgencyId" name="RealEstateAgencyId">
+                    <option value="">Selecione</option>
+                    @foreach (var item in (List<AMaisImob_DB.Models.Company>)ViewData["RealEstateAgency"])
+                    {
+                        var companyName = string.IsNullOrWhiteSpace(item.RazaoSocial) ? item.FirstName + " " + item.LastName : item.RazaoSocial;
+
+                        if (realEstateAgencyId == item.CompanyId)
+                        {
+                            <option selected value="@item.CompanyId">@companyName</option>
+                            continue;
+                        }
+                        <option value="@item.CompanyId">@companyName</option>
+                    }
+                </select>
+            </div>
+        </div>
+    }
+    @if (User.IsInRealEstate())
+    {
+        <input id="_CertificateManageRealEstateId" name="RealEstateId" type="hidden" value="" />
+    }
+    else
+    {
+        <div class="form-group col-md-4 @if (User.IsInRole("Corretor")) {<text>offset-md-2</text>}">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">Imobiliária</span>
+                </div>
+                <select class="form-control" id="_CertificateManageRealEstateId">
+                    <option value="">Selecione uma corretora</option>
+                </select>
+            </div>
+        </div>
+    }
+    <div class="form-group col-md-4">
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text">Produto</span>
+            </div>
+            <select class="form-control" id="_CertificateManageInsurancePolicyId">
+                <option value="">Selecione uma corretora</option>
+            </select>
+        </div>
+    </div>
+    @if (User.IsInRealEstate())
+    {
+        <div class="form-group col-md-3">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">Data Início</span>
+                </div>
+                <input type="text" class="form-control date" id="_CertificateManageStartDate" placeholder="Data Início">
+            </div>
+        </div>
+        <div class="form-group col-md-3">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">Data Fim</span>
+                </div>
+                <input type="text" class="form-control date" id="_CertificateManageEndDate" placeholder="Data Fim" />
+            </div>
+        </div>
+        <div class="form-group col-md-2">
+            <button type="button" class="btn btn-primary" style="width: 100%;" id="_CertificateIndexFilterButton"><i class="fas fa-filter"></i>&nbsp;Filtrar</button>
+        </div>
+    }
+</div>
+
+@if (!User.IsInRealEstate())
+{
+    <div class="row">
+
+        @if (Model == (int)AMaisImob_WEB.Utils.CertificateTypes.Deletados)
+        {
+            <div class="form-group col-md-3">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">Motivo</span>
+                    </div>
+                    <select class="form-control" id="_CertificateManageMotivo">
+                        <option value="1">Cancelado</option>
+                        <option value="2">Encerrado</option>
+                        <option value="3">Não Renovados</option>
+                        <option value="">Todos</option>
+                    </select>
+                </div>
+            </div>
+        }
+        else
+        {
+            <input type="hidden" id="_CertificateManageMotivo" />
+        }
+        <div class="form-group col-md-@if (Model == (int)AMaisImob_WEB.Utils.CertificateTypes.Deletados){<text>3</text>}else{<text>4</text>}">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">Data Início</span>
+                </div>
+                <input type="text" class="form-control date" id="_CertificateManageStartDate" placeholder="Data Início">
+            </div>
+        </div>
+        <div class="form-group col-md-@if (Model == (int)AMaisImob_WEB.Utils.CertificateTypes.Deletados){<text>3</text>}else{<text>4</text>}">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">Data Fim</span>
+                </div>
+                <input type="text" class="form-control date" id="_CertificateManageEndDate" placeholder="Data Fim" />
+            </div>
+        </div>
+        <div class="form-group col-md-@if (Model == (int)AMaisImob_WEB.Utils.CertificateTypes.Deletados){<text>3</text>}else{<text>4</text>}">
+            <button type="button" class="btn btn-primary" style="width: 100%;" id="_CertificateIndexFilterButton"><i class="fas fa-filter"></i>&nbsp;Filtrar</button>
+        </div>
+    </div>
+}
+<div class="row">
+    <div class="col-md-@if (User.IsInRole("Administrator")){
+        if (Model == (int)AMaisImob_WEB.Utils.CertificateTypes.Deletados || Model == (int)AMaisImob_WEB.Utils.CertificateTypes.Emitidos){<text>12</text>}
+        else {<text>8</text>}}
+        else {
+        if (User.IsInRealEstate() && Model == (int)AMaisImob_WEB.Utils.CertificateTypes.Simulacao){<text>10</text>}
+        else if (Model == (int)AMaisImob_WEB.Utils.CertificateTypes.Simulacao){<text>8</text>}
+        else {<text>12</text>}}">
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text"><i class="fa fa-search"></i></span>
+            </div>
+            <input id="_CertificateIndexSearch" type="text" class="form-control" placeholder="Procurar..." />
+        </div>
+    </div>
+
+    @if (User.IsInRole("Administrator") && (Model == (int)AMaisImob_WEB.Utils.CertificateTypes.Simulacao || Model == (int)AMaisImob_WEB.Utils.CertificateTypes.Renovacao))
+    {
+        <div class="col-md-@if (Model == (int)AMaisImob_WEB.Utils.CertificateTypes.Simulacao){<text>2</text>}else{<text>4</text>}">
+            <a href="javascript:void(0)" class="btn btn-primary pull-right w-100" data-target="#ImportCertificateModal" data-toggle="modal"><i class="fas fa-file-excel"></i>&nbsp;Importar</a>
+        </div>
+    }
+    @if (Model == (int)AMaisImob_WEB.Utils.CertificateTypes.Simulacao)
+    {
+        <div class="col-md-@if (User.IsInRole("Administrator")){<text>2</text>}else if(User.IsInRealEstate()) {<text>2</text>}else{<text>4</text>}">
+            <a href="@Url.Action("Manage", "Certificate")?certificateType=@Model" class="btn btn-success pull-right w-100"><i class="fas fa-plus-circle"></i>&nbsp;Novo</a>
+        </div>
+    }
+</div>
+@if (Model == (int)AMaisImob_WEB.Utils.CertificateTypes.Renovacao)
+{
+    <div class="row" style="margin-top: 2em;">
+        <div class="col-md-12">
+            <label>Abaixo seguem propostas de renovações dos certificados vencidos. Caso necessite alterar dados, coberturas ou taxa de adesão ao clube do inquilino, basta clicar na referência e realizar as devidas mudanças.  Para renovar conforme proposta abaixo basta clicar em Renovar.</label>
+        </div>
+    </div>
+}
+<div class="table-wrapper" style="margin-top:1em;">
+    <table id="_CertificateIndexTable" class="table display responsive" style="border-collapse: collapse !important; width: 100%;">
+        <thead>
+            <tr>
+                <th>Data de Criação</th>
+                <th>Endereço</th>
+                <th>Num.</th>
+                <th>Início da Vigência</th>
+                <th>Fim da Vigência</th>
+                <th>Data de Cancelamento</th>
+                <th>Cancelado Por</th>
+                <th>Ref. Imobiliária</th>
+                <th>&nbsp;</th>
+                <th>Ref.</th>
+                @if (Model == (int)AMaisImob_WEB.Utils.CertificateTypes.Emitidos)
+                {
+                    <th>Origem</th>
+                    <th>Contração</th>
+                }
+                @if (Model == (int)AMaisImob_WEB.Utils.CertificateTypes.Deletados)
+                {
+                    <th>Motivo</th>
+                }
+                @if (Model == (int)AMaisImob_WEB.Utils.CertificateTypes.Simulacao)
+                {
+                    <th>Notificação</th>
+                }
+                @if (User.IsInRole("Administrator") || User.IsInRole("Corretor"))
+                {
+                    <th>Imobiliária</th>
+                }
+                <th>Produto</th>
+                <th style="min-width:80px;">Locatário</th>
+                <th style="min-width:80px;">Locador</th>
+                <th>Valor do<br />Seguro (R$)<br /><small class="text-nowrap"><span class="money" id="totalValorSeguro"></span></small></th>
+                <th>Taxa de<br />Adesão (R$)<br /><small class="text-nowrap"><span class="money" id="totalTaxaAdesao"></span></small></th>
+                <th>Valor<br />Total (R$)<br /><small class="text-nowrap"><span class="money" id="totalValorTotal"></span></small></th>
+                @if (Model == (int)AMaisImob_WEB.Utils.CertificateTypes.Simulacao)
+                {
+                    <th>Prazo</th>
+                    <th>Status</th>
+                }
+                @if (Model == (int)AMaisImob_WEB.Utils.CertificateTypes.Renovacao)
+                {
+                    <th>Status</th>
+                }
+                @if (Model != (int)AMaisImob_WEB.Utils.CertificateTypes.Simulacao)
+                {
+                    <th id="ApprovedColumn">Aprovado</th>
+                }
+                @if (Model != (int)AMaisImob_WEB.Utils.CertificateTypes.Deletados)
+                {
+                    <th>&nbsp;</th>
+                }
+                @*Colunas não visiveis, usadas para ordenação de datas*@
+                <th></th>
+                <th></th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+
+<div class="modal fade" id="_ModalSelecionarProdutoRenovacao" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Verifique as informações</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+            </div>
+            <br />
+            <input type="hidden" id="_idToRenew" />
+            <span id="_ProdutoAtual"></span>
+            <br />
+            @*<span id="_TipoImovel"></span>
+                <br />*@
+            <div style="display: none;" id="_ProdutoDescontinuado">Esse produto foi descontinuado. Para realizar sua renovação, selecionamos um produto equivalente ao anterior.</div>
+            <div style="display: none;" id="_ProdutoContinuado">Deseja realmente renovar esse certificado?</div>
+            <br />
+            <div id="_RenovarSelect" style="display: none;">
+                <span style="font-weight: bold;">O produto de equivalência é :</span>
+
+                &nbsp;&nbsp;<select class="col-md-6" id="_ProdutoSelecionado" disabled>
+                    <option value="">Selecione</option>
+                    @foreach (var item in (List<AMaisImob_DB.Models.Product>)ViewData["Products"])
+                    {
+                        <option value="@item.ProductId">@item.Name</option>
+                    }
+                </select>
+            </div>
+            <br />
+            <div class="row">
+                <div class="col-md-6">
+                    <a href="@Url.Action("Index","Certificate")?CertificateType=@((int)AMaisImob_WEB.Utils.CertificateTypes.Renovacao)" class="btn btn-secondary col-md-6 float-left">Voltar</a>
+                </div>
+                <div class="col-md-6">
+                    <a href="javascript:void(0)" onclick="Renew()" class="btn btn-success col-md-6 float-right" id="aceitarRenovacao">Renovar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    var renovationType = false, removedType = false, issuedType = false, simulationType = false;
+    @if (Model == (int)AMaisImob_WEB.Utils.CertificateTypes.Renovacao) { <text> renovationType = true; </text> }
+    @if (Model == (int)AMaisImob_WEB.Utils.CertificateTypes.Deletados) { <text> removedType = true; </text> }
+    @if (Model == (int)AMaisImob_WEB.Utils.CertificateTypes.Emitidos) { <text> issuedType = true; </text> }
+    @if (Model == (int)AMaisImob_WEB.Utils.CertificateTypes.Simulacao) { <text> simulationType = true; </text> }
+
+    var _CertificateIndexDateTypingTimer;
+    var _CertificateIndexTypingTimer;
+    var _CertificateIndexDateDoneTypingInterval = 500;
+    var _CertificateIndexDoneTypingInterval = 500;
+
+    function format(d) {
+        var monthlyPrice = (d._MonthlyPrice == null ? '-' : '<span class="money">' + d._MonthlyPrice + '</span>');
+        var paymentTimes = (d.paymentTimes == null ? '-' : d.paymentTimes);
+        var contractionDate = (d.copiedBy != null ? '<span class="_date">' + d._VigencyDate + '</span>' : (IsNullOrWhiteSpace(d._AdherenceDate) ? '-' : '<span class="_date">' + d._AdherenceDate + '</span>'));
+        var endVigency = (IsNullOrWhiteSpace(d._DeletedDate) ? (IsNullOrWhiteSpace(d._EndVigencyDate) ? '-' : '<span class="_date">' + d._EndVigencyDate + '</span>') : '<span class="_date">' + d._DeletedDate + '</span>');
+        var deletedInfo = (d.copiedBy == null ? (d.deletedBy != null ? ' | <strong>Cancelado por: </strong>' + d.nameDeletedBy : '') : '');
+        var renewInfo = (d.copiedBy != null ? ' | <strong>Renovado por: </strong>' + d.nameDeletedBy : (!IsNullOrWhiteSpace(d.nameRenewBy) ? ' | <strong>Renovado por: </strong>' + d.nameRenewBy : ''));
+        var realEstateRef = (d.realEstateReference == null ? '-' : d.realEstateReference);
+
+        var table = '<table cellpadding="7" cellspacing="0" border="0" style="padding-left:50px; width:100%;">';
+        table +=
+            '<tr>' +
+                '<td><span><strong>Endereço:</strong>&nbsp;' + d.endereco + ', <strong>nº</strong>&nbsp;' + d.numero + '</span></td>' +
+            '</tr>';
+
+        table +=
+            '<tr>' +
+                '<td><span><strong>Plano:</strong>&nbsp;' + d.planName + ' | <strong>Valor das Parcelas:</strong>&nbsp;R$&nbsp;' + monthlyPrice + ' | <strong>Parcelamento:</strong>&nbsp;' + paymentTimes + 'x</span></td>' +
+            '</tr>';
+
+        table +=
+            '<tr>' +
+                '<td><span><strong>Início de Vigência:</strong>&nbsp;' + (IsNullOrWhiteSpace(d._VigencyDate) ? '-' : '<span class="_date">' + d._VigencyDate + '</span>') + ' | <strong>Fim da Vigência:</strong>&nbsp;' + endVigency + ' | <strong>Referência Imobiliária:</strong>&nbsp;' + realEstateRef + '</span></td>' +
+            '</tr>';
+
+        @if(Model == (int)AMaisImob_WEB.Utils.CertificateTypes.Deletados)
+        {
+        <text>
+            if (d.copiedBy != null || (d.copiedBy == null && !d.isDeleted)) {
+                table += '<tr>' +
+                    '<td><span><strong>Renovado:</strong>&nbsp;' + (d.copiedBy != null ? 'Sim - Nova referência: ' + (IsNullOrWhiteSpace(d.copiedByReference) ? '-' : d.copiedByReference) : 'Não') + '</span></td>' +
+                '</tr>';
+            }
+        </text>
+        }
+
+        table +=
+            '<tr>' +
+            "<td><a href='javascript: OpenAuditLogModal(" + JSON.stringify({ certificateId: d.certificateId, reference: d.reference }) + ")' class='fas fa-list-alt' style='font-size: 16px !important;' data-toggle='tooltip' title='Histórico'></a></td>" +
+            '</tr>';
+        '</table>';
+
+        return table;
+    }
+
+    var i = 0;
+    @if (User.IsInRole("Administrator") || User.IsInRole("Corretor")) {<text>
+    i = 1;
+    </text>}
+
+    var datatables = $('#_CertificateIndexTable').DataTable({
+        @if (Model == (int)AMaisImob_WEB.Utils.CertificateTypes.Simulacao)
+        {
+        <text>
+        "order": [[10, "desc"]],
+        </text>
+        }else if (Model == (int)AMaisImob_WEB.Utils.CertificateTypes.Emitidos)
+        {
+        <text>
+        "order": [[11, "desc"]],
+        </text>
+        }else if (Model == (int)AMaisImob_WEB.Utils.CertificateTypes.Deletados)
+        {
+        <text>
+        "order": [[5, "desc"]],
+        </text>
+        }
+        else if (Model == (int)AMaisImob_WEB.Utils.CertificateTypes.Renovacao)
+        {
+        <text>
+        "order": [[9, "desc"]],
+        </text>
+        }
+        "columnDefs": [
+            {
+                "targets": [0,1,2,3,4,5,6,7],
+                "visible": false,
+            },
+        ],
+        proccessing: true,
+        serverSide: false,
+        searching: true,
+        lengthChange: false,
+        dom: 'tip',
+        ajax: {
+            url: '@Url.Action("List", "Certificate")',
+            data: function (d) {
+                d.certificateType = "@Model"
+                d.realEstateAgencyId = $('#_CertificateManageRealEstateAgencyId').val(),
+                d.realEstateId = $('#_CertificateManageRealEstateId').val(),
+                d.insurancePolicyId = $('#_CertificateManageInsurancePolicyId').val(),
+                d.startDate = $('#_CertificateManageStartDate').val(),
+                d.endDate = $('#_CertificateManageEndDate').val(),
+                d.motivo = $('#_CertificateManageMotivo').val()
+            },
+            type: 'POST'
+        },
+        columns: [
+            {
+                data: 'CreatedDate',
+                render: function (data, type, row) {
+                    return row._CreatedDate;
+                }
+            },
+            {
+                data: 'Endereco',
+                render: function (data, type, row) {
+                    return row.endereco;
+                }
+            },
+            {
+                data: 'Numero',
+                render: function (data, type, row) {
+                    return row.numero;
+                }
+            },
+            {
+                data: 'VigencyDate',
+                render: function (data, type, row) {
+                    return row._VigencyDate;
+                }
+            },
+            {
+                data: 'EndVigencyDate',
+                render: function (data, type, row) {
+                    return row._EndVigencyDate;
+                }
+            },
+            {
+                data: 'DeletedDate',
+                render: function (data, type, row) {
+                    return row._DeletedDate;
+                }
+            },
+            {
+                data: 'RealEstateReference',
+                render: function (data, type, row) {
+                    return row.realEstateReference;
+                }
+            },
+            {
+                data: 'NameDeletedBy',
+                render: function (data, type, row) {
+                    return row.nameDeletedBy;
+                }
+            },
+            {
+                "className": 'details-control align-middle',
+                "orderable": false,
+                "data": null,
+                render: function (data, type, row) {
+                    return '<div class="text-center"><i style="cursor:pointer;font-size:1.2em;" class="fas fa-plus-circle text-primary"></i></div>';
+                }
+            }
+            , {
+                data: 'Reference',
+                render: function (data, type, row) {
+                    return '<a href="@Url.Action("Manage", "Certificate")?reference=' + row.reference + '&certificateType=@Model">' + row.reference + '</a>'; //9 (indice 8)
+                }
+            }
+            @if (Model == (int)AMaisImob_WEB.Utils.CertificateTypes.Emitidos)
+            {
+            <text>
+            , {
+                data: '',
+                render: function (data, type, row) {
+                    return row.copiedFrom != null ? '<span>Renovação</span>' : '<span>Novo</span>';
+                }
+            }
+            , {
+                data: 'AdherenceDate',
+                render: function (data, type, row) {
+                    return '<span>' + row._AdherenceDate + '</span>';
+				},
+				orderData: [@(User.IsInRole("Administrator") || User.IsInRole("Corretor")? "21" : "20")]
+            }
+            </text>
+            }
+            @if (Model == (int)AMaisImob_WEB.Utils.CertificateTypes.Deletados)
+            {
+            <text>
+            , {
+                data: '',
+                render: function (data, type, row) {
+                    return row.copiedBy != null ? '<span>Encerrado</span>' : (row.isDeleted ? '<span>Cancelamento</span>' : '<span>Não Renovado</span>');
+                }
+            }
+            </text>
+            }
+            @if (Model == (int)AMaisImob_WEB.Utils.CertificateTypes.Simulacao)
+            {
+            <text>
+            , {
+                data: 'CreatedDate',
+                render: function (data, type, row) {
+                    return '<span>' + row._CreatedDate + '</span>';
+				},
+				orderData: [@(User.IsInRole("Administrator") || User.IsInRole("Corretor")? "22" : "21")]
+            }
+            </text>
+            }
+            @if (User.IsInRole("Administrator") || User.IsInRole("Corretor"))
+            {
+            <text>
+            , {
+                data: 'RealEstateName',
+                render: function (data, type, row) {
+                    return '<span>' + row.realEstateName + '</span>';
+                }
+            }
+            </text>
+            }
+            , {
+                data: 'ProductName',
+                render: function (data, type, row) {
+                    return '<span>' + row.productName + '</span>';
+                }
+            }
+			, {
+                data: 'RenterName',
+                render: function (data, type, row) {
+                    var _class = (row.renterCpf.length > 11? 'cnpj' : 'cpf');
+                    return '<span>' + row.renterName + '</span>' + '<br/><span class="' + _class + '">' + row._RenterCpf + '<span>';
+                }
+            }
+            , {
+                data: 'LocatorName',
+                render: function (data, type, row) {
+                    var _class = (row.locatorCpf.length > 11? 'cnpj' : 'cpf');
+                    return '<span>' + row.locatorName + '</span>' + '<br/><span class="' + _class + '">' + row._LocatorCpf + '<span>';
+                }
+            }
+            , {
+                data: 'PlanAssistancePrice',
+                render: function (data, type, row) {
+                    return '<span class="money">' + row._PlanAssistancePrice + '</span>';
+                }
+            }
+            , {
+                data: 'Taxes',
+                render: function (data, type, row) {
+                    return '<span class="money">' + row._Taxes + '</span>';
+                }
+            }
+            , {
+                data: 'TotalPrice',
+                render: function (data, type, row) {
+                    return '<span class="money">' + row._TotalPrice + '</span>';
+                }
+            }
+            @if (Model == (int)AMaisImob_WEB.Utils.CertificateTypes.Simulacao) { <text>
+            ,{
+                data: 'SimulationTermDate',
+                render: function (data, type, row) {
+                    return '<span>' + row._SimulationTermDate + '</span>';
+                },
+				orderData: [@(User.IsInRole("Administrator") || User.IsInRole("Corretor")? "23" : "22")]
+            }
+            , {
+                data: 'SimlationTermDatePassed',
+                render: function (data, type, row) {
+                    return !row.simlationTermDatePassed ? (row.isApproved ? '<span class="badge badge-pill badge-success text-center">Prazo</span>' : '<span class="badge badge-pill badge-danger text-center">Bloqueado</span>' ) : '<span class="badge badge-pill badge-warning text-center">Pendente</span>';
+                }
+            }
+            </text> }
+            @if (Model == (int)AMaisImob_WEB.Utils.CertificateTypes.Renovacao)
+            {
+            <text>
+            ,{
+                data: '',
+                render: function (data, type, row) {
+                    return (row.copiedFrom == null || row.isInTimeToRenovate) ? '<span class="badge badge-pill badge-warning text-center">Pendente</span>' : '<span class="badge badge-pill badge-success text-center">Renovado</span>';
+                }
+            }
+            </text>
+            }
+            @if (Model != (int)AMaisImob_WEB.Utils.CertificateTypes.Simulacao) { <text>
+            ,{
+                data: 'IsApproved',
+                render: function (data, type, row) {
+                    return row.isApproved ? '<span class="badge badge-pill badge-success text-center">Sim</span>' : '<span class="badge badge-pill badge-danger text-center">Não</span>';
+                }
+            }
+            </text> }
+            @if (Model != (int)AMaisImob_WEB.Utils.CertificateTypes.Deletados)
+            {
+            <text>
+			,{
+                data: null,
+                render: function (data, type, row) {
+                    var canApprove = false;
+                    @if (User.IsInRole("Administrator")) { <text> if (!row.isApproved) canApprove = true; </text> }
+
+                    var r = '<div class="text-center" style="white-space: nowrap;">';
+
+                    if (issuedType || (renovationType && row.copiedFrom != null && !row.isInTimeToRenovate)) {
+                        r += '&nbsp;&nbsp;<a href="@Url.Action("Print","Certificate")?reference=' + row.reference + '" target="_blank" title="Impressão" style="font-size: 12px !important;"><i class="fas fa-print amaisimob-orange"></i></a>';
+                        r += '&nbsp;&nbsp;<a href="@Url.Action("InquilinoPrint", "Certificate")?reference=' + row.reference + '" target="_blank" title="Impressão Inquilino" style="font-size: 12px !important;"><i class="fas fa-print amaisimob-green"></i></a>';
+                    }
+                    if (renovationType && (row.copiedFrom == null || row.isInTimeToRenovate)) {
+                        r += "&nbsp;&nbsp;<a href='javascript:void(0)' id='_teste' onclick='InfoToRenewCert(" + row.certificateId + ")' title='Renovar'><i class='fa fa-cloud-upload-alt'></i></a>";
+                        r += '&nbsp;&nbsp;<a href="@Url.Action("CertificadoARenovarPrint", "Certificate")?reference=' + row.reference + '" target="_blank" title="Impressão" style="font-size: 12px !important;"><i class="fas fa-print amaisimob-green"></i></a>';
+                    }
+                    if (canApprove) {
+                        r += "&nbsp;&nbsp;<a href='javascript:void(0)' onclick='Approve(" + row.certificateId + ")' title='Desbloquear'><i class='fas fa-unlock-alt'></i></a>";
+                    }
+                    if (simulationType) {
+                        if (row.isApproved) {
+                            r += '&nbsp;&nbsp;<a href="javascript:void(0)" onclick="Adherence(' + row.certificateId + ')" title="Aderir"><i class="fa fa-check"></i></a>';
+                        }
+                        r += '&nbsp;&nbsp;<a href="@Url.Action("SavedPrint", "Certificate")?reference=' + row.reference + '" target="_blank" title="Impressão" style="font-size: 12px !important;"><i class="fa fa-print amaisimob-green"></i></a>';
+                    }
+                    if (issuedType || renovationType || simulationType) {
+                        r += '&nbsp;&nbsp;&nbsp;&nbsp;<a href="javascript:void(0)" onclick="RemoveCertificate(' + row.certificateId + ')" title="Excluir" style="font-size: 12px !important;"><i class="far fa-trash-alt" style="color:red;"></i></a>';
+                    }
+                    r += '</div>';
+                    return r;
+                }
+            }
+            </text>
+            }
+            // **Colunas de data para ordenação**
+			, { visible: false, data: 'AdherenceDate', render: function (data, type, row) { return row.adherenceDate; } }//21 - Emitidos / 20 - Novos
+			, { visible: false, data: 'CreatedDate', render: function (data, type, row) { return row.createdDate; } }
+			, { visible: false, data: 'SimulationTermDate', render: function (data, type, row) { return row.simulationTermDate; } }
+            //*************
+
+			, { visible: false, data: 'RenterCpf', render: function (data, type, row) { return row.renterCpf; } }
+			, { visible: false, data: 'LocatorCpf ', render: function (data, type, row) { return row.locatorCpf ; } }
+        ],
+        'drawCallback': function (settings) {
+            var datas = this.api().rows().data();
+
+            @if (Model == (int)AMaisImob_WEB.Utils.CertificateTypes.Emitidos)
+            {
+                <text>
+                var allApproved = true;
+                for (var i = 0; datas.length > i; i++){
+                    if(!datas[i].isApproved){
+                        allApproved = false;
+                        break;
+                    }
+                }
+
+                if(!allApproved){
+                    datatables.column($('#ApprovedColumn')).visible(false);
+                }
+                </text>
+            }
+
+            GetTotalPriceHeaders();
+        }
+    });
+
+    function GetTotalPriceHeaders() {
+
+        $.post('@Url.Action("Totals", "Certificate")',
+            {
+                certificateType: "@Model",
+                realEstateAgencyId: $('#_CertificateManageRealEstateAgencyId').val(),
+                realEstateId: $('#_CertificateManageRealEstateId').val(),
+                insurancePolicyId: $('#_CertificateManageInsurancePolicyId').val(),
+                startDate: $('#_CertificateManageStartDate').val(),
+                endDate: $('#_CertificateManageEndDate').val(),
+                motivo: $('#_CertificateManageMotivo').val()
+            },
+            function (d) {
+
+                $('#totalValorSeguro').text(ReplaceDots(d.data.totalSeguro.toFixed(2)));
+                $('#totalTaxaAdesao').text(ReplaceDots(d.data.totalTaxa.toFixed(2)));
+                $('#totalValorTotal').text(ReplaceDots(d.data.totalValor.toFixed(2)));
+
+                _MaskData();
+            });
+    }
+
+    $('#_CertificateIndexTable tbody').on('click', 'td.details-control', function () {
+        var tr = $(this).closest('tr');
+        var row = datatables.row(tr);
+
+        if (tr.hasClass('shown')) { // row.child.isShown()
+            row.child.hide();
+            tr.removeClass('shown');
+        }
+        else {
+            row.child(format(row.data())).show();
+            tr.addClass('shown');
+            $('[data-toggle="tooltip"]').tooltip();
+        }
+
+        _MaskData();
+    });
+
+
+    function _CertificateIndexDoneTyping() {
+        if ($.fn.DataTable.isDataTable('#_CertificateIndexTable')) {
+            datatables.search($('#_CertificateIndexSearch').val()).draw();
+        }
+    }
+    $('#_CertificateIndexSearch').keyup(function () {
+        clearTimeout(_CertificateIndexDoneTypingInterval);
+        _CertificateIndexTypingTimer = setTimeout(_CertificateIndexDoneTyping, _CertificateIndexDoneTypingInterval);
+    });
+    $('#_CertificateIndexSearch').keydown(function () {
+        clearTimeout(_CertificateIndexDoneTyping);
+    });
+
+    function RemoveCertificate(certificateId) {
+		if (confirm("Deseja realmente excluir este certificado?")) {
+            _RemoveCertificate(certificateId, function () {
+                $('#_CertificateIndexTable').DataTable().ajax.reload();
+                alert("Certificado excluído com sucesso!");
+			});
+		}
+	}
+
+	function _RemoveCertificate(_certificateId, callback) {
+        var d = { id: _certificateId };
+		$.ajax({
+			url: '@Url.Action("RemoveCertificate", "Certificate")',
+			type: 'POST',
+			data: d,
+			dataType: 'Json',
+			success: callback
+		});
+    }
+
+    function Approve(certificateId) {
+        if (confirm("Deseja realmente aprovar este certificado?")) {
+            $.ajax({
+                url: '@Url.Action("Approve", "Certificate")',
+                type: 'POST',
+                data: { id: certificateId },
+                dataType: 'Json',
+                success: function (r) {
+                    if (r) {
+                        alert('Certificado aprovado com sucesso!');
+                        $('#_CertificateIndexTable').DataTable().ajax.reload();
+                    }
+                    else {
+                        alert('Houve um erro ao aprovar o certificado.');
+                    }
+                }
+            });
+        }
+    }
+
+    function InfoToRenewCert(certificateId) {
+        $('#_ModalSelecionarProdutoRenovacao').modal('show');
+        $.ajax({
+                url: '@Url.Action("GetProductName", "Certificate")',
+                type: 'POST',
+                data: {
+                    id: certificateId
+                },
+                dataType: 'Json',
+                success: function (r) {
+
+                    $('#_ProdutoAtual').html('Seu produto atual é: <b>' + r.productName+'</b>' );
+                    //$('#_TipoImovel').html('Tipo do imóvel: <b>' + r.tipoDoImovel+'</b>');
+                    if (r.discontinue == true) {
+                        $('#_ProdutoDescontinuado').show();
+                        $('#_RenovarSelect').show();
+                        $('#_ProdutoContinuado').hide();
+                        if (r.productId == 6) {
+                            $('#_ProdutoSelecionado').val(1012);
+                        }
+                        else if (r.productId == 5 && r.idTipoDoImovel == 1) {
+                            $('#_ProdutoSelecionado').val(1009);
+                        }
+                        else if (r.productId == 5 && r.idTipoDoImovel == 2) {
+                            $('#_ProdutoSelecionado').val(1011);
+                        }
+
+                    }
+                    else {
+                        $('#_ProdutoDescontinuado').hide();
+                        $('#_RenovarSelect').hide();
+                        $('#_ProdutoContinuado').show();
+                        $('#_ProdutoSelecionado').val(r.productId);
+                    }
+                    $('#_idToRenew').val(certificateId);
+                    }
+
+                });
+    }
+
+    function Renew() {
+           $.ajax({
+                url: '@Url.Action("Renew", "Certificate")',
+                type: 'POST',
+                data: { id: $('#_idToRenew').val(),
+                    newProductId: $('#_ProdutoSelecionado').val() != "" ? $('#_ProdutoSelecionado').val() : null
+                },
+                dataType: 'Json',
+                success: function (r) {
+                    alert(r.message);
+                    if (!r.hasError) {
+                        $('#_ModalSelecionarProdutoRenovacao').modal('hide');
+                        $('#_CertificateIndexTable').DataTable().ajax.reload();
+                    }
+                }
+            });
+    }
+
+    function Adherence(certificateId) {
+        if (confirm("Deseja realmente aderir este certificado?")) {
+            $.ajax({
+                url: '@Url.Action("Adherence", "Certificate")',
+                type: 'POST',
+                data: { id: certificateId },
+                dataType: 'Json',
+                success: function (r) {
+                    alert(r.message);
+                    if (!r.hasError) {
+                        $('#_CertificateIndexTable').DataTable().ajax.reload();
+                    }
+                }
+            });
+        }
+    }
+
+    $('#_CertificateManageRealEstateAgencyId').change(function () {
+        GetRealEstates();
+        GetInsurancePolicies();
+    });
+
+    $('#_CertificateIndexFilterButton').click(function(){
+        datatables.ajax.reload();
+    });
+
+    function GetRealEstates(realStateId) {
+        if (IsNullOrWhiteSpace($('#_CertificateManageRealEstateAgencyId').val())) {
+            $('#_CertificateManageRealEstateId').empty();
+            $('#_CertificateManageRealEstateId').append($('<option>', { value: '' }).append('Selecione um corretora.'));
+        }
+        else {
+            $.ajax({
+                url: '@Url.Action("GetRealEstatesByRealEstateAgencyId", "Company")',
+                type: 'POST',
+                datatype: 'JSON',
+                data: { id: $('#_CertificateManageRealEstateAgencyId').val() },
+                success: function (data) {
+                    $('#_CertificateManageRealEstateId').empty();
+                    if (data == false || data.length == 0) {
+                        $('#_CertificateManageRealEstateId').append($('<option>', { value: '' }).append('Nenhuma imobiliária encontrada.'));
+                    }
+                    if (data.length > 0) {
+                        $('#_CertificateManageRealEstateId').append($('<option>', { value: '' }).append('Selecione'));
+                        for (var i = 0; i < data.length; i++) {
+                            var companyName = IsNullOrWhiteSpace(data[i].razaoSocial) ? data[i].firstName + " " + data[i].lastName : data[i].razaoSocial;
+                            var option = $('<option>', { value: data[i].companyId }).append(companyName);
+
+                            if (realStateId != null && realStateId == data[i].companyId)
+                                option.attr('selected', 'selected');
+
+                            $('#_CertificateManageRealEstateId').append(option);
+                        }
+                        if (realStateId != null) {
+                            datatables.ajax.reload();
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    function GetInsurancePolicies() {
+        if (IsNullOrWhiteSpace($('#_CertificateManageRealEstateAgencyId').val())) {
+            $('#_CertificateManageInsurancePolicyId').empty();
+            $('#_CertificateManageInsurancePolicyId').append($('<option>', { value: '' }).append('Selecione um corretora.'));
+        }
+        else {
+            $.ajax({
+                url: '@Url.Action("GetInsurancePoliciesByRealEstateAgencyId", "InsurancePolicy")',
+                type: 'POST',
+                datatype: 'JSON',
+                data: { id: $('#_CertificateManageRealEstateAgencyId').val(), showExpired: true },
+                success: function (data) {
+                    $('#_CertificateManageInsurancePolicyId').empty();
+                    if (data == false || data.length == 0) {
+                        $('#_CertificateManageInsurancePolicyId').append($('<option>', { value: '' }).append('Nenhum produto encontrado.'));
+                    }
+                    if (data.length > 0) {
+                        $('#_CertificateManageInsurancePolicyId').append($('<option>', { value: '' }).append('Selecione'));
+                        for (var i = 0; i < data.length; i++) {
+                            var option = $('<option>', { value: data[i].insurancePolicyId }).append(data[i].productName).data('ProductId', data[i].productId).data('external-code', data[i].productExternalCode);
+                            $('#_CertificateManageInsurancePolicyId').append(option);
+                        }
+                    }
+                }
+            });
+        }
+    }
+    @if (realEstateId.HasValue) {
+        <text>
+            GetRealEstates('@realEstateId');
+            GetInsurancePolicies();
+        </text>
+    }
+    else if (userRealEstateAgencyId.HasValue) {
+        <text>
+        GetRealEstates();
+        GetInsurancePolicies();
+        </text>
+    }
+</script>
+
+@if (User.IsInRole("Administrator"))
+{
+    <div class="modal fade" id="ImportCertificateModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Importar certificados</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <input type="file" class="form-control" style="margin-bottom: 10px;" name="Arquivo" id="Arquivo" />
+                        </div>
+                        <div class="col-md-12">
+                            <a style="font-size:10px;" href="~/template/CertificateModel.xlsx" download="ImportacaoCertificado.xlsx"><i class="icon-file-text"></i>&nbsp;Modelo (xlsx) para importação.</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="col-md-6">
+                        <button type="button" class="btn btn-secondary col-md-6" data-dismiss="modal"><i class="fas fa-times"></i>&nbsp;Fechar</button>
+                    </div>
+                    <div class="col-md-6 text-right">
+                        <button type="button" class="btn btn-primary col-md-6" id="importCertificateButton"><i class="fas fa-cloud-upload-alt"></i>&nbsp;Importar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+
+    $("#importCertificateButton").click(function () {
+        if (document.getElementById('Arquivo').files.length <= 0) {
+            alert('Insira um arquivo.');
+            return;
+        }
+
+        var datafile = new FormData();
+
+        datafile.append("Arquivo", document.getElementById('Arquivo').files[0]);
+        datafile.append("type", '@Model');
+
+        $.ajax({
+            url: '@Url.Action("ImportarCertificados", "Certificate")',
+            type: 'POST',
+            contentType: false,
+            processData: false,
+            data: datafile,
+            success: function (data) {
+
+                $('#Arquivo').val('');
+                if (data.temErro == false) {
+                    if (data.dados.totalSaved != 0) {
+                        $('#_CertificateIndexTable').DataTable().ajax.reload();
+                    }
+                    $('#ImportCertificateModal').modal('hide');
+
+                    $('#totalSaved').text(data.dados.totalSaved);
+
+                    $('#linesWithErrorList').empty();
+
+                    if (data.dados.linesWithError.length == 0) {
+                        var tr = $('<tr>');
+                        tr.append($('<td>', { colspan: '2' }).append('<i>Nenhuma linha com erro.</i>'));
+                    }
+                    else {
+                        Object.keys(data.dados.linesWithError).forEach(function (key) {
+                            var tr = $('<tr>');
+                            tr.append($('<td>', { style: 'padding: 3px;' }).append(key));
+                            tr.append($('<td>', { style: 'padding: 3px;' }).append(data.dados.linesWithError[key] + '.'));
+                            $('#linesWithErrorList').append(tr);
+                        });
+                    }
+                    $('#ResultadoImportacaoModal').modal('show');
+
+                    $('#ResultadoImportacaoTable').DataTable({
+                        serverside: false,
+                        "searching": false,
+                        lengthChange: false,
+                        'drawCallback': function (settings) {
+                            _MaskData();
+                        }
+                    });
+                }
+            }
+        });
+    });
+
+    </script>
+}
+
+<div class="modal fade" id="AuditLogModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="AuditLogModalTitle">Histórico</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <table id="AuditLogTable" class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <td>Data</td>
+                            <td>Data</td>
+                            <td>Usuário</td>
+                            <td>Ação</td>
+                            <td>Obs.</td>
+                        </tr>
+                    </thead>
+                    <tbody id="AuditLogModalTbody"></tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fas fa-times"></i>&nbsp;Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    function OpenAuditLogModal(d){
+
+        $('#AuditLogModal').modal('show');
+        $('#AuditLogModalTitle').text('Histórico - Certificado #' + d.reference);
+
+        $.post('@Url.Action("GetAuditLog", "Certificate")', { certificateId: d.certificateId }, function (data) {
+            if (data.length == 0) {
+                $('#AuditLogModalTbody').append($('<tr>').append($('<td>', { colspan: 4 }).append($('<i>').append('Nenhum dado encontrado.'))));
+                return;
+            }
+
+            $.each(data, function (i, e) {
+                var tr = $('<tr>');
+                var obs = '';
+                if (!IsNullOrWhiteSpace(e.observation)) {
+                    obs = ' (' + e.observation + ')';
+                }
+
+                tr.append($('<td>', {class: 'dateTime'}).append(e._Date));
+                tr.append($('<td>').append(e.date));
+                tr.append($('<td>').append(e.lastHandlerName));
+                tr.append($('<td>').append(GetActionTypePtBR(e.actionType) + obs));
+                tr.append($('<td>').append(GetDetailChanges(e.auditChangeItens)));
+                $('#AuditLogModalTbody').append(tr);
+            });
+
+            $('#AuditLogTable').DataTable({
+                "order": [[0, "desc"]],
+				"columnDefs": [
+                    { "orderData": [1], "targets": 0 },
+                    { visible: false, "targets": 1 },
+				],
+                serverside: false,
+                "searching": false,
+                lengthChange: false,
+                'drawCallback': function (settings) {
+                    _MaskData();
+                }
+            });
+        });
+    }
+
+    function GetActionTypePtBR(actionType) {
+        switch (actionType) {
+            case "UPDATE":
+                return "Atualização";
+            case "CREATE":
+                return "Criação";
+            case "DELETE":
+                return 'Exclusão';
+            default:
+                return '';
+        };
+    }
+
+    function GetDetailChanges(d) {
+        var uls = [];
+        $.each(d, function (i, e) {
+            var oldmaskClass = e.maskClass;
+            var maskClass = e.maskClass;
+
+            if (e.maskClass == "cnpj") //os campos que recebem cnpj/cpf são verificados pra verificar qual o dado real
+            {
+                if (!IsNullOrWhiteSpace(e.value))
+                    maskClass = e.value.length < 14 ? "cpf" : e.maskClass;
+                if (!IsNullOrWhiteSpace(e.oldValue))
+                    oldmaskClass = e.oldValue.length < 14 ? "cpf" : e.maskClass;
+            }
+            var ul = $('<ul>', { style: 'list-style-type: none; font-size: 10px; line-height: 10px;', class: 'list-group list-group-flush' });
+            var li = $('<li>', { style: 'white-space:normal; padding: 5px; padding-left: 15px;', class: 'list-group-item' });
+            var change = []
+
+            change.push($('<b>').append(e.propriety + ': '));
+            if (IsNullOrWhiteSpace(e.oldValue)) {
+                var valueClass = '';
+                if (!IsNullOrWhiteSpace(maskClass)) valueClass = maskClass;
+                change.push($('<i>', { class: valueClass }).append(e.value));
+            }
+            else {
+                var valueClass = '';
+                if (!IsNullOrWhiteSpace(oldmaskClass)) valueClass = oldmaskClass;
+                change.push($('<i>', { class: valueClass }).append(e.oldValue + ' '));
+                change.push($('<i>', { class: 'fas fa-arrow-right' }).append(' '));
+                if (IsNullOrWhiteSpace(e.value)) {
+                    change.push('-');
+                }
+                else {
+                    var valueClass = '';
+                    if (!IsNullOrWhiteSpace(maskClass)) valueClass = maskClass;
+                    change.push($('<i>', { class: valueClass }).append(e.value));
+                }
+            }
+
+            uls.push(ul.append(li.append(change)));
+        });
+
+        return uls;
+    }
+
+    $('#AuditLogModal').on('hidden.bs.modal', function () {
+        $('#AuditLogModalTbody').empty();
+        $('#AuditLogTable').DataTable().destroy();
+        $('#AuditLogModalTbody').empty();
+    });
+    $('#ResultadoImportacaoModal').on('hidden.bs.modal', function () {
+        $('#ResultadoImportacaoTable').DataTable().destroy();
+    });
+</script>
+
+<div class="modal fade" style="overflow-y:auto;" id="ResultadoImportacaoModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content" style="width: 400px; padding-bottom: 5px;">
+            <div class="modal-header">
+                <h5 class="modal-title" id="AuditLogModalTitle">Resultado da Importação</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <b style="font-size:16px;" id="totalSaved"></b> item(ns) importado(s) com sucesso!
+                    </div>
+                </div>
+                <hr />
+                <div class="row">
+                    <div class="col-md-12">
+                        Linha(s) do excel não importada(s) por erros:
+                    </div>
+                    <div class="col-md-12" style="margin-top:.5em;">
+                        <table id="ResultadoImportacaoTable" class="table table-bordered table-striped">
+                            <thead>
+                                <tr>
+                                    <th style="padding: 3px;">Linha</th>
+                                    <th style="padding: 3px;">Erro</th>
+                                </tr>
+                            </thead>
+                            <tbody id="linesWithErrorList"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fas fa-times"></i>&nbsp;Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>

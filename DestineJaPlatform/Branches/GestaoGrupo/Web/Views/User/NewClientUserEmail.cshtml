@@ -1,0 +1,38 @@
+﻿@model DTO.User.NewClientUserEmailViewModel
+
+<div style="max-width: 500px; margin-left: auto; margin-right: auto; padding: 15px; border: 1px solid #bbbbbb; background-color: #f1f1f152;">
+    <div style="width:100%; text-align: center; margin-bottom: 3em;">
+        <img style="width:400px;" src="cid:Logo" />
+    </div>
+    <div style="margin-bottom: 2em;">
+        <label style="font-size: 14px;">Olá, @Model.User.FullName.</label>
+    </div>
+    <div style="margin-bottom: 2em;">
+        <label style="font-size: 14px;">A partir de agora a @Model.Client.Name está cadastrada no sistema da Destine Já.</label>
+    </div>
+    <div style="margin-bottom: 2em;">
+        <label style="font-size: 14px;">Para acessar o sistema, o link é: <a href="@Url.Action("Login", "Account", new { }, Context.Request.Scheme, Context.Request.Host.Value)">@Url.Action("Login", "Account", new { }, Context.Request.Scheme, Context.Request.Host.Value)</a></label>
+        <br />
+        <label style="font-size: 14px;">Seu login é: @Model.User.Email</label>
+        <br />
+        <label style="font-size: 14px;">Sua senha temporária é: @Model.User.Password</label>
+    </div>
+    <div style="margin-bottom: 2em;">
+        <label style="font-size: 14px;">A sua senha é pessoal e intransferível. Guarde-a com cuidado.</label>
+        <br />
+        <label style="font-size: 14px;">Ao acessar o sistema pela primeira vez será necessário redefini-la.</label>
+    </div>
+    <div style="margin-bottom: 2em;">
+        <label style="font-size: 14px;">Em caso de dúvidas, entre em contato conosco pelos canais abaixo:</label>
+        <ul>
+            <li><a href="https://api.whatsapp.com/send?1=pt_BR&phone=552730290907" style="font-size: 14px;">(27) 3029-0907</a></li>
+            <li><a href="mailto:contato@destineja.com.br" style="font-size: 14px;">contato@destineja.com.br</a></li>
+            <li><a href="www.destineja.com.br" style="font-size: 14px;">www.destineja.com.br</a></li>
+        </ul>
+    </div>
+    <div style="font-size: 14px;">
+        Atenciosamente,
+        <br />
+        Equipe Destine Já.
+    </div>
+</div>

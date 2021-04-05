@@ -1,0 +1,282 @@
+﻿@model GuardMedWeb.Models.SeguradoEquipamentoViewModel
+@{
+    ViewData["Title"] = "Seguro Aparelho Veterinario AmaisVet";
+
+    string duasVezes = "", tresVezes = "", quatroVezes = "";
+    if (!string.IsNullOrWhiteSpace(Model.PrecoSeguro))
+    {
+        duasVezes = (Convert.ToDouble(Model.PrecoSeguro) / 2).ToString("0.00");
+        tresVezes = (Convert.ToDouble(Model.PrecoSeguro) / 3).ToString("0.00");
+        quatroVezes = (Convert.ToDouble(Model.PrecoSeguro) / 4).ToString("0.00");
+    }
+    int i = 1;
+}
+
+<script type="text/javascript">
+    function ConfirmacaoSave() {
+        $('#ConfirmacaoForm').submit();
+    }
+
+    function ValidacaoConfirmacao() {
+        $('.text-danger').remove();
+        var ConfirmacaoErro = false;
+
+        if (!$('#boleto1')[0].checked && !$('#boleto2')[0].checked && !$('#boleto3')[0].checked && !$('#boleto4')[0].checked) {
+            $('#FormaPagamento').after('<div class="text-danger">Escolha a forma de Pagamento!</div>');
+            ConfirmacaoErro = true;
+        }
+
+        return (!ConfirmacaoErro);
+    }
+
+</script>
+
+<div class="row">
+    <div class="col-sm-12 mx-auto">
+        <div class="row">
+            <div class="rectangle" id="retangle1" style="height: 10px; width:17%; margin-left:16%; background:lightgrey;"></div>
+            <div class="rectangle" id="retangle2" style="height: 10px; width:17%; background:lightgrey;"></div>
+            <div class="rectangle" id="retangle3" style="height: 10px; width:17%; background-color:lightgrey;"></div>
+            <div class="rectangle" id="retangle4" style="height: 10px; width:17%; background-color:lightgrey;"></div>
+        </div>
+        <div class="row">
+            <div class="col-md-1 col-1"></div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="circle1" style="background-color: lightgrey; "></div>
+                <div class="mx-auto smallcircle" id="smallCircle1" style="background: white; display:none;"></div>
+            </div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="circle2" style="background-color: lightgrey;"></div>
+                <div class="mx-auto smallcircle" id="smallCircle2" style="background: white; display:none;"></div>
+            </div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="circle3" style="background-color: lightgrey;"></div>
+                <div class="mx-auto smallcircle" id="smallCircle3" style="background: white; display:none;"></div>
+            </div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="circle4" style=" background-color: lightgrey;">
+                    <div style="padding-top:25px;">
+                        <div class="mx-auto smallcircle" id="smallCircle4" style="background: white; display:none;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="circle5" style=" background-color: lightgrey;"></div>
+                <div class="mx-auto smallcircle" id="smallCircle5" style=" background: white; display:none;"></div>
+            </div>
+        </div>
+        <div class="row" style="margin-top:1em;">
+            <div class="col-md-1"></div>
+            <div class="col-sm-2 text-center"><label>Simulação</label></div>
+            <div class="col-sm-2 text-center"><label>Custo do Seguro</label></div>
+            <div class="col-sm-2 text-center"><label>Proposta</label></div>
+            <div class="col-sm-2 text-center"><strong style="color:#40615f">Contratar</strong></div>
+            <div class="col-sm-2 text-center"><label>Impressão</label></div>
+        </div>
+    </div>
+</div>
+<br />
+<script type="text/javascript">
+    $('#circle1').css("background", "#0a754e");
+    $('#circle2').css("background", "#0a754e");
+    $('#circle3').css("background", "#0a754e");
+    $('#circle4').css("background", "#0a754e").addClass("shadow");
+    $('#retangle1').css("background", "#13D68F");
+    $('#retangle2').css("background", "#13D68F");
+    $('#retangle3').css("background", "#13D68F");
+    $('#smallCircle4').show();
+</script>
+<br />
+<form id="ConfirmacaoForm" action="@Url.Action("Pagamento", "SeguroAparelho")" method="post" enctype="multipart/form-data">
+    <input type="hidden" id="reference" name="reference" value="@Model.Referencia" />
+    <input type="hidden" id="PrecoSeguro" name="PrecoSeguro" value="@Model.PrecoSeguro" />
+    <input type="hidden" id="PagamentoTipoId" name="PagamentoTipoId" value="@Model.PagamentoTipoId" />
+    <input type="hidden" id="SeguradoEquipamentoId" name="SeguradoEquipamentoId" value="@Model.SeguradoEquipamentoId" />
+    <input type="hidden" id="VezesPagamento" name="VezesPagamento" value="@Model.VezesPagamento" />
+    @*<div class="form-row">
+            <div class="col-md-3 mx-auto">
+                <h3 class="amaisvet-green">Dados pessoais</h3>
+                <label class="control-label">
+                    <strong>@Model.Nome</strong><br />
+                    <strong>CPF/CNPJ:</strong> @Model.CPF<br />
+                    <strong>CRMV/Estado:</strong> @Model.CRMV/@Model.CRMVEstado<br />
+                    <strong>CEP:</strong> @Model.CEP<br />
+                    <strong>Cidade/Estado:</strong> @Model.Cidade/@Model.Estado<br />
+                    <strong>Endereço:</strong> @Model.Endereco, @Model.EnderecoNumero&nbsp;<br />
+                    @if (!string.IsNullOrWhiteSpace(Model.Complemento))
+                    {<text> <strong>Complemento:</strong> @Model.Complemento<br /></text>}
+                    <strong>Telefone:</strong> @Model.Telefone<br />
+                    <strong>E-mail:</strong> @Model.Email
+                </label>
+            </div>
+        </div>
+        <hr />
+        <div class="form-row">
+            <div class="col-md-12">
+                <h3 class="amaisvet-green">Dados do(s) aparelho(s)</h3>
+                <div class="form-row ">
+                    @foreach (var equip in Model.Equipamentos)
+                    {
+                        <div class="col-md-4 mx-auto">
+                            <label class="control-label">
+                                <strong>Marca:</strong> @equip.Marca<br />
+                                <strong>Modelo:</strong> @equip.Modelo<br />
+                                <strong>Série:</strong> @equip.Serie<br />
+                                <strong>Possui NF:</strong>  @if (equip.NF.Value)
+                                {<text>Sim</text>}
+                            else
+                            {<text>Não</text>}<br />
+                                <strong>Preço do equipamento:</strong> R$ <label class="money">@equip.Preco</label>
+                            </label>
+                        </div>
+                        if (i % 3 == 0)
+                        {
+                            <div class="col-md-12">
+                                <br />
+                            </div>
+                        }
+                        i++;
+                    }
+                </div>
+            </div>
+        </div>
+        <hr />*@
+    @*<div class="form-row">
+            <div class="col-md-12">
+                <h3 class="amaisvet-green">Pedido #@Model.SeguradoEquipamentoId</h3>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="col-md-12">
+                <div class="form-row">
+                    <div class="col-md-6">
+                        Produto ou serviço
+                    </div>
+                    <div class="col-md-2" align="center">
+                        Preço
+                    </div>
+                    <div class="col-md-2" align="center">
+                        Quantidade
+                    </div>
+                    <div class="col-md-2" align="center">
+                        Total
+                    </div>
+                </div>
+                <hr style="background:darkblue;" />
+                @foreach (var item in Model.Equipamentos)
+                {
+                    <div class="form-row">
+                        <div class="col-md-6">
+                            @Model.PlanoSeguroEquipamentoNome (@item.Serie)
+                        </div>
+                        <div class="col-md-2" align="center">
+                            R$&nbsp;
+                            @if (Model.PlanoSeguroEquipamentoId == 1)
+                            {<text><label class="money">@((Convert.ToDouble(item.Preco) * 0.019).ToString("0.00"))</label></text>}
+                            @if (Model.PlanoSeguroEquipamentoId == 2)
+                            {<text><label class="money">@((Convert.ToDouble(item.Preco) * 0.042).ToString("0.00"))</label></text>}
+                        </div>
+                        <div class="col-md-2" align="center">
+                            1
+                        </div>
+                        <div class="col-md-2" align="center">
+                            R$&nbsp;
+                            @if (Model.PlanoSeguroEquipamentoId == 1)
+                            {<text><label class="money">@((Convert.ToDouble(item.Preco) * 0.019).ToString("0.00"))</label></text>}
+                            @if (Model.PlanoSeguroEquipamentoId == 2)
+                            {<text><label class="money">@((Convert.ToDouble(item.Preco) * 0.042).ToString("0.00"))</label></text>}
+                        </div>
+                    </div>
+                }
+                <div class="form-row">
+                    <div class="col-md-8"></div>
+                    <div class="col-md-4">
+                        <hr style="background:darkblue;" />
+                        <div class="form-row">
+                            <div class="col-md-6" align="center">
+                                @Model.QtdEquipamento
+                            </div>
+                            <div class="col-md-6" align="center">
+                                R$ <label class="money">@Model.PrecoSeguro</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <hr />*@
+    @{ Html.RenderPartial("~/Views/Shared/_ProdutoSelecionadoEquipamento.cshtml"); }
+    <br />
+    <div style="padding-bottom:1em;">
+        <label>A vigência deste seguro se dará em até 2 úteis após a data da transmissão. O seguro será garantido pela Axa Seguros Brasil S.A, CNPJ 19.329.190/0001-06, SUSEP 0285-2, sendo a seguradora responsável pela emissão da apólice e boletos.</label>
+    </div>
+    <div class="form-row" id="FormaPagamento">
+        <div class="col-md-12">
+            <h3 class="amaisvet-green">Formas de pagamento</h3>
+        </div>
+        <div class="col-md-6">
+            <div class="radio">
+                <label><input type="radio" name="TipoPagamento" id="boleto1">&nbsp;&nbsp;<strong style="font-size:3em; vertical-align:middle;" class="fas fa-barcode"></strong>&nbsp;&nbsp;<strong style="font-size:20px;">Boleto (1 vez de R$ <span class="money">@Model.PrecoSeguro</span>)</strong></label>
+            </div>
+
+            @if (Convert.ToDouble(duasVezes) >= 100)
+            {
+                <div class="radio">
+                    <label><input type="radio" name="TipoPagamento" id="boleto2">&nbsp;&nbsp;<strong style="font-size:3em; vertical-align:middle;" class="fas fa-barcode"></strong>&nbsp;&nbsp;<strong style="font-size:20px;">Boleto (2 vezes de R$ <span class="money">@duasVezes</span>)</strong></label>
+                </div>
+            }
+            @if (Convert.ToDouble(tresVezes) >= 100)
+            {
+                <div class="radio">
+                    <label><input type="radio" name="TipoPagamento" id="boleto3">&nbsp;&nbsp;<strong style="font-size:3em; vertical-align:middle;" class="fas fa-barcode"></strong>&nbsp;&nbsp;<strong style="font-size:20px;">Boleto (3 vezes de R$ <span class="money">@tresVezes</span>)</strong></label>
+                </div>
+            }
+            @if (Convert.ToDouble(quatroVezes) >= 100)
+            {
+                <div class="radio">
+                    <label><input type="radio" name="TipoPagamento" id="boleto4">&nbsp;&nbsp;<strong style="font-size:3em; vertical-align:middle;" class="fas fa-barcode"></strong>&nbsp;&nbsp;<strong style="font-size:20px;">Boleto (4 vezes de R$ <span class="money">@quatroVezes</span>)</strong></label>
+                </div>
+            }
+        </div>
+    </div>
+</form>
+<br />
+<div class="form-group">
+    <a href="@Url.Action("Formulario","SeguroAparelho")?reference=@Model.Referencia" class="btn btn-secondary text-left"><i class="fas fa-arrow-left"></i>&nbsp;Voltar</a>
+    <a href="javascript:void(0)" id="ConfirmacaoButton" class="btn btn-primary float-right">Transmitir&nbsp;<i class="fas fa-check"></i></a>
+</div>
+
+<script type="text/javascript">
+    $('#ConfirmacaoButton').click(function () {
+        if (ValidacaoConfirmacao()) {
+            ConfirmacaoSave();
+        }
+    });
+
+    $('#boleto1').change(function () {
+        if ($('#boleto1')[0].checked) {
+            $('#PagamentoTipoId').val(1);
+            $('#VezesPagamento').val(1);
+        }
+    });
+    $('#boleto2').change(function () {
+        if ($('#boleto2')[0].checked) {
+            $('#PagamentoTipoId').val(1);
+            $('#VezesPagamento').val(2);
+        }
+    });
+    $('#boleto3').change(function () {
+        if ($('#boleto3')[0].checked) {
+            $('#PagamentoTipoId').val(1);
+            $('#VezesPagamento').val(3);
+        }
+    });
+    $('#boleto4').change(function () {
+        if ($('#boleto4')[0].checked) {
+            $('#PagamentoTipoId').val(1);
+            $('#VezesPagamento').val(4);
+        }
+    });
+
+</script>

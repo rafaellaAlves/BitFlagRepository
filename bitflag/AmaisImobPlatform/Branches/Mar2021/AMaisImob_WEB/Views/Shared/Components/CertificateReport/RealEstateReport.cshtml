@@ -1,0 +1,176 @@
+﻿@using AMaisImob_WEB.Utils;
+
+@{
+	int? userRealEstateAgencyId = null, userRealEstateId = null;
+	if (ViewData.ContainsKey("UserRealEstateAgencyId"))
+	{
+		userRealEstateAgencyId = (int)ViewData["UserRealEstateAgencyId"];
+	}
+	if (ViewData.ContainsKey("UserRealEstateId"))
+	{
+		userRealEstateId = (int)ViewData["UserRealEstateId"];
+	}
+}
+<form action="@Url.Action("GetRealEStateReport","Certificate")" method="post" id="ReportCertificateRealEstateForm">
+	<div class="row">
+		<div class="col-md">
+			<div class="input-group" id="_CertificateManageRealEstateAgencyArea">
+				<div class="input-group-prepend">
+					<span class="input-group-text">Corretora</span>
+				</div>
+				<select class="form-control" id="_CertificateManageRealEstateAgencyId" name="RealEstateAgencyId">
+					<option value="">Todas</option>
+					@foreach (var item in (List<AMaisImob_DB.Models.Company>)ViewData["RealEstateAgency"])
+					{
+						var companyName = string.IsNullOrWhiteSpace(item.RazaoSocial) ? item.FirstName + " " + item.LastName : item.RazaoSocial;
+						<option value="@item.CompanyId">@companyName</option>
+					}
+				</select>
+			</div>
+		</div>
+		@*<div class="form-group col-md">
+				<div class="input-group" id="_CertificateManageRealEstateArea">
+					<div class="input-group-prepend">
+						<span class="input-group-text">Imobiliária</span>
+					</div>
+					<select class="form-control" name="RealEstateId" id="_CertificateManageRealEstateId">
+						<option value="">Selecione uma corretora</option>
+					</select>
+				</div>
+			</div>*@
+		<div class="form-group col-md">
+			<div class="input-group">
+				<div class="input-group-prepend">
+					<span class="input-group-text">Produto</span>
+				</div>
+				<select class="form-control" id="_CertificateManageInsurancePolicyId" name="insurancePolicyId">
+					<option value="">Selecione uma corretora</option>
+				</select>
+			</div>
+		</div>
+		<div class="form-group col-md">
+			<div class="input-group" id="_CertificateRealEstateReportReferenceMonthArea">
+				<div class="input-group-prepend">
+					<span class="input-group-text">Mês de Referência</span>
+				</div>
+				<input type="text" class="form-control monthYear" name="_refMonth" id="_CertificateRealEstateReportReferenceMonth" placeholder="Mês de Referência">
+			</div>
+		</div>
+		<div class="form-group col-md">
+			<button type="button" class="btn btn-primary" style="width: 100%;" id="_CertificateRealEstateReportButton"><i class="fas fa-file-excel"></i>&nbsp;Gerar Relatório</button>
+		</div>
+	</div>
+	<div class="row">
+		@*<div class="form-group col-md-3 offset-md-9">
+				<button type="button" class="btn btn-primary" style="width: 100%;" id="_CertificateRealEstateReportButton"><i class="fas fa-file-excel"></i>&nbsp;Gerar Relatório</button>
+			</div>*@
+	</div>
+</form>
+<script type="text/javascript">
+	$('#_CertificateRealEstateReportButton').click(function () {
+        var _CertificateReportHasError = false;
+
+        $('.text-danger').remove();
+
+		if (IsNullOrWhiteSpace($('#_CertificateRealEstateReportReferenceMonth').val())) {
+			$('#_CertificateRealEstateReportReferenceMonthArea').after('<div class="text-danger">Preencha o mês referente.</div>');
+            _CertificateReportHasError = true;
+        } else {
+			var dSplit = $('#_CertificateRealEstateReportReferenceMonth').val().split('/'),
+                month = dSplit[0],
+                year = dSplit[1];
+
+            var currentDate = new Date(),
+                currentMonth = currentDate.getMonth() + 1, // getMonth() = 0 ~ 11
+                currentYear = currentDate.getFullYear();
+
+            if (year > currentYear || (month > currentMonth && year >= currentYear)) {
+				$('#_CertificateRealEstateReportReferenceMonthArea').after('<div class="text-danger">A data não pode ser posterior ao mês atual.</div>');
+                _CertificateReportHasError = true;
+            }
+        }
+
+        if (!_CertificateReportHasError)
+			$('#ReportCertificateRealEstateForm').submit();
+
+    });
+
+    $('#_CertificateManageRealEstateAgencyId').change(function () {
+        GetRealEstates();
+        GetInsurancePolicies();
+    });
+
+    $('#_CertificateIndexFilterButton').click(function(){
+        datatables.ajax.reload();
+    });
+
+    function GetRealEstates() {
+        if (IsNullOrWhiteSpace($('#_CertificateManageRealEstateAgencyId').val())) {
+            $('#_CertificateManageRealEstateId').empty();
+            $('#_CertificateManageRealEstateId').append($('<option>', { value: '' }).append('Selecione um corretora.'));
+        }
+        else {
+            $.ajax({
+                url: '@Url.Action("GetRealEstatesByRealEstateAgencyId", "Company")',
+                type: 'POST',
+                datatype: 'JSON',
+                data: { id: $('#_CertificateManageRealEstateAgencyId').val() },
+                success: function (data) {
+                    $('#_CertificateManageRealEstateId').empty();
+                    if (data == false || data.length == 0) {
+                        $('#_CertificateManageRealEstateId').append($('<option>', { value: '' }).append('Todas'));
+                    }
+                    if (data.length > 0) {
+                        $('#_CertificateManageRealEstateId').append($('<option>', { value: '' }).append('Todas'));
+                        for (var i = 0; i < data.length; i++) {
+                            var companyName = IsNullOrWhiteSpace(data[i].razaoSocial) ? data[i].firstName + " " + data[i].lastName : data[i].razaoSocial;
+                            var option = $('<option>', { value: data[i].companyId }).append(companyName);
+                            $('#_CertificateManageRealEstateId').append(option);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    function GetInsurancePolicies() {
+        if (IsNullOrWhiteSpace($('#_CertificateManageRealEstateAgencyId').val())) {
+            $('#_CertificateManageInsurancePolicyId').empty();
+            $('#_CertificateManageInsurancePolicyId').append($('<option>', { value: '' }).append('Selecione um corretora.'));
+        }
+        else {
+            $.ajax({
+                url: '@Url.Action("GetInsurancePoliciesByRealEstateAgencyId", "InsurancePolicy")',
+                type: 'POST',
+                datatype: 'JSON',
+                data: {
+                    id: $('#_CertificateManageRealEstateAgencyId').val(), showExpired: true
+                },
+                success: function (data) {
+                    $('#_CertificateManageInsurancePolicyId').empty();
+                    if (data == false || data.length == 0) {
+                        $('#_CertificateManageInsurancePolicyId').append($('<option>', { value: '' }).append('Todos'));
+                    }
+                    if (data.length > 0) {
+                        $('#_CertificateManageInsurancePolicyId').append($('<option>', { value: '' }).append('Todos'));
+                        for (var i = 0; i < data.length; i++) {
+                            var option = $('<option>', { value: data[i].insurancePolicyId }).append(data[i].productName).data('ProductId', data[i].productId).data('external-code', data[i].productExternalCode);
+                            $('#_CertificateManageInsurancePolicyId').append(option);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    $(window).ready(_MaskData);
+
+
+    @if (userRealEstateAgencyId.HasValue)
+    {
+        <text>
+        GetRealEstates();
+        GetInsurancePolicies();
+        </text>
+    }
+</script>

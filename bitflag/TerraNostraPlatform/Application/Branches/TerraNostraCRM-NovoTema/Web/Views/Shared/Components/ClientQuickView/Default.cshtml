@@ -1,0 +1,46 @@
+﻿@model DTO.Client.ClientViewModel
+
+<dl class="row">
+    <dt class="col-sm-4">Nome</dt>
+    <dd class="col-sm-8">@Model.FirstName @Model.LastName</dd>
+
+    <dt class="col-sm-4">E-mail</dt>
+    <dd class="col-sm-8">@(Model.Email == null ? "-" : Model.Email)</dd>
+
+    <dt class="col-sm-4">CPF</dt>
+    <dd class="col-sm-8">@(Model.Cpf == null ? "-" : Model.Cpf)</dd>
+
+    <dt class="col-sm-4">Telefone</dt>
+    <dd class="col-sm-8">@(Model.Telefone == null ? "-" : Model.Telefone)</dd>
+
+    <dt class="col-sm-4">Ativo?</dt>
+    <dd class="col-sm-8">@(Model.IsActive == true ? "Sim" : "Não")</dd>
+
+    <dt class="col-sm-4">Observações</dt>
+    <dd class="col-sm-8"><p>@(Model.Observation == null ? "-" : Model.Observation)</p></dd>
+</dl>
+<hr />
+<dl class="row">
+    <dt class="col-sm-4">CEP</dt>
+    <dd class="col-sm-8">@(Model.Cep == null ? "-" : Model.Cep)</dd>
+
+    <dt class="col-sm-4">Endereço</dt>
+    <dd class="col-sm-8">@(Model.Endereco == null ? "-" : Model.Endereco)</dd>
+
+    <dt class="col-sm-4">Número</dt>
+    <dd class="col-sm-8">@(Model.Numero == null ? "-" : Model.Numero)</dd>
+
+    <dt class="col-sm-4">Complemento</dt>
+    <dd class="col-sm-8">@(Model.Complemento == null ? "-" : Model.Complemento)</dd>
+
+    <dt class="col-sm-4">Bairro</dt>
+    <dd class="col-sm-8">@(Model.Bairro == null ? "-" : Model.Bairro)</dd>
+
+    <dt class="col-sm-4">UF</dt>
+    <dd class="col-sm-8">@(Model.Uf == null ? "-" : Model.Uf)</dd>
+
+    <dt class="col-sm-4">Cidade</dt>
+    <dd class="col-sm-8">@(Model.Cidade == null ? "-" : Model.Cidade)</dd>
+</dl>
+
+

@@ -1,0 +1,112 @@
+﻿@inject AMaisImob_WEB.BLL.CompanyFunctions companyFunctions
+@inject AMaisImob_WEB.BLL.CompanyTypeFunctions companyTypeFunctions
+@inject AMaisImob_WEB.BLL.CategoryFunctions categoryFunctions
+@inject AMaisImob_WEB.BLL.UserCompanyFunctions userCompanyFunctions
+@inject Microsoft.AspNetCore.Identity.UserManager<AMaisImob_DB.Models.User> userManager
+
+@using AMaisImob_WEB.Utils;
+
+@{
+    var realEstateTypeId = companyTypeFunctions.GetDataByExternalCode("IMOBILIARIA").CompanyTypeId;
+    var realEstateAgencyTypeId = companyTypeFunctions.GetDataByExternalCode("CORRETORA").CompanyTypeId;
+    var user = await userManager.GetUserAsync(User);
+
+    int? realEstateId = null, realEstateAgencyId = null;
+    if (User.IsInRealEstate())
+    {
+        var realEstate = companyFunctions.GetDataByID(userCompanyFunctions.GetDataByUserId(user.Id).First().CompanyId);
+        realEstateId = realEstate.CompanyId;
+        realEstateAgencyId = realEstate.ParentCompanyId;
+    }
+    else if (User.IsInRole("Corretor"))
+    {
+        realEstateAgencyId = companyFunctions.GetDataByID(userCompanyFunctions.GetDataByUserId(user.Id).First().CompanyId).CompanyId;
+    }
+}
+
+<form id="docu-sign-filter-form">
+    <div class="row">
+        @if (User.IsInRole("Administrator"))
+        {
+            <div class="col">
+                <select class="form-control" name="RealEstateAgencyId" onchange="hideRealEstateOptionsByRealEstateAgency();">
+                    <option value="">Corretora</option>
+                    @foreach (var item in companyFunctions.GetDataAsNoTracking(x => x.CompanyTypeId == realEstateAgencyTypeId && !x.IsDeleted && x.IsActive))
+                    {
+                        <option value="@item.CompanyId">@(item.NomeFantasia ?? $"{item.FirstName} {item.LastName}")</option>
+                    }
+                </select>
+            </div>
+        }
+        else
+        {
+            <input type="hidden" name="RealEstateAgencyId" value="@realEstateAgencyId" />
+        }
+        @if (!User.IsInRealEstate())
+        {
+            <div class="col">
+                <select class="form-control" name="RealEstateId">
+                    <option value="">Imobiliária</option>
+                    @foreach (var item in companyFunctions.GetDataAsNoTracking(x => x.CompanyTypeId == realEstateTypeId && x.ParentCompanyId.HasValue && !x.IsDeleted && x.IsActive))
+                    {
+                        if (realEstateAgencyId == item.CompanyId)
+                        {
+                            <option selected value="@item.CompanyId" data-parent-id="@item.ParentCompanyId">@(item.NomeFantasia ?? $"{item.FirstName} {item.LastName}")</option>
+                            continue;
+                        }
+
+                        <option value="@item.CompanyId" data-parent-id="@item.ParentCompanyId">@(item.NomeFantasia ?? $"{item.FirstName} {item.LastName}")</option>
+                    }
+                </select>
+            </div>
+            <div class="col">
+                <select class="form-control" name="CategoryId" placeholder="Data">
+                    <option value="">Categoria</option>
+                    @foreach (var item in categoryFunctions.GetDataAsNoTracking(x => !x.IsDeleted))
+                    {
+                        <option value="@item.CategoryId">@item.Description</option>
+                    }
+                </select>
+            </div>
+        }
+        else
+        {
+            <input type="hidden" name="RealEstateId" value="@realEstateId" />
+            <input type="hidden" name="CategoryId" value="" />
+        }
+
+        <div class="col-3">
+            <input type="hidden" name="ReferenceDate" />
+            <input class="form-control monthYear required" name="_ReferenceDate" placeholder="Data" value="@($"{DateTime.Now:MM/yyyy}")" />
+        </div>
+        <div class="col-auto" style="min-width: 100px;">
+            <button class="btn btn-primary w-100" type="button" id="docu-sign-filter-button"><i class="fa fa-filter"></i>&nbsp;Filtrar</button>
+        </div>
+    </div>
+</form>
+
+<script type="text/javascript" asp-cut-key="docusign-index-filter">
+    function hideRealEstateOptionsByRealEstateAgency(notClear) {
+        $.each($('[name="RealEstateId"] option'), function (i, e) {
+            $(e).hide();
+            if ($(e).data('parent-id') != $('[name="RealEstateAgencyId"]').val() && !IsNullOrWhiteSpace($(e).val())) return;
+
+            $(e).show();
+        });
+
+        if (notClear != true) $('[name="RealEstateId"]').val('');
+    }
+
+    $(document).ready(function () { hideRealEstateOptionsByRealEstateAgency(true); });
+
+    $('#docu-sign-filter-button').click(function () {
+        if (!validateInputs('docu-sign-filter-form')) return;
+
+        if (!IsNullOrWhiteSpace($('[name="_ReferenceDate"]').val())) {
+            var date = moment($('[name="_ReferenceDate"]').val(), 'MM/YYYY')._d;
+            $('[name="ReferenceDate"]').val(date.toISOString());
+        }
+
+        typeof reloadDocuSignList == 'function' && reloadDocuSignList($('#docu-sign-filter-form').serializeArray())
+    });
+</script>

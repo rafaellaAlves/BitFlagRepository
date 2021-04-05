@@ -1,0 +1,92 @@
+﻿@model DTO.Indication.NewIndicationViewModel
+@{
+    Layout = "~/Views/Shared/_LayoutClean2.cshtml";
+    ViewData["Title"] = "Solicitação de um novo serviço";
+}
+
+<div class="container bg-white shadow" style="padding: 2em;">
+    <form method="post" action="">
+        <input type="hidden" name="UserId" value="@Model.UserId" />
+        <div class="row">
+            <div class="col-md-12 text-center">
+                <img src="~/images/LogoTerraNostraHighResolution.jpg" style="height: auto; max-height: 197px; width: 100%; max-width: 590px;" />
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <p>
+                    Olá, você está nessa página porque <b>@ViewData["UserName"]</b> te indicou para o serviços da <b>Terra Nostra Assessoria</b>. Sinta-se à vontade para preencher seus dados e o trabalho que precisa. Após o envio do formulário entraremos em contato com você o mais breve possível!
+                </p>
+            </div>
+        </div>
+        <hr />
+        @if (ViewData["Success"] != null)
+        {
+            <div class="alert alert-success">
+                @ViewData["Success"]
+            </div>
+        }
+        @if (ViewData["Error"] != null && ((List<string>)ViewData["Error"]).Count > 0)
+        {
+            <div class="alert alert-danger">
+                Erro no formulário:
+                <ul>
+                    @foreach (var error in ((List<string>)ViewData["Error"]))
+                    {
+                        <li>@error</li>
+                    }
+                </ul>
+            </div>
+        }
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="control-label">Nome Completo</label>
+                    <input type="text" name="FullName" value="@Model.FullName" class="form-control" />
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="control-label">E-mail</label>
+                    <input type="text" name="Email" value="@Model.Email" class="form-control" />
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="control-label">Telefone</label>
+                    <input type="text" name="Phone" value="@Model.Phone" class="form-control" />
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="control-label">Serviço</label>
+                    <select class="form-control" name="ServiceTypeId">
+                        @foreach (var service in (List<DTO.ServiceType.ServiceTypeViewModel>)ViewData["Services"])
+                        {
+                            if (service.ServiceTypeId == Model.ServiceTypeId)
+                            {
+                                <option selected="selected" value="@service.ServiceTypeId">@service.Name</option>
+                            }
+                            else
+                            {
+                                <option value="@service.ServiceTypeId">@service.Name</option>
+                            }
+
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+        @if (ViewData["Success"] == null)
+        {
+            <hr />
+            <div class="row">
+                <div class="col-md-12">
+                    <button type="submit" class="btn btn-primary">Enviar</button>
+                </div>
+            </div>
+        }
+    </form>
+</div>

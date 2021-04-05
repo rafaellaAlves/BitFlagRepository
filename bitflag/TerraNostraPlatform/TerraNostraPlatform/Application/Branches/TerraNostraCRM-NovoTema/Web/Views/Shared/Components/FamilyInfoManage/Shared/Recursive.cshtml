@@ -1,0 +1,174 @@
+﻿@model List<DTO.Family.FamilyStructureItemViewModel>
+
+@using DTO.Utils
+@using Web.Utils
+
+@{
+    var clientApplicant = new DB.ClientApplicant();
+    List<int> showFamilyMemberTypeIds = (List<int>)ViewBag.ShowFamilyMemberTypeIds;
+    if (ViewBag.ClientApplicant != null)
+    {
+        clientApplicant = (DB.ClientApplicant)ViewBag.ClientApplicant;
+    }
+
+    int applicantFamilyMemberTypeId = -1;
+    if (ViewBag.ApplicantFamilyMemberTypeId != null)
+    {
+        applicantFamilyMemberTypeId = (int)ViewBag.ApplicantFamilyMemberTypeId;
+    }
+
+    int? parentFamilyStructureId = null;
+    bool? parentHasAnyInfo = null;
+
+    if (ViewData["ParentFamilyStructureId"] != null)
+    {
+        parentFamilyStructureId = (int)ViewData["ParentFamilyStructureId"];
+    }
+
+    if (ViewData["ParentHasAnyInfo"] != null)
+    {
+        parentHasAnyInfo = (bool)ViewData["ParentHasAnyInfo"];
+    }
+
+    ViewData.Remove("ParentFamilyStructureId");
+    ViewData.Remove("ParentHasAnyInfo");
+}
+
+@foreach (var item in Model)
+{
+    if (item.FamilyMemberTypeId == applicantFamilyMemberTypeId)
+    {
+        <li class="list-group-item" style="margin-top: 0.5em;" data-family-structure-id="@item.FamilyStructureId" data-client-applicant-id="@item.ClientApplicantId" data-family-member-type-id="@item.FamilyMemberTypeId">
+            <input type="hidden" name="ClientId" value="@item.ClientId" />
+            <b>@item.FamilyMemberTypeName</b><div class="pull-right"><small><i>(Árvore: @item.FamilyMemberTypeDescription)</i></small></div>
+            <hr />
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="control-label">Nome Completo</label>
+                        <input type="text" name="FullName" class="form-control changeable changeableTitle" value="@clientApplicant.FullName" />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="control-label">Data de Nascimento</label>
+                        <input name="_BirthDate" type="text" class="form-control date changeable" value="@clientApplicant.BirthDate.ToDatePtBR()" />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="control-label">Data de Casamento</label>
+                        <input name="_MarriageDate" type="text" class="form-control date changeable" value="@clientApplicant.MarriageDate.ToDatePtBR()" />
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="control-label">Cônjuge</label>
+                        <input type="text" name="ConsortFullName" class="form-control changeable" value="@clientApplicant.ConsortFullName" />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="control-label">Local de Nascimento</label>
+                        <input name="BirthPlace" type="text" class="form-control changeable" value="@clientApplicant.BirthPlace" />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="control-label">Local de Casamento</label>
+                        <input name="MarriagePlace" type="text" class="form-control changeable" value="@clientApplicant.MarriagePlace" />
+                    </div>
+                </div>
+            </div>
+        </li>
+        @if (item.Items.Any())
+        {
+            <div style="padding-left: 1em;">
+                @{ await Html.RenderPartialAsync("~/Views/Shared/Components/FamilyInfoManage/Shared/Recursive.cshtml", item.Items); }
+            </div>
+        }
+        continue;
+    }
+    bool show = showFamilyMemberTypeIds.Contains(item.FamilyMemberTypeId) || (parentHasAnyInfo.HasValue && parentHasAnyInfo.Value) || (item.FamilyMemberViewModel != null && item.FamilyMemberViewModel.HasAnyInfo);
+    bool collapsed = !show || (show && !showFamilyMemberTypeIds.Contains(item.FamilyMemberTypeId));
+
+    <li class="list-group-item parent-@parentFamilyStructureId" style="margin-top: 0.5em; @if (!show) {<text>display:none;</text>}" id="listGroupItem@(item.FamilyStructureId)" data-parent-family-structure-id="@parentFamilyStructureId" data-family-structure-id="@item.FamilyStructureId" data-client-applicant-id="@item.ClientApplicantId">
+        <input type="hidden" name="ClientId" value="@item.ClientId" />
+        <a href="javascript:void(0)" id="expande-collide-icon-@item.FamilyStructureId" onclick="ExpandeCollideItem(@item.FamilyStructureId)" class="simple-icon-@if (show) {<text>plus</text>} else {<text>minus</text>}"></a>&nbsp;<b>@item.FamilyMemberTypeName</b><div class="pull-right"><small><i>(Árvore: @item.FamilyMemberTypeDescription)</i></small></div>
+        <div id="list-group-item-content-area-@(item.FamilyStructureId)" @if (show) { <text> style="display:none;" </text> }>
+            <hr />
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="control-label">Nome Completo</label>
+                        <input type="text" name="FullName" class="form-control  changeable" value="@(item.FamilyMemberViewModel != null ? item.FamilyMemberViewModel.FullName : "" )" />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="control-label">Data de Nascimento</label>
+                        <input name="_BirthDate" type="text" class="form-control date changeable" value="@(item.FamilyMemberViewModel != null ? item.FamilyMemberViewModel._BirthDate : "" )" />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="control-label">Data de Casamento</label>
+                        <input name="_MarriageDate" type="text" class="form-control date changeable" value="@(item.FamilyMemberViewModel != null ? item.FamilyMemberViewModel._MarriageDate : "" )" />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="control-label">Data de Óbito</label>
+                        <input name="_DeathDate" type="text" class="form-control date changeable" value="@(item.FamilyMemberViewModel != null ? item.FamilyMemberViewModel._DeathDate : "" )" />
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="control-label">Cônjuge</label>
+                        <input type="text" name="ConsortFullName" class="form-control changeable" value="@(item.FamilyMemberViewModel != null ? item.FamilyMemberViewModel.ConsortFullName : "" )" />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="control-label">Local de Nascimento</label>
+                        <input name="BirthPlace" type="text" class="form-control changeable" value="@(item.FamilyMemberViewModel != null ? item.FamilyMemberViewModel.BirthPlace : "" )" />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="control-label">Local de Casamento</label>
+                        <input name="MarriagePlace" type="text" class="form-control changeable" value="@(item.FamilyMemberViewModel != null ? item.FamilyMemberViewModel.MarriagePlace : "" )" />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="control-label">Local de Óbito</label>
+                        <input name="DeathPlace" class="form-control changeable" value="@(item.FamilyMemberViewModel != null ? item.FamilyMemberViewModel.DeathPlace : "" )" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </li>
+    @if (item.Items.Any())
+    {
+        <div style="padding-left: 1em;">
+            @{ await Html.RenderPartialAsync("~/Views/Shared/Components/FamilyInfoManage/Shared/Recursive.cshtml", item.Items, new ViewDataDictionary(ViewData) { { "ParentFamilyStructureId", item.FamilyStructureId }, { "ParentHasAnyInfo", item.FamilyMemberViewModel != null && item.FamilyMemberViewModel.HasAnyInfo } }); }
+        </div>
+    }
+    else if (User.Identity.IsAuthenticated && !User.ClientCanAccessEdition())
+    {
+        <script type="text/javascript">
+            $(function () {
+                $('#applicant-area input').attr('disabled', 'disabled');
+            });
+        </script>
+    }
+}
+
+<script type="text/javascript">
+    $(document).ready(function () { _MaskData(); });
+</script>

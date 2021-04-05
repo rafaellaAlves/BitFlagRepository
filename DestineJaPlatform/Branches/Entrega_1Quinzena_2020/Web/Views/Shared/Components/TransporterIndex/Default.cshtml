@@ -1,0 +1,87 @@
+﻿
+<div class="row">
+    <div class="col table-responsive">
+        <table id="transporter-table" class="display table table-striped table-bordered table-condensed w-100 tablesizeline" style="border-collapse: collapse !important;">
+            <thead>
+                <tr>
+                    <th>Razão Social</th>
+                    <th>Fantasia</th>
+                    <th>CNPJ / CPF</th>
+                    <th>&nbsp;</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<script asp-cut-key="script-transporter-index">
+    var transporterDatatables;
+    $(document).ready(function () {
+        transporterDatatables = $('#transporter-table').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            pageLength: 30,
+            dom: 'tip',
+            ajax: {
+                url: '@Url.Action("List", "Transporter")',
+                type: 'POST'
+            },
+            columns: [
+                { render: function (data, type, row) { return '<a class="text-uppercase" href="@Url.Action("Manage", "Transporter")?id=' + row.transporterId + '">' + row.name+ '</a>'; } },
+                { render: function (data, type, row) { return row.alternativeName; } },
+                { render: function (data, type, row) { return '<div class="' + (row.isCompany? 'cnpj' : 'cpf') + '">' + row.document + '</div>'; } },
+                {
+                    render: function (data, type, row)
+                    {
+                        var r = `<div class="text-center text-nowrap">
+                            &nbsp;<a href=\'@Url.Action("Manage", "Transporter")?id=` + row.transporterId + `\'><span class="badge badge-pill badge-success"><i class="simple-icon-note"></i></span></a>`;
+
+                        if (row.isActive) r += '&nbsp;<a href=\'javascript:inactiveTransporter(' + JSON.stringify(row) + ')\' title="Inativar"><span class="badge badge-pill badge-warning"><i class="fa fa-unlock"></i></span></a>';
+                        else r += '&nbsp;<a href=\'javascript:activeTransporter(' + JSON.stringify(row) + ')\' title="Ativar"><span class="badge badge-pill badge-danger"><i class="simple-icon-lock"></i></span></a>';
+
+                        r += `&nbsp;<a href=\'javascript:removeTransporter(` + JSON.stringify(row) + `)\' title="Excluir"><span class="badge badge-pill badge-danger"><i class="simple-icon-trash"></i></span></a>`;
+                        r += '</div>';
+
+                        return r;
+                    }
+                }
+            ]
+        });
+    });
+
+    function removeTransporter(transporter) {
+        bootboxConfirm("Deseja realmente excluir o fornecedor \"" + transporter.name + "\"?", function(result){
+            if (!result) return;
+
+            $.post('@Url.Action("Delete", "Transporter")', { id: transporter.transporterId }, function () {
+                bootbox.alert("Fornecedor \"" + transporter.name + "\" excluído com sucesso!");
+                transporterDatatables.ajax.reload();
+            });
+        });
+    }
+
+    function inactiveTransporter(transporter) {
+        bootboxConfirm("Deseja realmente desativar o fornecedor \"" + transporter.name + "\"?", function(result){
+            if (!result) return;
+
+            $.post('@Url.Action("Inactive", "Transporter")', { id: transporter.transporterId }, function () {
+                bootbox.alert("Fornecedor \"" + transporter.name + "\" inativado com sucesso!");
+                transporterDatatables.ajax.reload();
+            });
+        });
+    }
+
+    function activeTransporter(transporter) {
+        bootboxConfirm("Deseja realmente ativar o fornecedor \"" + transporter.name + "\"?", function(result){
+            if (!result) return;
+
+            $.post('@Url.Action("Active", "Transporter")', { id: transporter.transporterId }, function () {
+                bootbox.alert("Fornecedor \"" + transporter.name + "\" ativado com sucesso!");
+                transporterDatatables.ajax.reload();
+            });
+        });
+    }
+</script>

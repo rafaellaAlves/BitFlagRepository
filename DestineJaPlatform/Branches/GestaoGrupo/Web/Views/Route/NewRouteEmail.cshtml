@@ -1,0 +1,48 @@
+﻿@model DTO.Route.RouteViewModel
+
+@inject Services.Route.RouteTypeServices routeTypeServices
+@inject Services.Route.RoutePeriodicityServices routePeriodicityServices
+@inject Services.Route.RouteClientServices routeClientServices
+@inject Services.Client.ClientCollectionAddressServices clientCollectionAddressServices
+
+@{
+    var routeType = await routeTypeServices.GetDataByIdAsync(Model.RouteTypeId);
+    var routePeriodicity = await routePeriodicityServices.GetDataByIdAsync(Model.RoutePeriodicityId);
+
+    var routeClients = await routeClientServices.GetDataAsNoTrackingAsync(x => x.RouteId == Model.RouteId);
+}
+
+<div style="width: 655px; margin: auto; border: 1px solid #cecece; -webkit-box-shadow: -1px -5px 20px 0px #b5b5b5; box-shadow: -1px -5px 20px 0px #b5b5b5; background: linear-gradient(to bottom, #e2e2e2, #e2e2e2 70px, #01a89c52 250px, #05a09785);">
+    <div style="padding: 15px; font-weight: bold; font-size: 25px; text-align: center;">
+        <div style="margin-top: 1em;">
+            - Nova Rota -<br />
+        </div>
+    </div>
+    <div style="padding: 15px; font-size: 16px; line-height: 25px; padding-bottom: 40px;">
+        <div style="width: 80%; margin-left: 10%; padding: 10px; background: white; border-radius: 7px; box-shadow: inset 0px 0px 7px 2px #d0d0d0; -webkit-box-shadow: inset 0px 0px 7px 2px #d0d0d0; margin-bottom: 1em;">
+            <p style="margin-bottom: .3em;">Uma nova rota foi criada.</p>
+            <p style="margin-bottom: .1em;">Dados informados:</p>
+            <ul>
+                <li><b>Código</b>: @Model.RouteId</li>
+                <li><b>Nome</b>: @Model.Name</li>
+                <li><b>Tipo</b>: @routeType.Name</li>
+                <li><b>Periodicidade</b>: @routePeriodicity.Name</li>
+                <li><b>Observação</b>: @Model.Observation</li>
+            </ul>
+            <p style="margin-bottom: .1em;">Nas cidades:</p>
+            <ul>
+                @foreach (var routeClient in routeClients)
+                {
+                    var address = await clientCollectionAddressServices.GetDataByIdAsync(routeClient.ClientCollectionAddressId);
+
+                    <li><b>@address.City-@address.State</b></li>
+                }
+                @if (routeClients.Count == 0)
+                {
+                    <li><b>Nenhum item inserido.</b></li>
+                }
+            </ul>
+        </div>
+    </div>
+</div>
+

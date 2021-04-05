@@ -1,0 +1,37 @@
+﻿@model int
+
+@inject Services.Client.ClientLicenseServices clientLicenseServices
+@inject Services.Client.ClientServices clientServices
+
+@{
+    ViewData["Title"] = "Condicionantes";
+
+    var clientLicense = await clientLicenseServices.GetViewModelByIdAsync(Model);
+    var client = await clientServices.GetViewModelByIdAsync(await clientServices.GetClientIdByLoggedUser(Context));
+}
+
+<div class="card">
+    <div class="card-body">
+        <div style="font-size: 14px !important;">
+            Razão Social: <b>@client.Name</b><br />
+            Nome Fantasia: <b>@client.AlternativeName</b><br />
+            CNPJ: <b>@client.DocumentFormated</b><br />
+            Endereço: <b>@client.Address, @client.Number - @client.Neighborhood - @client.City - @client.State</b><br /><br />
+            Condicionantes @(string.IsNullOrWhiteSpace(clientLicense.License)? "do documento" : "da licença") <b>@clientLicense.Name</b>, Orgão Emissor: <b>@clientLicense.Issuer</b>, emitida em <b>@clientLicense._IssueDate</b> e com vencimento em <b>@clientLicense._DueDate</b>.
+        </div>
+        <hr />
+        <div id="client-license-conditioning-index-view-component">
+            @(await Component.InvokeAsync<Web.ViewComponents.Client.ClientLicenseConditioningIndexViewComponent>(Model))
+        </div>
+    </div>
+    <div class="card-footer">
+        <a class="btn btn-secondary" href="@Url.Action("Index", "ClientLicense")"><i class="fa fa-arrow-left"></i>&nbsp;Voltar</a>
+    </div>
+</div>
+
+@section Scripts
+{
+    <script asp-paste-key="client-license-conditioning-index"></script>
+    <script asp-paste-key="client-license-conditioning-manage"></script>
+    <script asp-paste-key="client-license-conditioning-file"></script>
+}

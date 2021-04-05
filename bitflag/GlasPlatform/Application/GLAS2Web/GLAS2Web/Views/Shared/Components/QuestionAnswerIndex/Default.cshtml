@@ -1,0 +1,93 @@
+﻿@model int
+
+@inject BLL.Question.QuestionAnswerListFunctions questionAnswerListFunctions
+
+<style type="text/css">
+    #table-question-answer tr td:first-child {
+        text-align: center;
+        cursor: pointer;
+    }
+</style>
+
+<table id="table-question-answer" class="datatable table table-sm table-bordered table-striped" style="border-collapse: collapse !important;">
+    <thead>
+        <tr>
+            <th></th>
+            <th class="text-center">Sequência</th>
+            <th>Subtema</th>
+            <th>Resposta</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in questionAnswerListFunctions.GetDataAsNoTracking(x => !x.IsDeleted && x.QuestionId == Model))
+        {
+            <tr data-question-answer="@item.QuestionAnswerId">
+                <td><i class="fa fa-random"></i></td>
+                <td class="text-center">@item.Order</td>
+                <td>@item.QuestionSubThemeName</td>
+                <td>@item.Answer</td>
+                <td>
+                    <div class="text-center">
+                        <a href="javascript:openQuestionAnswerModal(@item.QuestionAnswerId)">Editar</a> |&nbsp;
+                        <a href="javascript:deleteQuestionAnswer(@item.QuestionAnswerId)">Remover</a>
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<script type="text/javascript">
+    var typingTimer;
+    var doneTypingInterval = 500;
+    var questionAnswerDatatables = $('#table-question-answer').DataTable({
+        proccessing: true
+        , serverSide: false
+        , searching: true
+        , lengthChange: false
+        , dom: 'tip'
+        , paging: false
+        , columnDefs: [
+            { targets: [0], orderData: [1] },
+            { orderable: true, className: 'reorder', targets: 0 },
+            { orderable: false, targets: '_all' },
+            { "width": "250px", "targets": 4 }
+        ]
+        , rowReorder: { dataSrc: 1 }
+        , drawCallback: function () {
+            $('#table-question-answer').DataTable().rows({ order: 'applied' }).nodes().each(function (e, i) {
+                var td = $(e).find('td')[1];
+                if (td != null) td.innerHTML = i + 1;
+            });
+        }
+    });
+
+    $(document).ready(initSearchDataTable);
+
+    function deleteQuestionAnswer(questionAnswerId) {
+        if (!confirm('Deseja realmente excluir esta resposta?')) return;
+
+        var form = $('<form>', { action: '@Url.Action("Delete", "QuestionAnswer")', method: 'post' });
+        form.append($('<input>', { type: 'hidden', value: questionAnswerId, name: 'questionAnswerId' }));
+
+        $('body').append(form);
+
+        $(form).submit();
+    }
+
+    function saveQuestionAnswerOrder(callback) {
+        var models = [];
+
+        $.each($('#table-question-answer tr[data-question-answer]'), function (i, e) {
+            var questionAnswerId = $(e).data('question-answer');
+            var rowIndex = questionAnswerDatatables.rows({ order: 'applied' }).nodes().indexOf(e) + 1;
+
+            models.push({ 'Index': i, 'QuestionAnswerId': questionAnswerId, 'Order': rowIndex });
+        });
+
+        $.post('@Url.Action("SaveOrder", "QuestionAnswer")', { models }, function () {
+            typeof callback == 'function' && callback();
+        });
+    }
+</script>

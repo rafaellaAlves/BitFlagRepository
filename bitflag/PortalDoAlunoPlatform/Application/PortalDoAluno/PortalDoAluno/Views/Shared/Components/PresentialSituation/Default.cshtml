@@ -1,0 +1,90 @@
+﻿@model int
+<div class="row">
+    <div class="col">
+        <table id="PresentialSituationTable" class="display table table-striped table-bordered table-condensed" style="border-collapse: collapse !important; width:100%;">
+            <thead>
+                <tr>
+                    <th>Módulo</th>
+                    <th>Sábado</th>
+                    <th>Domingo</th>
+                    <th>Progresso (%)</th>
+                    <th>Nota Prova</th>
+                    <th>Nota Atividade</th>
+                    <th>Observações</th>
+                    <th>&nbsp;</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+<script type="text/javascript">
+        var datatables;
+        $(document).ready(function () {
+            datatables = $('#PresentialSituationTable').DataTable({
+                serverSide: false,
+                proccessing: true,
+                searching: true,
+                lengthChange: true,
+                //dom: 'tip',
+                ajax: {
+                    url: '@Url.Action("ListPresentialSituation", "ClassStudent")',
+                    data: function (d) {
+                        d.classStudentId = '@Model'
+                    },
+                    type: 'POST'
+                },
+                columns: [
+                    { render: function (data, type, row) { return 'Módulo ' + row.module; } },
+                    { render: function (data, type, row) { return row.saturdayOptionPresence + (isNullOrWhiteSpace(row.saturdayDateFormatted) ? '' : ' (' + (row.saturdayDateFormatted) + ')'); } },
+                    { render: function (data, type, row) { return row.sundayOptionPresence + (isNullOrWhiteSpace(row.sundayDateFormatted) ? '' : ' (' + (row.sundayDateFormatted) + ')'); } },
+                    { render: function (data, type, row) { return row.completionPercent ?? "-"; } },
+                    { render: function (data, type, row) { return row.testGradeFormatted ?? "-"; } },
+                    { render: function (data, type, row) { return row.activityGradeFormatted ?? "-"; } },
+                    { render: function (data, type, row) { return row.comments ?? "-"; } },
+                    {
+                        render: function (data, type, row)
+                        {
+                            return '<div class="text-center">' +
+                                '<a href=\'javascript:editSituation(' + JSON.stringify(row) + ')\'><span class="badge badge-primary">Editar</span></a>&nbsp;' +
+                                '<a style = "display: none;" href="javascript:removeSituation(' + row.studentPresenceId + ')"><span class="badge badge-danger">Excluir</span></a>' +
+                                '</div>';
+                        }
+                    }
+                ]
+            });
+        });
+
+    function reloadPresentialSituationTable() {
+        $('#PresentialSituationTable').DataTable().ajax.reload();
+    }
+
+    function editSituation(d) {
+        $('[name="StudentPresenceId"]').val(d.studentPresenceId);
+        $('[name="ClassStudentId"]').val(d.classStudentId);
+        $('[name="Module"]').val(d.module);
+        $('[name="CompletionPercent"]').val(d.completionPercent);
+        $('[name="Saturday"]').val(d.saturday);
+        $('[name="SaturdayDate"]').val(d.saturdayDateFormatted);
+        $('[name="SaturdayComments"]').val(d.saturdayComments);
+        $('[name="SundayDate"]').val(d.sundayDateFormatted);
+        $('[name="Sunday"]').val(d.sunday);
+        $('[name="SundayComments"]').val(d.sundayComments);
+        $('[name="TestGrade"]').val(d.testGradeFormatted);
+        $('[name="ActivityGrade"]').val(d.activityGradeFormatted);
+        $('[name="Comments"]').val(d.comments);
+
+        $('#add-situation-modal').modal('show');
+    }
+
+    function removeSituation(studentPresenceId) {
+        bootboxConfirm("Deseja realmente excluir este item?", function(result){
+            if (!result) return;
+
+            $.post('@Url.Action("RemovePresentialSituation", "ClassStudent")', { studentPresenceId }, function () {
+                alert('Presença excluída com sucesso!');
+                reloadPresentialSituationTable();
+            });
+        });
+    }
+</script>

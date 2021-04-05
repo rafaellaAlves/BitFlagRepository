@@ -1,0 +1,9 @@
+C:\repositorios\bitflag\Nova pasta\TerraNostraPlatform\Application\Branches\TerraNostraCRM-NovoTema\ViewModel\bin\Debug\netcoreapp2.2\DTO.deps.json
+C:\repositorios\bitflag\Nova pasta\TerraNostraPlatform\Application\Branches\TerraNostraCRM-NovoTema\ViewModel\bin\Debug\netcoreapp2.2\DTO.dll
+C:\repositorios\bitflag\Nova pasta\TerraNostraPlatform\Application\Branches\TerraNostraCRM-NovoTema\ViewModel\bin\Debug\netcoreapp2.2\DTO.pdb
+C:\repositorios\bitflag\Nova pasta\TerraNostraPlatform\Application\Branches\TerraNostraCRM-NovoTema\ViewModel\obj\Debug\netcoreapp2.2\DTO.csprojAssemblyReference.cache
+C:\repositorios\bitflag\Nova pasta\TerraNostraPlatform\Application\Branches\TerraNostraCRM-NovoTema\ViewModel\obj\Debug\netcoreapp2.2\DTO.AssemblyInfoInputs.cache
+C:\repositorios\bitflag\Nova pasta\TerraNostraPlatform\Application\Branches\TerraNostraCRM-NovoTema\ViewModel\obj\Debug\netcoreapp2.2\DTO.AssemblyInfo.cs
+C:\repositorios\bitflag\Nova pasta\TerraNostraPlatform\Application\Branches\TerraNostraCRM-NovoTema\ViewModel\obj\Debug\netcoreapp2.2\DTO.csproj.CoreCompileInputs.cache
+C:\repositorios\bitflag\Nova pasta\TerraNostraPlatform\Application\Branches\TerraNostraCRM-NovoTema\ViewModel\obj\Debug\netcoreapp2.2\DTO.dll
+C:\repositorios\bitflag\Nova pasta\TerraNostraPlatform\Application\Branches\TerraNostraCRM-NovoTema\ViewModel\obj\Debug\netcoreapp2.2\DTO.pdb

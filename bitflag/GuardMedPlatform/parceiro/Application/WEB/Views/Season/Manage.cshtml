@@ -1,0 +1,40 @@
+﻿@model int?
+@{
+    ViewData["Title"] = "Gerenciar Temporadas";
+}
+
+
+<div class="card shadow bg-light">
+    <div class="card-header"><span id="_SeasonManageCardHeaderTitle">Criação de temporada</span></div>
+    <div class="card-body">
+        <div id="SeasonManageViewComponent"></div>
+    </div>
+    <div class="card-footer">
+        <a href="@Url.Action("Index","Season")" class="btn btn-secondary float-left" style="color:white;"><i class="fa fa-arrow-left"></i>&nbsp;Voltar</a>
+        <button type="button" id="_SeasonManageButtonSubmit" class="btn btn-success float-right"><i class="fa fa-cloud-upload-alt"></i>&nbsp;Criar Temporada</button>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#SeasonManageViewComponent').load('@Url.Action("SeasonManageComponent", "Season")', { "id": @if (Model.HasValue) { @Model } else { <text>null</text> } });
+
+    $('#_SeasonManageButtonSubmit').click(function () {
+        if (_SeasonManageValidate()) {
+            _SeasonManageSave();
+        }
+    });
+</script>
+@if (Model.HasValue)
+{
+    <text>
+        <script type="text/javascript">
+            $('#_SeasonManageButtonSubmit').text("Salvar");
+            $('#_SeasonManageCardHeaderTitle').text('Atualização de temporada');
+        </script>
+    </text>
+}
+<script type="text/javascript">
+    function _SeasonManageCallBack(data) {
+        window.location.href = '@Url.Action("Manage", "Season")?id=' + data + '&saved=true';
+    }
+</script>

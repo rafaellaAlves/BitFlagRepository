@@ -1,0 +1,51 @@
+﻿@model List<DTO.CompanyQuestion.CompanyQuestionAnswerVisualizationViewModel>
+
+@{
+    int i = 0;
+    int j = 0;
+}
+
+@foreach (var questionGroup in Model.OrderBy(x => x.QuestionOrder).GroupBy(x => new { x.QuestionId, x.QuestionOrder, x.QuestionText, x.QuestionThemeId, x.QuestionThemeName }))
+{
+    <input type="hidden" value="@i" name="models[@i].Index" />
+    <input type="hidden" value="@questionGroup.Key.QuestionId" name="models[@i].QuestionId" />
+    <div class="card mb-3">
+        <div class="card-header">
+            <b><i class="fa fa-question-circle"></i> Pergunta @(i + 1)</b> - @questionGroup.Key.QuestionText
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    @foreach (var questionAnswer in questionGroup.OrderBy(x => x.QuestionAnswerOrder))
+                    {
+                        <input type="hidden" name="models[@i].Answers.Index" value="@j" />
+                        <div class="form-check">
+                            <input class="form-check-input required" data-error-message="Selecione uma das opções acima" data-target="#error-area-@questionGroup.Key.QuestionId" type="checkbox" data-subtheme-name="@questionAnswer.QuestionSubThemeName" data-question-id="@questionGroup.Key.QuestionId" name="models[@i].Answers[@j].QuestionAnswerId" value="@questionAnswer.QuestionAnswerId" @(questionAnswer.Selected ? "checked" : "")>
+                            <label class="form-check-label">
+                                @questionAnswer.QuestionAnswerText
+                            </label>
+                        </div>
+                        j++;
+                    }
+                    <div id="error-area-@questionGroup.Key.QuestionId"></div>
+                </div>
+                <div class="col-md-6">
+                    <div class="w-100 text-left">
+                        <div><b>Tema:</b> @questionGroup.Key.QuestionThemeName</div>
+                        <div><b>Subtema:</b> <span id="company-question-subtheme-span-@questionGroup.Key.QuestionId">@(questionGroup.Any(x => x.Selected) ? string.Join(", ", questionGroup.Where(x => x.Selected).Select(x => x.QuestionSubThemeName).Distinct()) : "-")</span></div>
+                    </div>
+                    <div class="form-group">
+                        <textarea class="form-control" name="models[@i].Observation" placeholder="Observação">@(questionGroup.Any(x => x.Selected)? questionGroup.First(x => x.Selected).Observation : "")</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    i++;
+}
+
+<script type="text/javascript">
+    $('input[type="checkbox"]').change(function () {
+        $('#company-question-subtheme-span-' + $(this).data('question-id')).text($.distinct($('[type="checkbox"][data-question-id="' + $(this).data('question-id') + '"]:checked').map(function (i, e) { return $(e).data('subtheme-name') }).toArray()).join(', '));
+    });
+</script>

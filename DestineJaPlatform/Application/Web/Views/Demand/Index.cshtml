@@ -1,0 +1,16 @@
+﻿@{
+    ViewData["Title"] = "Lista de Demandas";
+}
+
+<div class="card">
+    <div class="card-body">
+        <div id="DemandIndexViewComponent">
+            @(await Component.InvokeAsync("DemandIndex"))
+        </div>
+    </div>
+</div>
+
+@section Scripts
+{
+    <script asp-paste-key="demand-index"></script>
+}

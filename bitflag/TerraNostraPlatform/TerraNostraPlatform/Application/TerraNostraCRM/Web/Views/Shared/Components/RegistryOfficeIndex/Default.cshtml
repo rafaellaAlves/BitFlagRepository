@@ -1,0 +1,116 @@
+﻿<div class="row">
+    <div class="col-md-10">
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text"><i class="simple-icon-magnifier"></i></span>
+            </div>
+            <input id="_registryOfficeIndexSearch" type="text" class="form-control" placeholder="Procurar..." />
+        </div>
+    </div>
+    <div class="col-md-2">
+        <button type="button" onclick="openRegistryOfficeManageModal(null)" class="btn btn-success pull-right w-100"><i class="simple-icon-plus"></i>&nbsp;Novo</button>
+    </div>
+</div>
+<hr />
+<div class="table-wrapper">
+    <table id="_registryOfficeIndexTable" class="display table table-striped table-bordered table-condensed" style="border-collapse: collapse !important; width:100%;">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Telefone</th>
+                <th>E-mail</th>
+                <th>Cidade</th>
+                <th>Estado</th>
+                <th>País</th>
+                <th>&nbsp;</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<script type="text/javascript">
+    var _registryOfficeIndexTypingTimer;
+    var _registryOfficeIndexDoneTypingInterval = 500;
+    var datatables = $('#_registryOfficeIndexTable').DataTable({
+		proccessing: true,
+		serverSide: false,
+		searching: true,
+		lengthChange: false,
+		dom: 'tip',
+		ajax: {
+			url: '@Url.Action("List", "RegistryOffice")',
+			type: 'POST'
+		},
+		columns: [
+            {
+                data: 'Name', render: function (data, type, row) {
+                    return '<a href="javascript: openRegistryOfficeManageModal(' + row.registryOfficeId + ');" title="Editar">' + row.name + '</a>';
+                }
+            },
+            {
+                data: 'Phone', render: function (data, type, row) {
+                    return !row.phone ? '-' : row.phone;
+                }
+            },
+            {
+                data: 'Email', render: function (data, type, row) {
+                    return !row.email ? '-' : row.email;
+                }
+            },
+            {
+                data: 'City', render: function (data, type, row) {
+                    return !row.city ? '-' : row.city;
+                }
+            },
+            {
+                data: 'State', render: function (data, type, row) {
+                    return !row.state ? '-' : row.state;
+                }
+            },
+            {
+                data: 'Country', render: function (data, type, row) {
+                    return !row.country ? '-' : row.country;
+                }
+            },
+			{
+				data: null, render: function (data, type, row) {
+                    return '<div class="text-center"><a class="badge badge-primary" href="javascript: openRegistryOfficeManageModal(' + row.registryOfficeId + ');" title="Editar"><i class="simple-icon-note"></i></a>&nbsp;<a href="javascript:void(0)" onclick="removeRegistryOffice(' + row.registryOfficeId + ')" class="badge badge-danger" title="Excluir"><i class="simple-icon-trash"></i></a></div>';
+				}
+			}
+		]
+	});
+
+    function _registryOfficeIndexDoneTyping() {
+        if ($.fn.DataTable.isDataTable('#_registryOfficeIndexTable')) {
+            datatables.search($('#_registryOfficeIndexSearch').val()).draw();
+        }
+    }
+    $('#_registryOfficeIndexSearch').keyup(function () {
+        clearTimeout(_registryOfficeIndexDoneTypingInterval);
+        _registryOfficeIndexTypingTimer = setTimeout(_registryOfficeIndexDoneTyping, _registryOfficeIndexDoneTypingInterval);
+    });
+    $('#_registryOfficeIndexSearch').keydown(function () {
+        clearTimeout(_registryOfficeIndexDoneTyping);
+    });
+
+    function removeRegistryOffice(id) {
+		if (confirm("Deseja realmente excluir este cartório?")) {
+            _RemoveRegistryOffice(id, function () {
+                $('#_registryOfficeIndexTable').DataTable().ajax.reload();
+				alert("Cartório excluído com sucesso!");
+			});
+		}
+	}
+
+    function _RemoveRegistryOffice(_id, callback) {
+        var d = { id: _id};
+		$.ajax({
+			url: '@Url.Action("Remove", "RegistryOffice")',
+			type: 'POST',
+			data: d,
+			dataType: 'Json',
+			success: callback
+		});
+	}
+</script>

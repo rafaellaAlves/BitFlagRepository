@@ -1,0 +1,23 @@
+﻿@model AMaisImob_WEB.Models.CertificateContractualViewModel
+
+<div style="font-size: 15px !important; max-width: 750px; margin-left: auto !important; margin-right: auto !important;padding: 15px; border-radius: 5px; background: #e4e4e4;">
+    <label>Olá,</label>
+    <br />
+    <br />
+    <label>O processo #@Model.Reference foi definido como "Devolução" pela seguinte razão:</label>
+    <br />
+    <br />
+    <div style="background: #ffffff; padding: 15px; border-radius: 12px;">
+        @if (!string.IsNullOrWhiteSpace(Model.DevolutionReason))
+        {
+            @Html.Raw(Model.DevolutionReason?.Replace("\n", "<br/>"))
+        }
+        else
+        {
+            <i>Nenhuma razão informada.</i>
+        }
+    </div>
+    <br />
+    <br />
+    <label>Equipe A+Imob.</label>
+</div>

@@ -1,0 +1,174 @@
+﻿@model GuardMedWeb.Models.SeguradoProfissionalViewModel
+@inject DAL.GuardMedWebContext context
+
+@{
+    ViewData["Title"] = "Visualização Segurado Profissional";
+
+    var pagamentoTipoFunctions = new GuardMedWeb.BLL.Pagamento.PagamentoTipoFunctions(context);
+
+    var tiposPagamento = pagamentoTipoFunctions.GetData();
+    var cartaoId = tiposPagamento.First(x => x.ExternalCode == "CARTAO").PagamentoTipoId;
+    var boletoId = tiposPagamento.First(x => x.ExternalCode == "BOLETO").PagamentoTipoId;
+}
+<div class="card">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-7">
+                <label><strong>Passo em que o usuário parou: </strong>@ViewData["StopedStep"].ToString()</label>
+            </div>
+            <div class="col-md-5">
+                <label>
+                    <strong>Plano selecionado: </strong>@if (string.IsNullOrWhiteSpace(Model.PlanoSeguroProfissionalNome))
+                    {<text>-</text>}
+                else
+                {<text>@Model.PlanoSeguroProfissionalNome</text>}
+                </label>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-5">
+                <label><strong>Nome: </strong>@Model.Nome</label>
+            </div>
+            <div class="col-md-2">
+                <label>
+                    <strong>CPF: </strong>@if (string.IsNullOrWhiteSpace(Model.CPF))
+                    {<text>-</text>}
+                else
+                {<text>@Model.CPF</text>}
+                </label>
+            </div>
+            <div class="col-md-3">
+                <label><strong>Data de Nascimento: </strong><span class="date">@Model.DataNascimento</span></label>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3">
+                <label><strong>CRM: </strong>@Model.CRM</label>
+            </div>
+            <div class="col-md-4">
+                <label><strong>Estado CRM: </strong>@Model.EstadoCRM</label>
+            </div>
+            <div class="col-md-5">
+                <label>
+                    <strong>Telefone: </strong>@if (string.IsNullOrWhiteSpace(Model.Telefone))
+                    {<text>-</text> }
+                else
+                {<text>@Model.Telefone</text>}
+                </label>
+            </div>
+        </div>
+        <div class="row">
+
+            <div class="col-md-7">
+                <label><strong>Email: </strong>@Model.Email</label>
+            </div>
+            <div class="col-md-5">
+                <label><strong>Celular: </strong>@Model.Celular</label>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-2">
+                <label>
+                    <strong>CEP: </strong>@if (string.IsNullOrWhiteSpace(Model.CEP))
+                    {<text>-</text>}
+                else
+                {<text>@Model.CEP</text>}
+                </label>
+            </div>
+            <div class="col-md-5">
+                <label>
+                    <strong>Endereco: </strong>@if (string.IsNullOrWhiteSpace(Model.Endereco))
+                    {<text>-</text>}
+                else
+                {<text>@Model.Endereco</text>}
+                </label>
+            </div>
+            <div class="col-md-2">
+                <label>
+                    <strong>Número: </strong>@if (string.IsNullOrWhiteSpace(Model.EnderecoNumero))
+                    {<text>-</text>}
+                else
+                {<text>@Model.EnderecoNumero</text>}
+                </label>
+            </div>
+            <div class="col-md-3">
+                <label>
+                    <strong>Complemento: </strong>@if (string.IsNullOrWhiteSpace(Model.Complemento))
+                    {<text>-</text>}
+                else
+                {<text>@Model.Complemento</text>}
+                </label>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-5">
+                <label>
+                    <strong>Bairro: </strong>@if (string.IsNullOrWhiteSpace(Model.Bairro))
+                    {<text>-</text>}
+                else
+                {<text>@Model.Bairro</text>}
+                </label>
+            </div>
+            <div class="col-md-4">
+                <label>
+                    <strong>Cidade: </strong>@if (string.IsNullOrWhiteSpace(Model.Cidade))
+                    {<text>-</text>}
+                else
+                {<text>@Model.Cidade</text>}
+                </label>
+            </div>
+            <div class="col-md-3">
+                <label>
+                    <strong>Estado: </strong>@if (string.IsNullOrWhiteSpace(Model.Estado))
+                    {<text>-</text>}
+                else
+                {<text>@Model.Estado</text>}
+                </label>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3">
+                <label>
+                    <strong>Forma de pagamento: </strong>@if (!Model.PagamentoTipoId.HasValue)
+                    {<text>-</text>}
+                else
+                {
+                    if (Model.PagamentoTipoId == cartaoId)
+                    {<text>Cartão</text>}
+                else
+                {<text>Boleto</text>}
+        }
+                </label>
+            </div>
+            <div class="col-md-4">
+                <label>
+                    <strong>Qtd. de parcelas do pagamento: </strong>@if (!Model.VezesPagamento.HasValue)
+                    {<text>-</text>}
+                else
+                {<text>@Model.VezesPagamento</text>}
+                </label>
+            </div>
+            <div class="col-md-2">
+                <label>
+                    <strong>Valor total: </strong>@if (string.IsNullOrWhiteSpace(Model._PrecoTotal))
+                    {<text>-</text>}
+                else
+                {<text>@Model._PrecoTotal</text>}
+                </label>
+            </div>
+            <div class="col-md-2">
+                <label>
+                    <strong>Valor Mensal: </strong>@if (!Model.PagamentoTipoId.HasValue)
+                    {<text>-</text>}
+                else
+                {
+                    if (Model.PagamentoTipoId == cartaoId)
+                    {<text>@Model.PrecoMensal</text>}
+                else
+                {<text>@Model.PrecoTotal</text>}
+        }
+                </label>
+            </div>
+        </div>
+    </div>
+</div>

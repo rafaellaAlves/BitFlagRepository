@@ -1,0 +1,9 @@
+C:\repositorios\bitflag\PortalDoAlunoPlatform\Application\PortalDoAluno\PortalDoAlunoIdentityDbContext\bin\Debug\netcoreapp3.1\AspNetIdentityDbContext.deps.json
+C:\repositorios\bitflag\PortalDoAlunoPlatform\Application\PortalDoAluno\PortalDoAlunoIdentityDbContext\bin\Debug\netcoreapp3.1\AspNetIdentityDbContext.dll
+C:\repositorios\bitflag\PortalDoAlunoPlatform\Application\PortalDoAluno\PortalDoAlunoIdentityDbContext\bin\Debug\netcoreapp3.1\AspNetIdentityDbContext.pdb
+C:\repositorios\bitflag\PortalDoAlunoPlatform\Application\PortalDoAluno\PortalDoAlunoIdentityDbContext\obj\Debug\netcoreapp3.1\AspNetIdentityDbContext.csprojAssemblyReference.cache
+C:\repositorios\bitflag\PortalDoAlunoPlatform\Application\PortalDoAluno\PortalDoAlunoIdentityDbContext\obj\Debug\netcoreapp3.1\AspNetIdentityDbContext.AssemblyInfoInputs.cache
+C:\repositorios\bitflag\PortalDoAlunoPlatform\Application\PortalDoAluno\PortalDoAlunoIdentityDbContext\obj\Debug\netcoreapp3.1\AspNetIdentityDbContext.AssemblyInfo.cs
+C:\repositorios\bitflag\PortalDoAlunoPlatform\Application\PortalDoAluno\PortalDoAlunoIdentityDbContext\obj\Debug\netcoreapp3.1\AspNetIdentityDbContext.csproj.CoreCompileInputs.cache
+C:\repositorios\bitflag\PortalDoAlunoPlatform\Application\PortalDoAluno\PortalDoAlunoIdentityDbContext\obj\Debug\netcoreapp3.1\AspNetIdentityDbContext.dll
+C:\repositorios\bitflag\PortalDoAlunoPlatform\Application\PortalDoAluno\PortalDoAlunoIdentityDbContext\obj\Debug\netcoreapp3.1\AspNetIdentityDbContext.pdb

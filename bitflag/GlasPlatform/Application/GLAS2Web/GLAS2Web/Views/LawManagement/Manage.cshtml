@@ -1,0 +1,1824 @@
+﻿@using Microsoft.AspNetCore.Identity
+@model DTO.Law.LawViewModel
+
+@inject BLL.Utils.EsferaFunctions esferaFunctions
+@inject BLL.Utils.OrgaoFunctions orgaoFunctions
+@inject BLL.Utils.SegmentoFunctions segmentoFunctions
+@inject BLL.Law.LawTypeFunctions lawTypeFunctions
+@inject BLL.Law.LawChangeFunctions lawChangeFunctions
+@inject BLL.Law.LawViewFunctions lawViewFunctions
+@inject BLL.Law.LawFunctions lawFunctions
+@inject BLL.Question.QuestionThemeFunctions questionThemeFunctions
+@inject BLL.Question.QuestionSubThemeFunctions questionSubThemeFunctions
+@inject BLL.Law.LawPotentialityTypeFunctions lawPotentialityTypeFunctions
+
+@{
+    ViewData["Title"] = "Detalhes do Requisito Legal";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var componentID = string.Format("_{0}", Guid.NewGuid().ToString("N"));
+
+    var esferas = esferaFunctions.GetData().OrderBy(x => x.Name);
+    var orgaos = orgaoFunctions.GetData().OrderBy(x => x.Name);
+    var segmentos = segmentoFunctions.GetData().OrderBy(x => x.Name);
+    var tipos = lawTypeFunctions.GetData().OrderBy(x => x.Name);
+
+    var lawChangesByIds = lawChangeFunctions.GetData(x => x.LawId == Model.LawId).Distinct().Select(x => x.ChangedLawId);
+    var lawChangesBy = lawViewFunctions.GetData(c => lawChangesByIds.Contains(c.LawId));
+
+    var lawChangesFromIds = lawChangeFunctions.GetData(x => x.ChangedLawId == Model.LawId).Distinct().Select(x => x.LawId);
+    var lawChangesFrom = lawViewFunctions.GetData(c => lawChangesFromIds.Contains(c.LawId));
+
+    var revokedBy = Model.RevokedById.HasValue ? lawViewFunctions.GetDataByID(Model.RevokedById) : null;
+
+    var revokedFromIds = Model.LawId.HasValue ? lawFunctions.GetData(x => x.RevokedById == Model.LawId).Distinct().Select(x => x.LawId).ToList() : new List<int>();
+    var revokedFrom = lawViewFunctions.GetData(x => revokedFromIds.Contains(x.LawId));
+}
+@{ Html.RenderPartial("~/Views/Shared/_TopMessages.cshtml"); }
+
+<style type="text/css">
+    @@media (min-width: 1250px) {
+        #law-changes-modal .modal-lg, #law-revoked-modal .modal-lg {
+            max-width: 1100px;
+        }
+    }
+
+    .m-r-l-15 {
+        margin-left: 15px;
+        margin-right: 15px;
+    }
+
+    /*.card-body-altered-revoked {
+        padding: 0;
+    }
+
+        .card-body-altered-revoked .card-altered-body, .card-body-altered-revoked .card-revoked-body {
+            padding: 20px;
+        }
+
+        .card-body-altered-revoked .card-altered-body {
+            background: linear-gradient(to bottom, #fffdf2 90%, transparent);
+        }*/
+
+
+    /*            .card-body-altered-revoked .card-altered-body table {
+                border: 1px solid #fbe5a2;
+            }
+
+                .card-body-altered-revoked .card-altered-body table td, .card-body-altered-revoked .card-altered-body table th {
+                    border-top: 1px solid #fbe5a2;
+                    border-right: 1px solid #fbe5a2;
+                }
+
+        .card-body-altered-revoked .card-title {
+            background: #ffedb8;
+        }*/
+
+    /*.card-body-altered-revoked .card-revoked-body {*/
+    /*background: linear-gradient(to top, #fff2f2 90%, transparent);*/
+    /*}
+
+            .card-body-altered-revoked .card-revoked-body table {
+                border: 1px solid #ffb8b8;
+            }
+
+                .card-body-altered-revoked .card-revoked-body table td, .card-body-altered-revoked .card-revoked-body table th {
+                    border-top: 1px solid #ffb8b8;
+                    border-right: 1px solid #ffb8b8;
+                }
+
+        .card-body-altered-revoked .card-title {
+            background: #ffc7c7;
+        }*/
+</style>
+
+<script src="https://momentjs.com/downloads/moment.js"></script>
+
+<div id="@componentID">
+    <script type="text/javascript">
+        function MoreInfo() {
+            $('#@componentID #moreInfo').hide();
+			$('#@componentID #divMoreInfo').show();
+        }
+        function LessInfo () {
+            $('#@componentID #moreInfo').show();
+            $('#@componentID #divMoreInfo').hide();
+		}
+    </script>
+    <form id="form" action="@Url.Action("Manage", "LawManagement")" method="post" novalidate enctype="multipart/form-data">
+        <div class="card shadow">
+            <div class="card-header">
+                Detalhes do Requisito Legal
+            </div>
+            <div class="card-body">
+                <input type="hidden" id="LawId" name="LawId" value="@Model.LawId" />
+                <div id="divRequiredInfo">
+                    <div class="form-row">
+                        <div class="form-group col-md-4">
+                            <label class="control-label" for="Type">Tipo*</label>
+                            <select class="form-control" id="LawTypeId" name="LawTypeId">
+                                <option value="">Escolha um tipo</option>
+                                @foreach (var item in tipos)
+                                {
+                                    <option value="@item.LawTypeId">@item.Name</option>
+                                }
+                            </select>
+                            <script type="text/javascript">
+                                @if (Model.LawTypeId != 0)
+                                {
+                                    <text>
+                                    $('#LawTypeId').val('@Model.LawTypeId');
+                                    </text>
+                                }
+                                else
+                                {
+                                    <text>
+                                    $('#LawTypeId').val($("#LawTypeId option:first").val());
+                                    </text>
+                                }
+                            </script>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label class="control-label" for="Number">Número*</label>
+                            <input type="text" class="form-control law" id="Number" name="Number" value="@Model._Number" placeholder="Número">
+
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label class="control-label" for="PublishDate">Data Publicação *</label>
+                            <input type="text" class="form-control date" id="PublishDate" name="PublishDate" value="@Model.PublishDate" placeholder="Data Publicação">
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label class="control-label" for="ForceDate">Data Vigor*</label>
+                            <input type="text" class="form-control date" id="ForceDate" name="ForceDate" value="@Model.ForceDate" placeholder="Data Vigor" required>
+                            <div class="invalid-feedback">Defina a data de vigor.</div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-12">
+                            <label class="control-label" for="Title">Título*</label>
+                            <input type="text" class="form-control" id="Title" name="Title" value="@Model.Title" placeholder="Título" required maxlength="500">
+                            <div class="invalid-feedback">Preencha o título.</div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-12">
+                            <label class="control-label" for="Keywords">Palavras-chave *</label>
+                            <div class="input-group" id="keywords-area">
+                                <span class="input-group-addon">Tags:</span>
+                                <input type="text" class="form-control" data-role="tagsinput" id="Keywords" name="Keywords" value="@Model.Keywords" placeholder="Tags">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <a id="moreInfo" href="javascript: MoreInfo();">Mais Informações...</a>
+                <div id="divMoreInfo" style="display: none;">
+                    <div class="form-row">
+                        <div class="form-group col-md-4 ResizeEsferaField">
+                            <label class="control-label" for="EsferaId">Esfera *</label>
+                            <select class="form-control" id="EsferaId" name="EsferaId">
+                                <option value="" id="Default">Escolha uma esfera</option>
+                                @foreach (var item in esferas)
+                                {
+                                    <option class="options" id="@item.Name" value="@item.EsferaId">@item.Name</option>
+                                }
+                            </select>
+                            <script type="text/javascript">
+                                $('#EsferaId').val('@Model.EsferaId');
+                            </script>
+                        </div>
+                        <div class="form-group col-md-3 ResizeEsferaField" id="CountryId">
+                            <label class="control-label" for="">País *</label>
+                            <select class="form-control" id="CountrySelect" name="CountryId">
+                                <option value="">Escolha um país</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-3 ResizeEsferaField" id="StateId">
+                            <label class="control-label" for="">Estado *</label>
+                            <select class="form-control" id="StateSelect" name="StateId">
+                                <option value="">Escolha um estado</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-3 ResizeEsferaField" id="CityId">
+                            <label class="control-label" for="">Município *</label>
+                            <select class="form-control" id="CitySelect" name="CityId">
+                                <option value="">Escolha um município</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-4 ResizeField">
+                            <label class="control-label" for="OrgaoId">Órgão *</label>
+                            <select class="form-control" id="OrgaoId" name="OrgaoId">
+                                <option value="">Escolha um órgão</option>
+                                @foreach (var item in orgaos)
+                                {
+                                    <option value="@item.OrgaoId">@item.Name</option>
+                                }
+                            </select>
+                            <script type="text/javascript">
+                                $('#OrgaoId').val('@Model.OrgaoId');
+                            </script>
+                        </div>
+                        <div class="form-group col-md-4 ResizeField">
+                            <label class="control-label" for="SegmentoId">Segmento *</label>
+                            <select class="form-control" id="SegmentoId" name="SegmentoId">
+                                <option value="">Escolha um segmento</option>
+                                @foreach (var item in segmentos)
+                                {
+                                    <option value="@item.SegmentoId">@item.Name</option>
+                                }
+                            </select>
+                            <script type="text/javascript">
+                            $('#SegmentoId').val('@Model.SegmentoId');
+                            </script>
+                        </div>
+                        <script type="text/javascript">
+							function VerificaEsfera() {
+								if ($('#Estadual')[0].selected) {
+									$('#CitySelect').val('');
+									$('#CountryId').show();
+									$('#StateId').show();
+									$('#CityId').hide();
+									$('.ResizeField').removeClass().addClass('form-group col-md-6 ResizeField');
+									$('.ResizeEsferaField').removeClass().addClass('form-group col-md-4 ResizeEsferaField');
+									if (!IsNullOrWhiteSpace($('#CountrySelect').val())) {
+										GetStates();
+									}
+								}
+								else if ($('#Municipal')[0].selected) {
+									$('#CountryId').show();
+									$('#StateId').show();
+									$('#CityId').show();
+									$('.ResizeField').removeClass().addClass('form-group col-md-6 ResizeField');
+									$('.ResizeEsferaField').removeClass().addClass('form-group col-md-3 ResizeEsferaField');
+									if (!IsNullOrWhiteSpace($('#CountrySelect').val()) && IsNullOrWhiteSpace($('#StateSelect').val())) {
+										GetStates();
+									}
+									if (!IsNullOrWhiteSpace($('#StateSelect').val())) {
+										GetCities();
+									}
+								}
+								else if ($('#Federal')[0].selected) {
+									$('#CitySelect').val('');
+									$('#StateSelect').val('');
+									$('#CountryId').show();
+									$('#StateId').hide();
+									$('#CityId').hide();
+									$('.ResizeField').removeClass().addClass('form-group col-md-3 ResizeField');
+									$('.ResizeEsferaField').removeClass().addClass('form-group col-md-3 ResizeEsferaField');
+								}
+								else {
+									$('#CitySelect').val('');
+									$('#StateSelect').val('');
+									$('#CountrySelect').val('');
+									$('#StateId').hide();
+									$('#CityId').hide();
+									$('#CountryId').hide();
+									$('.ResizeField').removeClass().addClass('form-group col-md-4 ResizeField');
+									$('.ResizeEsferaField').removeClass().addClass('form-group col-md-4 ResizeEsferaField');
+								}
+							}
+							VerificaEsfera();
+
+							$('#CountrySelect').change(function () {
+								GetStates();
+							});
+
+							function GetStates() {
+								$.ajax({
+									url: '@Url.Action("GetStates", "Utils")',
+                                    type: 'POST',
+                                    data: { countryId: $('#CountrySelect').val() },
+									dataType: 'json',
+									success: function (d) {
+										$('#StateSelect').empty();
+										$('#StateSelect').append($('<option>', { value: "", text: "Selecione" }));
+                                        $.each(d, function (i, e) {
+                                            $('#StateSelect').append($('<option>', { value: e.StateId, text: e.Name }));
+										});
+										@if (Model.StateId != null)
+                                        {
+										<text>
+                                        $('#StateSelect').val('@Html.Raw(Model.StateId)');
+                                        $('#StateSelect').change();
+										</text>
+                                        }
+                                        else {
+										<text>
+                                        $('#StateSelect').val('');
+										</text>
+                                        }
+									}
+								});
+							}
+
+							$('#StateSelect').change(function () {
+								GetCities();
+							});
+
+							function GetCities() {
+								if ($('#Municipal')[0].selected) {
+									$.ajax({
+										url: '@Url.Action("GetCities", "Utils")',
+										type: 'POST',
+										data: { stateId: $('#StateSelect').val() },
+										dataType: 'json',
+										success: function (d) {
+											$('#CitySelect').empty();
+											$('#CitySelect').append($('<option>', { value: "", text: "Selecione" }));
+											$.each(d, function (i, e) {
+												$('#CitySelect').append($('<option>', {value: e.CityId, text: e.Name}));
+											});
+										    @if (Model.CityId != null)
+                                            {
+										    <text>
+											    $('#CitySelect').val('@Html.Raw(Model.CityId)');
+										    </text>
+                                            }
+                                            else {
+										    <text>
+											    $('#CitySelect').val('');
+										    </text>
+                                            }
+										}
+									});
+								}
+
+							}
+
+							$(document).ready(function () {
+								$.ajax({
+									url: '@Url.Action("GetCountries", "Utils")',
+									type: 'POST',
+									dataType: 'json',
+									success: function (d) {
+										$('#CountrySelect').empty();
+										$('#CountrySelect').append($('<option>', { value: "", text: "Selecione" }));
+										$.each(d, function (i, e) {
+											$('#CountrySelect').append($('<option>', { value: e.CountryId, text: e.NiceName}));
+										});
+										@if (Model.CountryId != null) {
+										<text>
+											$('#CountrySelect').val('@Model.CountryId');
+											$('#CountrySelect').change();
+										</text>
+                                        }
+                                        else {
+										<text>
+											$('#CountrySelect').val('');
+										</text>
+                                        }
+									}
+								});
+							});
+                        </script>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label" for="Summary">Sumário *</label>
+                        <textarea class="form-control" id="Summary" name="Summary" placeholder="Sumário">@Model.Summary</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label" for="Comments">Comentários</label>
+                        <textarea class="form-control" id="Comments" name="Comments" placeholder="Comentários">@Model.Comments</textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-4">
+                            <label>Tema</label>
+                            <select type="text" class="form-control" name="QuestionThemeId" onchange="loadQuestionSubThemeSelect()">
+                                <option value="">Selecione</option>
+                                @foreach (var item in questionThemeFunctions.GetDataAsNoTracking(x => !x.IsDeleted || x.QuestionThemeId == Model.QuestionThemeId))
+                                {
+                                    <option value="@item.QuestionThemeId" @(item.QuestionThemeId == Model.QuestionThemeId ? "selected" : "")>@item.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label>Subtema:</label>
+                            <div class="input-group">
+                                <select type="text" class="form-control" name="QuestionSubThemeId">
+                                    <option value="">Selecione</option>
+                                    @{
+                                        if (Model.QuestionThemeId.HasValue)
+                                        {
+                                            foreach (var item in questionSubThemeFunctions.GetDataAsNoTracking(x => !x.IsDeleted || x.QuestionSubThemeId == Model.QuestionSubThemeId))
+                                            {
+                                                <option data-question-theme="@item.QuestionThemeId" value="@item.QuestionSubThemeId" @(item.QuestionSubThemeId == Model.QuestionSubThemeId ? "selected" : "")>@item.Name</option>
+                                            }
+                                        }
+                                    }
+                                </select>
+                                <a href="javascript:visualizeSubTheme()" class="input-group-addon"><i class="fa fa-search"></i></a>
+                            </div>
+                            <script type="text/javascript">
+                                function loadQuestionSubThemeSelect() {
+                                    $('[name="QuestionSubThemeId"]').empty();
+                                    $('[name="QuestionSubThemeId"]').append(new Option('Selecione', ''));
+
+                                    var questionThemeId = $('[name="QuestionThemeId"]').val();
+
+                                    if (questionThemeId == null) return;
+
+                                    $.post('@Url.Action("GetDataByTheme", "QuestionSubTheme")', { questionThemeId }, function (d) {
+                                        $.each(d, function (i, e) {
+                                            $('[name="QuestionSubThemeId"]').append(new Option(e.Name, e.QuestionSubThemeId));
+                                        });
+                                    });
+                                }
+
+                                function visualizeSubTheme() {
+                                    var questionSubThemeId = $('[name="QuestionSubThemeId"]').val();
+
+                                    if (isNullOrWhiteSpace(questionSubThemeId)) {
+                                        alert('Selecione um subtema');
+                                        return;
+                                    }
+
+                                    $('#question-subtheme-view-component').load('@Url.Action("LoadQuestionSubThemeManageViewComponent", "QuestionSubTheme")', { questionSubThemeId, questionThemeId: $('[name="QuestionSubThemeId"] option:selected').data('question-theme'), onlyView: true }, function () {
+                                        $('#question-subtheme-modal').modal('show');
+                                    });
+                                }
+                            </script>
+                        </div>
+                        <div class="form-group col-md-4">
+                            <label>Criticidade</label>
+                            <select type="text" class="form-control" name="LawPotentialityTypeId">
+                                <option value="">Selecione</option>
+                                @foreach (var item in lawPotentialityTypeFunctions.GetDataAsNoTracking().OrderBy(x => x.Order))
+                                {
+                                    <option value="@item.LawPotentialityTypeId" @(item.LawPotentialityTypeId == Model.LawPotentialityTypeId ? "selected" : "")>@item.Name</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    @if (Model.LawId.HasValue)
+                    {
+                        <div class="form-row">
+                            <div class="form-group col-md-3">
+                                <label>Requisito Legal Criado Em</label>
+                                <input type="text" class="form-control" name="CreatedDate" value="@(Model._CreatedDate??"-")" disabled />
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label>Por:</label>
+                                <input type="text" class="form-control" name="UserName" value="@(Model.CreatedByName??"-")" disabled />
+                            </div>
+                        </div>
+                    }
+                    <div class="form-group">
+                        @if (Model.LawId.HasValue)
+                        {
+                            <button type="button" id="LawAttachments" data-disabled="false" class="btn btn-secondary" data-toggle="modal" data-target="#LawAttachmentModal"><i class="fa fa-paperclip"></i>&nbsp;Anexos do Requisto Legal</button>
+                        }
+                        else
+                        {
+                            <button type="button" class="btn" disabled>Anexos do Requisto Legal</button>
+                            <br />
+                            <small>Os anexos serão habilitados após a criação do requisito legal.</small>
+                        }
+                    </div>
+                    <hr />
+                    <div class="form-row">
+                        <input type="hidden" value="@Model.RevokedBy" name="RevokedBy" />
+                        <input type="hidden" value="@Model.RevokedById" id="RevokedById" name="RevokedById" />
+                        <input type="hidden" value="@Model.AlteredBy" name="AlteredBy" />
+                        <div class="form-group col-md-12">
+                            <div class="card">
+                                <div class="card-header" data-toggle="slide" aria-expanded="true" data-target="#altered-from-area" data-slide-icon="#altered-from-slide-icon" style="cursor: pointer; background: #ffedb8;">
+                                    Altera os requisitos legais
+                                    <i class="fa fa-chevron-up" style="float: right; margin-top: 5px;" id="altered-from-slide-icon"></i>
+                                </div>
+                                <div class="card-body card-body-altered-revoked" id="altered-from-area">
+                                    <div class="card-altered-body">
+                                        <div class="form-group m-r-l-15 btn-select-law-area" @(!string.IsNullOrWhiteSpace(Model.RevokedBy) ? Html.Raw("style=\"display:none;\"") : (object)"")>
+                                            <label>&nbsp;</label>
+                                            <a href="javascript:openSelectionLawModal('lawChangeFrom')" class="btn btn-primary float-right"><i class="fa fa-plus-circle"></i>&nbsp;Selecionar Requisitos Legais</a>
+                                        </div>
+                                        <div class="form-group m-r-l-15">
+                                            <input type="text" class="form-control" data-disabled="false" placeholder="Pesquisar..." data-toggle="search-datatable" data-target="#alterated-from-selected-table">
+                                        </div>
+                                        <table class="table table-condensed table-bordered table-pd-sm table-font-size-14 w-100" id="alterated-from-selected-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Tipo</th>
+                                                    <th>Número</th>
+                                                    <th>Descrição</th>
+                                                    <th>Orgão</th>
+                                                    <th>Data de Vigor</th>
+                                                    <th>Esfera</th>
+                                                    @if (string.IsNullOrWhiteSpace(Model.RevokedBy))
+                                                    {
+                                                        <th></th>
+                                                    }
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var item in lawChangesFrom)
+                                                {
+                                                    <tr data-law-id="@item.LawId">
+                                                        <td>@item.LawTypeName</td>
+                                                        <td>@item.LawNumber</td>
+                                                        <td>@(item.LawTitle.Length > 20? item.LawTitle.Substring(0, 20) + "..." : item.LawTitle)</td>
+                                                        <td>@item.LawOrgaoName</td>
+                                                        <td>@item._LawForceDate</td>
+                                                        <td>@item.LawEsferaName</td>
+                                                        @if (string.IsNullOrWhiteSpace(Model.RevokedBy))
+                                                        {
+                                                            <td><a href="javascript:removeChangedFromLaw(@item.LawId)"><i class="fa fa-trash"></i></a></td>
+                                                        }
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <script type="text/javascript">
+                                        var alteratedFromDatatables = $('#alterated-from-selected-table').DataTable({
+                                            ordering: false
+                                            , proccessing: true
+                                            , serverSide: false
+                                            , searching: true
+                                            , lengthChange: false
+                                            , paging: false
+                                            , info: false
+                                            , dom: 'tip'
+                                        });
+                                    </script>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group col-md-12">
+                            <div class="card">
+                                <div class="card-header" data-toggle="slide" aria-expanded="true" data-target="#revoked-from-area" data-slide-icon="#revoked-from-slide-icon" style="cursor: pointer; background: #ffc7c7;">
+                                    Revoga os requisitos legais
+                                    <i class="fa fa-chevron-up" style="float: right; margin-top: 5px;" id="revoked-from-slide-icon"></i>
+                                </div>
+                                <div class="card-body card-body-altered-revoked" id="revoked-from-area">
+                                    <div class="card-revoked-body">
+                                        <div class="form-group m-r-l-15 btn-select-law-area" @(!string.IsNullOrWhiteSpace(Model.RevokedBy) ? Html.Raw("style=\"display:none;\"") : (object)"")>
+                                            <label>&nbsp;</label>
+                                            <a href="javascript:openSelectionLawModal('revokedFrom')" class="btn float-right btn-primary"><i class="fa fa-plus-circle"></i>&nbsp;Selecionar Requisitos Legais</a>
+                                        </div>
+                                        <div class="form-group m-r-l-15">
+                                            <input type="text" class="form-control" placeholder="Pesquisar..." data-disabled="false" data-toggle="search-datatable" data-target="#revoked-from-selected-table">
+                                        </div>
+                                        <table class="table table-condensed table-bordered table-pd-sm table-font-size-14 w-100" id="revoked-from-selected-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Tipo</th>
+                                                    <th>Número</th>
+                                                    <th>Descrição</th>
+                                                    <th>Orgão</th>
+                                                    <th>Data de Vigor</th>
+                                                    <th>Esfera</th>
+                                                    @if (string.IsNullOrWhiteSpace(Model.RevokedBy))
+                                                    {
+                                                        <th></th>
+                                                    }
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var item in revokedFrom)
+                                                {
+                                                    <tr data-law-id="@item.LawId">
+                                                        <td>@item.LawTypeName</td>
+                                                        <td>@item.LawNumber</td>
+                                                        <td>@(item.LawTitle.Length > 20? item.LawTitle.Substring(0, 20) + "..." : item.LawTitle)</td>
+                                                        <td>@item.LawOrgaoName</td>
+                                                        <td>@item._LawForceDate</td>
+                                                        <td>@item.LawEsferaName</td>
+                                                        @if (string.IsNullOrWhiteSpace(Model.RevokedBy))
+                                                        {
+                                                            <td><a href="javascript:removeRevokedFromLaw(@item.LawId)"><i class="fa fa-trash"></i></a></td>
+                                                        }
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <script type="text/javascript">
+                                        var revokedFromDatatables = $('#revoked-from-selected-table').DataTable({
+                                            ordering: false
+                                            , proccessing: true
+                                            , serverSide: false
+                                            , searching: true
+                                            , lengthChange: false
+                                            , paging: false
+                                            , info: false
+                                            , dom: 'tip'
+                                        });
+                                    </script>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group col-md-12">
+                            <div class="card">
+                                <div class="card-header" data-toggle="slide" aria-expanded="true" data-target="#altered-by-area" data-slide-icon="#altered-by-slide-icon" style="cursor: pointer; background: #ffedb8;">
+                                    Alterado pelos requisitos legais
+                                    <i class="fa fa-chevron-up" style="float: right; margin-top: 5px;" id="altered-by-slide-icon"></i>
+                                </div>
+                                <div class="card-body card-body-altered-revoked" id="altered-by-area">
+                                    <div class="card-altered-body">
+                                        <div class="form-group m-r-l-15 btn-select-law-area" @(!string.IsNullOrWhiteSpace(Model.RevokedBy) ? Html.Raw("style=\"display:none;\"") : (object)"")>
+                                            <label>&nbsp;</label>
+                                            <a href="javascript:openSelectionLawModal('lawChangeBy')" class="btn btn-primary float-right"><i class="fa fa-plus-circle"></i>&nbsp;Selecionar Requisitos Legais</a>
+                                        </div>
+                                        <div class="form-group m-r-l-15">
+                                            <input type="text" class="form-control" placeholder="Pesquisar..." data-disabled="false" data-toggle="search-datatable" data-target="#alterated-by-selected-table">
+                                        </div>
+                                        <table class="table table-condensed table-bordered table-pd-sm table-font-size-14 w-100" id="alterated-by-selected-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Tipo</th>
+                                                    <th>Número</th>
+                                                    <th>Descrição</th>
+                                                    <th>Orgão</th>
+                                                    <th>Data de Vigor</th>
+                                                    <th>Esfera</th>
+                                                    @if (string.IsNullOrWhiteSpace(Model.RevokedBy))
+                                                    {
+                                                        <th></th>
+                                                    }
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var item in lawChangesBy)
+                                                {
+                                                    <tr data-law-id="@item.LawId">
+                                                        <td>@item.LawTypeName</td>
+                                                        <td>@item.LawNumber</td>
+                                                        <td>@(item.LawTitle.Length > 20? item.LawTitle.Substring(0, 20) + "..." : item.LawTitle)</td>
+                                                        <td>@item.LawOrgaoName</td>
+                                                        <td>@item._LawForceDate</td>
+                                                        <td>@item.LawEsferaName</td>
+                                                        @if (string.IsNullOrWhiteSpace(Model.RevokedBy))
+                                                        {
+                                                            <td><a href="javascript:removeChangedByLaw(@item.LawId)"><i class="fa fa-trash"></i></a></td>
+                                                        }
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <script type="text/javascript">
+                                        var alteratedByDatatables = $('#alterated-by-selected-table').DataTable({
+                                            ordering: false
+                                            , proccessing: true
+                                            , serverSide: false
+                                            , searching: true
+                                            , lengthChange: false
+                                            , paging: false
+                                            , info: false
+                                            , dom: 'tip'
+                                        });
+                                    </script>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group col-md-12">
+                            <div class="card">
+                                <div class="card-header" data-toggle="slide" aria-expanded="true" data-target="#revoked-by-area" data-slide-icon="#revoked-by-slide-icon" style="cursor: pointer; background: #ffc7c7;">
+                                    Revogado pelo requisito legal
+                                    <i class="fa fa-chevron-up" style="float: right; margin-top: 5px;" id="revoked-by-slide-icon"></i>
+                                </div>
+                                <div class="card-body card-body-altered-revoked" id="revoked-by-area">
+                                    <div class="card-revoked-body">
+                                        <div class="form-group m-r-l-15 btn-select-law-area" @(!string.IsNullOrWhiteSpace(Model.RevokedBy) ? Html.Raw("style=\"display:none;\"") : (object)"")>
+                                            <label>&nbsp;</label>
+                                            <a href="javascript:openLawRevokedModal()" class="float-right btn btn-primary"><i class="fa fa-plus-circle"></i>&nbsp;Selecionar Requisito Legal</a>
+                                        </div>
+                                        <table class="table table-condensed table-bordered table-pd-sm table-font-size-14 w-100" id="revoked-by-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Tipo</th>
+                                                    <th>Número</th>
+                                                    <th>Descrição</th>
+                                                    <th>Orgão</th>
+                                                    <th>Data de Vigor</th>
+                                                    <th>Esfera</th>
+                                                    @if (string.IsNullOrWhiteSpace(Model.RevokedBy))
+                                                    {
+                                                        <th></th>
+                                                    }
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @if (!string.IsNullOrWhiteSpace(Model.RevokedBy) || revokedBy != null)
+                                                {
+                                                    <tr>
+                                                        @if (revokedBy != null)
+                                                        {
+                                                            <td>@revokedBy.LawTypeName</td>
+                                                            <td>@revokedBy.LawNumber</td>
+                                                            <td>@(revokedBy.LawTitle.Length > 20? revokedBy.LawTitle.Substring(0, 20) + "..." : revokedBy.LawTitle)</td>
+                                                            <td>@revokedBy.LawOrgaoName</td>
+                                                            <td>@revokedBy._LawForceDate</td>
+                                                            <td>@revokedBy.LawEsferaName</td>
+                                                            @if (string.IsNullOrWhiteSpace(Model.RevokedBy))
+                                                            {
+                                                                <td><a href="javascript:removeRevokedByLaw()"><i class="fa fa-trash"></i></a></td>
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>@Model.RevokedBy</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            @if (string.IsNullOrWhiteSpace(Model.RevokedBy))
+                                                            {
+                                                                <td><a href="javascript:removeRevokedByLaw()"><i class="fa fa-trash"></i></a></td>
+                                                            }
+
+                                                        }
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <script type="text/javascript">
+                                        var revokedByDatatables = $('#revoked-by-table').DataTable({
+                                            ordering: false
+                                            , proccessing: true
+                                            , serverSide: false
+                                            , searching: true
+                                            , lengthChange: false
+                                            , paging: false
+                                            , info: false
+                                            , dom: 'tip'
+                                        });
+                                    </script>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <a id="lessInfo" href="javascript: LessInfo();">Menos Informações...</a>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div id="divControls">
+                    <a href="@Url.Action("Index", "LawManagement", new { useFilter = true, page = Context.Request.Query["page"],  row = Context.Request.Query["row"] })" class="btn btn-secondary float-left"><i class="fa fa-arrow-left"></i>&nbsp;Voltar</a>
+                    <button type="button" id="buttonSubmit" class="btn btn-success float-right"><i class="fa fa-plus"></i>&nbsp;Criar Requisito Legal</button>
+                    <div class="form-check mb-2 float-right" style="line-height: 38px; margin-right: 1em;">
+                        <input class="form-check-input" id="_NotSendEmail" type="checkbox" style="margin-top: 0.9em; margin-left: 0em;">
+                        <script type="text/javascript">
+                            $('#_NotSendEmail').change(function () {
+                                if ($('#_NotSendEmail').val() == 'on') {
+                                    $('#NotSendEmail').val('true');
+                                }
+                                else {
+                                    $('#NotSendEmail').val('false');
+                                }
+                            })
+                        </script>
+                        <input id="NotSendEmail" name="NotSendEmail" type="hidden">
+                        <label class="form-check-label" for="autoSizingCheck">
+                            Não enviar e-mail para esta alteração.
+                        </label>
+                    </div>
+                    <script type="text/javascript">
+                        function validate() {
+
+                            var hasError = false;
+                            $('#form .invalid-feedback').remove();
+                            $('#alertForm').hide();
+
+                            // LawTypeId
+                            if (IsNullOrWhiteSpace($('#LawTypeId').val())) {
+                                $('#LawTypeId').after('<div class="invalid-feedback">Escolha um tipo.</div>');
+                                hasError = true;
+                            }
+
+                            // Number
+                            if (IsNullOrWhiteSpace($('#Number').val())) {
+                                $('#Number').after('<div class="invalid-feedback">Preencha o número.</div>');
+                                hasError = true;
+                            }
+
+                            // ForceDate
+                            if (IsNullOrWhiteSpace($('#ForceDate').val())) {
+                                $('#ForceDate').after('<div class="invalid-feedback">Defina uma data.</div>');
+                                hasError = true;
+                            } else {
+                                if (!ValidDate($('#ForceDate').val())) {
+                                    $('#ForceDate').after('<div class="invalid-feedback">Data inválida.</div>');
+                                    hasError = true;
+                                }
+                            }
+
+                            // PublishDate
+                            if (IsNullOrWhiteSpace($('#PublishDate').val())) {
+                                $('#PublishDate').after('<div class="invalid-feedback">Defina uma data.</div>');
+                                hasError = true;
+                            } else {
+                                if (!ValidDate($('#PublishDate').val())) {
+                                    $('#PublishDate').after('<div class="invalid-feedback">Data inválida.</div>');
+                                    hasError = true;
+                                }
+                            }
+
+                            // Keywords
+                            if (IsNullOrWhiteSpace($('#Keywords').val())) {
+                                $('#keywords-area').after('<div class="invalid-feedback">Preencha a palavra-chave.</div>');
+                                hasError = true;
+                            }
+
+                            // Title
+                            if (IsNullOrWhiteSpace($('#Title').val())) {
+                                $('#Title').after('<div class="invalid-feedback">Preencha o título.</div>');
+                                hasError = true;
+                            }
+
+                            // EsferaId
+                            if (IsNullOrWhiteSpace($('#EsferaId').val())) {
+                                $('#EsferaId').after('<div class="invalid-feedback">Selecione a esfera.</div>');
+                                hasError = true;
+                            }
+
+                            // OrgaoId
+                            if (IsNullOrWhiteSpace($('#OrgaoId').val())) {
+                                $('#OrgaoId').after('<div class="invalid-feedback">Selecione o orgão.</div>');
+                                hasError = true;
+                            }
+
+                            // SegmentoId
+                            if (IsNullOrWhiteSpace($('#SegmentoId').val())) {
+                                $('#SegmentoId').after('<div class="invalid-feedback">Selecione o segmento.</div>');
+                                hasError = true;
+                            }
+
+                            // Summary
+                            if (IsNullOrWhiteSpace($('#Summary').val())) {
+                                $('#Summary').after('<div class="invalid-feedback">Preencha o sumário.</div>');
+                                hasError = true;
+                            }
+
+                            //bootbox.confirm("Este Requisito Legal será revogado, e então será desassociado de suas unidades de negócio!", function (result) {
+                            //if (!result) {
+                            //$('#revokedDate').val('');
+                            //$('#RevokedBy').val('');
+                            //}
+                            // });
+
+
+                            //data em vigor após a data de publicação
+                            if (moment($('#PublishDate').val(), 'DD/MM/YYYY').isAfter(moment($('#ForceDate').val(), 'DD/MM/YYYY'))) {
+                                $('#PublishDate').after('<div class="invalid-feedback">Data de publicação deve ser anterior a data em vigor.</div>');
+                                hasError = true;
+                            }
+
+                            if ($('#Municipal')[0].selected) {
+                                if (IsNullOrWhiteSpace($('#CitySelect').val())) {
+                                    $('#CitySelect').after('<div class="invalid-feedback">Escolha uma cidade.</div>');
+                                    hasError = true;
+                                }
+                                if (IsNullOrWhiteSpace($('#StateSelect').val())) {
+                                    $('#StateSelect').after('<div class="invalid-feedback">Escolha um estado.</div>');
+                                    hasError = true;
+                                }
+                                if (IsNullOrWhiteSpace($('#CountrySelect').val())) {
+                                    $('#CountrySelect').after('<div class="invalid-feedback">Escolha um país.</div>');
+                                    hasError = true;
+                                }
+                            }
+                            else if ($('#Estadual')[0].selected) {
+                                if (IsNullOrWhiteSpace($('#StateSelect').val())) {
+                                    $('#StateSelect').after('<div class="invalid-feedback">Escolha um estado.</div>');
+                                    hasError = true;
+                                }
+                                if (IsNullOrWhiteSpace($('#CountrySelect').val())) {
+                                    $('#CountrySelect').after('<div class="invalid-feedback">Escolha um país.</div>');
+                                    hasError = true;
+                                }
+                            }
+                            else if ($('#Federal')[0].selected) {
+                                if (IsNullOrWhiteSpace($('#CountrySelect').val())) {
+                                    $('#CountrySelect').after('<div class="invalid-feedback">Escolha um país.</div>');
+                                    hasError = true;
+                                }
+                            }
+                            if (hasError) {
+                                $('#alertForm').show();
+                                $("html, body").animate({ scrollTop: 0 }, "slow");
+                                $('#form .invalid-feedback').show();
+                            }
+
+                            return !hasError;
+                        }
+
+                        $('#buttonSubmit').click(function () {
+                            if (!validate()) return;
+
+                            @if (!Model.LawId.HasValue)
+                            {
+                            <text>
+                            if (revokedFromLawIds.length > 0 || changedFromLawIds.length > 0) {
+                                create();
+                            } else {
+                                appendSelectionLawsToForm();
+                                $('#form').submit();
+                            }
+                            </text>
+                            }else {
+                            <text>
+                                appendSelectionLawsToForm();
+                                $('#form').submit();
+                            </text>
+                            }
+
+                        });
+
+                        function create() { //Chamado quando é criação
+                            bootbox.dialog({
+                                message: "Deseja associar este requisito legal às unidades de negócio já vinculadas aos requisito legais revogados/alterados?<br /><br />Obs.: Caso não queira vincular agora, as unidades de negócio podem ser vinculadas manualmente após a criação deste requisito legal.",
+                                size: 'large',
+                                buttons: {
+                                    cancel: {
+                                        label: 'Salvar e não associar às unidades de negócio',
+                                        className: 'btn-primary mr-auto float-left',
+                                        callback: function () {
+                                            appendSelectionLawsToForm();
+                                            $('#form').submit();
+                                        }
+                                    },
+                                    confirm: {
+                                        label: 'Salvar e associar às unidades de negócio',
+                                        className: 'btn-success',
+                                        callback: function () {
+                                            $('#form').append($('<input>', { type: 'hidden', name: 'associateLaw', value: true }));
+
+                                            appendSelectionLawsToForm();
+                                            $('#form').submit();
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    </script>
+                    @if (ViewData["ErroDoArquivo"] != null)
+                    {
+                        string messageFile = (string)ViewData["ErroDoArquivo"];
+                        <script type="text/javascript">
+							$('#form .invalid-feedback').remove();
+							$('#Anexo').after('<div class="invalid-feedback">@messageFile</div>');
+							$('#alertForm').show();
+							$('#form .invalid-feedback').show();
+                        </script>
+                    }
+                    @if (Model.LawId != null)
+                    {
+                        <script type="text/javascript">
+							$('#@componentID #buttonSubmit').html('<i class="fa fa-cloud-upload-alt"></i>&nbsp;Salvar Requisito Legal');
+                        MoreInfo();
+                        </script>
+                    }
+                    <script type="text/javascript">
+                        $('#EsferaId').change(function () {
+                            VerificaEsfera();
+                        });
+                    </script>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="modal fade" id="LawAttachmentModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Anexos do Requisito Legal</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="alertErrorAttachment" class="alert alert-danger fade show text-center" role="alert" style="display: none;">
+                    <strong>Atenção!</strong> O Formulário contém erros.
+                </div>
+                <div id="alertSuccessAttachment" class="alert alert-success fade show text-center" role="alert" style="display: none;">
+                    <strong>O Arquivo foi adicionado com sucesso!</strong>
+                </div>
+                <div id="LawNewAttachment" style="display: none;">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group" id="LawAttachmentGroup">
+                                <label for="Anexo">Nome</label>
+                                <input type="text" class="form-control" id="AttachmentName" placeholder="Nome" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Arquivo</label>
+                                <input type="file" class="form-control" name="Anexo" id="Anexo" />
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-success" id="LawNewAttachmentButton"><i class="fa fa-plus"></i>&nbsp;Adicionar Anexo</button>
+                    <script type="text/javascript">
+							var files = null;
+							var datafile = new FormData();
+
+							$('#Anexo').on('change', function (e) {
+								files = e.target.files;
+								datafile.append("Lawfile", files[0]);
+							});
+
+							$('#LawNewAttachmentButton').click(function () {
+
+								if (IsNullOrWhiteSpace($('#AttachmentName').val())) {
+									$('#alertErrorAttachment').show();
+									$('#alertSuccessAttachment').hide();
+									$('#AttachmentName').after('<div class="text-danger">Digite o nome.</div>');
+								}
+
+								if (files != null && !IsNullOrWhiteSpace($('#AttachmentName').val())) {
+									datafile.append('Name', $('#AttachmentName').val());
+									datafile.append('LawId', @Model.LawId);
+									$('.invalid-feedback').remove();
+									$('#alertErrorAttachment').hide();
+									$('#alertSuccessAttachment').hide();
+									$('.text-danger').remove();
+
+									$.ajax({
+										url: '@Url.Action("Manage", "LawAttachmentManagement")',
+										type: 'POST',
+										contentType: false,
+										processData: false,
+										data: datafile,
+										success: function (data) {
+											datafile = new FormData();
+											files = null;
+											$('#Anexo').val("");
+											$('#AttachmentName').val("");
+											if (data == -1) {
+												$('#alertErrorAttachment').show();
+												$('#alertSuccessAttachment').hide();
+												$('#Anexo').after('<div class="text-danger">Nome do arquivo incorreto.</div>');
+											}
+											else {
+												$('#alertSuccessAttachment').show();
+												$('#alertErrorAttachment').hide();
+												$('.text-danger').remove();
+												_ListLawAttachments(@Model.LawId);
+											}
+										}
+									});
+								}
+							});
+                    </script>
+                </div>
+                @if (string.IsNullOrWhiteSpace(Model.RevokedBy))
+                {
+                    <div style="width: 100%;" class="text-right"><a href="javascript:void(0)" id="LawManagementNewAttachmentLink">Novo Anexo</a></div>
+                    <script type="text/javascript">
+                        $('#LawManagementNewAttachmentLink').click(function () {
+                            $('#LawNewAttachment').show();
+                            $('#LawManagementNewAttachmentLink').hide();
+                        });
+                    </script>
+                    <hr />
+                }
+
+                @{ Html.RenderPartial("~/Views/Shared/_LawAttachment.cshtml"); }
+            </div>
+            <div class="modal-footer">
+                <button type="button" aria-label="Close" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-times"></i>&nbsp;Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+	$('#LawAttachmentModal').on('shown.bs.modal', function () {
+		files = null;
+		$('#Anexo').val("");
+		$('#alertErrorAttachment').hide();
+		$('.text-danger').remove();
+		$('#alertSuccessAttachment').hide();
+		$('#LawNewAttachment').hide();
+		$('#LawManagementNewAttachmentLink').show();
+        _LawAttachmentsClearSearch();
+        _ListLawAttachments(@Model.LawId);
+    });
+</script>
+
+@if (ViewData["DuplicateLaw"] != null)
+{
+    var duplicateLaw = (DAL.Law)ViewData["DuplicateLaw"];
+
+    <div class="modal fade" id="duplicate-law-modal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Requisito Legal existente</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <label>Já existe um requisito legal com os mesmos dados informados:</label>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Número</label>
+                                <input type="text" class="form-control" disabled value="@duplicateLaw.Number" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Data Publicação</label>
+                                <input type="text" class="form-control" disabled value="@(duplicateLaw.PublishDate?.ToString("dd/MM/yyyy"))" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Data Vigor</label>
+                                <input type="text" class="form-control" disabled value="@(duplicateLaw.ForceDate?.ToString("dd/MM/yyyy"))" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Tipo</label>
+                                <select class="form-control" disabled>
+                                    @{
+                                        var tipo = tipos.SingleOrDefault(x => x.LawTypeId == duplicateLaw.LawTypeId);
+                                        <option>@tipo.Name</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Esfera</label>
+                                <select class="form-control" disabled>
+                                    @if (duplicateLaw.EsferaId.HasValue)
+                                    {
+                                        var esfera = esferas.SingleOrDefault(x => x.EsferaId == duplicateLaw.EsferaId);
+                                        <option>@esfera.Name</option>
+                                    }
+                                    else
+                                    {
+                                        <option>-</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Orgão</label>
+                                <select class="form-control" disabled>
+                                    @if (duplicateLaw.OrgaoId.HasValue)
+                                    {
+                                        var orgao = orgaos.SingleOrDefault(x => x.OrgaoId == duplicateLaw.OrgaoId);
+                                        <option>@orgao.Name</option>
+                                    }
+                                    else
+                                    {
+                                        <option>-</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label>Título</label>
+                                <input type="text" class="form-control" disabled value="@duplicateLaw.Title" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="col-md-6">
+                        <button type="button" aria-label="Close" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-times"></i>&nbsp;Fechar</button>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="@Url.Action("Manage", "LawManagement")?Id=@duplicateLaw.LawId" target="_blank" type="button" class="btn btn-primary float-right"><i class="fa fa-external-link-alt"></i>&nbsp;Visualizar Requisito Legal</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#duplicate-law-modal').modal('show');
+        });
+    </script>
+}
+
+
+<div class="modal fade" id="law-selection-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="law-selection-modal-title"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col">
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="fa fa-search"></i></span>
+                            <input type="text" class="form-control" placeholder="Pesquisar..." data-toggle="search-datatable" data-target="#AlteratedLawsTable" id="law-selection-modal-search">
+                        </div>
+                    </div>
+                </div>
+                <hr />
+                <div class="form-check">
+                    <input type="checkbox" checked class="form-check-input" id="law-selection-modal-validate-by-esfera">
+                    <label class="form-check-label" style="padding-left: 0;" for="law-selection-modal-validate-by-esfera">Mostrar somente os Requisitos legais compatíveis.</label>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <table class="table table-striped table-bordered table-condensed w-100" id="AlteratedLawsTable">
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox" id="changed-law-checkbox-all" /></th>
+                                    <th>Tipo</th>
+                                    <th>Número</th>
+                                    <th>Descrição</th>
+                                    <th>Orgão</th>
+                                    <th>Esfera</th>
+                                    <th style="white-space: nowrap;">Data de Vigor</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-times"></i>&nbsp;Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var changedByLawIds = [@(Model.LawId.HasValue? Html.Raw(string.Join(",", lawChangesBy.Select(x => $"{{lawId: {x.LawId}, lawNumber: '{x.LawNumber}'}}"))) : (object)"")];
+    var changedFromLawIds = [@(Model.LawId.HasValue? Html.Raw(string.Join(",", lawChangesFrom.Select(x => $"{{lawId: {x.LawId}, lawNumber: '{x.LawNumber}'}}"))) : (object)"")];
+    var revokedFromLawIds = [@(Model.LawId.HasValue? Html.Raw(string.Join(",", revokedFrom.Select(x => $"{{lawId: {x.LawId}, lawNumber: '{x.LawNumber}'}}"))) : (object)"")];
+
+    var selectionLawsDatatables_NotGetThisLaws = null; // leis já selecionadas das tabelas exceto da tabela que está sendo aberta.
+
+    @if (Model.LawId.HasValue) {
+        <text>
+	selectionLawsDatatables_NotGetThisLaws = '@Model.LawId';
+        </text>
+    }
+
+    var selectionLawsDatatables = $('#AlteratedLawsTable').DataTable({
+        columnDefs: [
+            { targets: [1, 2], orderData: [2, 7] },
+            { "targets": 0, "orderable": false }
+        ]
+        , order: [[2, "asc"]]
+        , proccessing: true
+        , serverSide: true
+        , searching: true
+        , lengthChange: false
+        , dom: 'tip'
+        , ajax: {
+            url: '@Url.Action("List", "LawManagement")'
+            , data: function (d) {
+                d.ignoreSessionFilter = true;
+                d.notIncludeRevokedLaws = true;
+                d.NotGetThisLaws = selectionLawsDatatables_NotGetThisLaws;
+
+                if ($('#law-selection-modal-validate-by-esfera') == null || $('#law-selection-modal-validate-by-esfera').get(0).checked) {
+                    var forceDate = moment($('#ForceDate').val(), 'DD/MM/YYYY');
+
+                    if (forceDate._isValid)
+                        d.forceDate = forceDate._d.toISOString();
+
+                    d.segmentoId = $('#SegmentoId').val();
+                    d.esferaId = $('#EsferaId').val();
+                    d.countryId = $('#CountrySelect').val();
+                    d.stateId = $('#StateSelect').val();
+                    d.cityId = $('#CitySelect').val();
+                }
+            }
+            , type: 'POST'
+        }
+        , columns: [
+			  {
+                data: 'LawNumber',
+                render: function (data, type, row) {
+                    return '<input type="checkbox" class="changed-law-checkbox" data-law-id="' + row.LawId + '" data-law-number="' + row.LawNumber + '" />';
+                }
+            }
+            , { data: 'LawTypeName' }
+			, {
+                data: 'LawNumberOrdering',
+			    render: function (data, type, row) {
+                    return row._LawNumber
+                }
+            }
+            , {
+                data: 'LawTitle',
+                render: function (data, type, row, meta) {
+                    var title = row.LawTitle.length > 50 ? row.LawTitle.substring(0, 50) + '...' : row.LawTitle;
+
+                    if (row.LawRevokedDate != null || row.LawRevokedBy != null) {
+                        return '<span style="color: red; text-decoration: line-through;">' + title + '</b></span>&nbsp;<b>(Revogada em ' + (IsNullOrWhiteSpace(row._LawRevokedDate) ? '-' : row._LawRevokedDate) + ' por ' + (IsNullOrWhiteSpace(row.LawRevokedBy) ? '-' : row.LawRevokedBy) + ')';
+                    } else {
+                        return title;
+                    }
+                }
+            }
+            , { data: 'LawOrgaoName' }
+            , { data: 'LawEsferaName' }
+            , {
+                data: 'LawForceDate'
+                , render: function (data, type, row) {
+                    return '<div>' + row._LawForceDate + '</div>';
+                }
+            }
+            , { data: '_LawNumberOrdering', visible: false }
+        ],
+        drawCallback: function () {
+            $('.changed-law-checkbox').change(function () {
+                var lawId = $(this).data('law-id');
+                var number = $(this).data('law-number');
+
+                if (this.checked) {
+                    if ($('#law-selection-modal').data('change-law-type') == 'lawChangeBy') insertChangedByLaw(lawId, number);
+                    else if ($('#law-selection-modal').data('change-law-type') == 'lawChangeFrom') insertChangedFromLaw(lawId, number);
+                    else insertRevokedFromLaw(lawId, number);
+                }
+                else {
+                    if ($('#law-selection-modal').data('change-law-type') == 'lawChangeBy') removeChangedByLaw(lawId);
+                    else if ($('#law-selection-modal').data('change-law-type') == 'lawChangeFrom') removeChangedFromLaw(lawId);
+                    else removeRevokedFromLaw(lawId);
+                }
+            });
+
+
+            if ($('#law-selection-modal').data('change-law-type') == 'lawChangeBy') setCheckboxesForChengedByLawIds();
+            else if ($('#law-selection-modal').data('change-law-type') == 'lawChangeFrom') setCheckboxesForChengedFromLawIds();
+            else setCheckboxesForRevokedFromLawIds();
+
+            $('#changed-law-checkbox-all')[0].checked = false;
+        }
+    });
+
+    function insertChangedByLaw(lawId, lawNumber)
+    {
+        if (changedByLawIds.findIndex(x => x.lawId == lawId) != -1) return;
+
+        changedByLawIds.push({ lawId, lawNumber });
+        setAlteredByText();
+        insertLawInTable(lawId);
+    }
+    function insertChangedFromLaw(lawId, lawNumber) {
+        if (changedFromLawIds.findIndex(x => x.lawId == lawId) != -1) return;
+
+        changedFromLawIds.push({ lawId, lawNumber });
+        setAlteredFromText();
+        insertLawInTable(lawId);
+    }
+    function insertRevokedFromLaw(lawId, lawNumber) {
+        if (revokedFromLawIds.findIndex(x => x.lawId == lawId) != -1) return;
+
+        revokedFromLawIds.push({ lawId, lawNumber });
+        insertLawInTable(lawId);
+    }
+
+    function removeChangedByLaw(lawId)
+    {
+        var itemIndex = changedByLawIds.findIndex(x => x.lawId == lawId);
+        if (itemIndex == -1) return;
+
+        changedByLawIds.splice(itemIndex, 1);
+        setAlteredByText();
+        removeLawFromTable(alteratedByDatatables, lawId);
+    }
+    function removeChangedFromLaw(lawId) {
+        var itemIndex = changedFromLawIds.findIndex(x => x.lawId == lawId);
+        if (itemIndex == -1) return;
+
+        changedFromLawIds.splice(itemIndex, 1);
+        setAlteredFromText();
+        removeLawFromTable(alteratedFromDatatables, lawId);
+    }
+
+    function removeRevokedFromLaw(lawId) {
+        var itemIndex = revokedFromLawIds.findIndex(x => x.lawId == lawId);
+        if (itemIndex == -1) return;
+
+        revokedFromLawIds.splice(itemIndex, 1);
+        removeLawFromTable(revokedFromDatatables, lawId);
+    }
+
+    $('#changed-law-checkbox-all').change(function () {
+        var checked = this.checked;
+
+        $.each($('.changed-law-checkbox'), function (i, e) {
+            if (checked) {
+                if ($('#law-selection-modal').data('change-law-type') == 'lawChangeBy') insertChangedByLaw($(e).data('law-id'));
+                else if ($('#law-selection-modal').data('change-law-type') == 'lawChangeFrom') insertChangedFromLaw($(e).data('law-id'));
+                else insertRevokedFromLaw($(e).data('law-id'));
+            }
+            else {
+                if ($('#law-selection-modal').data('change-law-type') == 'lawChangeBy') removeChangedLaw($(e).data('law-id'));
+                else if ($('#law-selection-modal').data('change-law-type') == 'lawChangeFrom') removeChangedFromLaw($(e).data('law-id'));
+                else removeChangedFromLaw($(e).data('law-id'));
+            }
+
+            $(e)[0].checked = checked;
+        });
+    });
+
+    function setCheckboxesForChengedByLawIds() {
+        $.each($('.changed-law-checkbox'), function (i, e) {
+            if (changedByLawIds.findIndex(x => x.lawId == $(e).data('law-id')) == -1) return;
+
+            $(e)[0].checked = true;
+        });
+    }
+    function setCheckboxesForChengedFromLawIds() {
+        $.each($('.changed-law-checkbox'), function (i, e) {
+            if (changedFromLawIds.findIndex(x => x.lawId == $(e).data('law-id')) == -1) return;
+
+            $(e)[0].checked = true;
+        });
+    }
+    function setCheckboxesForRevokedFromLawIds() {
+        $.each($('.changed-law-checkbox'), function (i, e) {
+            if (revokedFromLawIds.findIndex(x => x.lawId == $(e).data('law-id')) == -1) return;
+
+            $(e)[0].checked = true;
+        });
+    }
+
+    function appendSelectionLawsToForm() {
+        $.each(changedByLawIds, function (i, e) {
+            $('#form').append($('<input>', { type: 'hidden', name: 'LawChangesBy.Index', value: i }));
+            $('#form').append($('<input>', { type: 'hidden', name: 'LawChangesBy[' + i + '].ChangedLawId', value: e.lawId }));
+        });
+
+        $.each(changedFromLawIds, function (i, e) {
+            $('#form').append($('<input>', { type: 'hidden', name: 'LawChangesFrom.Index', value: i }));
+            $('#form').append($('<input>', { type: 'hidden', name: 'LawChangesFrom[' + i + '].LawId', value: e.lawId }));
+        });
+
+        $.each(revokedFromLawIds, function (i, e) {
+            $('#form').append($('<input>', { type: 'hidden', name: 'LawRevokedFrom.Index', value: i }));
+            $('#form').append($('<input>', { type: 'hidden', name: 'LawRevokedFrom[' + i + ']', value: e.lawId }));
+        });
+    }
+
+    function setAlteredByText() {
+        var lawNumbers = changedByLawIds.map(function (e, i) {
+            return e.lawNumber;
+        });
+
+        $('[name="AlteredBy"]').val(lawNumbers.join(', '));
+        $('#AlteredBy').val(lawNumbers.join(', '));
+    }
+
+    function setAlteredFromText() {
+        var lawNumbers = changedFromLawIds.map(function (e, i) {
+            return e.lawNumber;
+        });
+
+        $('#AlteredFrom').val(lawNumbers.join(', '));
+    }
+
+    function openSelectionLawModal(changeLawType) {
+        $('[data-toggle="search-datatable"]:visible').each(function (i, e) { $(e).val('') });
+        $('[data-toggle="search-datatable"]:visible').each(function (i, e) { $($(e).data('target')).DataTable().search('').draw(); });
+
+		var laws = [];
+
+        if (changeLawType == 'lawChangeFrom') {
+            $('#law-selection-modal-title').text('Altera');
+
+            if (revokedFromLawIds != null && revokedFromLawIds.length > 0) laws = laws.concat(revokedFromLawIds.map(function (e) { return e.lawId; }));
+            if (changedByLawIds != null && changedByLawIds.length > 0) laws = laws.concat(changedByLawIds.map(function (e) { return e.lawId; }));
+            if (!IsNullOrWhiteSpace($('#RevokedById').val())) laws.push($('#RevokedById').val());
+
+        }
+        else if (changeLawType == 'revokedFrom') {
+            $('#law-selection-modal-title').text('Revoga');
+
+            if (changedByLawIds != null && changedByLawIds.length > 0) laws = laws.concat(changedByLawIds.map(function (e) { return e.lawId; }));
+            if (changedFromLawIds != null && changedFromLawIds.length > 0) laws = laws.concat(changedFromLawIds.map(function (e) { return e.lawId; }));
+            if (!IsNullOrWhiteSpace($('#RevokedById').val())) laws.push($('#RevokedById').val());
+        }
+        else if (changeLawType == 'lawChangeBy') {
+            $('#law-selection-modal-title').text('Alterado pelos requisitos legais');
+
+            if (revokedFromLawIds != null && revokedFromLawIds.length > 0) laws = laws.concat(revokedFromLawIds.map(function (e) { return e.lawId; }));
+            if (changedFromLawIds != null && changedFromLawIds.length > 0) laws = laws.concat(changedFromLawIds.map(function (e) { return e.lawId; }));
+            if (!IsNullOrWhiteSpace($('#RevokedById').val())) laws.push($('#RevokedById').val());
+        }
+
+        $('#law-selection-modal-validate-by-esfera').get(0).checked = true;
+        $('#law-selection-modal').modal('show');
+        $('#law-selection-modal').data('change-law-type', changeLawType);
+
+
+        @if (Model.LawId.HasValue) {
+            <text>
+		laws.push('@Model.LawId');
+            </text>
+        }
+
+		selectionLawsDatatables_NotGetThisLaws = laws.join(',');
+
+        selectionLawsDatatables.ajax.reload();
+    }
+
+    $('#law-selection-modal').on('hidden.bs.modal', function () {
+        $('#law-selection-modal-search').val('');
+        selectionLawsDatatables.search('').draw();
+    });
+
+    function insertLawInTable(id) {
+        $.post('@Url.Action("GetLawViewById", "LawManagement")', { id }, function (d) {
+            var table, removeFunction;
+
+            if ($('#law-selection-modal').data('change-law-type') == 'lawChangeBy') {
+                table = alteratedByDatatables;
+                removeFunction = 'removeChangedByLaw';
+            }
+            else if ($('#law-selection-modal').data('change-law-type') == 'lawChangeFrom') {
+                table = alteratedFromDatatables;
+                removeFunction = 'removeChangedFromLaw';
+            }
+            else {
+                table = revokedFromDatatables;
+                removeFunction = 'removeRevokedFromLaw';
+            }
+
+            table.row.add(
+                $('<tr>', { 'data-law-id': id }).append(
+                    $('<td>').append(d.LawTypeName),
+                    $('<td>').append(d.LawNumber),
+                    $('<td>').append(d.LawTitle.length > 20 ? d.LawTitle.substring(0, 20) + '...' : d.LawTitle),
+                    $('<td>').append(d.LawOrgaoName),
+                    $('<td>').append(d._LawForceDate),
+                    $('<td>').append(d.LawEsferaName),
+                    $('<td>').append($('<a>', { href: 'javascript:' + removeFunction + '(' + id + ')' }).append('<i class="fa fa-trash"></i>'))
+                )
+            );
+
+            table.draw();
+            table.columns.adjust();
+        });
+    }
+
+    function removeLawFromTable(table, id) {
+        table.row($(table.context[0].nTable).find('tr[data-law-id="' + id + '"]')).remove();
+        table.draw();
+        table.columns.adjust();
+    }
+
+    $('#law-selection-modal-validate-by-esfera').change(function () {
+        selectionLawsDatatables.ajax.reload();
+    });
+</script>
+
+
+<div class="modal fade" id="law-revoked-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Revogado pelos requisitos legais</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col">
+                        <div class="input-group">
+                            <span class="input-group-addon"><i class="fa fa-search"></i></span>
+                            <input type="text" class="form-control" placeholder="Pesquisar..." data-toggle="search-datatable" data-target="#revokedLawsTable">
+                        </div>
+                    </div>
+                </div>
+                <hr />
+                <div class="form-check">
+                    <input type="checkbox" checked class="form-check-input" id="law-revoked-modal-validate-by-esfera">
+                    <label class="form-check-label" style="padding-left: 0;" for="law-revoked-modal-validate-by-esfera">Mostrar somente os Requisitos legais compatíveis.</label>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <table class="table table-striped table-bordered table-condensed w-100" id="revokedLawsTable">
+                            <thead>
+                                <tr>
+                                    <th>Tipo</th>
+                                    <th>Número</th>
+                                    <th>Descrição</th>
+                                    <th>Orgão</th>
+                                    <th>Esfera</th>
+                                    <th style="white-space: nowrap">Data de Vigor</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-times"></i>&nbsp;Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var revokedDatatables = $('#revokedLawsTable').DataTable({
+        columnDefs: [
+            { targets: [1], orderData: [1, 7] },
+        ]
+        , order: [[1, "asc"]]
+        , proccessing: true
+        , serverSide: true
+        , searching: true
+        , lengthChange: false
+        , dom: 'tip'
+        , ajax: {
+            url: '@Url.Action("List", "LawManagement")'
+			, data: function (d) {
+                d.ignoreSessionFilter = true;
+                d.notIncludeRevokedLaws = true;
+
+                var laws = [];
+                if (revokedFromLawIds != null && revokedFromLawIds.length > 0) laws = laws.concat(revokedFromLawIds.map(function (e) { return e.lawId; }));
+                if (changedByLawIds != null && changedByLawIds.length > 0) laws = laws.concat(changedByLawIds.map(function (e) { return e.lawId; }));
+                if (changedFromLawIds != null && changedFromLawIds.length > 0) laws = laws.concat(changedFromLawIds.map(function (e) { return e.lawId; }));
+
+                @if (Model.LawId.HasValue) {
+                    <text>
+				laws.push('@Model.LawId');
+                    </text>
+                }
+
+                d.NotGetThisLaws = laws.join(',');
+
+                if ($('#law-revoked-modal-validate-by-esfera') == null || $('#law-revoked-modal-validate-by-esfera').get(0).checked) {
+                    var forceDate = moment($('#ForceDate').val(), 'DD/MM/YYYY');
+
+                    if (forceDate._isValid)
+                        d.forceDate = forceDate._d.toISOString();
+
+                    d.segmentoId = $('#SegmentoId').val();
+                    d.esferaId = $('#EsferaId').val();
+                    d.countryId = $('#CountrySelect').val();
+                    d.stateId = $('#StateSelect').val();
+                    d.cityId = $('#CitySelect').val();
+                }
+
+			}
+            , type: 'POST'
+        }
+        , columns: [
+			  { data: 'LawTypeName' }
+			, {
+            data: 'LawNumberOrdering',
+			render: function (data, type, row) {
+                return row._LawNumber
+
+                }
+            }
+			, {
+                data: 'LawTitle',
+                render: function (data, type, row, meta) {
+                    var title = row.LawTitle.length > 30 ? row.LawTitle.substring(0, 30) + '...' : row.LawTitle;
+
+                    if (row.LawRevokedDate != null || row.LawRevokedBy != null) {
+                        return '<span style="color: red; text-decoration: line-through;">' + title + '</b></span>&nbsp;<b>(Revogada em ' + (IsNullOrWhiteSpace(row._LawRevokedDate) ? '-' : row._LawRevokedDate) + ' por ' + (IsNullOrWhiteSpace(row.LawRevokedBy) ? '-' : row.LawRevokedBy) + ')';
+                    } else {
+                        return title;
+                    }
+                }
+            }
+			, { data: 'LawOrgaoName' }
+            , { data: 'LawEsferaName' }
+			, {
+                    data: 'LawForceDate'
+				, render: function (data, type, row) {
+                    return '<div>' + row._LawForceDate + '</div>';
+                }
+            }
+            ,{
+                data: 'LawNumber',
+                render: function (data, type, row) {
+                    var title = row.LawTitle.length > 50 ? row.LawTitle.substring(0, 50) : row.LawTitle;
+
+                    if ($('#RevokedById').val() == row.LawId) {
+                        return '<a href="javascript:void(0)" class="badge badge-success revoked-by-button" data-law-id="' + row.LawId + '" data-law-number="' + row.LawNumber + '" data-law-title="' + title + '">Selecionado</a>';
+                    }
+
+                    return '<a href="javascript:void(0)" class="badge badge-primary revoked-by-button" data-law-id="' + row.LawId + '" data-law-number="' + row.LawNumber + '" data-law-title="' + title + '">Selecionar</a>';
+                }
+            }
+            , { data: '_LawNumberOrdering', visible: false }
+        ],
+        drawCallback: function () {
+            $('.revoked-by-button').click(function () {
+                $('#RevokedById').val($(this).data('law-id'));
+                $('#RevokedBy').val($(this).data('law-number') + '-' + $(this).data('law-title'));
+                $('[name="RevokedBy"]').val($(this).data('law-number') + '-' + $(this).data('law-title'));
+                insertRevokedByTable($(this).data('law-id'));
+
+                $('#law-revoked-modal').modal('hide');
+
+                $('.badge-success.revoked-by-button').removeClass('badge-success').addClass('badge-primary');
+
+                $(this).removeClass('badge-primary').addClass('badge-success');
+                $(this).text('Selecionado');
+            });
+        }
+    });
+
+    function removeRevokedByLaw() {
+        $('#RevokedById').val('');
+        $('[name="RevokedBy"]').val('');
+        $('.badge-success.revoked-by-button').removeClass('badge-success').addClass('badge-primary').text('Selecionar');
+        $('.btn-select-law-area').show();
+
+        revokedByDatatables.rows().remove();
+        revokedByDatatables.draw();
+        revokedByDatatables.columns.adjust();
+    }
+
+    function insertRevokedByTable(id) {
+        removeRevokedByLaw();
+
+        $.post('@Url.Action("GetLawViewById", "LawManagement")', { id }, function (d) {
+            revokedByDatatables.row.add(
+                $('<tr>').append(
+                    $('<td>').append(d.LawTypeName),
+                    $('<td>').append(d.LawNumber),
+                    $('<td>').append(d.LawTitle.length > 20 ? d.LawTitle.substring(0, 20) + '...' : d.LawTitle),
+                    $('<td>').append(d.LawOrgaoName),
+                    $('<td>').append(d._LawForceDate),
+                    $('<td>').append(d.LawEsferaName),
+                    $('<td>').append($('<a>', { href: 'javascript:removeRevokedByLaw()' }).append('<i class="fa fa-trash"></i>'))
+                )
+            );
+
+            revokedByDatatables.draw();
+            revokedByDatatables.columns.adjust();
+            $('#RevokedById').val(id);
+        });
+    }
+
+    function openLawRevokedModal() {
+        $('#law-revoked-modal').modal('show');
+        $('#law-revoked-modal-validate-by-esfera').get(0).checked = true;
+
+        revokedDatatables.ajax.reload();
+    }
+
+    $('#law-revoked-modal-validate-by-esfera').change(function () {
+        revokedDatatables.ajax.reload();
+    });
+</script>
+
+
+@*@if (Context.Request.Query.ContainsKey("associateLaw"))
+    {
+        if (Context.Request.Query["associateLaw"] == "true")
+        {
+            <script type="text/javascript">
+                alert('Este requisito legal foi associado as unidades de negocio já vinculadas as RLs revogadas/alteradas.');
+            </script>
+        }
+        if (Context.Request.Query["associateLaw"] == "false")
+        {
+            <script type="text/javascript">
+                alert('Para associar este requisito legal as unidades de negocio faça isso manualmente.');
+            </script>
+        }
+    }*@
+
+@if (!string.IsNullOrWhiteSpace(Model.RevokedBy))
+{
+    <script type="text/javascript">
+        disableFields('#form');
+    </script>
+}
+
+
+<div class="modal fade" id="question-subtheme-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Visualização de subtema</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="question-subtheme-view-component"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" aria-label="Close" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-times"></i>&nbsp;Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>

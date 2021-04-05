@@ -1,0 +1,191 @@
+﻿@model ReportPrintViewModel
+
+@{
+    Layout = "~/Views/Shared/_LayoutClean.cshtml";
+}
+
+<style type="text/css">
+    body, body * {
+        -webkit-print-color-adjust: exact;
+    }
+
+    table {
+        border: 1px solid #f1f1f1 !important;
+    }
+
+    th {
+        background-color: #989898 !important;
+        color: white !important;
+        border: 1px solid #f1f1f1 !important;
+    }
+
+    td {
+        background-color: white !important;
+        border: 1px solid #f1f1f1 !important;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .w-100 {
+        width: 100%;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 0.25em 0.4em;
+        font-size: 75%;
+        font-weight: bold;
+        line-height: 1;
+        color: #fff;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: baseline;
+        border-radius: 8px;
+    }
+
+    .badge-pill {
+        padding-right: 0.6em;
+        padding-left: 0.6em;
+    }
+
+    .badge-success {
+        color: #fff;
+        background-color: #23BF08;
+    }
+
+    .badge-danger {
+        color: #fff;
+        background-color: #dc3545;
+    }
+
+    .table {
+        background-color: #e9ecef;
+        border-collapse: separate;
+        border-spacing: 0;
+        width: 100%;
+        max-width: 100%;
+        margin-bottom: 1rem;
+        background-color: transparent;
+        color: #212529;
+    }
+
+    table {
+        border: 1px solid #f1f1f1 !important;
+    }
+
+    .table thead > tr > th, .table thead > tr > td, .table tfoot > tr > th, .table tfoot > tr > td {
+        border-top: 0;
+        border-bottom: 0;
+        font-weight: 700;
+        font-size: 12px;
+        text-transform: uppercase;
+        background-color: #dee2e6;
+        color: #343a40;
+        letter-spacing: 0.5px;
+    }
+
+    .table th, .table td {
+        padding: 0.75rem;
+        vertical-align: top;
+        border-top: 1px solid #dee2e6;
+    }
+
+    @@media print {
+        @@page {
+            size: landscape
+        }
+
+        .no-page-break-on-print {
+            page-break-after: avoid !important;
+        }
+    }
+</style>
+
+@if (!ViewData.ContainsKey("PDF"))
+{
+    <div style="margin-bottom:5em; margin-top:3em;" class="no-print">
+        <a class="no-print btn btn-success float-right" style="padding: 10px 30px 10px 30px;" href="javascript:window.print();"><i class="simple-icon-printer"></i>&nbsp;Imprimir</a>
+    </div>
+}
+
+<div style="width:100%; text-align:center;">
+    @{
+        var bytes = System.IO.File.ReadAllBytes(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "wwwroot", "Imagens", "logo2.png"));
+        var base64 = Convert.ToBase64String(bytes);
+
+        <img src="@($"data:image/png;base64, {base64}")" width="500" />
+    }
+</div>
+
+@if (!string.IsNullOrWhiteSpace(Model.Title))
+{
+    <div class="w-100 text-center" style="font-weight: bold; font-weight: bold; font-size: 20px;">
+        @Model.Title
+    </div>
+}
+
+@if (Model.Filters.Count(x => !string.IsNullOrWhiteSpace(x.Value)) > 0)
+{
+    <div class="w-100 text-center" style="font-weight: bold; font-weight: bold; font-size: 20px;">
+        Filtros:
+    </div>
+    <div class="w-100 text-center" style="font-weight: bold; font-weight: bold; font-size: 20px; margin-bottom: 1em;">
+        @{
+            var filters = Model.Filters.Where(x => !string.IsNullOrWhiteSpace(x.Value)).ToList();
+
+            for (int i = 0; i < filters.Count; i++)
+            {
+                @($"{(i ==0? "" : " | ")}{filters[i].FilterName}: {filters[i].Value}")
+            }
+        }
+    </div>
+}
+
+<div style="width:100%; text-align: right;">@Model.TableData.Count Registros</div>
+<table class="table table-bordered table-condensed">
+    <thead>
+        <tr>
+            @foreach (var item in Model.TableHeaders)
+            {
+                <th class="text-center" style="background-color: #989898 !important; color: white !important; border: 1px solid #f1f1f1 !important; font-size: 8px !important;">@item</th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var row in Model.TableData)
+        {
+            <tr>
+                @foreach (var data in row)
+                {
+                    <td class="text-center" style="font-size: 8px !important;">@Html.Raw(data)</td>
+                }
+            </tr>
+        }
+        @if (Model.TableData.Count == 0)
+        {
+            <tr>
+                <td colspan="8" class="text-center">Nenhum dado encontrado.</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@for (int i = 0; i < Model.ChartsBase64.Count; i++)
+{
+    if (i ==0)
+    {
+        <div style="page-break-after: always;"></div>
+    }
+
+    <div style="width:100%; text-align:center;" id="image-print-area">
+        <img src="@Html.Raw(Model.ChartsBase64[i])" width="500" />
+    </div>
+
+    if(i != Model.ChartsBase64.Count- 1)
+    {
+        <hr style="border-top: 2px solid #cbe6b6" />
+    }
+}
+

@@ -1,0 +1,23 @@
+﻿@model DTO.Subscription.SubscriptionViewModel
+@{
+    Layout = null;
+}
+@{ await Html.RenderPartialAsync("/Views/Mail/Subscription/Shared/Header.cshtml"); }
+
+<p>
+    Olá Dr (a) @Model.FullName,
+</p>
+<p>
+    Parabéns, sua Declaração Pessoal de Saúde foi aceita pela seguradora, e você poderá prosseguir com a sua adesão.
+</p>
+<p>
+    Por favor, siga as instruções abaixo:
+    <ul>
+        <li>Acesse esse link: <a href="@Url.Action("GoTo", "Subscription", new { reference = Model.Reference }, Context.Request.Scheme)">@Model.Reference</a></li>
+        <li>Confira as suas informações cadastrais</li>
+        <li>Escolha a opção pagamento</li>
+        <li>Clique em "Transmitir"</li>
+    </ul>
+</p>
+
+@{ await Html.RenderPartialAsync("/Views/Mail/Subscription/Shared/Signature.cshtml"); }

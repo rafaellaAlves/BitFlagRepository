@@ -1,0 +1,247 @@
+﻿@model int
+
+<script type="text/javascript">
+    _MaskData();
+</script>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card" style="background-color:#e8e8e8;">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-9">
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><i class="fa fa-search"></i></span>
+                            </div>
+                            <input id="PlanCoverageIndexSearch" type="text" class="form-control" placeholder="Procurar..." />
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <a href="javascript:void(0)" class="btn btn-success pull-right w-100" style="color:white;" id="NewPlanCoverageBotao"><i class="fas fa-plus-circle"></i>&nbsp;Novo</a>
+                    </div>
+                </div>
+                <form id="PlanCoverageForm">
+                    <input id="planId" name="planId" type="hidden" value="@Model" />
+                    <div class="row" style="display:none;" id="AreaNewPlanCoverage">
+                        <div class="col-md-12">
+                            <hr />
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert" id="AlertErroPlanCoverage" style="display:none;">
+                                <b>Insira o Nome</b>
+                                <button type="button" class="close" onclick="function EsconderAlert() { $('#AlertErroPlanCoverage').hide(); }; EsconderAlert()">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-8 form-group">
+                            <input id="Name" name="Name" type="text" class="form-control" placeholder="Digite o Nome." />
+                        </div>
+                        <div class="col-md-4 form-group">
+                            <div class="input-group mb-3">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">$</span>
+                                </div>
+                                <input id="Value" name="Value" type="text" class="form-control money" placeholder="Digite o valor." />
+                            </div>
+                        </div>
+                        <div class="col-md-12 form-group">
+                            <textarea id="Description" name="Description" type="text" class="form-control" placeholder="Digite a Descrição."></textarea>
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <button type="button" class="btn btn-secondary" id="CancelarPlanCoverageBotao"><i class="fas fa-times"></i>&nbsp;Cancelar</button>
+                        </div>
+                        <div class="col-md-6 form-group text-right">
+                            <button type="button" class="btn btn-success" id="SavePlanCoverageBotao"><i class="fas fa-upload"></i>&nbsp;Salvar</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-12" style="margin-top:1em;">
+        <div class="card">
+            <div class="card-body">
+                <div class="alert alert-success" id="AlertSucessoPlanCoverage" style="display:none;" role="alert">
+                    <b>Item adicionado com sucesso!</b>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <table class="table table-striped table-borderer" id="PlanCoverageIndexTable" style="width:100%;">
+                            <thead>
+                                <tr>
+                                    <td>Nome</td>
+                                    <td>Valor</td>
+                                    <td>Descrição</td>
+                                    <td>&nbsp;</td>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+        var PlanCoverageIndexTypingTimer;
+        var PlanCoverageIndexDoneTypingInterval = 500;
+        var PlanCoverageDatatables;
+            PlanCoverageDatatables = $('#PlanCoverageIndexTable').DataTable({
+                proccessing: true,
+                serverSide: true,
+                searching: true,
+                lengthChange: false,
+                dom: 'tip',
+                ajax: {
+                    url: '@Url.Action("PlanCoverageList", "Plan")',
+                    data: function (d) {
+                        d.planId = '@Model'
+                    },
+                    type: 'POST'
+                },
+                columns: [
+                    {
+                        data: 'Name',
+                        render: function (data, type, row) {
+                            return row.name != null ? row.name : '-';
+                        }
+                    },
+                    {
+                        data: 'Value',
+                        render: function (data, type, row) {
+                            return row.value != null ? row.value: '-';
+                        }
+                    },
+                    {
+                        data: 'Description',
+                        render: function (data, type, row) {
+                            return row.description != null ? row.description : '-';
+                        }
+                    },
+                    {
+                        data: '',
+                        orderable: false,
+                        render: function (data, type, row) {
+                            return "<div class='text-center'><a href='javascript:void(0)' class='fas fa-trash' onclick='RemovePlanCoverage(" + JSON.stringify({ planCoverageId: row.planCoverageId, name: row.name }) + ")'></a></div>";
+                        }
+                    }
+                ],
+                "initComplete": function (settings, json) {
+                    _MaskData();
+                }
+            });
+
+        $('#FecharModalBotao').click(function () {
+            $('#PlanCoverageModal').modal('hide');
+        });
+
+        function PlanCoverageIndexDoneTyping() {
+            if ($.fn.DataTable.isDataTable('#PlanCoverageIndexTable')) {
+                PlanCoverageDatatables.search($('#PlanCoverageIndexSearch').val()).draw();
+            }
+        }
+        $('#PlanCoverageIndexSearch').keyup(function () {
+            clearTimeout(PlanCoverageIndexTypingTimer);
+            PlanCoverageIndexTypingTimer = setTimeout(PlanCoverageIndexDoneTyping, PlanCoverageIndexDoneTypingInterval);
+        });
+        $('#PlanCoverageIndexSearch').keydown(function () {
+            clearTimeout(PlanCoverageIndexTypingTimer);
+        });
+
+        $('#NewPlanCoverageBotao').click(function () {
+            $("#AreaNewPlanCoverage").slideDown("slow");
+            ClearAllInputs();
+        });
+
+        $('#CancelarPlanCoverageBotao').click(function () {
+            $('#PlanCoverageForm .text-danger').remove();
+            $('#AlertErroPlanCoverage').hide();
+            ClearAllInputs();
+            $("#AreaNewPlanCoverage").slideUp("slow");
+        });
+
+        $('#SavePlanCoverageBotao').click(function () {
+
+            if (ValidatePlanCoverage()) {
+                SavePlanCoverage();
+            }
+        });
+
+        function ValidatePlanCoverage() {
+            var temErro = false;
+            $('#PlanCoverageForm .text-danger').remove();
+            $('#AlertErroPlanCoverage').hide();
+
+            if (IsNullOrWhiteSpace($('#PlanCoverageForm #Name').val())) {
+                temErro = true;
+            }
+
+            if (temErro) {
+                $('#AlertErroPlanCoverage').show();
+            }
+
+            return !temErro;
+        }
+
+        function SavePlanCoverage() {
+            var d = $('#PlanCoverageForm').serializeArray();
+
+            $.ajax({
+                url: '@Url.Action("SavePlanCoverage", "Plan")',
+                type: 'POST',
+                datatype: 'JSON',
+                data: d,
+                success: function (data) {
+                    if (!data.temErro) {
+                        $("#AreaNewPlanCoverage").slideUp("slow");
+                        ClearAllInputs();
+                        $('#PlanCoverageIndexTable').DataTable().ajax.reload();
+                        $('#PlanIndexTable').DataTable().ajax.reload();
+                        $('#AlertSucessoPlanCoverage').show();
+                        var contadorPlanCoverage;
+
+                        clearTimeout(contadorPlanCoverage);
+                        contadorPlanCoverage = setTimeout(EsconderAlertPlanCoverage, 4000);
+
+                        function EsconderAlertPlanCoverage() {
+                            $('#AlertSucessoPlanCoverage').hide();
+                        }
+                    }
+                    else {
+                        alert(data.mensagem);
+                    }
+                }
+            });
+        }
+
+        function RemovePlanCoverage(data) {
+            if (confirm("Deseja Remove o item: " + data.name + "?")) {
+                $.ajax({
+                    url: '@Url.Action("RemovePlanCoverage", "Plan")',
+                    type: 'POST',
+                    datatype: 'JSON',
+                    data: { id: data.planCoverageId },
+                    success: function (data) {
+                        $('#PlanCoverageIndexTable').DataTable().ajax.reload();
+                        $('#PlanIndexTable').DataTable().ajax.reload();
+                        alert('Item excluído com sucesso!');
+                    }
+                });
+            }
+        }
+
+        $('#PlanCoverageModal').on('hidden.bs.modal', function () {
+            $('#PlanCoverageIndexTable').DataTable().destroy();
+            $('#PlanCoverageIndexSearch').val('');
+            ClearAllInputs();
+            $('#AlertErroPlanCoverage').hide();
+            $("#AreaNewPlanCoverage").hide();
+    });
+
+    function ClearAllInputs() {
+        $("#Name").val("");
+        $("#Description").val("");
+    }
+</script>

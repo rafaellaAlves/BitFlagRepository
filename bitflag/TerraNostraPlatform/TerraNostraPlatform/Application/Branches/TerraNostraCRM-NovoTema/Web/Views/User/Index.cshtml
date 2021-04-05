@@ -1,0 +1,26 @@
+﻿@model List<Web.Utils.UserType>
+@{
+    if (Model.Contains(Web.Utils.UserType.Agent))
+    {
+        Layout = "~/Views/Shared/_LayoutUplon.cshtml";
+        ViewData["Title"] = "Representantes";
+
+    }
+    else if (Model.Contains(Web.Utils.UserType.Client))
+    {
+        Layout = "~/Views/Shared/_LayoutUplon.cshtml";
+        ViewData["Title"] = "Clientes";
+
+    }
+    else
+    {
+        Layout = "~/Views/Shared/_LayoutUplon.cshtml";
+        ViewData["Title"] = "Usuários";
+
+    }
+}
+<div id="_UserIndexViewComponent"></div>
+
+<script type="text/javascript">
+    $('#_UserIndexViewComponent').load('@Url.Action("UserIndexComponent", "User")', { userType: '@string.Join(";", Model.Select(x => (int)x))' });
+</script>

@@ -1,0 +1,208 @@
+﻿@using GLAS2Web.Utils;
+
+@{
+    ViewData["Title"] = "Administração de Unidades de Negócio";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string companyId = Context.Request.Query.ContainsKey("id") ? Context.Request.Query["id"].ToString() : "null";
+
+}
+<div class="card shadow">
+    <div class="card-header">
+        Administração de Unidades de Negócio
+    </div>
+    <div class="card-body">
+        @if (!Context.Request.Query.ContainsKey("id"))
+        {
+            <div class="row">
+                <div class="col-md">
+                    <div class="input-group">
+                        <span class="input-group-addon"><i class="fa fa-search"></i></span>
+                        <input id="search" type="text" class="form-control" placeholder="Procurar..." value="@ViewContext.GetSessionListFilter("search[value]")" />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-control" name="CompanyQuestionStatusId" onchange="doneTyping()">
+                        <option value="">Status do Questionário (Selecione)</option>
+                        <option value="1">Concluído</option>
+                        <option value="2">Envio Pendente</option>
+                        <option value="3">Em Andamento</option>
+                        <option value="4">Pendente</option>
+                    </select>
+                </div>
+                @if (User.IsInRole(BLL.User.ProfileNames.Administrator) || User.IsInRole(BLL.User.ProfileNames.Master))
+                {
+                    <div class="col-md-auto">
+                        <span class="input-group-btn">
+                            <a href="@Url.Action("Manage", "CompanyManagement")" class="btn btn-success pull-right"><i class="fa fa-plus"></i>&nbsp;Nova Unidade de Negócio</a>
+                        </span>
+                    </div>
+                }
+            </div>
+            <hr />
+        }
+        <table id="tableCompanies" class="datatable table table-sm table-bordered table-striped" style="border-collapse: collapse !important; width: 100%;">
+            <thead>
+                <tr>
+                    <th>Nome Fantasia</th>
+                    <th>Razão Social</th>
+                    <!--<th>CNPJ</th>-->
+                    <!--<th>E-mail</th>-->
+                    <th>Telefone</th>
+                    <th>Cidade</th>
+                    <th>UF</th>
+                    <th>Ativo</th>
+                    <th>Questionário</th>
+                    <th>&nbsp;</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <script type="text/javascript">
+            var typingTimer;
+            var doneTypingInterval = 500;
+            var datatables = $('#tableCompanies').DataTable({
+                proccessing: true
+                , serverSide: true
+                , searching: true
+                , lengthChange: false
+                , dom: 'tip'
+                , "displayStart": "@(string.IsNullOrWhiteSpace(ViewContext.GetSessionListFilter("start"))?"0" : ViewContext.GetSessionListFilter("start"))"
+                , "oSearch": { "sSearch": "@Html.Raw(ViewContext.GetSessionListFilter("search[value]"))" }
+                , ajax: {
+                    url: '@Url.Action("List", "CompanyManagement")'
+                    , type: 'POST'
+                    , data: function(d){
+                        d.id = @companyId;
+                        d.companyQuestionStatusId = $('[name="CompanyQuestionStatusId"]').val();
+                    }
+                }
+                , columns: [
+					{ data: 'NomeFantasia' }
+                    , { data: 'RazaoSocial' }
+					//, { data: 'Cnpj' }
+                    //, { data: 'Email' }
+                    , { data: 'Telefone' }
+                    , { data: 'City' }
+					, { data: 'State' }
+					, {
+						data: 'IsActive',
+						render: function (data, type, row) {
+							return row.IsActive == true ? 'Sim' : 'Não';
+						}
+                    }
+                    , {
+                        data: 'CompanyQuestionStatusName',
+                        render: function (data, type, row) {
+                            return row.CompanyQuestionStatusId != 2 ? '<a target="_blank" href="@Url.Action("Index", "CompanyQuestion")?companyId=' + row.CompanyId + '">' + row.CompanyQuestionStatusName + '</a>' : '<a href="javascript:openQuestionEmailModal('+ row.CompanyId + ', \'' + row.Email + '\')">' + row.CompanyQuestionStatusName + '</a>';
+                        } }
+                    , {
+                        data: null
+                        , sortable: false
+                        , searchable: false
+                        , render: function (data, type, row) {
+							return '<div class="text-center"><a title="Unidades de Negócio" href="@Url.Action("Manage", "CompanyManagement")?id=' + row.CompanyId + '">Editar</a>&nbsp;|&nbsp;<a title="Usuários" href="@Url.Action("Users", "CompanyManagement")?id=' + row.CompanyId + '">Usuários</a>&nbsp;|&nbsp;<a style="white-space: nowrap;" title="Leis" href="@Url.Action("Laws", "CompanyManagement")?id=' + row.CompanyId + '">Requisitos legais</a>&nbsp;|&nbsp;<a style="white-space: nowrap;" title="Excluir" href="javascript:void(0)" onclick="RemoveCompany(' + row.CompanyId + ')">Excluir</a></div>';
+                        }
+                    }
+                ]
+            });
+            function doneTyping() {
+                if ($.fn.DataTable.isDataTable('#tableCompanies')) {
+                    datatables.search($('#search').val()).draw();
+                }
+            }
+            $('#search').keyup(function () {
+                clearTimeout(typingTimer);
+                typingTimer = setTimeout(doneTyping, doneTypingInterval);
+            });
+            $('#search').keydown(function () {
+                clearTimeout(typingTimer);
+			});
+
+			function RemoveCompany(_companyId) {
+			if (confirm('Deseja realmente remover essa Empresa?')) {
+				_RemoveCompany(_companyId, function () {
+					$('#tableCompanies').DataTable().ajax.reload();
+					alert('Empresa removida com sucesso!');
+				});
+			}
+			}
+			function _RemoveCompany(_companyId, callback) {
+				var d = { companyId: _companyId };
+				$.ajax({
+					url: '@Url.Action("RemoveCompany", "CompanyManagement")',
+					type: 'POST',
+					data: d,
+					dataType: 'json',
+					success: callback
+				});
+			}
+
+
+        </script>
+
+    </div>
+</div>
+
+<div class="modal fade" id="question-email-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Envio de questionário por e-mail</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="question-email-form" action="" method="post">
+                    <input type="hidden" name="CompanyId" />
+                    <input type="hidden" name="ajax" value="true" />
+                    <div class="row mb-2">
+                        <div class="col">
+                            <label class="text-warning">No caso de envio para múltiplos e-mails utilize <b>; (ponto e vírgula)</b> para separar um e-mail de outro.</label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <label class="required">Destinatário</label>
+                            <input class="form-control" placeholder="Destinatário" name="To" value="" />
+                        </div>
+                        <div class="col">
+                            <label>Cópia</label>
+                            <input class="form-control" placeholder="Cópia" name="ReplyTo" />
+                        </div>
+                        <div class="col">
+                            <label>Cópia Oculta</label>
+                            <input class="form-control" placeholder="Cópia Oculta" name="BCC" />
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" aria-label="Close" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-times"></i>&nbsp;Fechar</button>
+                <button class="btn btn-success float-right" type="button" onclick="sendQuestionEmail()"><i class="fa fa-envelope"></i>&nbsp;Enviar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    function openQuestionEmailModal(companyId, email){
+        $('#question-email-modal .text-danger').remove();
+
+        $('#question-email-form [name="CompanyId"]').val(companyId);
+        $('#question-email-form [name="To"]').val(email);
+        $('#question-email-modal').modal('show');
+    }
+
+    function sendQuestionEmail(companyId) {
+        if (!validateInputs('#question-email-form')) return;
+
+        $.post('@Url.Action("SendQuestionEmail", "CompanyManagement")', $('#question-email-form').serializeArray(), function (d) {
+            alert(d.message);
+
+            if (d.success) {
+                $('#question-email-modal').modal('hide');
+                datatables.ajax.reload();
+            }
+        });
+    }
+</script>

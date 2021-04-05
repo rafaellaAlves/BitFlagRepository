@@ -1,0 +1,17 @@
+﻿@model int?
+@{
+    ViewData["Title"] = "Coberturas";
+}
+
+<div class="card shadow bg-light">
+    <div class="card-body">
+        <div id="_ProductCoverageIndexViewComponent"></div>
+    </div>
+    <div class="card-footer">
+        <a href="@Url.Action("Index","Product")" class="btn btn-secondary float-left"><i class="fa fa-arrow-left"></i>&nbsp;Voltar</a>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#_ProductCoverageIndexViewComponent').load('@Url.Action("ProductCoverageIndexComponent", "ProductCoverage")', { productId: @if (Model.HasValue) {<text>"@Model"</text>}else{<text>null</text>} });
+</script>

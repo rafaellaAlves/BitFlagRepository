@@ -1,0 +1,210 @@
+@model DTO.Student.StudentInfoViewModel
+
+@inject Services.Class.ClassService classService
+@inject Web.Helpers.DropDownListHelper dropDownListHelper
+
+<input type="hidden" name="StudentId" value="@Model.StudentId" />
+
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="form-group">
+            <label class="control-label required" for="">Nome Completo</label>
+            <input class="form-control" id="Name" name="Name" type="text" value="@Model.Name" />
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="form-group">
+            <label class="control-label required" for="">CPF</label>
+            @(Model.StudentId.HasValue? Html.Raw("<input type=\"hidden\" name=\"CPF\" id=\"CPF\" value=\"" + Model.CPF + "\" />") : (object)"")
+            <input class="form-control cpf" @(!Model.StudentId.HasValue ? Html.Raw("name=\"CPF\" id=\"CPF\" onblur=\"checkExistingStudentCPF('[name=\\'CPF\\']')\"") : (object)"") type="text" value="@Model.CPF" @(Model.StudentId.HasValue ? "disabled" : "") />
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="form-group">
+            <label class="control-label" for="">RG</label>
+            <input class="form-control" name="RG" value="@Model.RG" type="text" />
+        </div>
+    </div>
+</div>
+<div class="row">
+
+    <div class="col-md-2">
+        <div class="form-group">
+            <label class="control-label" for="">Data de Nascimento</label>
+            <input class="form-control date" name="BirthDate" value="@Model._BirthDate" type="text" />
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="form-group">
+            <label class="control-label" for="">Sexo</label>
+            @Html.DropDownList("Gender", dropDownListHelper.GetGenders(Model.Gender), "Selecione", new { Class = "form-control w-100" })
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="form-group">
+            <label class="control-label required" for="">E-mail</label>
+            <input class="form-control" name="Email" value="@Model.Email" type="text" onblur="checkExistingStudentEmail('[name=\'Email\']')" />
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="form-group">
+            <label class="control-label" for="">Telefone</label>
+            <input class="form-control phone" name="PhoneNumber" value="@Model.PhoneNumber" type="text" />
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="form-group">
+            <label class="control-label required" for="">Celular</label>
+            <input class="form-control mobile-phone" name="CellPhone" value="@Model.CellPhone" type="text" />
+        </div>
+    </div>
+</div>
+<hr />
+<div class="row">
+
+    @*<div class="col-md-4">
+            <div class="form-group">
+                <label class="control-label required" for="">Turma</label>
+                <select class="form-control w-100" name="ClassId">
+                    <option value="">Selecione</option>
+                    @foreach (var item in await classService.List())
+                    {
+                        if (Model.ClassId.HasValue && Model.ClassId == item.ClassId)
+                        {
+                            <option selected="selected" value="@item.ClassId">@item.ClassFullName</option>
+                        }
+                        else
+                        {
+                            <option value="@item.ClassId">@item.ClassFullName</option>
+                        }
+                    }
+                </select>
+            </div>
+        </div>*@
+</div>
+<div class="row">
+    <div class="col-md-4">
+        <div class="form-group">
+            <label class="control-label required" for="">CEP</label>
+            <input class="form-control cep" name="Zipcode" value="@Model.Zipcode" type="text" onblur="getAddress('[name=\'Zipcode\']', '[name=\'Address\']', '[name=\'Neighborhood\']', '[name=\'City\']', '[name=\'State\']')" />
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="form-group">
+            <label class="control-label required" for="">Endereço</label>
+            <input class="form-control" name="Address" value="@Model.Address" type="text" />
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="form-group">
+            <label class="control-label required" for="">Número</label>
+            <input class="form-control" name="Number" value="@Model.Number" type="text" />
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-3">
+        <div class="form-group">
+            <label class="control-label" for="">Complemento</label>
+            <input class="form-control" name="Complement" value="@Model.Complement" type="text" />
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="form-group">
+            <label class="control-label required" for="">Bairro</label>
+            <input class="form-control" name="Neighborhood" value="@Model.Neighborhood" type="text" />
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="form-group">
+            <label class="control-label required" for="">Estado</label>
+            @Html.DropDownList("State", dropDownListHelper.GetStates(Model.State), "Selecione", new { Class = "form-control w-100" })
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="form-group">
+            <label class="control-label required" for="">Cidade</label>
+            <input class="form-control" name="City" value="@Model.City" type="text" />
+        </div>
+    </div>
+</div>
+<hr />
+<div class="row">
+    <div class="col-md-3">
+        <div class="form-group">
+            <label class="control-label" for="">Data de Início</label>
+            <input class="form-control date" name="StartDate" value="@Model._StartDate" type="text" />
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="form-group">
+            <label class="control-label" for="">Data de Término (teórico)</label>
+            <input class="form-control date" name="FinishDate" value="@Model._FinishDate" type="text" />
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="form-group">
+            <label class="control-label required" for="">Carteira do Conselho</label>
+            <input class="form-control" name="CouncilDocumentNumber" value="@Model.CouncilDocumentNumber" type="text" />
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="form-group">
+            <label class="control-label required" for="">Profissão</label>
+            <input class="form-control" name="Profession" value="@Model.Profession" type="text" />
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-3">
+        <div class="form-group">
+            <label class="control-label" for="">Trancamento de Matrícula</label>
+            <input class="form-control" name="MatriculationLocking" value="@Model.MatriculationLocking" type="text" />
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="form-group">
+            <label class="control-label" for="">Regularmente Matriculado</label>
+            @Html.DropDownList("MatriculationStatus", dropDownListHelper.GetYesOrNo(Model.MatriculationStatus.ToString()), "Selecione", new { Class = "form-control w-100" })
+        </div>
+    </div>
+
+</div>
+
+<script type="text/javascript">
+    function checkExistingStudentCPF(field)
+    {
+        $('.text-danger').remove();
+        $(field).data('existing-cpf', false);
+
+        var val = $(field).val();
+        if (isNullOrWhiteSpace(val)) return;
+
+        var id = $('[name=\'StudentId\']').val();
+
+        $.post('@Url.Action("CheckExistingCPF", "Student")', { cpf: val, id }, function (d) {
+            if (d) {
+                $(field).after('<div class="text-danger">Este CPF já está sendo utilizado.</div>');
+                $(field).data('existing-cpf', true);
+            }
+        });
+    }
+    function checkExistingStudentEmail(field)
+    {
+        $('.text-danger').remove();
+        $(field).data('existing-email', false);
+
+        var val = $(field).val();
+        if (isNullOrWhiteSpace(val)) return;
+
+        var id = $('[name=\'StudentId\']').val();
+
+        $.post('@Url.Action("CheckExistingEmail", "Student")', { email: val, id }, function (d) {
+            if (d) {
+                $(field).after('<div class="text-danger">Este E-mail já está sendo utilizado.</div>');
+                $(field).data('existing-email', true);
+            }
+        });
+    }
+</script>

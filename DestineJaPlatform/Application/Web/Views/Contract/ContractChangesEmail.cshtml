@@ -1,0 +1,17 @@
+﻿@model DTO.Contract.ContractChangesEmailViewModel
+
+    <div style="border: 1px solid #d1d1d1; padding: 15px; border-radius: 10px; margin-left: 33%; width: 33%;">
+        <label>Olá <b>@Model.Contract.ContactName</b>,</label>
+        <br />
+        <label>Foram feitas alteração em seu contrato vigente, sendo elas:</label>
+        <ul>
+            @foreach (var item in Model.Residues)
+            {
+                <li><b>Inserção do Resíduo @item.Name;</b></li>
+            }
+        </ul>
+        <hr />
+        <label>Atenciosamente,</label>
+        <br />
+        <label>Equipe Destine Já</label>
+    </div>

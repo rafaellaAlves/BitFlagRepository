@@ -1,0 +1,225 @@
+﻿@model DTO.Company.CompanyLawViewModel
+@{
+    ViewData["Title"] = "";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var componentID = string.Format("_{0}", Guid.NewGuid().ToString("N"));
+}
+@{ Html.RenderPartial("~/Views/Shared/_TopMessages.cshtml"); }
+
+<div id="@componentID">
+	<script type="text/javascript">
+        function MoreInfo() {
+            $('#@componentID #moreInfo').hide();
+            $('#@componentID #divMoreInfo').show();
+        }
+        function LessInfo () {
+            $('#@componentID #moreInfo').show();
+            $('#@componentID #divMoreInfo').hide();
+        }
+        function Create(){
+            var d = $('#@componentID form').serializeArray();
+        }
+	</script>
+	
+<form id="CompanyLawForm" action="@Url.Action("Manage", "CompanyLawManagement")" method="post">
+	<div class="card">
+		<div class="card-header">
+			Requisitos Legais
+		</div>
+			<div class="card-body">
+				<div id="lawDescription">
+					<h5 class="text-right">Detalhes do Requisito legal</h5>
+					<dl class="row">
+						<dt class="col-sm-3">Tipo</dt>
+						<dd class="col-sm-9">@Model.LawType.Name</dd>
+
+						<dt class="col-sm-3">Número</dt>
+						<dd class="col-sm-9">@Model.Law.Number</dd>
+
+						<dt class="col-sm-3">Título</dt>
+						<dd class="col-sm-9">@Model.Law.Title</dd>
+
+						<dt class="col-sm-3">Data de Publicação</dt>
+						<dd class="col-sm-9">@Model.Law.PublishDate</dd>
+
+						<dt class="col-sm-3">Vigor</dt>
+						<dd class="col-sm-9">@Model.Law.ForceDate</dd>
+
+						<dt class="col-sm-3">Sumário</dt>
+						<dd class="col-sm-9"><i>@Model.Law.Summary</i></dd>
+
+						<dt class="col-sm-3">Comentários</dt>
+						<dd class="col-sm-9"><i>@Model.Law.Comments</i></dd>
+					</dl>
+					<div class="text-right"><button type="button" class="btn btn-default float-right" data-toggle="modal" data-target="#companyLawCommentModal"><i class="fa fa-comments"></i>&nbsp;Comentários</button></div>
+				</div>
+				<br />
+				<div class="row">
+					<div class="col-md-12">
+						<div id="alertFormErrorCompanyLaw" class="alert alert-danger fade show" role="alert" style="display: none;">
+							<strong>Atenção!</strong> O formulário contém erros. Por favor, revise as informações abaixo.
+						</div>
+							<input type="hidden" id="CompanyLawId" name="CompanyLawId" value="@Model.CompanyLawId" />
+							<input type="hidden" id="CompanyId" name="CompanyId" value="@Model.CompanyId" />
+							<input type="hidden" id="LawId" name="LawId" value="@Model.LawId" />
+							<div id="divRequiredInfo">
+								<div class="form-row">
+									<div class="form-group col-md-2">
+										<label class="control-label" for="LawApplicationTypeId">Aplicabilidade</label>
+										<select class="form-control" id="LawApplicationTypeId" name="LawApplicationTypeId">
+											@foreach (var item in (IEnumerable<DAL.LawApplicationType>)ViewData["LawApplicationType"])
+											{
+												<option value="@item.LawApplicationTypeId">@item.Name</option>
+											}
+										</select>
+									</div>
+									<div class="form-group col-md-2">
+										<label class="control-label" for="LawApplicationTypeId">Aplicabilidade</label>
+										<select class="form-control" id="LawApplicationTypeId" name="LawApplicationTypeId">
+											@foreach (var item in (IEnumerable<DAL.LawPotentialityType>)ViewData["LawPotentialityType"])
+											{
+												<option value="@item.LawPotentialityTypeId">@item.Name</option>
+											}
+										</select>
+									</div>
+									<div class="form-group col-md-2">
+										<label class="control-label" for="LawConclusionStatusId">Status do Requisito legal</label>
+										<select class="form-control" id="LawConclusionStatusId" name="LawConclusionStatusId">
+											@foreach (var item in (IEnumerable<DAL.LawConclusionStatus>)ViewData["LawConclusionStatus"])
+											{
+												<option value="@item.LawConclusionStatusId">@item.Name</option>
+											}
+										</select>
+									</div>
+									<div class="form-group col-md-3">
+										<label class="control-label" for="RenewDate">Data de Renovação</label>
+										<input type="text" class="form-control date" id="RenewDate" name="RenewDate" value="@Model.RenewDate" placeholder="Data de Renovação">
+									</div>
+									<div class="form-group col-md-3">
+										<label class="control-label" for="WarningDate">Data de Aviso</label>
+										<input type="text" class="form-control date" id="WarningDate" name="WarningDate" value="@Model.WarningDate" placeholder="Data de Aviso">
+									</div>
+								</div>
+							</div>
+							<a id="moreInfo" href="javascript: MoreInfo();">Mais Informações...</a>
+							<div id="divMoreInfo" style="display: none;">
+								<div class="form-group">
+									<label class="control-label" for="Evidence">Evidência Objetiva</label>
+									<textarea class="form-control" id="Evidence" name="Evidence" placeholder="Evidência Objetiva">@Model.Evidence</textarea>
+								</div>
+								<a id="lessInfo" href="javascript: LessInfo();">Menos Informações...</a>
+							</div>
+						</div>
+					</div>	
+				</div>
+				<div class="card-footer">
+					<div class="row">
+						<div class="col-md-12">
+							<div id="divControls">
+								<a href="@Url.Action("Laws", "CompanyManagement")?id=@Model.CompanyId" class="btn btn-secondary float-left"><i class="fa fa-arrow-left"></i>&nbsp;Voltar</a>
+								<button type="button" id="buttonSubmit" class="btn btn-success float-right"><i class="fa fa-plus"></i>&nbsp;Criar</button>
+								<script type="text/javascript">
+									$('#buttonSubmit').click(function () {
+										
+										var hasError = false;
+										$('#CompanyLawForm .invalid-feedback').remove();
+										$('#alertFormErrorCompanyLaw').hide();
+
+										// Renew Date
+										if (moment($('#WarningDate').val(), 'DD/MM/YYYY').isAfter(moment($('#RenewDate').val(), 'DD/MM/YYYY'))) {
+											$('#WarningDate').after('<div class="invalid-feedback">Data de aviso deve ser anterior a data de renovação.</div>');
+											hasError = true;
+										}
+
+										if (!(IsNullOrWhiteSpace($('#WarningDate').val())) && IsNullOrWhiteSpace($('#RenewDate').val())) {
+											$('#RenewDate').after('<div class="invalid-feedback">Preencha a data de Renovação.</div>');
+											hasError = true;
+										}
+
+										if (hasError) {
+											$('#alertFormErrorCompanyLaw').show();
+											$('#CompanyLawForm .invalid-feedback').show();
+										} else {
+											$('#CompanyLawForm').submit();
+										}
+									});
+								</script>
+								@if (Model.CompanyLawId != null)
+								{
+									<script type="text/javascript">
+										$('#LawApplicationTypeId').val('@Model.LawApplicationTypeId');
+										$('#LawConclusionStatusId').val('@Model.LawConclusionStatusId');
+
+										$('#@componentID #buttonSubmit').removeClass('btn-success');
+										$('#@componentID #buttonSubmit').addClass('btn-primary');
+										$('#@componentID #buttonSubmit').html('<i class="fa fa-cloud-upload-alt"></i>&nbsp;Salvar');
+										MoreInfo();
+									</script>
+								}
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+
+<!-- Modal -->
+<div class="modal fade" id="companyLawCommentModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+				<h5 class="modal-title" id="exampleModalLabel">Comentários do Requisito legal</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="newComment" style="display: none;">
+                    <div class="form-group">
+                        <label for="Text">Comentário</label>
+                        <textarea class="form-control" id="newCommentText" name="newCommentText" rows="2"></textarea>
+                    </div>
+                    <button class="btn btn-success" id="newCommentButton"><i class="fa fa-plus"></i>&nbsp;Adicionar Comentário</button>
+                    <script type="text/javascript">
+                        $('#newCommentButton').click(function () {
+                            var d = { CompanyLawId: @Model.CompanyLawId, Text: $('#newCommentText').val() };
+                            $.ajax({
+                                url: '@Url.Action("Manage", "CompanyLawCommentManagement")',
+                                type: 'POST',
+                                data: d,
+                                dataType: 'json',
+                                success: function (data) {
+                                    $('#newComment').hide();
+                                    $('#newCommentLink').show();
+                                    _CompanyLawCommentsDoneTyping(@Model.CompanyLawId);
+                                }
+                            });
+                        });
+                    </script>
+                </div>
+                <div style="width: 100%;" class="text-right"><a href="javascript:void(0)" id="newCommentLink">Novo Comentário</a></div>
+                <script type="text/javascript">
+                        $('#newCommentLink').click(function () {
+                            $('#newComment').show();
+                            $('#newCommentText').val('');
+                            $('#newCommentLink').hide();
+                        });
+                </script>
+                <hr />
+                @{ Html.RenderPartial("~/Views/Shared/_CompanyLawComment.cshtml"); }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $('#companyLawCommentModal').on('shown.bs.modal', function () {
+        $('#newComment').hide();
+        $('#newCommentLink').show();
+        _CompanyLawCommentsClearSearch();
+        _CompanyLawCommentsDoneTyping(@Model.CompanyLawId);
+    });
+</script>

@@ -1,0 +1,78 @@
+﻿@model DTO.Client.ClientLogViewModel
+<style type="text/css">
+    .bg-grey{
+        background-color: #f1f1f1 !important;
+    }
+</style>
+<form id="_ClientLogManageForm">
+    <input type="hidden" name="ClientId" value="@Model.ClientId" />
+    <input type="hidden" name="PlainText" id="PlainText" value="@Model.PlainText" />
+    <div class="row">
+        <div class="col-md-12">
+            <label>Assunto:</label>
+            <input class="form-control" placeholder="Assunto" id="title" name="title" value="@Model.Title" />
+        </div>
+    </div>
+    <div class="row" style="margin-top:1em;">
+        <div class="col-md-12">
+            <label>Mensagem:</label>
+            <textarea class="form-control" placeholder="Mensagem" id="message" name="message">@Model.Message</textarea>
+            <span id="messageArea"></span>
+        </div>
+    </div>
+</form>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#modalNewLogTitle').text('Novo Registro'); //Texto da Modal
+
+        $('#message').summernote('destroy');
+        $('#message').summernote({
+            tabsize: 2,
+            height: 150,
+            lang: 'pt-BR'
+        });
+
+        @if(Model.ClientLogId.HasValue){
+        <text>
+        $('#title').attr('name', '').attr('disabled', 'disabled');
+        $('#message').summernote('disable');
+        $('.note-editable').addClass('bg-grey');
+        $('#modalNewLogTitle').text('Registro'); //Texto da Modal
+        $('.note-toolbar.card-header').hide();
+        </text>
+        }
+        else
+        {
+        <text>
+        $('.note-editable').removeClass('bg-grey');
+        $('.note-toolbar.card-header').show();
+        </text>
+        }
+    });
+
+    function _ClientLogManageValidate() {
+        var hasError = false;
+        $('.text-danger').remove();
+
+        if (IsNullOrWhiteSpace($('#title').val())) {
+            hasError = true;
+            $('#title').after($('<div>', { class: 'text-danger' }).append('Preencha o Título'));
+        }
+        if (IsNullOrWhiteSpace($('#message').val())) {
+            hasError = true;
+            $('#messageArea').after($('<div>', { class: 'text-danger' }).append('Preencha a Mensagem'));
+        }
+
+        return !hasError;
+    }
+
+    function _ClientLogManageSave(callback) {
+        $('#PlainText').val($($("#message").summernote("code").replace(/\<\//g, ' </')).text().substring(0, 70));
+        $.post('@Url.Action("SaveClientLog", "Client")', $('#_ClientLogManageForm').serializeArray(), function (e) {
+            if (typeof callback == 'function') {
+                callback(e);
+            }
+        });
+    }
+</script>

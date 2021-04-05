@@ -1,0 +1,78 @@
+﻿@model int
+
+<div class="row">
+    <div class="col table-responsive">
+        <table id="residues-table" class="display nowrap table table-striped table-bordered table-condensed w-100 tablesizeline" style="border-collapse: collapse !important;">
+            <thead>
+                <tr>
+                    <th style="width:20px">Cód IBAMA</th>
+                    <th>Nome do Resíduo</th>
+                    <th>Un. de Medida</th>
+                    <th>Classe</th>
+                    <th>Acondicionamento</th>
+                    <th style="width:60px !important;">&nbsp;</th>
+                    <th>&nbsp;</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<script asp-cut-key="residue-index">
+    var residuesDatatables;
+    $(document).ready(function () {
+        residuesDatatables = $('#residues-table').DataTable({
+            order: [[6, "desc"]],
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            pageLength: 30,
+            dom: 'tip',
+            ajax: {
+                url: '@Url.Action("List", "Residues")',
+                data: function (d) {
+                    d.residueFamilyId = '@Model';
+                },
+                type: 'POST'
+            },
+            columns: [
+                { render: function (data, type, row) { return row.ibamaCode; } },
+                { render: function (data, type, row) { return row.name; } },
+                { render: function (data, type, row) { return row.unitOfMeasurementName; } },
+                { render: function (data, type, row) { return row.residueFamilyClassName; } },
+                { render: function (data, type, row) { return row.packagingName; } },
+                {
+                    render: function (data, type, row)
+                    {
+                        return '<div class="text-center">' +
+                            @*'&nbsp;<a href=\'@Url.Action("Manage", "Client")?id=' + row.clientId + '\' title="Visualizar"><span class="badge badge-pill badge-primary"><i class="simple-icon-magnifier"></i>&nbsp;Visualizar</span></a>' +*@
+                            '&nbsp;<a href=\'javascript:openResidueModal(' + JSON.stringify(row) + ')\' title="Editar"><span class="badge badge-pill badge-success"><i class="simple-icon-note"></i></span></a>' +
+                            '&nbsp;<a href=\'javascript:removeResidue(' + JSON.stringify(row) + ')\' title="Excluir"><span class="badge badge-pill badge-danger"><i class="simple-icon-trash"></i></span></a>' +
+                            '</div>';
+                    }
+                },
+                { visible: false, render: function (data, type, row) { return type === 'sort' ? row.createdDate : moment(row.createdDate).format('L'); } }
+            ]
+        });
+    });
+
+    function removeResidue(entity) {
+        bootboxConfirm("Deseja realmente excluir o Resíduo \"" + entity.name + "\"?", function(result){
+            if (!result) return;
+
+            $.post('@Url.Action("Delete", "Residues")', { id: entity.residueId }, function () {
+                alert("O residuo \"" + entity.name + "\" foi excluído com sucesso!");
+                residuesDatatables.ajax.reload();
+            });
+        });
+    }
+
+    function openResidueModal(data) {
+        $('.text-danger').remove();
+        loadResidueData(data);
+
+        $('#add-residues-modal').modal('show');
+    }
+</script>

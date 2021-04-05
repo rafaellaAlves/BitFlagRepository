@@ -1,0 +1,49 @@
+﻿@model AMaisImob_WEB.Models.PlanViewModel
+@{
+    ViewData["Title"] = "Gerenciar Plano";
+}
+
+@if (!string.IsNullOrWhiteSpace(Context.Request.Query["saved"]))
+{
+    <text>
+        <div id="_PlanManagementAlertSuccess" class="alert alert-success fade show text-center">
+            <b>Os dados foram salvos com sucesso!</b>
+        </div>
+        <script type="text/javascript">
+            $('#_PlanManagementAlertSuccess').fadeOut(5000);
+        </script>
+    </text>
+}
+<div class="card shadow bg-light">
+    <div class="card-header"><span id="_PlanManageCardHeaderTitle">Criação de plano</span></div>
+    <div class="card-body">
+        <div id="PlanManageViewComponent"></div>
+    </div>
+    <div class="card-footer">
+        <a href="@Url.Action("Index","Plan")?productId=@Model.ProductId" class="btn btn-secondary float-left"><i class="fa fa-arrow-left"></i>&nbsp;Voltar</a>
+        <button type="button" id="buttonSubmit" class="btn btn-success float-right"><i class="fas fa-cloud-upload-alt"></i>&nbsp;Salvar</button>
+        <script type="text/javascript">
+            $('#buttonSubmit').click(function () {
+                if (_PlanManageValidate()) _PlanManageSave();
+            });
+        </script>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(function () {
+        $('#PlanManageViewComponent').load('@Url.Action("PlanManageComponent", "Plan")', { "id": @if (Model.PlanId.HasValue) { @Model.PlanId } else { <text>null</text> }, "productId": '@Model.ProductId' });
+    });
+
+    function _PlanManageCallBack(data) {
+        if (data != null) {
+            window.location.href = '@Url.Action("Manage","Plan")?id=' + data + '&saved=true';
+        }
+    }
+
+    @if (Model.PlanId.HasValue) {
+        <text>
+    $('#_PlanManageCardHeaderTitle').text('Atualização de plano');
+        </text>
+    }
+</script>

@@ -1,0 +1,164 @@
+﻿@using AMaisImob_WEB.Utils;
+
+@inject AMaisImob_WEB.BLL.CompanyTypeFunctions companyTypeFunctions
+
+@{
+	var realEstateId = companyTypeFunctions.GetDataByExternalCode("IMOBILIARIA").CompanyTypeId;
+
+	int? userRealEstateAgencyId = null, userRealEstateId = null;
+	if (ViewData.ContainsKey("UserRealEstateAgencyId"))
+	{
+		userRealEstateAgencyId = (int)ViewData["UserRealEstateAgencyId"];
+	}
+	if (ViewData.ContainsKey("UserRealEstateId"))
+	{
+		userRealEstateId = (int)ViewData["UserRealEstateId"];
+	}
+}
+
+<form action="@Url.Action("GetReport","Certificate")" method="post" id="ReportCertificateForm">
+	<div class="row">
+		<div class="col-md-9">
+			<div class="form-group">
+				<div class="input-group">
+					<div class="input-group-prepend">
+						<span class="input-group-text">Pesquisar</span>
+					</div>
+					<input placeholder="Pesquisar..." class="form-control" data-toggle="search-datatable" data-target="#certificate-report-company-table" />
+				</div>
+			</div>
+			<table id="certificate-report-company-table" class="table display responsive" style="border-collapse: collapse !important; width:100%;">
+				<thead>
+					<tr>
+						<th><input type="checkbox" id="certificate-checkbox-select-all-companies" /></th>
+						<th>Corretora</th>
+						<th>Razão social/Nome</th>
+						<th>CNPJ/CPF</th>
+					</tr>
+				</thead>
+				<tbody></tbody>
+			</table>
+		</div>
+		<div class="col-md-3">
+			<div class="form-group">
+				<div class="input-group" id="_CertificateManageReferenceMonthArea">
+					<div class="input-group-prepend">
+						<span class="input-group-text">Mês de Referência</span>
+					</div>
+					<input type="text" class="form-control monthYear" name="_refMonth" id="_CertificateManageReferenceMonth" placeholder="Mês de Referência">
+				</div>
+			</div>
+			<div class="form-group">
+				<button type="button" class="btn btn-primary" style="width: 100%;" id="_CertificateIndexGetReportButton"><i class="fas fa-file-excel"></i>&nbsp;Gerar Relatório</button>
+			</div>
+		</div>
+	</div>
+</form>
+<script type="text/javascript">
+	var certificate_datatables = $('#certificate-report-company-table').DataTable({
+		proccessing: true,
+		serverSide: false,
+		searching: true,
+		lengthChange: false,
+        dom: 'tip',
+        paging: false,
+        scrollY: '250px',
+        scrollCollapse: true,
+		ajax: {
+            url: '@Url.Action("List", "Company")',
+            data: function (d) {
+                d.companyTypeId = '@realEstateId'
+            },
+			type: 'POST'
+        },
+        drawCallback: function () {
+            _MaskData();
+        },
+        columns: [
+            {
+                data: 'Check',
+                render: function (data, type, row) {
+                    return '<input type="checkbox" data-company-id="' + row.companyId + '" />';
+                }
+            },
+            {
+                data: 'ParentCompany',
+                render: function (data, type, row) {
+                    if (row.parentRazaoSocial != null)
+                        return '<i>' + row.parentRazaoSocial + '</i>';
+                    else
+                        return '<i>' + row.parentFirstName + ' ' + row.parentLastName + '</i>';
+                }
+            },
+			{ data: 'firstName',
+                render: function (data, type, row) {
+                    return !IsNullOrWhiteSpace(row.razaoSocial) ? row.razaoSocial : row.firstName + " " + row.lastName;
+                }
+            },
+            {
+                data: 'CNPJ',
+                render: function (data, type, row) {
+                    return !IsNullOrWhiteSpace(row.cnpj) ? '<span class="cnpj">' + row.cnpj + '</span>' : '<span class="cpf">' + row.cpf + '</span>';
+                }
+            }
+        ]
+    });
+
+	$('#certificate-checkbox-select-all-companies').change(function () {
+		var checked = this.checked;
+		$('#certificate-report-company-table input[type="checkbox"]').each(function (i, e) { e.checked = checked });
+    });
+
+    function certificateReportValidate() {
+		var _CertificateReportHasError = false;
+		$('.text-danger').remove();
+
+		if (IsNullOrWhiteSpace($('#_CertificateManageReferenceMonth').val())) {
+			$('#_CertificateManageReferenceMonthArea').after('<div class="text-danger">Preencha o mês referente.</div>');
+			_CertificateReportHasError = true;
+		} else {
+			var dSplit = $('#_CertificateManageReferenceMonth').val().split('/'),
+				month = dSplit[0],
+				year = dSplit[1];
+
+			var currentDate = new Date(),
+				currentMonth = currentDate.getMonth() + 1, // getMonth() = 0 ~ 11
+				currentYear = currentDate.getFullYear();
+
+			if (year > currentYear || (month > currentMonth && year >= currentYear)) {
+				$('#_CertificateManageReferenceMonthArea').after('<div class="text-danger">A data não pode ser posterior ao mês atual.</div>');
+				_CertificateReportHasError = true;
+			}
+		}
+
+		return !_CertificateReportHasError;
+    }
+
+    $('#_CertificateIndexGetReportButton').click(function () {
+		if (!certificateReportValidate()) return;
+
+        var newElements = [];
+
+        $('#certificate-report-company-table tbody input[type="checkbox"]:checked').each(function (i, e) {
+            var element = $('<input>', { type: 'hidden', name: 'CompanyIds.Index', value: i });
+            var element1 = $('<input>', { type: 'hidden', name: 'CompanyIds[' + i + ']', value: $(e).data('company-id') });
+            newElements.push(element, element1);
+
+            $('#ReportCertificateForm').append(element);
+            $('#ReportCertificateForm').append(element1);
+        });
+
+        $('#ReportCertificateForm').submit();
+
+        newElements.forEach(function (e, i) { $(e).remove(); });
+    });
+
+    $('#_CertificateIndexFilterButton').click(function(){
+        datatables.ajax.reload();
+    });
+
+	$(window).ready(function () {
+		_MaskData();
+		initializeDatatableSearch();
+	});
+</script>

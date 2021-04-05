@@ -1,0 +1,1 @@
+﻿dotnet ef dbcontext scaffold "Server=bitflag.systems;Database=PortalDoAluno_Dev;User Id=PortalDoAluno;Password=Trocar123!;MultipleActiveResultSets=true;" Microsoft.EntityFrameworkCore.SqlServer -c ApplicationDbContext -f --project ApplicationDbContext --use-database-names

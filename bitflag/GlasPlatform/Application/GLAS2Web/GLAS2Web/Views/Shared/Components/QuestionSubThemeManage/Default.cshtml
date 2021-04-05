@@ -1,0 +1,59 @@
+﻿@model DTO.Question.QuestionSubThemeViewModel
+
+@inject BLL.Question.QuestionThemeFunctions questionThemeFunctions
+
+@{
+    var questionTheme = questionThemeFunctions.GetDataByID(Model.QuestionThemeId);
+}
+<form id="question-subTheme-manage-form" method="post">
+    <input type="hidden" name="QuestionThemeId" value="@Model.QuestionThemeId" />
+    <input type="hidden" name="QuestionSubThemeId" value="@Model.QuestionSubThemeId" />
+    <div class="row">
+        <div class="col-md-4 form-group">
+            <label>Nome do Tema</label>
+            <input type="text" class="form-control" value="@questionTheme.Name" disabled />
+        </div>
+        <div class="col-md-8 form-group">
+            <label class="required">Nome do Subtema</label>
+            <input type="text" class="form-control uppercase" name="Name" placeholder="Nome do Subtema" value="@Model.Name"  />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md form-group">
+            <label class="required">Causa</label>
+            <input type="text" class="form-control uppercase" name="Cause" placeholder="Causa" value="@Model.Cause" />
+        </div>
+        <div class="col-md form-group">
+            <label class="required">Efeito</label>
+            <input type="text" class="form-control uppercase" name="Effect" placeholder="Efeito" value="@Model.Effect" />
+        </div>
+        <div class="col-md form-group">
+            <label class="required">Controle</label>
+            <input type="text" class="form-control uppercase" name="Control" placeholder="Controle" value="@Model.Control" />
+        </div>
+    </div>
+</form>
+
+<script type="text/javascript">
+    function questionSubThemeSave(callback) {
+        if (!validateInputs('#question-subTheme-manage-form')) return;
+
+        $.post('@Url.Action("Manage", "QuestionSubTheme")', $('#question-subTheme-manage-form').serializeArray(), function (d) {
+            if (!d.success) {
+                alert(d.message);
+                return;
+            }
+
+            typeof callback == 'function' && callback();
+        });
+    }
+</script>
+
+@if (ViewBag.OnlyView == true)
+{
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#question-subTheme-manage-form input').attr('disabled', '');
+        });
+    </script>
+}

@@ -1,0 +1,114 @@
+﻿@model WEB.Models.CompanyViewModel
+@inject DB.Models.Insurance_HomologContext context
+@{
+    if (Model.CompanyTypeId == 1)
+    {
+        ViewData["Title"] = "Gerenciar " + WEB.Configuration.InsuranceConfiguration.CorretoraDisplayName;
+    }
+    if (Model.CompanyTypeId == 2)
+    {
+        ViewData["Title"] = "Gerenciar " + WEB.Configuration.InsuranceConfiguration.PartnerDisplayName;
+    }
+    var companyTypeFunctions = new WEB.BLL.CompanyTypeFunctions(context);
+
+    string companyTypeName = companyTypeFunctions.GetData().Single(x => x.CompanyTypeId == Model.CompanyTypeId).Name;
+}
+
+<div class="card shadow bg-light">
+    <div class="card-body">
+        <nav>
+            <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                <a class="nav-item nav-link active" id="CompanyManageViewComponent-tab" data-toggle="tab" href="#CompanyManageViewComponent" role="tab" aria-controls="CompanyManageViewComponent" aria-selected="true"><span id="_CompanyManageCardHeaderTitle">Criação de @Html.Raw(companyTypeName)</span></a>
+                <a class="nav-item nav-link disabled" id="CompanyTermLogViewComponent-tab" data-toggle="tab" href="#CompanyTermLogViewComponent" role="tab" aria-controls="CompanyTermLogViewComponent" aria-selected="false">Histórico de Contratos</a>
+            </div>
+        </nav>
+        <div class="tab-content" id="nav-tabContent">
+            <div class="tab-pane fade show active" id="CompanyManageViewComponent" role="tabpanel" aria-labelledby="CompanyManageViewComponent-tab"></div>
+            <div class="tab-pane fade" id="CompanyTermLogViewComponent" role="tabpanel" aria-labelledby="CompanyTermLogViewComponent-tab"></div>
+        </div>
+    </div>
+    <div class="card-footer">
+        <a href="@Url.Action("Index","Company")?companyTypeId=@Model.CompanyTypeId@if (Model.ParentCompanyId.HasValue) {<text>&parentCompanyId=@Model.ParentCompanyId</text>}" class="btn btn-secondary float-left"><i class="fa fa-arrow-left"></i>&nbsp;Voltar</a>
+
+        <div id="save-button-area">
+            <button type="button" id="buttonSubmit" class="btn btn-success float-right"><i class="fas fa-cloud-upload-alt"></i>&nbsp;Criar</button>
+            @if (Model.CompanyId.HasValue && Model.CompanyTypeId == 2 && !Model.TermAccepted)
+            {
+                <button type="button" id="send-accepted-term-button" class="btn btn-warning float-right" style="margin-right: 15px;"><i class="fas fa-paper-plane"></i>&nbsp;Enviar Termos</button>
+            }
+        </div>
+        <script type="text/javascript">
+            $('#buttonSubmit').click(function () {
+                if (_CompanyManageValidate() && VerificarValorMaximo() &&
+                    (typeof validarTaxasComissoes != 'function' || typeof validarTaxasComissoes == 'function' && validarTaxasComissoes())) {
+                    _CompanyManageSave();
+                }
+            });
+        </script>
+        @if (Model.CompanyId.HasValue && Model.CompanyTypeId == 2 && !Model.TermAccepted)
+        {
+            <script type="text/javascript">
+                $('#send-accepted-term-button').click(function () {
+                    if (!confirm('Deseja salvar os dados e enviar os termos novamente?')) return;
+
+                    if (_CompanyManageValidate() && VerificarValorMaximo() &&
+                        (typeof validarTaxasComissoes != 'function' || typeof validarTaxasComissoes == 'function' && validarTaxasComissoes())) {
+                        _CompanyManageSave(true);
+                    }
+                });
+            </script>
+        }
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(function () {
+        $('#CompanyManageViewComponent').load('@Url.Action("CompanyManageComponent", "Company")', { "id": @if (Model.CompanyId.HasValue) { @Model.CompanyId } else { <text>null</text> }, "companyTypeId": '@Model.CompanyTypeId',"parentCompanyId": @if (Model.ParentCompanyId.HasValue) { @Model.ParentCompanyId } else { <text>null</text> } });
+
+        @if (Model.CompanyId.HasValue)
+        {
+            <text>
+        $('#CompanyTermLogViewComponent-tab').removeClass('disabled');
+        $('#CompanyTermLogViewComponent').load('@Url.Action("CompanyTermLogViewComponent", "Company")', { "companyId": '@Model.CompanyId' });
+
+        $('#CompanyManageViewComponent-tab').on('show.bs.tab', function () {
+            $('#save-button-area').show();
+        });
+        $('#CompanyTermLogViewComponent-tab').on('show.bs.tab', function () {
+            $('#save-button-area').hide();
+        });
+            </text>
+        }
+    });
+
+    @if (Model.CompanyTypeId == 1) {
+        <text>
+                function _CompanyManageCallBack(data) {
+                if (data != null) {
+                    window.location.href = '@Url.Action("Plataforma","Company")?id=' + data + '&saved=true';
+                    }
+                }
+        </text>
+    }
+
+    @if (Model.CompanyTypeId == 2)
+    {
+        <text>
+                function _CompanyManageCallBack(data) {
+                if (data != null) {
+                    window.location.href = '@Url.Action("Escritorio","Company")?id=' + data + '&saved=true';
+                    }
+                }
+        </text>
+    }
+
+
+    @if (Model.CompanyId.HasValue)
+    {
+        <text>
+        $('#buttonSubmit').text("Salvar");
+        $('#_CompanyManageCardHeaderTitle').text('Atualização de @Html.Raw(companyTypeName)');
+        </text>
+    }
+
+</script>

@@ -1,0 +1,93 @@
+﻿@model DTO.Shared.EntityViewMode<DTO.Client.ClientUserListViewModel>
+
+    <div class="table-responsive">
+        <table id="client-user-manage-table" class="display table table-striped table-bordered table-condensed" style="border-collapse: collapse !important; width:100%;">
+            <thead>
+                <tr>
+                    <th>&nbsp;</th>
+                    <th>Nome</th>
+                    <th>E-mail</th>
+                    <th>Perfil</th>
+                    <th>Ativo?</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Model.Users)
+                {
+                    <tr>
+                        <td>
+                            <input type="checkbox" data-user-id="@item.UserId" />
+                        </td>
+                        <td>
+                            <a href="@Url.Action("Manage", "User", new { id = item.UserId })" target="_blank">@item.FirstName @item.LastName</a>
+                        </td>
+                        <td>@item.Email</td>
+                        <td>@item.RoleDescription</td>
+                        <td>@item.IsActiveText</td>
+                        @*<td class="text-center">
+                                <a href="javascript: disattachUser(@Model.Model.ClientId, @item.UserId)" title="Remover"><span class="badge badge-pill badge-danger mb-1"><i class="simple-icon-trash"></i></span></a>
+                            </td>*@
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <script type="text/javascript" asp-cut-key="client-user-manage" asp-cut-key-load-from-controller="@Model.LoadFromController">
+    var userManageTable;
+    var selectedUsers = [];
+
+    $(document).ready(function () {
+        userManageTable = $('#client-user-manage-table').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            dom: 'tip'
+        });
+    });
+
+    function attachUser()
+    {
+        if (selectedUsers.length == 0) {
+            bootbox.alert('Selecione ao menos um usuários.');
+            return;
+        }
+
+        var d = [{ name: 'ClientId', value: '@Model.Model.ClientId' }];
+
+        $.each(selectedUsers, function (i, e) {
+            d.push({ name: 'userIds.Index', value: i });
+            d.push({ name: 'userIds[' + i + ']', value: e });
+        });
+
+        $.post('@Url.Action("AttachClientUser", "Client")', d, function (d) {
+            bootbox.alert(d.message);
+
+            if (d.hasError) {
+                return;
+            }
+
+            if (typeof attachUserCallback == 'function') attachUserCallback();
+        });
+    }
+
+    $('#client-user-manage-table [type="checkbox"]').change(function () {
+        var userId = $(this).data('user-id');
+
+        if (this.checked) insertSelectedUsers(userId);
+        else removeSelectedUsers(userId);
+    });
+
+    function removeSelectedUsers(userId) {
+        var index = selectedUsers.indexOf(userId);
+        if (index == -1) return;
+
+        selectedUsers.splice(index, 1);
+    }
+
+    function insertSelectedUsers(userId) {
+        if (selectedUsers.indexOf(userId) != -1) return;
+
+        selectedUsers.push(userId);
+    }
+    </script>

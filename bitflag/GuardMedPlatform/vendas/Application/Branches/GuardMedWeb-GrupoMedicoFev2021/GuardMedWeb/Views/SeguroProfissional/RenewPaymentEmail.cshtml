@@ -1,0 +1,23 @@
+﻿@model GuardMedWeb.Models.SeguradoProfissionalViewModel
+
+<div style="max-width: 500px; margin-left: auto; margin-right: auto; padding: 15px; border: 1px solid #bbbbbb; background-color: #f1f1f152;">
+    <div style="margin-bottom: 2em;">
+        <label style="font-size: 14px;">Olá Dr.(a) <b>@Model.Nome</b>.</label>
+    </div>
+    <div style="margin-bottom: 2em;">
+        <label style="font-size: 14px;">Sua fatura de renovação foi criada.</label>
+        <br />
+        <label style="font-size: 14px;">Atualize seus dados de pagamento <a href="@Url.Action("RenewPaymentClient", "SeguroProfissional", new { reference = Model.Referencia }, Context.Request.Scheme, Context.Request.Host.ToString())">clicando aqui</a> e mantenha sua proteção com a GuardMed.</label>
+        <br />
+        <label style="font-size: 14px;">Obrigado pela confiança e conte sempre conosco.</label>
+    </div>
+    <div style="margin-bottom: 2em;">
+        <label style="font-size: 14px;">GuardMed: Plataforma de Proteção Profissional.</label>
+        <br />
+        <label style="font-size: 14px;">Inovando e protegendo</label>
+    </div>
+    <hr />
+    <div>
+        <label style="font-size: 14px;">Precisa de Ajuda? Entre em contato com a nossa equipe. <a href="mailto:contato@guardmed.com.br">contato@guardmed.com.br</a> | WhatsApp <a href="https://api.whatsapp.com/send?phone=5511995663535">(11) 99566-3535</a>. Horário de funcionamento: 9h às 18h de segunda a sexta-feira.</label>
+    </div>
+</div>

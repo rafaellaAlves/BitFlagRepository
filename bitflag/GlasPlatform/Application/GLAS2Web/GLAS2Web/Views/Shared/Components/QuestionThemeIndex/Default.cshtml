@@ -1,0 +1,60 @@
+﻿<table id="table-question-theme" class="datatable table table-sm table-bordered table-striped" style="border-collapse: collapse !important;">
+    <thead>
+        <tr>
+            <th class="text-center">Código</th>
+            <th>Nome</th>
+            <th>&nbsp;</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<script type="text/javascript">
+    var typingTimer;
+    var doneTypingInterval = 500;
+    var questionThemeDatatables = $('#table-question-theme').DataTable({
+        proccessing: true
+        , serverSide: false
+        , searching: true
+        , lengthChange: false
+        , dom: 'tip'
+        , ajax: {
+            url: '@Url.Action("List", "QuestionTheme")'
+            , type: 'POST'
+        }
+        , columnDefs: [
+              { "width": "250px", "targets": 2 }
+            , { "width": "50px", "targets": 0 }
+        ]
+        , columns: [
+            { render: function (data, type, row) { return '<div class="text-center">' + row.QuestionThemeId + '</div>'; } }
+            , { render: function (data, type, row) { return row.Name; } }
+            , {
+                data: null
+                , sortable: false
+                , searchable: false
+                , render: function (data, type, row) {
+                    return getListActions([
+                        { action: '@Url.Action("Index", "QuestionSubTheme")?questionThemeId=' + row.QuestionThemeId , text: 'Subtemas' },
+                        { action: 'javascript:openQuestionThemeModal(' + row.QuestionThemeId + ')', text: 'Editar' },
+                        { action: 'javascript:deleteQuestionTheme(' + row.QuestionThemeId + ')', text: 'Remover' },
+                    ]);
+                }
+            }
+        ],
+        drawCallback: function () {
+            initSearchDataTable();
+        }
+    });
+
+    $(document).ready(initSearchDataTable);
+
+    function deleteQuestionTheme(questionThemeId) {
+        if (!confirm('Deseja realmente excluir este tema?')) return;
+
+        $.post('@Url.Action("Delete", "QuestionTheme")', { questionThemeId }, function () {
+            alert('tema excluído com sucesso!');
+            questionThemeDatatables.ajax.reload();
+        });
+    }
+</script>

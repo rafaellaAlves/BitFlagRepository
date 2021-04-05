@@ -1,0 +1,17 @@
+﻿.logo-home {
+    width: 1000px;
+}
+
+@media (max-width: 1150px) {
+    .logo-home {
+        width: 80%;
+        margin-top: 3em;
+    }
+}
+
+@media (max-width: 450px) {
+    .logo-home {
+        width: 300px;
+        margin-top: 3em;
+    }
+}

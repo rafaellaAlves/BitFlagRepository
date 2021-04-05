@@ -1,0 +1,63 @@
+@model List<DTO.User.UserViewModel>
+
+<div class="table-responsive">
+    <table id="UserIndexTable" class="display table table-striped table-bordered table-condensed" style="border-collapse: collapse !important; width:100%;">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>E-mail</th>
+                @if (User.IsInRole("Administrator"))
+                {
+                    <th>Perfil</th>
+                }
+                <th>Ativo?</th>
+                @if (User.IsInRole("Administrator"))
+                {
+                    <th>&nbsp;</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        <a href="@Url.Action("Manage", "User", new { id = @item.UserId })">@item.FirstName @item.LastName</a>
+                    </td>
+                    <td>@item.Email</td>
+
+                    @if (User.IsInRole("Administrator"))
+                    {
+                        <td>@item.RoleDescription</td>
+                    }
+                    <td>@item.IsActiveText</td>
+                    @if (User.IsInRole("Administrator"))
+                    {
+                        <td class="text-center" style="white-space: nowrap;">
+                            @if (item.RoleName == "Cliente" && item.TemporaryPassword)
+                            {
+                                <a href="javascript: sendNewUserEmail(@item.UserId)" title="Enviar e-mail de criação"><span class="badge badge-pill badge-primary mb-1"><i class="simple-icon-envelope"></i></span></a>
+                            }
+
+                            <a href="javascript: DeleteUser(@item.UserId)" title="Remover"><span class="badge badge-pill badge-danger mb-1"><i class="simple-icon-trash"></i></span></a>
+                        </td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+<script type="text/javascript" asp-cut-key="user-index">
+    var userTable;
+
+    $(document).ready(function () {
+        userTable = $('#UserIndexTable').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            dom: 'tip'
+        });
+    });
+
+</script>

@@ -1,0 +1,9 @@
+C:\repositorios\DestineJaPlatform\Application\ApplicationIdentityDbContext\bin\Debug\netcoreapp3.1\AspNetIdentityDbContext.deps.json
+C:\repositorios\DestineJaPlatform\Application\ApplicationIdentityDbContext\bin\Debug\netcoreapp3.1\AspNetIdentityDbContext.dll
+C:\repositorios\DestineJaPlatform\Application\ApplicationIdentityDbContext\bin\Debug\netcoreapp3.1\AspNetIdentityDbContext.pdb
+C:\repositorios\DestineJaPlatform\Application\ApplicationIdentityDbContext\obj\Debug\netcoreapp3.1\AspNetIdentityDbContext.csprojAssemblyReference.cache
+C:\repositorios\DestineJaPlatform\Application\ApplicationIdentityDbContext\obj\Debug\netcoreapp3.1\AspNetIdentityDbContext.AssemblyInfoInputs.cache
+C:\repositorios\DestineJaPlatform\Application\ApplicationIdentityDbContext\obj\Debug\netcoreapp3.1\AspNetIdentityDbContext.AssemblyInfo.cs
+C:\repositorios\DestineJaPlatform\Application\ApplicationIdentityDbContext\obj\Debug\netcoreapp3.1\AspNetIdentityDbContext.csproj.CoreCompileInputs.cache
+C:\repositorios\DestineJaPlatform\Application\ApplicationIdentityDbContext\obj\Debug\netcoreapp3.1\AspNetIdentityDbContext.dll
+C:\repositorios\DestineJaPlatform\Application\ApplicationIdentityDbContext\obj\Debug\netcoreapp3.1\AspNetIdentityDbContext.pdb

@@ -1,0 +1,23 @@
+﻿@model List<DTO.Job.JobInteractionViewModel>
+
+<table class="display table table-striped table-bordered table-condensed" style="border-collapse: collapse !important; width:100%;">
+    <thead>
+        <tr>
+            <th class="text-center">Etapa</th>
+            <th class="text-center">Responsável</th>
+            <th class="text-center text-nowrap">Última Interação</th>
+            <th>Observações</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+        <tr>
+            <td class="text-center text-nowrap">@item.StepDescription</td>
+            <td class="text-center text-nowrap">@item.UserName</td>
+            <td class="text-center text-nowrap">@item._CreatedDate</td>
+            <td>@item.Message</td>
+        </tr>
+        }
+    </tbody>
+</table>

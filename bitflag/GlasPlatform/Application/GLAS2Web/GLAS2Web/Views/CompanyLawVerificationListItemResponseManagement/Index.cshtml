@@ -1,0 +1,392 @@
+﻿@using Utils;
+@model IEnumerable<DTO.Company.CompanyLawVerificationListItemResponseViewModel>
+@inject DAL.GLAS2Context context
+@inject Microsoft.AspNetCore.Identity.UserManager<DAL.Identity.User> userManager
+@{
+    var userFunctions = new BLL.User.UserFunctions(context, userManager);
+
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var law = (DTO.Law.LawViewModel)ViewData["Law"];
+
+    var user = new DAL.Identity.User();
+    int? userId = null;
+    string modifiedDate = null;
+    var _model = new DTO.Company.CompanyLawVerificationListItemResponseViewModel();
+    _model = Model.FirstOrDefault();
+    if (_model != null)
+    {
+        userId = _model.LastHandler;
+        modifiedDate = _model.ModifiedDate.ToBrazilianDateFormat();
+    }
+    if (userId != null)
+    {
+        user = userFunctions.GetDataByID(userId);
+    }
+
+    var corretiveId = context.CompanyLawActionType.SingleOrDefault(x => x.ExternalCode == "CORRECTIVE").CompanyLawActionTypeId;
+    var contentId = context.CompanyLawActionType.SingleOrDefault(x => x.ExternalCode == "CONTENT").CompanyLawActionTypeId;
+    var preventiveId = context.CompanyLawActionType.SingleOrDefault(x => x.ExternalCode == "PREVENTIVE").CompanyLawActionTypeId;
+
+    int qtdNaoAplic = 0, qtdImpleSim = 0, qtdActionNao = 0, qtdCorretive = 0, qtdContent = 0, qtdPreventive = 0, total = Model.Count();
+    qtdNaoAplic = Model.Count(x => x.ImplementationTypeId == 0);
+    qtdImpleSim = Model.Count(x => x.ImplementationTypeId == 1);
+    qtdActionNao = Model.Count(x => x.CreateCompanyLawAction.HasValue && x.CreateCompanyLawAction.Value.Equals(false));
+    qtdCorretive = Model.Count(x => x.CompanyLawActionType.HasValue && x.CompanyLawActionType.Value == corretiveId);
+    qtdContent = Model.Count(x => x.CompanyLawActionType.HasValue && x.CompanyLawActionType.Value == contentId);
+    qtdPreventive = Model.Count(x => x.CompanyLawActionType.HasValue && x.CompanyLawActionType.Value == preventiveId);
+
+    Html.RenderPartial("~/Views/Shared/_TopMessages.cshtml");
+}
+<div id="alertSuccess" class="alert alert-success fade show text-center" role="alert" style="display: none;">
+    <strong>As obrigações foram salvas com sucesso!</strong>
+</div>
+<div class="card shadow">
+    <div class="card-header">
+        Obrigações do Requisito Legal: <b>@law.EsferaName, @law.OrgaoName, @law.SegmentoName, @law.Number: @law.Title</b>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-12">
+                <table class="table table-condensed table-bordered table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th rowspan="2">Referência</th>
+                            <th style="width: 30%;" rowspan="2">Quesitos do Requisito legal</th>
+                            <th colspan="3">Atendimento</th>
+                            <th rowspan="2">Observações: Tratativas / Evidências</th>
+                        </tr>
+                        <tr>
+                            <th>Implementação</th>
+                            <th>Ação Necessária?</th>
+                            <th>Tipo Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tdata">
+                        @foreach (var item in Model)
+                    {
+                        <tr data-item-id="@item.LawVerificationListItemId" data-response-id="@item.CompanyLawVerificationListItemResponseId">
+                            <td>@item.Reference</td>
+                            <td>@item.Description</td>
+                            <td class="align-middle">
+                                <select class="form-control ImplementationTypeId">
+                                    <option @if (item.ImplementationTypeId.Equals(0)) { <text> selected="selected" </text> } value="0">Não Aplicável</option>
+                                    <option @if (item.ImplementationTypeId.Equals(1)) { <text> selected="selected" </text> } value="1">Sim</option>
+                                    <option @if (item.ImplementationTypeId.Equals(2)) { <text> selected="selected" </text> } value="2">Não</option>
+                                </select>
+                            </td>
+                            <td class="align-middle">
+                                <select class="form-control CreateCompanyLawAction">
+                                    <option @if (item.CreateCompanyLawAction.HasValue && item.CreateCompanyLawAction.Value.Equals(false)) { <text> selected="selected" </text> } value="false">Não</option>
+                                    <option @if (item.CreateCompanyLawAction.HasValue && item.CreateCompanyLawAction.Value.Equals(true)) { <text> selected="selected" </text> } value="true">Sim</option>
+                                </select>
+                            </td>
+                            <td class="align-middle">
+                                <select class="form-control CompanyLawActionType">
+                                    <option value="">-</option>
+                                    @foreach (var item2 in (IEnumerable<DAL.CompanyLawActionType>)ViewData["CompanyLawActionType"])
+                                {
+                                    <option @if (item.CompanyLawActionType.Equals(item2.CompanyLawActionTypeId)) { <text> selected="selected" </text> } value="@item2.CompanyLawActionTypeId">@item2.Name</option>
+                            }
+                                </select>
+                            </td>
+                            <td>
+                                <textarea style="box-sizing: border-box; height: 100%;" class="form-control Comments">@item.Comments</textarea>
+                            </td>
+                        </tr>
+                }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <br />
+        <div class="row">
+            <div class="col-md-2"></div>
+            <div class="col-md-4">
+                <div class="card shadow">
+                    <div class="card-header text-center">Atendimento</div>
+                    <div class="card-body">
+                        <div id="kpi4" style="margin: 0 auto; height: 180px; line-height: 180px; text-align: center;"></div>
+                        <small id="kpi4_Total"></small>
+                    </div>
+                </div>
+                <script type="text/javascript">
+                    function GraphAtendimento() {
+                        if ( @total == 0) {
+                            $('#kpi4').html('<i>Nenhuma obrigação associada.</i>');
+                            return false;
+                        }
+
+                        $('#kpi4_Total').text('Total: ' +  @total);
+
+                        Highcharts.chart('kpi4', {
+
+                            chart: {
+                                type: 'pie'
+                            },
+
+                            title: {
+                                text: null
+                            },
+
+                            credits: {
+                                enabled: false
+                            },
+
+                            exporting: {
+                                enabled: false
+                            },
+
+                            yAxis: {
+                                min: 0,
+                                max: @total,
+                                lineWidth: 0,
+                                tickPositions: []
+                            },
+
+                            legend: {
+                                layout: 'vertical',
+                                align: 'right',
+                                verticalAlign: 'middle',
+                                itemMarginTop: 10,
+                                itemMarginBottom: 10
+                            },
+
+                            plotOptions: {
+                                pie: {
+                                    allowPointSelect: true,
+                                    shadow: false,
+                                    center: ['50%', '50%'],
+                                    dataLabels: {
+                                        enabled: false
+                                    },
+                                    showInLegend: true
+                                }
+                            },
+
+                            series: [
+                                {
+                                    name: 'Atendimento',
+                                    size: '100%',
+                                    innerSize: '60%',
+                                    data: [{ name: 'Aplicável', y: @qtdImpleSim, color: '#fb7035', size: '' }
+                                        , {
+                                            name: 'Não', y: @qtdNaoAplic, color: '#8daed6'
+                                    }]
+                                }]
+                        });
+                    }
+                    GraphAtendimento();
+                </script>
+            </div>
+            <div class="col-md-4">
+                <div class="card shadow">
+                    <div class="card-header text-center">Ações</div>
+                    <div class="card-body">
+                        <div id="kpi5" style="margin: 0 auto; height: 180px; line-height: 180px; text-align: center;"></div>
+                        <small id="kpi5_Total"></small>
+                    </div>
+                </div>
+                <script type="text/javascript">
+                    function GraphAction() {
+                        if ( @total == 0) {
+                            $('#kpi5').html('<i>Nenhuma obrigação associada.</i>');
+                            return false;
+                        }
+
+                        $('#kpi5_Total').text('Total: ' +  @total);
+
+                        Highcharts.chart('kpi5', {
+
+                            chart: {
+                                type: 'pie'
+                            },
+
+                            title: {
+                                text: null
+                            },
+
+                            credits: {
+                                enabled: false
+                            },
+
+                            exporting: {
+                                enabled: false
+                            },
+
+                            yAxis: {
+                                min: 0,
+                                max: @total,
+                                lineWidth: 0,
+                                tickPositions: []
+                            },
+
+                            legend: {
+                                layout: 'vertical',
+                                align: 'right',
+                                verticalAlign: 'middle',
+                                itemMarginTop: 5,
+                                itemMarginBottom: 5,
+                                itemStyle: {
+                                    fontSize: '12px'
+                                }
+                            },
+
+                            plotOptions: {
+                                pie: {
+                                    allowPointSelect: true,
+                                    shadow: false,
+                                    center: ['50%', '50%'],
+                                    dataLabels: {
+                                        enabled: false
+                                    },
+                                    showInLegend: true
+                                }
+                            },
+
+                            series: [
+                                {
+                                    name: 'Ações',
+                                    size: '100%',
+                                    innerSize: '60%',
+                                    data: [
+                                        { name: 'Não', y: @qtdActionNao, color: '#8daed6' }
+                                        , { name: 'Corretiva', y: @qtdCorretive, color: '#a8a8a8' }
+                                        , { name: 'Contenção', y: @qtdContent, color: '#e2df31' }
+                                        , { name: 'Preventiva', y: @qtdPreventive, color: '#fb7035'}
+                                    ]
+                                }]
+                        });
+                    }
+                    GraphAction();
+                </script>
+            </div>
+        </div>
+        <br />
+        <div class="row">
+            <div class="col-md-2"></div>
+            <div class="col-md-8 text-center">
+                <table class="table table-condensed table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th colspan="2">
+                                Atendimento
+                            </th>
+                            <th colspan="4">
+                                Ações
+                            </th>
+                        </tr>
+                    </thead>
+                    <tr>
+                        <td>Não Aplicável</td>
+                        <td>Aplicável</td>
+                        <td>Não</td>
+                        <td>Corretiva</td>
+                        <td>Contenção</td>
+                        <td>Preventiva</td>
+                    </tr>
+                    <tr>
+                        <td><strong>@qtdNaoAplic</strong></td>
+                        <td><strong>@qtdImpleSim</strong></td>
+                        <td><strong>@qtdActionNao</strong></td>
+                        <td><strong>@qtdCorretive</strong></td>
+                        <td><strong>@qtdContent</strong></td>
+                        <td><strong>@qtdPreventive</strong></td>
+                    </tr>
+                </table>
+                <label>Total: <strong>@total</strong></label>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer">
+        <div class="row">
+            @*<div class="col-md-6 text-left">
+                    <a href="@Url.Action("Laws", "CompanyManagement")?id=@ViewData["CompanyId"]" class="btn btn-secondary"><i class="fa fa-arrow-left"></i>&nbsp;Voltar</a>
+                </div>*@
+            <div class="col-md-4 text-left">
+                <button id="Print" type="button" class="btn btn-primary"><i class="fas fa-print"></i>&nbsp;Imprimir</button>
+                <script type="text/javascript">
+					$('#Print').click(function () {
+						window.open('@Url.Action("Print", "CompanyLawVerificationListItemResponseManagement", new { id = ViewData["LawVerificationListId"], CompanyLawid = ViewData["CompanyLawId"] })', '_blank');
+					});
+                </script>
+            </div>
+            <div class="col-md-4 text-center">
+                @if (!string.IsNullOrWhiteSpace(user.FullName))
+                {
+                    <text> Alterado por @user.FullName em @modifiedDate. </text>
+                }
+            </div>
+            <div class="col-md-4 text-right">
+                <button id="save" class="btn btn-success"><i class="fa fa-cloud-upload-alt"></i>&nbsp;Salvar</button>
+                <script type="text/javascript">
+                    $('#save').click(function () {
+
+                        $('#save').attr('disabled', 'disabled');
+
+                        var model = [];
+                        $.each($('#tdata').children('tr'), function (i, e) {
+                            model.push({
+                                CompanyLawVerificationListItemResponseId: $(e).data('response-id').length == 0 ? null : $(e).data('response-id')
+                                , CompanyLawId: @ViewData["CompanyLawId"]
+                                , LawVerificationListId: @ViewData["LawVerificationListId"]
+                                , LawVerificationListItemId: $(e).data('item-id')
+                                , ImplementationTypeId: parseInt($(this).find('.ImplementationTypeId').val())
+                                , CreateCompanyLawAction: $(this).find('.CreateCompanyLawAction').val() == 'true' ? true : false
+                                , CompanyLawActionType: $(this).find('.CompanyLawActionType').val().length == 0 ? null : parseInt($(this).find('.CompanyLawActionType').val())
+                                , Comments: $(this).find('.Comments').val()
+                            });
+                        });
+
+                        $.ajax({
+                            url: '@Url.Action("Save", "CompanyLawVerificationListItemResponseManagement")',
+                            type: 'POST',
+                            data: JSON.stringify(model),
+                            contentType: 'application/json; charset=utf-8',
+                            dataType: 'json',
+							success: function (data) {
+                                if (data == true) {
+                                    window.location.href = "@Url.Action("Index", "CompanyLawVerificationListItemResponseManagement")?CompanyLawId=" + @Context.Request.Query["CompanyLawId"] + "&saved=True";
+                                } else {
+                                    $('#save').removeAttr('disabled');
+                                }
+                            }
+                        });
+                    });
+                </script>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    var lockSave = true;
+    $('.ImplementationTypeId').change(function () {
+        var lawVerificationListItemId = $(this).closest('tr').data('id');
+        var createCompanyLawAction = $(this).closest('tr').find('.CreateCompanyLawAction');
+        $(createCompanyLawAction).prop("disabled", $(this).val() == '0' || $(this).val() == '2');
+        if ($(this).val() == '0' || $(this).val() == '2') $(createCompanyLawAction).val('false');
+        $(createCompanyLawAction).change();
+    });
+    $('.CreateCompanyLawAction').change(function () {
+        var companyLawActionType = $(this).closest('tr').find('.CompanyLawActionType');
+        $(companyLawActionType).prop("disabled", $(this).val() == '' || $(this).val() == 'false');
+        if ($(this).val() == 'false') {
+            if ($($(companyLawActionType)[0]).children().filter('option[value=""]').length == 0)
+                $($(companyLawActionType)[0]).prepend('<option value="">-</option>');
+
+            $(companyLawActionType).val('');
+        } else {
+            if ($($(companyLawActionType)[0]).children().filter('option[value=""]').length > 0)
+                $($(companyLawActionType)[0]).children().filter('option[value=""]').remove();
+
+            $(companyLawActionType).val($($(companyLawActionType)[0]).val());
+        }
+        $(companyLawActionType).change();
+    });
+    $('.CompanyLawActionType').change(function () {
+        //
+    });
+    $(document).ready(function () {
+        $('.ImplementationTypeId').change();
+    });
+</script>

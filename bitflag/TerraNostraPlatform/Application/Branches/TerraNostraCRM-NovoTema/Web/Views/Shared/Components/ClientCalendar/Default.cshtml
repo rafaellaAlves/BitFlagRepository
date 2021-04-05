@@ -1,0 +1,453 @@
+﻿@model DB.Client
+
+@inject FUNCTIONS.Client.ClientCalendarFunctions clientCalendarFunctions
+@inject FUNCTIONS.Client.ClientFunctions clientFunctions
+
+@{
+    DTO.Client.ClientCalendarViewModel clientCalendar = null;
+    if (ViewBag.ClientTaskId != null)
+    {
+        if (int.TryParse(ViewBag.ClientTaskId.ToString(), out int clientTaskId))
+        {
+            clientCalendar = clientCalendarFunctions.GetDataViewModel(clientCalendarFunctions.GetDataByID(clientTaskId));
+        }
+    }
+
+}
+
+
+<style>
+    h2 {
+        color: black;
+    }
+
+    button.fc-next-button.btn.btn-primary {
+    }
+
+    div.card-body {
+        width: 100% !important;
+        height: 80% !important;
+        align-content: center;
+    }
+
+    div.card {
+        width: 100% !important;
+        height: 80% !important;
+        align-content: center;
+    }
+
+    .fc-day-header {
+        background-color: #145388;
+        color: white;
+    }
+
+    .fc-event.active {
+        background-color: #c1be57;
+    }
+
+    .select2 {
+        width: 100% !important;
+    }
+</style>
+
+<div id="calendar"></div>
+
+<div id="modal-view-event-add" class="modal modal-top fade">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="add-event">
+                @if (Model != null)
+                {
+                    <input type="hidden" value="@Model.ClientId" id="ClientId" name="ClientId" />
+                }
+                <input type="hidden" name="ClientTaskId" id="ClientTaskId" />
+                <div class="modal-body text-left">
+                    <h4 id="modal-view-event-add-title">Adicionar Tarefa</h4>
+                    <div class="form-group">
+                        <label>Data da Tarefa</label>
+                        <div class="row" id="task-date-area">
+                            <div class="col-md-5">
+                                <input type='hidden' name="TaskDate" id="TaskDate">
+                                <input type='text' class=" form-control date datepicker" placeholder="Data da Tarefa" id="task-date">
+                            </div>
+                            <div class="col-1" style="font-size:25px;">-</div>
+                            <div class="col-md-6">
+                                <div class="row">
+                                    <div class="col-md-5">
+                                        <input type='text' class="text-center form-control number2" placeholder="Hora" id="task-date-hour" onblur="validateHour(this)" name="_TaskDateHour">
+                                    </div>
+                                    <div class="col-md-2" style="font-size:25px;">:</div>
+                                    <div class="col-md-5">
+                                        <input type='text' class="text-center form-control number2" placeholder="Minuto" id="task-date-minute" onblur="validateMinute(this)" name="_TaskDateMinute">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Data de Aviso</label>
+                        <div class="row" id="notice-date-area">
+                            <div class="col-md-5">
+                                <input type='hidden' name="NoticeDate" id="NoticeDate">
+                                <input type='text' placeholder="Data de Aviso" class="form-control date datepicker" id="notice-date">
+                            </div>
+                            <div class="col-1" style="font-size:25px;">-</div>
+                            <div class="col-md-6">
+                                <div class="row">
+                                    <div class="col-md-5">
+                                        <input type='text' class="text-center form-control number2" placeholder="Hora" id="notice-date-hour" onblur="validateHour(this)" name="_NoticeDateHour">
+                                    </div>
+                                    <div class="col-md-2" style="font-size:25px;">:</div>
+                                    <div class="col-md-5">
+                                        <input type='text' class="text-center form-control number2" placeholder="Minuto" id="notice-date-minute" onblur="validateMinute(this)" name="_NoticeDateMinute">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="form-group">
+                        <label>Assunto</label>
+                        <input type="text" class="form-control" id="title" name="Title">
+                    </div>
+                    <div class="form-group">
+                        <label>Mensagem</label>
+                        <textarea class="form-control" id="message" name="Message"></textarea>
+                    </div>
+                    @if (Model == null)
+                    {
+                        <div class="form-group">
+                            <label>Cliente</label>
+                            <select class="form-control w-100" id="ClientId" name="ClientId">
+                                @foreach (var item in await clientFunctions.GetByLoggedUserId(User))
+                                {
+                                    <option value="@item.ClientId">@item.FirstName @item.LastName</option>
+                                }
+                            </select>
+                        </div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <div class="row w-100 m-0">
+                        <div class="col-md-4">
+                            <button type="button" class="btn btn-secondary float-left" data-dismiss="modal"><i class="simple-icon-close"></i>&nbsp;Fechar</button>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <button id="remover" type="button" class="btn btn-danger" style="display:none;" data-dismiss="modal"><i class="simple-icon-trash"></i>&nbsp;Excluir</button>
+                        </div>
+                        <div class="col-md-4">
+                            <button id="salvar" type="button" class="btn btn-success float-right"><i class="simple-icon-cloud-upload"></i>&nbsp;Salvar</button>
+
+                            <button id="alterar" type="button" class="btn btn-success float-right" style="display:none;"><i class="simple-icon-cloud-upload"></i>&nbsp;Atualizar</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    var calendar, redirectedToDate = false;
+
+    $(document).ready(function () {
+        $.post('@Url.Action("GetCalendarData", "Client")', { clientId: $('#ClientId').val(), clientTaskId: @if(clientCalendar != null) {<text>@clientCalendar.ClientTaskId</text>}else{<text>null</text>}, showAll: @if(Model != null) {<text>false</text>}else{<text>true</text>} }, function (d) {
+            createCallendar(d);
+        });
+
+        _MaskData();
+    
+        @if (Model == null)
+        {
+            <text>
+         $('#ClientId').select2({
+            "language": {
+               "noResults": function(){
+                   return "Nenhum resultado encontrado";
+               }
+            },
+        });
+            </text>
+        }
+       
+    });
+
+    $("#salvar, #alterar").click(function () {
+        if (!validateEvent()) return;
+
+        createOrUpdateEvent();
+    });
+
+    $("#remover").click(function () {
+        removeEvent();
+    });
+
+    function validateEvent() {
+        $('.text-danger').remove();
+
+        var hasError = false;
+
+        if (IsNullOrWhiteSpace($('#task-date').val())) {
+            hasError = true;
+            $('#task-date-area').after($('<div>', { class: 'text-danger' }).append('Preencha a data da tarefa'));
+        }
+        if (IsNullOrWhiteSpace($('#task-date-hour').val())) {
+            hasError = true;
+            $('#task-date-area').after($('<div>', { class: 'text-danger' }).append('Preencha a hora da tarefa'));
+        }
+        if (IsNullOrWhiteSpace($('#task-date-minute').val())) {
+            hasError = true;
+            $('#task-date-area').after($('<div>', { class: 'text-danger' }).append('Preencha o minuto da tarefa'));
+        }
+
+        if (!IsNullOrWhiteSpace($('#notice-date').val())) {
+            if (IsNullOrWhiteSpace($('#notice-date-hour').val())) {
+                hasError = true;
+                $('#notice-date-area').after($('<div>', { class: 'text-danger' }).append('Preencha a hora da notificação'));
+            }
+            if (IsNullOrWhiteSpace($('#notice-date-minute').val())) {
+                hasError = true;
+                $('#notice-date-area').after($('<div>', { class: 'text-danger' }).append('Preencha o minuto da notificação'));
+            }
+        }
+
+        if (!IsNullOrWhiteSpace($('#task-date').val()) && !IsNullOrWhiteSpace($('#notice-date').val())) {
+            var taskDate = getDate('task-date');
+            var noticeDate = getDate('notice-date');
+
+            if (noticeDate > taskDate) {
+                hasError = true;
+                $('#notice-date-area').after($('<div>', { class: 'text-danger' }).append('A data de aviso deve ser anterior à data da tarefa'));
+            }
+        }
+        if (IsNullOrWhiteSpace($('#title').val())) {
+            hasError = true;
+            $('#title').after($('<div>', { class: 'text-danger' }).append('Preencha o título'));
+        }
+        if (IsNullOrWhiteSpace($('#message').val())) {
+            hasError = true;
+            $('#message').after($('<div>', { class: 'text-danger' }).append('Preencha a descrição'));
+        }
+
+        return !hasError;
+    }
+
+    function createOrUpdateEvent() {
+        $('#modal-view-event-add').modal('hide');
+        $('#TaskDate').val(getDate('task-date').toISOString());
+        $('#NoticeDate').val(getDate('notice-date').toISOString());
+
+        var data = $('#add-event').serializeArray();
+        data.push({ name: 'getAllClients', value: @if(Model != null) {<text>false</text>}else{<text>true</text>}});
+
+        $.ajax({
+            url: '@Url.Action("CreateEventCalendar", "Client")',
+            type: 'POST',
+            dataType: 'json',
+            data: data,
+            success: function (d) {
+                if (IsNullOrWhiteSpace($('#ClientTaskId').val())) {
+                    $('#calendar').fullCalendar('renderEvent', d);
+                } else {
+                    $("#calendar").fullCalendar('removeEvents');
+                    $("#calendar").fullCalendar('addEventSource', d);
+                }
+
+                if (typeof getNotifications == 'function') getNotifications();
+            }
+        });
+    }
+
+
+    function removeEvent() {
+        if (!confirm('Deseja realmente remover esta tarefa?')) return;
+
+        $.ajax({
+            url: '@Url.Action("RemoveCalendarItem", "Client")',
+            type: 'POST',
+            dataType: 'json',
+            data: { clientTaskId: $('#ClientTaskId').val(), clientId: $('#ClientId').val(), getAllClients: @if(Model != null) {<text>false</text>}else{<text>true</text>} },
+            success: function (d) {
+                $("#calendar").fullCalendar('removeEvents');
+                $("#calendar").fullCalendar('addEventSource', d);
+                alert('Tarefa removida com sucesso!');
+            }
+        });
+    }
+
+    function createCallendar(data) {
+        calendar = $('#calendar').fullCalendar({
+            locale: 'pt-br',
+            height: 650,
+            themeSystem: 'bootstrap4',
+            defaultView: 'month',
+            editable: true,
+            //buttonIcons: {
+            //    prev: 'simple-icon-arrow-left',
+            //    next: 'simple-icon-arrow-right',
+            //},
+            header: {
+                left: 'title',
+                center: '',
+                right: 'today prev,next'
+            },
+            events: data,
+            eventRender: function (event, element) {
+                $(element).text(event.title);
+                if (event.icon) {
+                    element.find(".fc-title").prepend("<i class='fa fa-" + event.icon + "'></i>");
+                }
+
+                element.html(event.title);
+            },
+            dayClick: function (date) {
+                $('#task-date').val(date.format('DD/MM/YYYY'));
+                $('#ClientTaskId').val('');
+
+                $('#modal-view-event-add-title').text('Adicionar Tarefa');
+                $('#remover').hide();
+                $('#alterar').hide();
+                $('#salvar').show();
+                $('#modal-view-event-add').modal('show');
+
+                $('select').prop('disabled', false);
+            },
+            eventClick: function (event, jsEvent, view) {
+                var taskDate = event.start;
+
+                $('#task-date').val(taskDate.format('DD/MM/YYYY'));
+                $('#task-date-hour').val(taskDate.format('HH'));
+                $('#task-date-minute').val(taskDate.format('mm'));
+
+                if (event.noticeDate != null) {
+                    var noticeDate = moment(event.noticeDate);
+                    $('#notice-date').val(noticeDate.format('DD/MM/YYYY'));
+                    $('#notice-date-hour').val(noticeDate.format('HH'));
+                    $('#notice-date-minute').val(noticeDate.format('mm'));
+                }
+                $('#ClientId').val(event.clientId);
+                @if (Model == null)
+                {
+                    <text>
+                $('#ClientId').select2().trigger('change');
+                    </text>
+                }
+                $('#title').val(event._Title);
+                $('#message').val(event.description);
+                $('#ClientTaskId').val(event.clientTaskId);
+                $('#remover').show();
+                $('#alterar').show();
+
+
+                $('#modal-view-event-add-title').text('Atualizar Tarefa');
+                $('#modal-view-event-add').modal('show');
+                $('#remover').show();
+                $('#alterar').show();
+                $('#salvar').hide();
+
+                $('select').prop('disabled', true);
+            },
+            eventDrop: function (event, delta, revertFunc) {
+                console.log(event);
+                $('#task-date').val(event.start.format('DD/MM/YYYY'));
+                $('#notice-date').val(event.noticeDateBR);
+                $('#ClientId').val(event.clientId);
+                @if (Model == null)
+                {
+                    <text>
+                $('#ClientId').select2().trigger('change');
+                    </text>
+                }
+                $('#title').val(event._Title);
+                $('#message').val(event.description);
+                $('#ClientTaskId').val(event.clientTaskId);
+
+                if (!IsNullOrWhiteSpace(event.noticeDateBR)) {
+                    var taskDate = event.start;
+                    var noticeDate = moment(event.noticeDateBR, 'DD/MM/YYYY');
+
+                    if (noticeDate > taskDate) {
+                        if (!confirm('A data de aviso será realocada para o mesmo dia da tarefa.\nDeseja continuar?')) {
+                            revertFunc();
+                            return;
+                        } else {
+                            $('#notice-date').val(event.start.format('DD/MM/YYYY'));
+                        }
+                    }
+                }
+
+                createOrUpdateEvent();
+            },
+            @if(clientCalendar != null)
+            {
+            <text>
+            eventAfterAllRender: function () {
+                if (!redirectedToDate) {
+                    $('#calendar').fullCalendar('gotoDate', moment('@clientCalendar._TaskDate', 'DD/MM/YYYY'));
+                }
+                redirectedToDate = true;//redirectedToDate fica true para entrar apenas a primeira vez nesta validação
+            }
+            </text>
+            }
+        });
+
+        $('.fa.fa-chevron-left').replaceWith($('<i>', { class: 'simple-icon-arrow-left' }));
+        $('.fa.fa-chevron-right').replaceWith($('<i>', { class: 'simple-icon-arrow-right' }));
+    }
+
+        //function getDataTask() {
+
+        //}
+
+    $('#modal-view-event-add').on('hidden.bs.modal', function () {
+        $('#task-date').val('');
+        $('#task-date-hour').val('');
+        $('#task-date-minute').val('');
+        $('#title').val('');
+        $('#message').val('');
+        $('#title').val('');
+        $('#notice-date').val('');
+        $('#notice-date-hour').val('');
+        $('#notice-date-minute').val('');
+
+        $('.text-danger').remove();
+    });
+
+    function validateHour(sel) {
+        if (IsNullOrWhiteSpace($(sel).val())) return true;
+
+        var val = parseInt($(sel).val());
+
+        var validate = val >= 0 && val <= 23;
+
+        if (!validate) {
+            $(sel).val('');
+            alert('A hora deve estar dentre o intervalo de 0 à 23')
+        }
+
+        return validate;
+    }
+
+    function validateMinute(sel) {
+        if (IsNullOrWhiteSpace($(sel).val())) return true;
+
+        var val = parseInt($(sel).val());
+
+        var validate = val >= 0 && val <= 59;
+
+        if (!validate) {
+            $(sel).val('');
+            alert('Os minutos devem estar dentre o intervalo de 0 à 59')
+        }
+
+        return validate;
+    }
+
+    function getDate(id) {
+        var strDate = $('#' + id).val();
+        var strHour = $('#' + id + '-hour').val();
+        var strMinute = $('#' + id + '-minute').val();
+
+        return moment(strDate + ' ' + strHour + ':' + strMinute, 'DD/MM/YYYY HH:mm');
+    }
+</script>

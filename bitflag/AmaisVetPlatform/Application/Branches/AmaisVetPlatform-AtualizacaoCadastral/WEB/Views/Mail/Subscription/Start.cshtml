@@ -1,0 +1,30 @@
+﻿@model DTO.Subscription.SubscriptionViewModel
+@{
+    Layout = null;
+}
+@{ await Html.RenderPartialAsync("/Views/Mail/Subscription/Shared/Header.cshtml"); }
+<p>
+    Olá Dr(a). @Model.FullName,
+</p>
+<p>
+    Agradecemos por seu interesse.
+</p>
+<p>
+    Bem vinda (o) a maior empresa do Brasil em seguros para área da Medicina Veterinária.
+</p>
+<p>
+    Anote esse número de referência @Model.Reference, para que possa acessar a cotação no futuro.
+</p>
+<p>
+    Clique nas opções abaixo se quiser saber sobre:
+    <ul>
+        <li><a href="https://www.amaisvet.com.br/duvidas-adesao-sinistro-cobertura">Dúvidas frequentes</a></li>
+        <li><a href="https://www.amaisvet.com.br/condicoesgerais-particulares">Condições Gerais e Particulares</a></li>
+        <li><a href="https://www.amaisvet.com.br/veterinario-parceiros-convenio">Parcerias e Convênios</a></li>
+        <li><a href="https://www.amaisvet.com.br/veterinario-oquefazemos">O que fazemos</a></li>
+    </ul>
+</p>
+<p>
+    <a href="@Url.Action("Goto", "Subscription", new { reference = Model.Reference }, this.Context.Request.Scheme)">Voltar para a cotação</a>
+</p>
+@{ await Html.RenderPartialAsync("/Views/Mail/Subscription/Shared/Signature.cshtml"); }

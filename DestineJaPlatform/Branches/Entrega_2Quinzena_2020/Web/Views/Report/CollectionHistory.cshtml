@@ -1,0 +1,80 @@
+﻿@inject Services.Client.ClientServices clientServices
+
+@{
+    ViewData["Title"] = "Relatório - Histórico de Coletas";
+}
+
+<div class="card">
+    <div class="card-header">
+        <div class="row">
+            @if (User.IsClient())
+            {
+                var client = await clientServices.GetViewModelByIdAsync(await clientServices.GetClientIdByLoggedUser(Context));
+
+                <div class="col-12">
+                    <label class="text-destineja-md float-left">@client.Name - @client.AlternativeName - @client.DocumentFormated</label>
+                </div>
+            }
+            <div class="col-12 text-center" style="font-size: 20px !important; color: black;">
+                Relatório - Histórico de Coletas
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <form id="client-collection-filter-form">
+            @{ 
+                var filters = new List<ReportFilterModel>() { ReportFilterModel.StartAndEndDateFilter(null, 4) };
+
+                if (User.IsInRole("Administrator"))
+                {
+                    filters.Add(ReportFilterModel.ClientFilter(null, 3));
+                }
+
+                @(await Component.InvokeAsync<Web.ViewComponents.Report.Filter.FilterViewComponent>(filters))
+            }
+
+        </form>
+        <hr />
+        <div id="client-report-collection-list-view-component">
+            @(await Component.InvokeAsync<Web.ViewComponents.Report.CollectionHistory.IndexViewComponent>())
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <script src="@Url.Content("~/assets/js/report.js")"></script>
+    <script asp-paste-key="client-collection-list"></script>
+    <script asp-paste-key="report-filter-client"></script>
+
+    <script type="text/javascript">
+        function reloadByFilter() {
+            if (!validateInputs('client-collection-filter-form') || !validateStartAndEndDate()) return;
+
+            $('#client-report-collection-list-view-component').load('@Url.Action("LoadCollectionHistoryViewComponent")', $('#client-collection-filter-form').serializeArray());
+        }
+
+        function collectionHistoryDownload(title) {
+            collectionHistoryPrintAndDownload(title, '@Url.Action("CollectionHistoryDownload", "Report")');
+        }
+
+        function collectionHistoryPrint(title) {
+            collectionHistoryPrintAndDownload(title, '@Url.Action("CollectionHistoryPrint", "Report")');
+        }
+        function collectionHistoryPrintAndDownload(title, url) {
+            var form = $('<form>', { target: "_blank", method: "post", action: url });
+            form.append($('<input>', { type: 'hidden', value: title, name: 'Title' }));
+
+            setFilterIntoForm(form);
+            setChartIntoForm(form, [collectionListChart]);
+            setTableHeaderIntoForm(form, collectionListTable);
+
+            form.append($('<input>', { type: 'hidden', value: $('[name="StartDate"]').val(), name: 'StartDateFormated' }));
+            form.append($('<input>', { type: 'hidden', value: $('[name="EndDate"]').val(), name: 'EndDateFormated' }));
+
+            $('body').append(form);
+
+            form.submit();
+            form.remove();
+        }
+    </script>
+}

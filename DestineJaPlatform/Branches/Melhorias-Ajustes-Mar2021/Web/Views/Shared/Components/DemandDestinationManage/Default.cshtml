@@ -1,0 +1,159 @@
+﻿@model DTO.Shared.EntityViewMode<DTO.DemandDestination.DemandDestinationViewModel>
+@using DTO.Utils;
+
+@inject Services.DemandDestination.DemandDestinationServices demandDestinationServices
+@inject Services.Transporter.TransporterServices transporterServices
+@inject Services.Transporter.TransporterVehicleServices transporterVehicleServices
+@inject Services.Transporter.TransporterDriverServices transporterDriverServices
+@inject Services.Recipient.RecipientServices recipientServices
+@inject Services.Residue.ResidueFamilyListService residueFamilyListService
+@inject Web.Helpers.DropDownListHelper dropDownListHelper
+
+@{
+    ViewData["Title"] = "Gerenciar Destinação";
+
+    var nextId = await demandDestinationServices.GetLastId() + 1;
+
+    var Id = Model.Model.DestineJaDemandDestinationId ?? (nextId.ToString().Length > 4 ? nextId.ToString() : nextId.ToString("0000"));
+}
+
+<style type="text/css">
+    .select2.select2-container {
+        width: 100% !important;
+    }
+</style>
+
+<div id="demand-destination-manage-form-area">
+    <div class="row">
+        <div class="col-md-12 form-group">
+            <h5 class="mg-b-0 tx-uppercase tx-inverse tx-bold">Número do MTR de Destinação: <b>@Id</b></h5>
+        </div>
+        <input type="hidden" name="AlternativeDemandDestinationId" value="@Model.Model.AlternativeDemandDestinationId" />
+
+        @*<div class="col-md-4">
+            <div class="input-group">
+                <div class="input-group-addon">
+                    <span class="">Número de MTR</span>
+                </div>
+                <input class="form-control required" name="AlternativeDemandDestinationId" placeholder="Número de MTR" value="@Model.Model.AlternativeDemandDestinationId" />
+            </div>
+        </div>*@
+    </div>
+    <hr />
+    <div class="row">
+        <div class="col-md-4 form-group">
+            <label class="">Transportador</label>
+            @Html.DropDownList("TransporterId", dropDownListHelper.ToSelectListItem((await transporterServices.GetDataAsNoTrackingAsync(x => (!x.IsDeleted && x.IsActive) || Model.Model.TransporterId == x.TransporterId)).OrderBy(x => x.CompanyName.IfNullChange(x.FullName)), x => x.TransporterId, x => x.CompanyName.IfNullChange(x.FullName), Model.Model.TransporterId.ToString()), "Selecione", new { Class = "form-control" })
+        </div>
+        <div class="col-md-4 form-group">
+            <label class="">Veículo</label>
+            @if (Model.Model.DemandDestinationId.HasValue)
+            {
+                @Html.DropDownList("TransporterVehicleId", dropDownListHelper.ToSelectListItem(await transporterVehicleServices.GetDataAsNoTrackingAsync(x => (!x.IsDeleted && x.IsActive && x.TransporterId == Model.Model.TransporterId) || x.TransporterVehicleId == Model.Model.TransporterVehicleId), x => x.TransporterVehicleId, x => $"Modelo: {x.Model} - Placa: {x.LicensePlate}", Model.Model.TransporterVehicleId.ToString()), new { Class = "form-control" });
+            }
+            else
+            {
+                <select class="form-control" name="TransporterVehicleId"></select>
+            }
+        </div>
+        <div class="col-md-4 form-group">
+            <label class="">Motorista</label>
+            @if (Model.Model.DemandDestinationId.HasValue)
+            {
+                @Html.DropDownList("TransporterDriverId", dropDownListHelper.ToSelectListItem(await transporterDriverServices.GetDataAsNoTrackingAsync(x => (!x.IsDeleted && x.IsActive && x.TransporterId == Model.Model.TransporterId) || x.TransporterDriverId == Model.Model.TransporterDriverId), x => x.TransporterDriverId, x => $"{x.DriverName} - CNH: {x.CNH} - MOPP: {x.MOPP.IfNullChange("-")}", Model.Model.TransporterDriverId.ToString()), new { Class = "form-control" });
+            }
+            else
+            {
+                <select class="form-control" name="TransporterDriverId"></select>
+            }
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md form-group">
+            <label>Destinador</label>
+            <select name="RecipientId" class="form-control">
+                <option value="">Selecione</option>
+                @foreach (var item in (await recipientServices.GetDataAsNoTrackingAsync(x => (!x.IsDeleted && x.IsActive) || Model.Model.RecipientId == x.RecipientId)).OrderBy(x => x.RecipientId))
+                {
+                    @(Html.Raw($"<option {(item.RecipientId == Model.Model.RecipientId ? "selected" : "")} value=\"{item.RecipientId}\">{($"{item.CompanyName.IfNullChange(item.FullName)}")}</option>"))
+                }
+            </select>
+        </div>
+        <div class="col-md form-group">
+            <label>Família</label>
+            @if (Model.Model.Finished)
+            {
+                <input type="hidden" name="ResidueFamilyId" value="@Model.Model.ResidueFamilyId" />
+            }
+            <select @(!Model.Model.Finished ? Html.Raw("name=\"ResidueFamilyId\"") : (object)"") class="form-control" onchange="tryReloadDemandIdSelection(); if (typeof changeResidueFamilyCallback == 'function') changeResidueFamilyCallback($(this).val());" @(Model.Model.Finished ? "disabled" : "")>
+                <option value="">Selecione</option>
+                @foreach (var item in (await residueFamilyListService.GetDataAsNoTrackingAsync(x => !x.IsDeleted || Model.Model.ResidueFamilyId == x.ResidueFamilyId)).OrderBy(x => x.ResidueFamilyId))
+                {
+                    @(Html.Raw($"<option {(item.ResidueFamilyId == Model.Model.ResidueFamilyId ? "selected" : "")} value=\"{item.ResidueFamilyId}\">{$"{item.Name}"}</option>"))
+                }
+            </select>
+        </div>
+        <div class="col-md-2 form-group">
+            <label class="required">Data de Saída</label>
+            <input class="form-control date" name="_DepartureDate" data-disabledAll="false" value="@Model.Model._DepartureDate" placeholder="Data de Saída" />
+        </div>
+        <div class="col-md-2 form-group">
+            <label class="required">Data de Chegada</label>
+            <input class="form-control date" name="_ArrivedDate" data-disabledAll="false" value="@Model.Model._ArrivedDate" placeholder="Data de Chegada" />
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript" asp-cut-key="demand-destination-manage">
+    $(document).ready(function () {
+        $('#demand-destination-manage-form-area [name="TransporterId"], #demand-destination-manage-form-area [name="TransporterVehicleId"], #demand-destination-manage-form-area [name="TransporterDriverId"], #demand-destination-manage-form-area [name="RecipientId"]@(Model.Model.Finished? "" : (object)Html.Raw(", #demand-destination-manage-form-area [name=\"ResidueFamilyId\"]"))').select2({
+            theme: "bootstrap",
+            placeholder: "Selecione",
+            allowClear: true,
+            "language": {
+                "noResults": function () {
+                    return "Nenhum resultado encontrado.";
+                }
+            }
+        });
+
+        @(Html.Raw(Model.CanEdit() ? "" : "disableAllFields('#demand-destination-manage-form-area')"))
+    });
+
+    $('#demand-destination-manage-form-area [Name="TransporterId"]').change(function () {
+        $('#demand-destination-manage-form-area [name="TransporterVehicleId"], #demand-destination-manage-form-area [name="TransporterDriverId"]').val('');
+        $('#demand-destination-manage-form-area [name="TransporterVehicleId"], #demand-destination-manage-form-area [name="TransporterDriverId"]').empty();
+        $('#demand-destination-manage-form-area [name="TransporterVehicleId"], #demand-destination-manage-form-area [name="TransporterDriverId"]').trigger('change');
+
+        if (isNullOrWhiteSpace($(this).val())) return;
+
+        $.post('@Url.Action("GetTransporterAssociatedDataById", "Transporter")', { id: $(this).val() }, function (d) {
+            $('#demand-destination-manage-form-area [name="TransporterVehicleId"], #demand-destination-manage-form-area [name="TransporterDriverId"]').append(new Option('Selecione', '', true, false));
+
+            d.vehicles.forEach(function (e, i) { $('#demand-destination-manage-form-area [name="TransporterVehicleId"]').append(new Option(e.text, e.value, false, e.selected)); });
+            d.drivers.forEach(function (e, i) { $('#demand-destination-manage-form-area [name="TransporterDriverId"]').append(new Option(e.text, e.value, false, e.selected)); });
+
+            $('#demand-destination-manage-form-area [name="TransporterVehicleId"], #demand-destination-manage-form-area [name="TransporterDriverId"]').trigger('change');
+        });
+    });
+    $('#demand-destination-manage-form-area [name="ResidueFamilyId"]').change(function () {
+        demandDestinationDemandDatatables.rows().remove();
+        demandDestinationDemandDatatables.draw(false);
+
+        if (isNullOrWhiteSpace($(this).val()) && typeof visibilyNoFamilyArea == 'function') {
+            visibilyNoFamilyArea(true)
+        } else if (typeof visibilyNoFamilyArea == 'function') {
+            visibilyNoFamilyArea(false)
+        }
+
+        $('#demand-destination-demand-table').DataTable().columns.adjust();
+    });
+
+    function tryReloadDemandIdSelection() {
+        if (isNullOrWhiteSpace($('[name="ResidueFamilyId"]').val())) return; 
+
+        reloadDemandIdSelection($('[name="_DepartureDate"]').val(), $('[name="ResidueFamilyId"]').val());
+    }
+
+    $('[name="_DepartureDate"]').on('change', tryReloadDemandIdSelection);
+</script>

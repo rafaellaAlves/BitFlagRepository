@@ -1,0 +1,731 @@
+﻿@model WEB.Models.CompanyViewModel
+@inject DB.Models.Insurance_HomologContext context
+@inject WEB.BLL.CompanyFunctions companyFunctions
+@using System.Globalization;
+@{
+
+    var companyTypeFunctions = new WEB.BLL.CompanyTypeFunctions(context);
+    var CompanyWOnerTypeFunctions = new WEB.BLL.CompanyOwnerTypeFunctions(context);
+    var companyOwnerTypes = CompanyWOnerTypeFunctions.GetData();
+    var companyTypes = companyTypeFunctions.GetData();
+
+    var companyId = companyOwnerTypes.Single(x => x.ExternalCode == "COMPANY").CompanyOwnerTypeId;
+    var personId = companyOwnerTypes.Single(x => x.ExternalCode == "PERSON").CompanyOwnerTypeId;
+
+    var plataformaId = companyTypes.Single(x => x.ExternalCode == "CORRETORA").CompanyTypeId;
+    var imobiliariaId = companyTypes.Single(x => x.ExternalCode == "IMOBILIARIA").CompanyTypeId;
+
+    WEB.Models.CompanyViewModel companyParent = new WEB.Models.CompanyViewModel();
+    string agenciamento = "", vitalicio = "", comissao = "";
+
+    if (Model.CompanyId.HasValue )
+    {
+        agenciamento = Model._Agenciamento;
+        vitalicio = Model._Vitalicio;
+        comissao = Model._Comissao;
+
+        if (Model.CompanyTypeId == imobiliariaId)
+        {
+            companyParent = companyFunctions.GetDataViewModel(companyFunctions.GetDataByID(Model.ParentCompanyId));
+
+            if (companyParent.Vitalicio < Model.Vitalicio)
+            {
+                vitalicio = "0";
+            }
+            if (companyParent.Agenciamento < Model.Agenciamento)
+            {
+                agenciamento = "0";
+            }
+        }
+    }
+}
+
+<script type="text/javascript">
+
+    _MaskData();
+    function _CompanyManageMoreInfo() {
+        $('#_CompanyManageMoreInfo').hide();
+        $('#_CompanyManageDivMoreInfo').show();
+    }
+    function _CompanyManageLessInfo() {
+        $('#_CompanyManageMoreInfo').show();
+        $('#_CompanyManageDivMoreInfo').hide();
+    }
+    _CompanyManageMoreInfo();
+</script>
+
+<script type="text/javascript">
+
+function _CompanyManageValidate() {
+
+	var hasError = false;
+	$('#_CompanyManageForm .text-danger').remove();
+
+
+    var companyOwnerTypeId = $('#CompanyOwnerTypeId').val();
+    if (companyOwnerTypeId == "@companyId") {
+
+        // CNPJ
+        if (IsNullOrWhiteSpace($('#_CompanyManageCnpj').val())) {
+            $('#_CompanyManageCnpj').after('<div class="text-danger">Preencha o Cnpj.</div>');
+            hasError = true;
+        }
+
+        // Razao Social
+        if (IsNullOrWhiteSpace($('#_CompanyManageRazaoSocial').val())) {
+            $('#_CompanyManageRazaoSocial').after('<div class="text-danger">Preencha a Razão Social.</div>');
+            hasError = true;
+        }
+        // Nome Fantasia
+        if (IsNullOrWhiteSpace($('#_CompanyManageFirstNameFantasia').val())) {
+            $('#_CompanyManageFirstNameFantasia').after('<div class="text-danger">Preencha o Nome Fantasia.</div>');
+            hasError = true;
+        }
+        // Inscricao Estadual
+         if (IsNullOrWhiteSpace($('#_CompanyManageIe').val())) {
+        $('#_CompanyManageIe').after('<div class="text-danger">Preencha a Inscrição Estadual.</div>');
+        hasError = true;
+        }
+        // Responsavel
+        if (IsNullOrWhiteSpace($('#_CompanyResponsavel').val())) {
+        $('#_CompanyResponsavel').after('<div class="text-danger">Preencha o Nome do Responsavel.</div>');
+        hasError = true;
+        }
+        // Cpf do Responsavel
+        if (IsNullOrWhiteSpace($('#_CompanyManageCpfResponsavel').val())) {
+        $('#_CompanyManageCpfResponsavel').after('<div class="text-danger">Preencha o Cpf do Responsavel.</div>');
+        hasError = true;
+        }
+
+    }
+
+     else if (companyOwnerTypeId == "@personId") {
+        // CPF
+        if (IsNullOrWhiteSpace($('#_CompanyManageCPF').val())) {
+            $('#_CompanyManageCPF').after('<div class="text-danger">Preencha o CPF.</div>');
+            hasError = true;
+        }
+
+        // FirstName
+        if (IsNullOrWhiteSpace($('#_CompanyManageFirstName').val())) {
+            $('#_CompanyManageFirstName').after('<div class="text-danger">Preencha o Nome.</div>');
+            hasError = true;
+        }
+
+        // LastName
+        if (IsNullOrWhiteSpace($('#_CompanyManageLastName').val())) {
+            $('#_CompanyManageLastName').after('<div class="text-danger">Preencha o Sobrenome.</div>');
+            hasError = true;
+        }
+    }
+
+    if (IsNullOrWhiteSpace($('#_CompanyManageEmail').val())) {
+        $('#_CompanyManageEmail').after('<div class="text-danger">Preencha o e-mail.</div>');
+        hasError = true;
+    }
+
+
+    if (IsNullOrWhiteSpace($('#_CompanyManageTelefone').val())) {
+        $('#_CompanyManageTelefone').after('<div class="text-danger">Preencha o Telefone.</div>');
+        hasError = true;
+    }
+
+
+
+    if (IsNullOrWhiteSpace($('#_CompanyManageCep').val())) {
+        $('#_CompanyManageCep').after('<div class="text-danger">Preencha o CEP.</div>');
+        hasError = true;
+    }
+
+    if (IsNullOrWhiteSpace($('#_CompanyManageEndereco').val())) {
+        $('#_CompanyManageEndereco').after('<div class="text-danger">Preencha o Endereço.</div>');
+        hasError = true;
+    }
+
+    if (IsNullOrWhiteSpace($('#_CompanyManageNumero').val())) {
+        $('#_CompanyManageNumero').after('<div class="text-danger">Preencha o Numero.</div>');
+        hasError = true;
+    }
+
+     if (IsNullOrWhiteSpace($('#_CompanyManageBairro').val())) {
+        $('#_CompanyManageBairro').after('<div class="text-danger">Preencha o Bairro.</div>');
+        hasError = true;
+    }
+
+     if (IsNullOrWhiteSpace($('#_CompanyManageEstado').val())) {
+        $('#_CompanyManageEstado').after('<div class="text-danger">Preencha o Estado.</div>');
+        hasError = true;
+    }
+     if (IsNullOrWhiteSpace($('#_CompanyManageCidade').val())) {
+        $('#_CompanyManageCidade').after('<div class="text-danger">Preencha a Cidade.</div>');
+        hasError = true;
+    }
+    @if (Model.CompanyTypeId == 1) {
+        <text>
+            if (IsNullOrWhiteSpace($('#_Agenciamento').val())) {
+                $('#_Agenciamento').after('<div class="text-danger">Preencha esse campo.</div>');
+                hasError = true;
+            }
+             if (IsNullOrWhiteSpace($('#_Vitalicio').val())) {
+                $('#_Vitalicio').after('<div class="text-danger">Preencha esse campo.</div>');
+                hasError = true;
+            }
+        </text>
+     }
+
+
+
+
+    if (hasError) {
+        $('#_CompanyManageAlertErrorCompany').show();
+    }
+    else {
+        $('#_CompanyManageForm .text-danger').remove();
+        $('#_CompanyManageAlertErrorCompany').hide();
+    }
+
+	return (!hasError);
+}
+
+    function _CompanyManageSave(sendTerms) {
+        var d = $('#_CompanyManageForm').serializeArray();
+        d.push({ name: 'SendTerms', value: (sendTerms = null ? false : sendTerms) });
+
+        $.post('@Url.Action("Manage", "Company")', d, function (data) {
+            if (data.hasError) {
+            $('#_CompanyManageCnpj').after('<div class="text-danger">' + data.message + '</div>');
+            $('#_CompanyManageForm .text-danger').show();
+            $('#_CompanyManageAlertErrorCompany').show();
+            } else {
+                $('#_CompanyManageCompanyId').val(data.code);
+                    _CompanyManageCallBack(data.code);
+            }
+	    });
+    }
+</script>
+
+<form id="_CompanyManageForm" method="post" enctype="multipart/form-data">
+    <div id="_CompanyManageAlertErrorCompany" class="alert alert-danger fade show text-center" role="alert" style="display: none;">
+        <strong>Atenção!</strong> O Formulário contém erros.
+    </div>
+    <input type="hidden" id="_CompanyManageCompanyTypeId" name="CompanyTypeId" value="@Model.CompanyTypeId" />
+    <input type="hidden" id="_CompanyManageCompanyId" name="CompanyId" value="@Model.CompanyId" />
+    <div id="_CompanyManageDivRequiredInfo">
+        @if (User.IsInRole("Administrator") && Model.CompanyTypeId == imobiliariaId)
+        {
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    <label>@WEB.Configuration.InsuranceConfiguration.CorretoraDisplayName:</label>
+                    <select class="form-control" id="ParentCompanyId" name="ParentCompanyId">
+                        @foreach (var corretora in (List<DB.Models.Company>)ViewData["Corretoras"])
+                        {
+                            var companyName = string.IsNullOrWhiteSpace(corretora.RazaoSocial) ? corretora.FirstName + " " + corretora.LastName : corretora.RazaoSocial;
+                            if (Model.ParentCompanyId == corretora.CompanyId)
+                            {
+                                <option value="@(corretora.CompanyId)" selected>@(companyName)</option>
+                                continue;
+                            }
+                            <option value="@(corretora.CompanyId)">@(companyName)</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <hr />
+        }
+        else
+        {
+            <input type="hidden" id="ParentCompanyId" name="ParentCompanyId" value="@Model.ParentCompanyId" />
+        }
+        <div class="form-row">
+            <div class="form-group col-md-4" id="CompanyOwnerTypeArea">
+                <label>Pessoa Física/Jurídica:</label>
+                <select class="form-control" id="CompanyOwnerTypeId" name="CompanyOwnerTypeId" onchange="CompanyOwnerTypeChange()">
+                    @foreach (var companyOwnerType in companyOwnerTypes)
+                    {
+                        if (Model.CompanyOwnerTypeId == companyOwnerType.CompanyOwnerTypeId)
+                        {
+                            <option value="@(companyOwnerType.CompanyOwnerTypeId)" selected>@(companyOwnerType.Name)</option>
+                            continue;
+                        }
+                        <option value="@(companyOwnerType.CompanyOwnerTypeId)">@(companyOwnerType.Name)</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group col-md-4 PessoaJuridicaArea">
+                <label class="control-label" for="CNPJ">CNPJ*</label>
+                <input type="text" class="form-control cnpj" id="_CompanyManageCnpj" name="Cnpj" value="@Model.Cnpj" placeholder="CNPJ">
+            </div>
+            <div class="form-group col-md-4 PessoaJuridicaArea">
+                <label class="control-label" for="IE">Inscrição Estadual</label>
+                <input type="text" class="form-control" id="_CompanyManageIe" name="Ie" value="@Model.Ie" placeholder="Inscrição Estadual">
+            </div>
+            <div class="form-group col-md-2 PessoaFisicaArea">
+                <label>CPF*</label>
+                <input class="form-control cpf" value="@Model.Cpf" id="_CompanyManageCPF" name="CPF" type="text" placeholder="CPF" />
+            </div>
+            <div class="form-group col-md-4 PessoaFisicaArea">
+                <label>Nome*</label>
+                <input class="form-control" name="FirstName" value="@Model.FirstName" id="_CompanyManageFirstName" type="text" placeholder="Nome" />
+            </div>
+            <div class="form-group col-md-4 PessoaFisicaArea">
+                <label>Sobrenome*</label>
+                <input class="form-control" name="LastName" value="@Model.LastName" id="_CompanyManageLastName" type="text" placeholder="Sobrenome" />
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-6 PessoaJuridicaArea">
+                <label class="control-label" for="RazaoSocial">Razão Social*</label>
+                <input type="text" class="form-control" id="_CompanyManageRazaoSocial" name="RazaoSocial" value="@Model.RazaoSocial" placeholder="Razão Social">
+            </div>
+            <div class="form-group col-md-6 PessoaJuridicaArea">
+                <label class="control-label" for="NomeFantasia">Nome Fantasia</label>
+                <input type="text" class="form-control" id="_CompanyManageFirstNameFantasia" name="NomeFantasia" value="@Model.NomeFantasia" placeholder="Nome Fantasia">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-6 PessoaJuridicaArea">
+                <label class="control-label">Nome do Responsavel</label>
+                <input type="text" class="form-control" id="_CompanyResponsavel" name="Responsavel" value="@Model.Responsavel" placeholder="Nome do Responsavel">
+            </div>
+            <div class="form-group col-md-6 PessoaJuridicaArea">
+                <label class="control-label">Cpf do Responsavel</label>
+                <input type="text" class="form-control cpf" id="_CompanyManageCpfResponsavel" name="CpfResponsavel" value="@Model.CpfResponsavel" placeholder="Cpf do Responsavel">
+            </div>
+        </div>
+        <a id="_CompanyManageMoreInfo" href="javascript: _CompanyManageMoreInfo();">Mais Informações...</a>
+    </div>
+    <div id="_CompanyManageDivMoreInfo" style="display: none;">
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label class="control-label" for="Email">E-mail do Responsavel</label>
+                <input type="text" class="form-control" id="_CompanyManageEmail" name="Email" value="@Model.Email" placeholder="E-mail">
+            </div>
+            <div class="form-group col-md-6">
+                <label class="control-label" for="PhoneNumber">Telefone</label>
+                <input type="text" class="form-control mobile" id="_CompanyManageTelefone" name="Telefone" value="@Model.Telefone" placeholder="Telefone">
+            </div>
+        </div>
+        <hr />
+        <div class="form-row">
+            <div class="form-group col-md-2">
+                <label class="control-label" for="CEP">CEP</label>
+                <input type="text" class="form-control cep" id="_CompanyManageCep" name="Cep" value="@Model.Cep" placeholder="CEP" maxlength="9">
+            </div>
+            <div class="form-group col-md-4">
+                <label class="control-label" for="Endereco">Endereço</label>
+                <input type="text" class="form-control" id="_CompanyManageEndereco" name="Endereco" value="@Model.Endereco" placeholder="Endereço">
+            </div>
+            <div class="form-group col-md-2">
+                <label class="control-label" for="Numero">Número</label>
+                <input type="text" class="form-control number" id="_CompanyManageNumero" name="Numero" value="@Model.Numero" placeholder="Número">
+            </div>
+            <div class="form-group col-md-4">
+                <label class="control-label" for="Complemento">Complemento</label>
+                <input type="text" class="form-control" id="_CompanyManageComplemento" name="Complemento" value="@Model.Complemento" placeholder="Complemento">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-3">
+                <label class="control-label" for="Bairro">Bairro</label>
+                <input type="text" class="form-control" id="_CompanyManageBairro" name="Bairro" value="@Model.Bairro" placeholder="Bairro">
+            </div>
+            <div class="form-group col-md-3">
+                <label class="control-label" for="_CompanyManageStateId">Estado</label>
+                <select id="_CompanyManageEstado" name="UF" class="form-control">
+                    <option value="">Selecione</option>
+                    @foreach (var item in WEB.Utils.StatesUtils.GetEstados())
+                    {
+                        if (item.EstadoId == Model.Uf)
+                        {
+                            <option selected="selected" value="@item.EstadoId">@item.Description</option>
+                        }
+                        else
+                        {
+                            <option value="@item.EstadoId">@item.Description</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="form-group col-md-3">
+                <label class="control-label" for="_CompanyManageCidade">Cidade</label>
+                <input id="_CompanyManageCidade" name="Cidade" value="@Model.Cidade" class="form-control" placeholder="Cidade" />
+            </div>
+            <div class="form-group col-md-3">
+                <label class="control-label">Ativo?</label>
+                <div class="col-xs-3 selectContainer">
+                    <select class="form-control" id="_CompanyManageIsActive" name="IsActive">
+                        <option id="True" value="true">Sim</option>
+                        <option id="False" value="false">Não</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <hr>
+        <div class="form-row">
+            <div class="form-group col-md-4">
+                <label class="control-label">Banco</label>
+                <input type="text" class="form-control" id="_BancoName" name="NomeBanco" placeholder="Nome do Banco" value="@Model.NomeBanco">
+            </div>
+            <div class="form-group col-md-4">
+                <label class="control-label">Agência</label>
+                <input type="text" class="form-control" id="_Agencia" name="AgenciaBanco" placeholder="Agência" value="@Model.AgenciaBanco">
+            </div>
+            <div class="form-group col-md-4">
+                <label class="control-label">Conta</label>
+                <input type="text" class="form-control" id="_Conta" name="ContaBanco" placeholder="Conta Corrente / Poupança" value="@Model.ContaBanco">
+            </div>
+        </div>
+        <hr />
+
+        @*@if (!Model.CompanyId.HasValue && Model.CompanyTypeId == 2)
+        {
+            <div class="row">
+                <div class="col-md-12 text-center">
+                    <h4>Dados de comissão estarão disponiveis após criação de escritório</h4>
+                </div>
+            </div>
+        }*@
+
+        <div style="width: 100%">
+            @if (Model.CompanyTypeId == 2)
+            {
+                <div style="border: 1px dotted black">
+                    <div class="ro">
+                        <div class="col-md-12 text-center mb-4">
+                            <h4>Valores de referência da plataforma: <span id="_PlataformaName">@companyParent.CompanyName</span></h4>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group offset-md-3 col-md-2 text-center">
+                            <label class="control-label">Agenciamento (%)</label>
+                            <div>
+                                <strong id="_PlataformaAgenciamento">@companyParent._Agenciamento</strong>
+                                <input type="hidden" id="_PlataformaAgenciamentoInput" value="@companyParent.Agenciamento" />
+                            </div>
+                        </div>
+                        <div class="form-group col-md-2 text-center">
+                            <label class="control-label">Vitalício (%)</label>
+                            <div>
+                                <strong id="_PlataformaVitalicio">@companyParent._Vitalicio</strong>
+                                <input type="hidden" id="_PlataformaVitalicioInput" value="@companyParent.Vitalicio" />
+                            </div>
+                        </div>
+                        <div class="form-group col-md-2 text-center">
+                            <label class="control-label">Comissão (%)</label>
+                            <div>
+                                <strong id="_PlataformaComissao">@companyParent._Comissao</strong>
+                                <input type="hidden" id="_PlataformaComissaoInput" value="@companyParent.Comissao" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+            }
+
+            <div class="form-row" id="_Dadoscomissao">
+                <div class="col-md-3">&nbsp;</div>
+                <div class="form-group col-md-2">
+                    <label class="control-label">Agenciamento (%)</label>
+                    <input type="text" class="form-control" id="_Agenciamento" data-last-value="@agenciamento" name="_Agenciamento" placeholder="% Agenciamento" value="@agenciamento">
+                    <input type="hidden" id="OldAgenciamento"value="@agenciamento">
+                </div>
+                <div class="form-group col-md-2">
+                    <label class="control-label">Vitalício (%)</label>
+                    <input type="text" class="form-control" id="_Vitalicio" data-last-value="@vitalicio" name="_Vitalicio" placeholder="% Vitalício" value="@vitalicio">
+                    <input type="hidden" id="OldVitalicio" value="@vitalicio">
+                </div>
+                <div class="form-group col-md-2">
+                    <label class="control-label">Comissão (%)</label>
+                    <input type="text" disabled="disabled" class="form-control" id="_Comissao" data-last-value="@comissao" name="_Comissao" placeholder="% Comissão" value="@comissao">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="col-md-12">
+                <label class="control-label">Observações</label>
+                <textarea class="form-control" id="_CompanyManageObservation" name="Observation" placeholder="Observações">@Html.Raw(Model.Observation)</textarea>
+            </div>
+        </div>
+        @*@if (Model.IsActive.HasValue)
+        {
+            <script type="text/javascript">
+						$('#_CompanyManageIsActive').find('[id=' + "@Model.IsActive" + ']').attr('selected', true);
+            </script>
+        }*@
+        <br />
+        <a id="_CompanyManageLessInfo" href="javascript: _CompanyManageLessInfo();">Menos Informações...</a>
+    </div>
+</form>
+
+<script type="text/javascript">
+    $("#_CompanyManageCep").blur(function () {
+
+        var cep = $(this).val().replace(/\D/g, '');
+
+        $('.CEPError').remove();
+        if (cep != "") {
+            var validacep = /^[0-9]{8}$/;
+
+            if (validacep.test(cep)) {
+
+                LimparCamposEndereco();
+
+                $.getJSON("https://viacep.com.br/ws/" + cep + "/json/?callback=?", function (dados) {
+                    if (!("erro" in dados)) {
+                        $("#_CompanyManageEndereco").val(dados.logradouro);
+                        $("#_CompanyManageBairro").val(dados.bairro);
+                        $("#_CompanyManageCidade").val(dados.localidade);
+                        $("#_CompanyManageEstado").val(dados.uf);
+                    } else {
+                        LimparCamposEndereco();
+                        $('#_CompanyManageCep').after('<div class="text-danger CEPError">CEP não encontrado.</div>');
+                    }
+                });
+            }
+            else {
+                LimparCamposEndereco();
+                $('#_CompanyManageCep').after('<div class="text-danger CEPError">Formato de CEP inválido.</div>');
+            }
+        }
+        else {
+            limpa_formulário_cep();
+        }
+    });
+
+    function LimparCamposEndereco() {
+        $("#_CompanyManageEndereco").val("");
+        $("#_CompanyManageBairro").val("");
+        $("#_CompanyManageCidade").val("");
+        $("#_CompanyManageEstado").val("");
+    }
+
+    $(window).ready(function () {
+        _MaskData();
+        ValorComissao();
+        CarregarAgenciamentoVitalicioComissao();
+
+        var companyOwnerTypeId = $('#CompanyOwnerTypeId').val();
+        if (companyOwnerTypeId == "@companyId") {
+            $('.PessoaFisicaArea').hide();
+            $('.PessoaJuridicaArea').show();
+            $('#CompanyOwnerTypeArea').removeClass('col-md-2').addClass('col-md-4');
+        } else if (companyOwnerTypeId == "@personId") {
+            $('.PessoaFisicaArea').show();
+            $('.PessoaJuridicaArea').hide();
+            $('#CompanyOwnerTypeArea').removeClass('col-md-4').addClass('col-md-2');
+        }
+
+    });
+
+    function CompanyOwnerTypeChange() {
+        var companyOwnerTypeId = $('#CompanyOwnerTypeId').val();
+        if (companyOwnerTypeId == "@companyId") {
+            $('.PessoaFisicaArea').hide();
+            $('.PessoaJuridicaArea').show();
+            $('#CompanyOwnerTypeArea').removeClass('col-md-2').addClass('col-md-4');
+        } else if (companyOwnerTypeId == "@personId") {
+            $('.PessoaFisicaArea').show();
+            $('.PessoaJuridicaArea').hide();
+            $('#CompanyOwnerTypeArea').removeClass('col-md-4').addClass('col-md-2');
+        }
+
+
+
+        //Limpar os campos
+        $('#_CompanyManageCnpj').val('');
+        $('#_CompanyManageIe').val('');
+        $('#_CompanyManageCPF').val('');
+        $('#_CompanyManageFirstName').val('');
+        $('#_CompanyManageLastName').val('');
+        $('#_CompanyManageRazaoSocial').val('');
+        $('#_CompanyManageFirstNameFantasia').val('');
+
+        //remover erros
+        $('#_CompanyManageForm .text-danger').remove();
+        $('#_CompanyManageAlertErrorCompany').hide();
+
+
+    }
+</script>
+
+<script type="text/javascript">
+
+     // VERIFICAR E PREENCHER CAMPOS DE COMISSAO
+    function VerificarAgenciamentoVitalicio() {
+        var agenciamentoValor = $('#_Agenciamento').val();
+        var vitalicioValor = $('#_Vitalicio').val();
+
+
+            //if ($('#_Agenciamento').val() == "" || $('#_Vitalicio').val() == "") {
+            //$('#_Agenciamento').val(0);
+            //$('#_Vitalicio').val(0);
+            //return false;
+            //}
+
+
+        if (agenciamentoValor != null && vitalicioValor != null) {
+            return true;
+        }
+        else {
+            $('#_Agenciamento').val(0);
+            $('#_Vitalicio').val(0);
+            $('#_Comissao').val(0);
+            alert('Campo de Agenciamento e Vitalício não se pode letra.');
+            return false;
+
+        }
+
+    }
+    function ValorComissao() {
+        var agenciamento = 0;
+        var vitalicio = 0;
+
+        if ($('#_Agenciamento').val()) {
+            agenciamento = Globalize.parseFloat($('#_Agenciamento').val());
+        }
+        if ($('#_Vitalicio').val()) {
+            vitalicio = Globalize.parseFloat($('#_Vitalicio').val());
+        }
+        var comissao = (agenciamento / 12) + (vitalicio * 11) / 12;
+
+        if (comissao == null) comissao = 0;
+
+        $('#_Comissao').data('valor', comissao);
+        $('#_Comissao').val(comissao.toLocaleString('pt-BR', { maximumFractionDigits: 4 }));
+    }
+
+    function VerificarValorMaximo(sel) {
+        $('.comissao-error').remove();
+
+        var lastValue = $(sel).data('last-value');
+
+        if (IsNullOrWhiteSpace($('#_Agenciamento').val())) {
+            $('#_Agenciamento').after('<div class="text-danger comissao-error">Insira o valor do agenciamento.</div>');
+        }
+        if (IsNullOrWhiteSpace($('#_Vitalicio').val())) {
+            $('#_Vitalicio').after('<div class="text-danger comissao-error">Insira o valor do vitalicio.</div>');
+        }
+
+        if (IsNullOrWhiteSpace($('#_Vitalicio').val()) || IsNullOrWhiteSpace($('#_Agenciamento').val())) {
+            return false;
+        }
+
+        var agenciamento = Globalize.parseFloat($('#_Agenciamento').val());
+        var vitalicio = Globalize.parseFloat($('#_Vitalicio').val());
+
+        @if (Model.CompanyTypeId == 2)
+        {
+        <text>
+        var _agenciamento = Globalize.parseFloat($('#_PlataformaAgenciamentoInput').val());
+        var _vitalicio = Globalize.parseFloat($('#_PlataformaVitalicioInput').val());
+
+        if (vitalicio > _vitalicio) {
+            alert('Vitalício máximo ultrapassado.');
+            $('#_Vitalicio').val(lastValue);
+            return false;
+        }
+
+        if (agenciamento > _agenciamento) {
+            alert('Agenciamento máximo ultrapassado.');
+            $('#_Agenciamento').val(lastValue);
+            return false;
+        }
+        </text>
+        }
+
+        if (agenciamento < 0) {
+            alert('Agenciamento não pode ser negativo.');
+            $('#_Agenciamento').val(lastValue);
+            return false;
+        }
+        if (agenciamento > 100) {
+            alert('Agenciamento não pode ser maior que 100%.');
+            $('#_Agenciamento').val(lastValue);
+            return false;
+        }
+
+        if (vitalicio < 0) {
+            alert('Vitalício não pode ser negativo.');
+            $('#_Vitalicio').val(lastValue);
+            return false;
+        }
+        if (vitalicio > 100) {
+            alert('Vitalício não pode ser maior que 100%.');
+            $('#_Vitalicio').val(lastValue);
+            return false;
+        }
+
+        $(sel).data('last-value', $(sel).val());
+        return true;
+    }
+
+    $('#_Agenciamento').change(function () {
+        if (VerificarAgenciamentoVitalicio()) {
+            VerificarValorMaximo(this);
+            ValorComissao();
+            
+        }
+    });
+    $('#_Vitalicio').change(function () {
+        if (VerificarAgenciamentoVitalicio()) {
+            VerificarValorMaximo(this);
+            ValorComissao();
+          
+        }
+    });
+
+    $('#ParentCompanyId').change(function () {
+        CarregarAgenciamentoVitalicioComissao();
+    });
+
+    function CarregarAgenciamentoVitalicioComissao() {
+        if (IsNullOrWhiteSpace($('#ParentCompanyId').val())) return;
+
+        $.ajax({
+                url: '@Url.Action("GetAgenciamentoVitalicioComissao", "Company")',
+                type: 'POST',
+                datatype: 'JSON',
+                data: { parentId: $('#ParentCompanyId').val() },
+            success: function (data) {
+                $('#_PlataformaName').text(data.companyName);
+
+                $('#_PlataformaAgenciamento').text(data._Agenciamento);
+                $('#_PlataformaVitalicio').text(data._Vitalicio);
+                $('#_PlataformaComissao').text(data._Comissao);
+                $('#_PlataformaComissaoInput').val(data._Comissao);
+                $('#_PlataformaAgenciamentoInput').val(data._Agenciamento);
+                $('#_PlataformaVitalicioInput').val(data._Vitalicio);
+            }
+        });
+    }
+
+    @if(Model.CompanyId.HasValue && Model.CompanyTypeId == plataformaId)
+    {
+        <text>
+    function validarTaxasComissoes() {
+        if (Globalize.parseFloat($('#_Agenciamento').val()) < Globalize.parseFloat($('#OldAgenciamento').val()) || 
+            Globalize.parseFloat($('#_Vitalicio').val()) < Globalize.parseFloat($('#OldVitalicio').val())) {
+            return confirm('Os valores de comissão foram alterados, os termos de aceite serão enviados novamente à plataforma, alguns escritórios poderão ser bloqueados e devem ser verificados.\nDeseja continuar?');
+        }
+
+        return true;
+    }
+        </text>
+    }
+    function addPercentMask(sel) {
+        if ($(sel).data('mask') != null) return;
+
+        var _masks = ['0,0000#', '00,0000#', '000,0000'];
+        var _mask = $(sel).val().length > 7 ? _masks[2] : ($(sel).val().length > 6 ? _masks[1] : _masks[0]);
+
+        $(sel).mask(_mask, {
+            onKeyPress: function (val, e, field, options) {
+                var masks = ['0,0000#', '00,0000#', '000,0000'];
+                var mask = val.length > 7 ? masks[2] : (val.length > 6 ? masks[1] : masks[0]);
+                $(sel).mask(mask, options);
+            }
+        });
+    }
+
+</script>

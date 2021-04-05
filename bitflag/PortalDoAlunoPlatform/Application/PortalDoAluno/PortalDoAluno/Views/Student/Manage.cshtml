@@ -1,0 +1,108 @@
+﻿
+@{
+    ViewData["Title"] = "Gerenciar Aluno";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section HeaderTabs {
+    <ul class="nav nav-pills mb-2">
+        <li class="nav-item">
+            <a class="nav-link active" data-toggle="tab" href="#studentInfo">Dados Cadastrais</a>
+        </li>
+        @if (Context.Request.Query.ContainsKey("id"))
+        {
+        <li class="nav-item">
+            <a class="nav-link" data-toggle="tab" href="#studentPhoto">Foto</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-toggle="tab" href="#classStudent">Turmas</a>
+        </li>
+        }
+        @*<li class="nav-item">
+                <a class="nav-link" data-toggle="tab" href="#studentInternship">Estágios</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-toggle="tab" href="#studentInstituteDocumentation">Documentação do Instituto</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-toggle="tab" href="#studentProfessionalDocumentation">Documentação Profissional</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-toggle="tab" href="#studentForwardedDocumentation">Documentos Encaminhados</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-toggle="tab" href="#studentThesis">Monografia</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-toggle="tab" href="#studentComments">Observações</a>
+            </li>*@
+    </ul>
+}
+<form method="post" id="form" action="@Url.Action("Manage", "Student")">
+    <div class="tab-content">
+        <div id="studentInfo" class="tab-pane fade show active"></div>
+        @if (Context.Request.Query.ContainsKey("id"))
+        {
+        <div id="studentPhoto" class="tab-pane fade">
+            <div class="row">
+                <div class="col-md-12 text-center">
+                    <img class="img-fluid img-thumbnail" src="@Url.Action("GetPhoto", "Student", new { studentId = Context.Request.Query["id"] })" />
+                </div>
+            </div>
+        </div>
+        <div id="classStudent" class="tab-pane fade"></div>
+        }
+        @*<div id="studentInternship" class="tab-pane fade"></div>
+            <div id="studentProfessionalDocumentation" class="tab-pane fade"></div>
+            <div id="studentForwardedDocumentation" class="tab-pane fade"></div>
+            <div id="studentThesis" class="tab-pane fade"></div>
+            <div id="studentComments" class="tab-pane fade"></div>*@
+    </div>
+    <hr />
+    <div class="row">
+        <div class="col">
+            <a href="@Url.Action("Index", "Student")" class="btn btn-secondary"><i class="simple-icon-arrow-left-circle"></i>&nbsp;Voltar</a>
+        </div>
+        <div class="col">
+            <button type="submit" class="btn btn-primary float-right"><i class="simple-icon-check"></i>&nbsp;Salvar</button>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script type="text/javascript">
+        $('#form').submit(function () {
+            var r = validateInputs();
+
+            if (r && !validateCPF($('[name="CPF"]').val())) {
+                $('[name="CPF"]').after('<div class="text-danger">O CPF informado está incorreto.</div>');
+                r = false;
+            }
+
+            var existing_cpf = $('[name="CPF"]').data('existing-cpf');
+            if (r && existing_cpf != null && existing_cpf) {
+                $('[name="CPF"]').after('<div class="text-danger">Este CPF já está sendo utilizado.</div>');
+                r = false;
+            }
+            var existing_email = $('[name="Email"]').data('existing-email');
+            if (r && existing_email != null && existing_email) {
+                $('[name="Email"]').after('<div class="text-danger">Este E-mail já está sendo utilizado.</div>');
+                r = false;
+            }
+
+            return r;
+        });
+    </script>
+    <script type="text/javascript">
+        var id = @(Context.Request.Query.ContainsKey("id") ? Context.Request.Query["id"].ToString() : "null");
+
+        $('#studentInfo').load('@Url.Action("StudentInfo", "ViewComponentLoader")', { id: id });
+        $('#classStudent').load('@Url.Action("StudentClass", "ViewComponentLoader")', { studentId: id });
+        @*$('#studentInternship').load('@Url.Action("StudentInternship", "ViewComponentLoader")', { id: id });
+        $('#studentInstituteDocumentation').load('@Url.Action("StudentInstituteDocumentation", "ViewComponentLoader")', { id: id });
+        $('#studentProfessionalDocumentation').load('@Url.Action("StudentProfessionalDocumentation", "ViewComponentLoader")', { id: id });
+        $('#studentForwardedDocumentation').load('@Url.Action("StudentForwardedDocumentation", "ViewComponentLoader")', { id: id });
+        $('#studentThesis').load('@Url.Action("StudentThesis", "ViewComponentLoader")', { id: id });
+        $('#studentComments').load('@Url.Action("StudentComments", "ViewComponentLoader")', { id: id });*@
+    </script>
+}

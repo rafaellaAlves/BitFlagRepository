@@ -1,0 +1,218 @@
+﻿@model List<DTO.Company.CompanyViewModel>
+
+<div class="form-row" id="associate-company-list-area">
+    <div class="col-md-6 form-group float-left">
+        <div class="card">
+            <div class="card-header">
+                <label class="control-label">Conhecimento</label>
+            </div>
+            <div class="card-body">
+                <input type="text" data-toggle="search-datatable" data-target="#knowledgeCompanyId" class="form-control" id="searchKnowledgeCompanyTable" placeholder="Pesquisar..." />
+                <hr />
+                <table class="table table-condensed table-striped w-100" id="knowledgeCompanyId" data-type="1">
+                    <thead>
+                        <tr>
+                            <td><input class="checkbox-all" data-type="1" type="checkbox" /></td>
+                            <td>Razão Social</td>
+                            <td>Nome Fantasia</td>
+                            <td>Estado</td>
+                            <td>Cidade</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td><input data-companyId="@item.CompanyId" class="knowledge-checkbox" data-type="1" type="checkbox" /></td>
+                                <td>@item.RazaoSocial</td>
+                                <td>@item.NomeFantasia</td>
+                                <td>@item.Uf</td>
+                                <td>@item.Cidade</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        var knowledgeSelecteds = [], applicableSelecteds = [];
+
+        $('#knowledgeCompanyId').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            dom: 'tip',
+            "ordering": false,
+            "scrollX": true,
+            drawCallback: function () {
+                $.each($('#knowledgeCompanyId').DataTable().rows({ page: 'current' }).data(), function (i, r) {
+                    var e = r[0];
+
+                    var companyid = $(e).data('companyid');
+
+                    $('.knowledge-checkbox[data-companyId="' + companyid + '"]')[0].checked = false;
+                    if (knowledgeSelecteds.indexOf(companyid) != -1) {
+                        $('.knowledge-checkbox[data-companyId="' + companyid + '"]')[0].checked = true;
+                    }
+
+                    $('.knowledge-checkbox[data-companyId="' + companyid + '"]').removeAttr('disabled');
+
+                    if (applicableSelecteds.indexOf(companyid) != -1) {
+                        $('.knowledge-checkbox[data-companyId="' + companyid + '"]').attr('disabled', 'disabled');
+                    }
+                });
+
+                setCheckboxChangeCallback();
+            }
+        });
+
+        function setCheckboxChangeCallback() {
+            $('#associate-company-list-area input[type="checkbox"]').change(function () {
+                var type = $(this).data('type');
+
+                var companies;
+                if (type == 1) companies = knowledgeSelecteds;
+                else companies = applicableSelecteds;
+
+                var companyid = $(this).data('companyid');
+
+                if (this.checked) {
+                    if (companies.indexOf(companyid) == -1) companies.push(companyid);
+                } else {
+                    companies = jQuery.grep(companies, function (value) {
+                        return value != companyid;
+                    });
+                }
+
+                if (type == 1) {
+                    var checkbox = $('.applicable-checkbox[data-companyId="' + companyid + '"]');
+
+                    if (checkbox != null) {
+                        if (this.checked) checkbox.attr('disabled', 'disabled');
+                        else checkbox.removeAttr('disabled');
+                    }
+                }
+                else {
+                    var checkbox = $('.knowledge-checkbox[data-companyId="' + companyid + '"]');
+
+                    if (this.checked) checkbox.attr('disabled', 'disabled');
+                    else checkbox.removeAttr('disabled');
+                }
+
+                if (type == 1) knowledgeSelecteds = companies;
+                else applicableSelecteds = companies;
+
+                if (!this.checked) {
+                    $('.checkbox-all[data-type="' + type + '"]')[0].checked = false;
+                }
+
+            });
+        }
+
+    </script>
+    <div class="col-md-6 form-group float-right">
+        <div class="card">
+            <div class="card-header">
+                <label class="control-label">Aplicável</label>
+            </div>
+            <div class="card-body">
+                <input type="text" data-toggle="search-datatable" data-target="#applicableCompanyId" class="form-control" id="searchApplicableCompanyTable" placeholder="Pesquisar..." />
+                <hr />
+                <table class="table table-condensed table-striped w-100" id="applicableCompanyId" data-type="2">
+                    <thead>
+                        <tr>
+                            <td><input class="checkbox-all" data-type="2" type="checkbox" /></td>
+                            <td>Razão Social</td>
+                            <td>Nome Fantasia</td>
+                            <td>Estado</td>
+                            <td>Cidade</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td><input data-companyId="@item.CompanyId" class="applicable-checkbox" data-type="2" type="checkbox" /></td>
+                                <td>@item.RazaoSocial</td>
+                                <td>@item.NomeFantasia</td>
+                                <td>@item.Uf</td>
+                                <td>@item.Cidade</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        $('#applicableCompanyId').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            dom: 'tip',
+            "ordering": false,
+            "scrollX": true,
+            drawCallback: function () {
+                $.each($('#applicableCompanyId').DataTable().rows({ page: 'current' }).data(), function (i, r) {
+                    var e = r[0];
+
+                    var companyid = $(e).data('companyid');
+
+                    $('.applicable-checkbox[data-companyId="' + companyid + '"]')[0].checked = false;
+                    if (applicableSelecteds.indexOf(companyid) != -1) {
+                        $('.applicable-checkbox[data-companyId="' + companyid + '"]')[0].checked = true;
+                    }
+
+                    $('.applicable-checkbox[data-companyId="' + companyid + '"]').removeAttr('disabled');
+
+                    if (knowledgeSelecteds.indexOf(companyid) != -1) {
+                        $('.applicable-checkbox[data-companyId="' + companyid + '"]').attr('disabled', 'disabled');
+                    }
+                });
+
+                setCheckboxChangeCallback();
+            }
+        });
+
+        $('.checkbox-all').change(function () {
+            var type = $(this).data('type');
+            var Class;
+
+            if (type == 1) {
+                knowledgeSelecteds = [];
+                Class = 'knowledge-checkbox';
+            }
+            else {
+                applicableSelecteds = [];
+                Class = 'applicable-checkbox';
+            }
+
+            var checked = $(this)[0].checked;
+
+            if (checked) {
+                if (type == 1) {
+                    $.each($('#knowledgeCompanyId').DataTable().rows().data(), function (i, e) {
+                        var companyid = $(e[0]).data('companyid');
+
+                        if (applicableSelecteds.indexOf(companyid) == -1) knowledgeSelecteds.push(companyid);
+                    });
+                } else {
+                    $.each($('#applicableCompanyId').DataTable().rows().data(), function (i, e) {
+                        var companyid = $(e[0]).data('companyid');
+
+                        if (knowledgeSelecteds.indexOf(companyid) == -1) applicableSelecteds.push(companyid);
+                    });
+                }
+            }
+
+            $('#applicableCompanyId').DataTable().search($('#searchApplicableCompanyTable').val()).draw();
+            $('#knowledgeCompanyId').DataTable().search($('#searchKnowledgeCompanyTable').val()).draw();
+        });
+    </script>
+</div>
+<script type="text/javascript">
+    searchDatatableInitialize();
+</script>

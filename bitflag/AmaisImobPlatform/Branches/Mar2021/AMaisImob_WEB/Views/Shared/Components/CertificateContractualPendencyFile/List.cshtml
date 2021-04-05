@@ -1,0 +1,42 @@
+﻿@model List<AMaisImob_DB.Models.CertificateContractualPendencyFile>
+
+<table class="table table-striped table-condensed table-bordered w-100" id="certificate-contractual-pendency-file-table">
+    <thead>
+        <tr>
+            <td>Arquivo</td>
+            <td></td>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.FileName</td>
+                <td style="width: 40px;">
+                    <a href="@Url.Action("DownloadPendencyFile", "ContractualGuarantee", new { id = item.CertificateContractualPendencyFileId })" target="_blank"><i class="fas fa-download"></i></a>
+                    &nbsp;
+                    <a href="javascript:removeCertificateContractualPendencyFile(@item.CertificateContractualPendencyFileId, '@item.FileName')"><i class="fas fa-trash"></i></a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<script type="text/javascript">
+    var datatables = $('#certificate-contractual-pendency-file-table').DataTable({
+        proccessing: true,
+        serverSide: false,
+        searching: true,
+        lengthChange: false,
+        dom: 'tip'
+    });
+
+    function removeCertificateContractualPendencyFile(id, name)
+    {
+        if (!confirm('Deseja realmente remover o arquivo \'' + name + '\'')) return;
+
+        $.post('@Url.Action("RemovePendencyFile", "ContractualGuarantee")', { id }, function () {
+            if (typeof loadCertificateContractualPendencyFileListViewComponent == 'function') loadCertificateContractualPendencyFileListViewComponent();
+        });
+    }
+</script>

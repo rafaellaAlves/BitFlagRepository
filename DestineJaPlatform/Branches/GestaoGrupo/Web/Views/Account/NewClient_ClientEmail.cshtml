@@ -1,0 +1,42 @@
+﻿@model DTO.Client.NewClientEmailViewModel
+
+<div style="max-width: 500px; margin-left: auto; margin-right: auto; padding: 15px; border: 1px solid #bbbbbb; background-color: #f1f1f152;">
+    <div style="width:100%; text-align: center; margin-bottom: 3em;">
+        <img style="width:400px;" src="cid:Logo" />
+    </div>
+    <div style="margin-bottom: 2em;">
+        <label style="font-size: 14px;">Olá, <b>@Model.User.FirstName @Model.User.LastName</b>.</label>
+        <br />
+        <label style="font-size: 14px;">Seja bem-vindo(a) à Destine Já.</label>
+    </div>
+    <div style="margin-bottom: 2em;">
+        <label style="font-size: 14px;">A partir de agora a @Model.Client.CompanyName está cadastrada no sistema da Destine Já.</label>
+    </div>
+    <div style="margin-bottom: 2em;">
+        <label style="font-size: 14px;">Clique no botão para confirmar o seu email.</label>
+    </div>
+    <div style="text-align: center;margin-top: 50px;margin-bottom: 50px;"><a href="@Url.Action("EmailConfirm", "Account", new { userId = Model.User.UserId, token = Model.User.CreationToken }, Context.Request.Scheme)" style="color: white; background: #04ab9f; text-decoration: none; padding: 15px; border-radius: 7px;">Confirmar E-mail</a></div>
+    <div style="margin-bottom: 2em;">
+        <label style="font-size: 14px;">Para acessar o sistema utilize o link: <a style="font-size: 14px;" href="@Url.Action("Login", "Account", new { Model.User.UserId }, Context.Request.Scheme)">@Url.Action("", "", null, Context.Request.Scheme)</a></label>
+        <br />
+        <label style="font-size: 14px;"><b>Seu login é:</b> @Model.User.Email</label>
+        <br />
+        <label style="font-size: 14px;"><b>Sua senha provisória é:</b> @Model.User.Password</label>
+    </div>
+    <div style="margin-bottom: 2em;">
+        <label style="font-size: 14px;">A sua senha é pessoal e intransferível. Guarde-a com cuidado.</label>
+    </div>
+    <div style="margin-bottom: 2em;">
+        <label style="font-size: 14px;">Em caso de dúvidas, entre em contato conosco pelos canais abaixo:</label>
+        <ul>
+            <li><a href="https://api.whatsapp.com/send?1=pt_BR&phone=552730290907" style="font-size: 14px;">(27) 3029-0907</a></li>
+            <li><a href="mailto:contato@destineja.com.br" style="font-size: 14px;">contato@destineja.com.br</a></li>
+            <li><a href="www.destineja.com.br" style="font-size: 14px;">www.destineja.com.br</a></li>
+        </ul>
+    </div>
+    <div style="font-size: 14px;">
+        Atenciosamente,
+        <br />
+        Equipe Destine Já.
+    </div>
+</div>

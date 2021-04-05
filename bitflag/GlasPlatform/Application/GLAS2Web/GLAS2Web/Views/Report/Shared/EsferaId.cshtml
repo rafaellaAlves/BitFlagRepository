@@ -1,0 +1,15 @@
+﻿@{
+    var esferas = (ViewData["Esferas"] as List<DAL.Esfera>);
+}
+<div class="form-group">
+    <label class="control-label" for="LawEsferaId">@translationFunctions.GetTranslation("Esfera do Requisito Legal", User.FindFirstValue("CultureInfo"))</label>
+    <select multiple="multiple" class="form-control ReportParameter" style="width: 100%;" data-hidden-parameter="LawEsferaId">
+        @if (esferas != null)
+        {
+            @foreach (var item in esferas)
+            {
+                <option value="@item.EsferaId">@translationFunctions.GetTranslation(item.Name, User.FindFirstValue("CultureInfo"))</option>
+            }
+        }
+    </select>
+</div>

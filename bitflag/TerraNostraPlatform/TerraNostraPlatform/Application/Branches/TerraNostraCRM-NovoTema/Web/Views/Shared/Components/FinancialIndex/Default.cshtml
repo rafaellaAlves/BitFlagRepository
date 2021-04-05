@@ -1,0 +1,148 @@
+﻿<div class="row">
+    <div class="col-md-9">
+        <div class="input-group mb-3">
+
+            <input id="_FinancialIndexSearch" type="text" class="form-control" placeholder="Procurar..." />
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="input-group mb-3">
+            <select id="_FinancialIndexProcessStatus" type="text" onchange="_FinancialIndexDoneTyping()" class="form-control">
+                <option value="">Todos Status</option>
+                <option value="true">Iniciado</option>
+                <option value="false">Não Iniciado</option>
+            </select>
+        </div>
+    </div>
+</div>
+<hr />
+
+<div class="table-responsive">
+    <table id="_FinancialIndexTable" class="table table-striped table-bordered" >
+        <thead>
+            <tr>
+                <th style="width:100px">Nº Orçamento</th>
+                <th>Cliente</th>
+                <th>Data</th>
+                <th>Status</th>
+                <th>Valor Final</th>
+                <th>Status</th>
+                @*<th>Data Baixa</th>*@
+                <th style="text-align:center">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+
+<script type="text/javascript">
+    var _FinancialIndexTypingTimer;
+    var _FinancialIndexDoneTypingInterval = 500;
+    var _InvoiceIndexDatatables = $('#_FinancialIndexTable').DataTable({
+        proccessing: true,
+        serverSide: true,
+        searching: true,
+        lengthChange: false,
+        dom: 'tip',
+        ajax: {
+            url: '@Url.Action("List", "Financial")',
+            data: function (d) {
+                d.ProcessStatus = $('#_FinancialIndexProcessStatus').val()
+            },
+            type: 'POST'
+        },
+        order: [[0, 'desc']],
+        columns: [
+            {
+                data: 'InvoiceId',
+                render: function (data, type, row) {
+                    return '<div class="text-center"><a title="Editar Registro" href="@Url.Action("Manage", "Invoice")?invoiceId=' + row.invoiceId + '">' + row.invoiceTerraNostraId + '</a></div>';
+                }
+            },
+            {
+                data: 'ClientName',
+                render: function (data, type, row) {
+                    return row.clientName;
+                }
+            },
+            {
+                data: '_CreatedDate',
+                render: function (data, type, row) {
+                    return row._CreatedDate;
+                }
+            },
+            {
+                data: 'StatusName',
+                render: function (data, type, row) {
+                    return '<div class="text-center">' + (row.statusName == null ? 'Novo' : row.statusName) + '</div>';
+                }
+            },
+            {
+                data: 'GrandTotal',
+                render: function (data, type, row) {
+                    return '<div class="text-center">' + (!row.grandTotal ? '-' : 'R$ ' + row._GrandTotal) + '</div>';
+                }
+            },
+            {
+                data: 'Started',
+                render: function (data, type, row) {
+                    return '<div class="text-center">' + (row.started? 'Processo iniciado em <b>' + row._ApprovedDate + '</b>' : 'Processo não iniciado') + '</div>';
+                }
+            },
+            //{
+            //    data: '_CreatedDate1',
+            //    render: function (data, type, row) {
+            //        return row._CreatedDate;
+            //    }
+            //},
+             {
+                data: 'Actions',
+                 render: function (data, type, row) {
+                     var r = '<div class="text-center" style="white-space:nowrap; line-height:32px; vertical-align:middle;">';
+                     if (!row.started) {
+                      r += '&nbsp;<a href="javascript:void(0)" onclick="IniciarProcesso(' + row.invoiceId + ')"  class="btn btn-primary" id="_ToProcess" style="padding:5px;" title="Iniciar Processo"><i class="simple-icon-control-play"></i></a>';
+                     }
+                     r += '&nbsp;<a href="@Url.Action("Manage", "Financial")?invoiceId=' + row.invoiceId + '"  class="btn btn-success" id="_EfetuarBaixa" style="padding:5px;" title="Efetuar Baixa"><i class="simple-icon-cloud-download"></i></a>';
+                    return r;
+                }
+            }
+        ]
+    });
+    function IniciarProcesso(id) {
+        if (!confirm('Deseja por esse orçamento para processo?')) {
+            return false;
+        }
+        $.post('@Url.Action("StartProcess", "Financial")', { invoiceId: id },
+            function (d) {
+                if (d.hasError == true) {
+                    alert(d.message);
+                    return false;
+                }
+                alert(d.message);
+
+            _InvoiceIndexDatatables.search($('#_FinancialIndexSearch').val()).draw();
+
+            });
+         $("#_ToProcess").click(function () {
+            if (validateEvent()) return;
+        })
+    }
+        $("#IniciarProcesso").click(function () {
+            if (validateEvent()) return;
+        })
+    function _FinancialIndexDoneTyping() {
+        if ($.fn.DataTable.isDataTable('#_FinancialIndexTable')) {
+            _InvoiceIndexDatatables.search($('#_FinancialIndexSearch').val()).draw();
+        }
+    }
+    $('#_FinancialIndexSearch').keyup(function () {
+        clearTimeout(_FinancialIndexDoneTypingInterval);
+        _FinancialIndexTypingTimer = setTimeout(_FinancialIndexDoneTyping, _FinancialIndexDoneTypingInterval);
+    });
+    $('#_FinancialIndexSearch').keydown(function () {
+        clearTimeout(_FinancialIndexDoneTyping);
+    });
+
+
+</script>

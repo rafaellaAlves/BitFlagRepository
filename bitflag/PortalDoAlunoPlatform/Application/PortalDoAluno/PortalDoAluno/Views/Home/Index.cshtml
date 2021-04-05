@@ -1,0 +1,9 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Seja bem-vindo!";
+}
+
+<div class="text-left">
+    <p>Você está logado como <b>@User.Identity.Name</b>!</p>
+    <p><b>IP:</b> @Context.Request.HttpContext.Connection.RemoteIpAddress</p>
+</div>

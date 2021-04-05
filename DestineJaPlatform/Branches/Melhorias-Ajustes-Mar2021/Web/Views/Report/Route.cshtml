@@ -1,0 +1,48 @@
+﻿@{
+    var startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+    var endDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month));
+
+    ViewData["Title"] = "Relatório - Histórico por Rotas";
+}
+
+<div class="card">
+    <div class="card-header">
+        <div class="row">
+            <div class="col text-center" style="font-size: 20px; color: black;">
+                Relatório - Histórico por Rotas
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <form id="route-report-filter-form">
+            @(await Component.InvokeAsync<Web.ViewComponents.Report.Filter.FilterViewComponent>(new List<ReportFilterModel> { ReportFilterModel.RouteFilter(null, 4), ReportFilterModel.StartAndEndDateFilter(new { startDate, endDate }, 4) }))
+        </form>
+        <hr />
+        <div id="route-report-view-component">
+            @(await Component.InvokeAsync<Web.ViewComponents.Report.Route.IndexViewComponent>(new { startDate, endDate } ))
+        </div>
+    </div>
+</div>
+@section Scripts{
+    <script src="@Url.Content("~/assets/js/report.js")"></script>
+    <script type="text/javascript" asp-paste-key="route-report-index"></script>
+
+    <script type="text/javascript">
+        function reloadByFilter() {
+            if (!validateInputs('route-report-filter-form') || !validateStartAndEndDate()) return;
+
+            $('#route-report-view-component').load('@Url.Action("LoadRouteViewComponent", "Report")', $('#route-report-filter-form').serializeArray());
+        }
+
+        $('#route-report-filter-form [name="RouteIds"]').select2({
+            theme: "bootstrap",
+            placeholder: "Rotas",
+            allowClear: true,
+            "language": {
+                "noResults": function () {
+                    return "Nenhum resultado encontrado.";
+                }
+            }
+        });
+    </script>
+}

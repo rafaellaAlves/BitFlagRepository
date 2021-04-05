@@ -1,0 +1,180 @@
+﻿@model int?
+@inject DAL.GLAS2Context context
+@inject Microsoft.AspNetCore.Identity.UserManager<DAL.Identity.User> userManager
+@{
+    var companyLawFunctions = new BLL.Company.CompanyLawFunctions(context);
+    var companyLawIsCompleted = companyLawFunctions.CompanyLawIsCompleted(Model.Value);
+
+    int companyId = companyLawFunctions.GetCompanyIdFromCompanyLawId(Model.Value);
+    var companyUserRoleFunctions = new BLL.Permission.CompanyUserRoleFunctions(context);
+    var user = await userManager.GetUserAsync(User);
+
+    bool isMaster = User.IsInRole(BLL.User.ProfileNames.Administrator) || User.IsInRole(BLL.User.ProfileNames.Master);
+    bool isBioteraConsultor = companyUserRoleFunctions.CompanyUserHasRole(companyId, user.Id, new List<string>() { BLL.User.ProfileNames.BioteraConsultor });
+
+    bool isClienteAdministrador = companyUserRoleFunctions.CompanyUserHasRole(companyId, user.Id, new List<string>() { BLL.User.ProfileNames.ClienteAdministrador }); ;
+    bool isClienteSupervisor = companyUserRoleFunctions.CompanyUserHasRole(companyId, user.Id, new List<string>() { BLL.User.ProfileNames.ClienteSupervisor }); ;
+    bool isClienteOperador = companyUserRoleFunctions.CompanyUserHasRole(companyId, user.Id, new List<string>() { BLL.User.ProfileNames.ClienteOperador }); ;
+}
+<div class="card shadow">
+    <div class="card-header">
+        <div class="input-group">
+            <span class="input-group-addon"><i class="fa fa-search"></i></span>
+            <input id="companyLawActionListSearch" type="text" class="form-control" placeholder="Procurar..." />
+            <span class="input-group-btn">
+                @if (!companyLawIsCompleted && !isClienteOperador)
+                {
+                    <button id="createCompanyLawAction" class="btn btn-success pull-right"><i class="fa fa-plus"></i>&nbsp;@translationFunctions.GetTranslation("Nova Ação", User.FindFirstValue("CultureInfo"))</button>
+                }
+            </span>
+        </div>
+        <script type="text/javascript">
+			$('#createCompanyLawAction').click(function () {
+			var data = @Model;
+			CompanyLawActionNewCallback(data);
+                @*$.ajax({
+                    url: '@Url.Action("New", "CompanyLawActionManagement")',
+                    type: 'POST',
+                    data: { companyLawId: @Model },
+                    dataType: 'json',
+                    success: function (data) {
+                        if (typeof (CompanyLawActionNewCallback) === 'undefined') {
+                            alert('Implement "CompanyLawActionNewCallback(' + data + ')"!');
+                            return;
+                        }
+                        CompanyLawActionNewCallback(data);
+                    }
+                });*@
+            });
+        </script>
+    </div>
+    <div class="card-body">
+        <table id="companyLawActionListTable" class="datatable table table-sm table-bordered table-striped" style="border-collapse: collapse !important; width: 100%;">
+            <thead>
+                <tr>
+                    <th>@translationFunctions.GetTranslation("Nome", User.FindFirstValue("CultureInfo"))</th>
+                    <th>@translationFunctions.GetTranslation("Data de Cadastro", User.FindFirstValue("CultureInfo"))</th>
+                    <th>@translationFunctions.GetTranslation("Data de Conclusão", User.FindFirstValue("CultureInfo"))</th>
+                    <th>@translationFunctions.GetTranslation("Data de Renovação", User.FindFirstValue("CultureInfo"))</th>
+                    <th>@translationFunctions.GetTranslation("Operador", User.FindFirstValue("CultureInfo"))</th>
+                    <th>@translationFunctions.GetTranslation("Custo Final do Projeto (R$)", User.FindFirstValue("CultureInfo"))</th>
+                    <th>@translationFunctions.GetTranslation("Status", User.FindFirstValue("CultureInfo"))</th>
+                    @if (!companyLawIsCompleted && !isClienteOperador)
+                    {
+                        <th>&nbsp;</th>
+                    }
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+<script type="text/javascript">
+    var companyLawActionListTypingTimer;
+    var companyLawActionListDoneTypingInterval = 500;
+    var companyLawActionListDatatable = $('#companyLawActionListTable').DataTable({
+        proccessing: true
+        , serverSide: true
+        , searching: true
+        , lengthChange: false
+        , dom: 'tip'
+        , bInfo: false
+        , pagingType: 'simple'
+        , ajax: {
+            url: '@Url.Action("List", "CompanyLawActionManagement")'
+            , type: 'POST'
+            , data: {
+                companyLawId: @Model,
+            }
+        }, columns: [
+            {
+				data: 'CompanyLawActionName'
+                , render: function (data, type, row, meta) {
+					return '<div><a href="javascript: void(0);" onclick="_CompanyLawActionSelectCallback(' + meta.row + ')">' + row.CompanyLawActionName + '</a></div>';
+                }
+            }
+			, {
+				data: 'CompanyLawActionRegistrationDate'
+				, render: function (data, type, row, meta) {
+					return '<div>' + row._CompanyLawActionRegistrationDate + '</div>';
+				}
+			}
+			, {
+				data: 'CompanyLawActionTargetDate'
+				, render: function (data, type, row, meta) {
+					return '<div>' + row._CompanyLawActionTargetDate + '</div>';
+				}
+			}
+			, {
+				data: 'CompanyLawActionRenewDate'
+				, render: function (data, type, row, meta) {
+					if (row._CompanyLawActionRenewDate == null) { return '<div>-</div>'; }
+					else { return '<div>' + row._CompanyLawActionRenewDate + '</div>'; }
+				}
+			}
+			, { data: 'CompanyLawActionSupervisorName' }
+			, { data: 'CompanyLawActionFinalProjectCost' }
+
+			, {
+				data: 'CompanyLawActionStatusId'
+				, render: function (data, type, row, meta) {
+					return '<div>' + row.CompanyLawActionStatusName + '</div>';
+				}
+			}
+			@if (!companyLawIsCompleted && !isClienteOperador) {
+				<text>
+			, {
+				 data: null
+				, sortable: false
+				, searchable: false
+				, render: function (data, type, row, meta) {
+							return '<div class="text-center"><a title="Excluir" href="javascript:void(0)" onclick="RemoveLawActionFromCompanyLaw(' + row.CompanyLawActionId + ')">@translationFunctions.GetTranslation("Remover", User.FindFirstValue("CultureInfo"))</a></div>';
+						}
+			}
+			</text>
+			}
+        ]
+    });
+    function companyLawActionListDoneTyping() {
+        if ($.fn.DataTable.isDataTable('#companyLawActionListTable')) {
+            companyLawActionListDatatable.search($('#companyLawActionListSearch').val()).draw();
+        }
+    }
+    $('#companyLawActionListSearch').keyup(function () {
+        clearTimeout(companyLawActionListTypingTimer);
+        companyLawActionListTypingTimer = setTimeout(companyLawActionListDoneTyping, companyLawActionListDoneTypingInterval);
+    });
+    $('#companyLawActionListSearch').keydown(function () {
+        clearTimeout(companyLawActionListTypingTimer);
+    });
+</script>
+<script type="text/javascript">
+    function RemoveLawActionFromCompanyLaw(_companyLawActionId) {
+        if (confirm('Deseja realmente remover essa ação?')) {
+            _RemoveLawActionFromCompanyLaw(_companyLawActionId, function () {
+                $('#companyLawActionListTable').DataTable().ajax.reload();
+                alert('Ação removida com sucesso!');
+            });
+        }
+    }
+    function _RemoveLawActionFromCompanyLaw(_companyLawActionId, callback) {
+        var d = { companyLawActionId: _companyLawActionId };
+        $.ajax({
+            url: '@Url.Action("RemoveLawActionFromCompanyLaw", "CompanyLawManagement")',
+            type: 'POST',
+            data: d,
+            dataType: 'json',
+            success: callback
+		});
+
+		$('#acao').html('');
+		$('#CompanyLawActionManage').html('<div class="jumbotron jumbotron-fluid"><div class="container"><h1>Por favor, selecione uma ação.</h1></div></div>');
+    }
+    function _CompanyLawActionSelectCallback(rowIndex) {
+        if (typeof (CompanyLawActionSelectCallback) === 'undefined') {
+            alert('Implement "CompanyLawActionSelectCallback"!');
+            return;
+        }
+        CompanyLawActionSelectCallback(companyLawActionListDatatable.row(rowIndex).data());
+    }
+</script>

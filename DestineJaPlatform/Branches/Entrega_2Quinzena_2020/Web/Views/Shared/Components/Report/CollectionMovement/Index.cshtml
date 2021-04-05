@@ -1,0 +1,91 @@
+﻿@model DTO.Shared.EntityViewMode<List<DTO.Client.Report.ClientReportCollectionMovementViewModel>>
+
+
+<div class="card">
+    <div class="card-header card-header-default card-header-destineja-green tx-uppercase justify-content-between  bg-gray-400">
+        <h6 class="mg-b-0 tx-14 tx-inverse"><i class="fa fa-table"></i>&nbsp;Tabela</h6>
+        <div class="card-option d-flex">
+            <button type="button" class="btn btn-sm btn-primary d-flex mr-2" style="border-radius: 3px;" onclick="printReport('@Url.Action("CollectionMovementDownload")')"><i class="simple-icon-cloud-download"></i><span class="d-none d-sm-block">&nbsp;Download</span></button>
+            <button type="button" class="btn btn-sm btn-primary d-flex" style="border-radius: 3px;" onclick="printReport('@Url.Action("CollectionMovementPrint")')"><i class="simple-icon-printer"></i><span class="d-none d-sm-block">&nbsp;Imprimir</span></button>
+            <a href="" class="tx-gray-600 hover-white mg-l-10" data-toggle="collapse" aria-expanded="true" data-target="#collection-year-map-table-area"><i class="simple-icon-arrow-up lh-0"></i></a>
+        </div>
+    </div>
+    <div class="card-body bd collapse show" id="collection-year-map-table-area">
+        <div class="row">
+            <div class="col table-responsive">
+                <table class="table nowrap table-condensed table-bordered w-100 tablesizeline" id="collection-movement-table">
+                    <thead>
+                        <tr>
+                            <th class="text-center">Data</th>
+                            <th class="text-center">MTR</th>
+                            <th class="text-center">Peso</th>
+                            <th class="text-center">Família de Resíduos</th>
+                            <th class="text-center">Cert. de Coleta</th>
+                            <th class="text-center">Destinador</th>
+                            <th class="text-center">MTR Destinação</th>
+                            <th class="text-center">Destinado em</th>
+                            <th class="text-center">Cert. de Dest.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            var i = 0;
+
+                            var demandGroups = Model.Model.GroupBy(x => x.DemandId);
+                            foreach (var demandGroup in demandGroups)
+                            {
+                                var count = demandGroup.Count();
+                                int j = 0;
+                                foreach (var item in demandGroup)
+                                {
+
+                                    <tr class="@(i % 2 == 0? "tr-pair" : "tr-odd")">
+                                        @if (j == 0)
+                                        {
+                                            <td class="text-center" style="vertical-align: middle;" rowspan="@count">@item._DemandVisitedDate.IfNullChange("-")</td>
+                                            <td class="text-center" style="vertical-align: middle;" rowspan="@count">@item.DestineJaDemandId</td>
+                                        }
+                                        <td class="text-center">@item._Weight</td>
+                                        <td class="text-center">@item.ResidueFamilyName</td>
+                                        @if (j == 0)
+                                        {
+                                            <td style="vertical-align: middle;" class="text-center" rowspan="@count">@item.DestineJaCertificateId</td>
+                                        }
+                                        <td class="text-center">@item.RecipientName</td>
+                                        <td class="text-center">@item.DestineJaDemandDestinationId</td>
+                                        <td class="text-center">@item._DemandDestinationArrivedDate</td>
+                                        <td class="text-center">@item.CDF.IfNullChange("AGUARDANDO")</td>
+                                    </tr>
+                                    j++;
+                                }
+                                if (i < demandGroups.Count() - 1)
+                                {
+                                    <tr>
+                                        <td colspan="9" style="background: white; border:0;"></td>
+                                    </tr>
+                                }
+
+                                i++;
+                            }
+                            if (Model.Model.Count == 0)
+                            {
+                                <tr>
+                                    <td class="text-center" colspan="9">Nenhum dado encontrado</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<hr />
+<div class="row">
+    <div class="col-12 col-sm text-center" style="color: black;">
+        Total de MTRs: @Model.Model.Select(x => x.DemandId).Distinct().Count()
+    </div>
+    <div class="col-12 col-sm text-center" style="color: black;">
+        Quantidade coletada: @Model.Model.Sum(x => x.Weight).ToWeightPtBr() Kg
+    </div>
+</div>

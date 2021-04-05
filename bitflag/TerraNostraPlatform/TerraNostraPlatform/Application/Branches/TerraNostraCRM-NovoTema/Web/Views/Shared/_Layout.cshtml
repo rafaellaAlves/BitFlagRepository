@@ -1,0 +1,547 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Web.Utils
+
+@inject UserManager<TerraNostraIdentityDbContext.User> userManager
+@inject FUNCTIONS.User.UserFunctions userFunctions
+@inject FUNCTIONS.Client.ClientCalendarFunctions clientCalendarFunctions
+@{
+    var controller = this.ViewContext.RouteData.Values["controller"].ToString();
+    var action = this.ViewContext.RouteData.Values["action"].ToString();
+}
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Terra Nostra Assessoria :: @ViewData["Title"]</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+    <link rel="stylesheet" href="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/font/iconsmind-s/css/iconsminds.css" />
+    <link rel="stylesheet" href="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/font/simple-line-icons/css/simple-line-icons.css" />
+
+    <link rel="stylesheet" href="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/css/vendor/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/css/vendor/bootstrap.rtl.only.min.css" />
+    <link rel="stylesheet" href="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/css/vendor/component-custom-switch.min.css" />
+    <link rel="stylesheet" href="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/css/vendor/perfect-scrollbar.css" />
+    <link rel="stylesheet" href="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/css/vendor/bootstrap-float-label.min.css">
+    <link href="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/css/vendor/bootstrap-datepicker3.min.css" rel="stylesheet" />
+    <link href="~/assets/plugins/select2/select2.css" rel="stylesheet" />
+    <!--CALENDAR -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@3.10.1/dist/fullcalendar.min.css" rel="stylesheet" type="text/css" />
+    @*<script src="~/assets/js/locales-all.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.9.0/locale/pt-br.js"></script>*@
+
+
+    <link rel="stylesheet" href="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/css/main.css" />
+    <style type="text/css">
+        .logo {
+            background: none;
+            width: 200px;
+            height: 53px;
+        }
+
+        a {
+            color: #007bff;
+        }
+
+        body {
+            line-height: 1;
+        }
+    </style>
+
+    <script src="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/js/vendor/jquery-3.3.1.min.js"></script>
+    <script src="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/js/vendor/bootstrap.bundle.min.js"></script>
+
+    <!-- DATATABLES -->
+    <link href="@Url.Content("~/assets/plugins/datatables/dataTables.bootstrap4.min.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/assets/plugins/datatables/buttons.bootstrap4.min.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/assets/plugins/datatables/responsive.bootstrap4.min.css")" rel="stylesheet" type="text/css" />
+    <script src="@Url.Content("~/assets/plugins/datatables/jquery.dataTables.min.js")"></script>
+    <script src="@Url.Content("~/assets/plugins/datatables/dataTables.bootstrap4.min.js")"></script>
+
+
+    <!-- DATEPICKER -->
+    <script src="@Url.Content("~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/js/vendor/bootstrap-datepicker.js")"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/locales/bootstrap-datepicker.pt-BR.min.js"></script>
+
+    @*<script src="@Url.Content("~/assets/plugins/datepicker/datepicker.js")"></script>*@
+    @*<script src="@Url.Content("~/assets/js/init/form-datepicker-init.js")"></script>*@
+    @*<script src="@Url.Content("~/assets/plugins/datepicker/i18n/datepicker.pt-BR.js")"></script>*@
+    <script src="@Url.Content("~/assets/plugins/moment/moment.js")"></script>
+
+    <!-- SUMMERNOTE -->
+    <link href="~/lib/summerNote/summernote.css" rel="stylesheet">
+    <link href="~/lib/summerNote/summernote-bs4.css" rel="stylesheet">
+    <script src="~/lib/summerNote/summernote.js"></script>
+    <script src="~/lib/summerNote/summernote-bs4.js"></script>
+    <script src="~/lib/summerNote/lang/summernote-pt-BR.js"></script>
+
+    <!--Select2-->
+    <script src="~/assets/plugins/select2/select2.js"></script>
+    <!-- MASK -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.15/jquery.mask.min.js"></script>
+    <script type="text/javascript">
+        $('.cpf').mask('000.000.000-00', { reverse: true });
+        $('.date').datepicker({ format: 'dd/mm/yyyy', language: 'pt-BR', autoclose: true });
+        $('.date').mask('99/99/9999');
+        $('.date-range').datepicker({
+            language: 'pt-BR',
+            dateFormat: 'dd/mm/yyyy',
+            range: true,
+            multipleDatesSeparator: ' - ',
+        });
+        $('.date-range-month').datepicker({
+            language: 'pt-BR',
+            dateFormat: 'MM yyyy',
+            range: true,
+            minView: 'months',
+            view: 'months',
+            multipleDatesSeparator: ' - ',
+        });
+        $('.money').mask('#.##0,00', { reverse: true });
+    </script>
+
+    <script src="~/js/site.js"></script>
+    <script type="text/javascript">
+        $(document).ajaxStart(function () {
+            $("#loading").show();
+        });
+        $(document).ajaxStop(function () {
+            $("#loading").hide();
+        });
+    </script>
+
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@3.10.1/dist/fullcalendar.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@3.10.1/dist/locale-all.min.js'></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" integrity="sha512-+4zCK9k+qNFUR5X+cKL9EIR+ZOhtIloNl9GIKS57V1MyNsYpYcUrUeQc9vNfzsWfV28IaLL3i96P9sdNyeRssA==" crossorigin="anonymous" />
+
+    <style type="text/css">
+        .menu .main-menu ul li i {
+            font-size: 26px;
+            line-height: 36px;
+        }
+    </style>
+</head>
+
+<body id="app-container" class="menu-default show-spinner">
+    <div id="loading" style="display: none; z-index: 1000; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6)">
+        <img src="~/images/ajax-loading.svg" style="position: absolute; left: 50%; margin-left: -100px; top: 50%; margin-top: -100px;" />
+    </div>
+    <nav class="navbar fixed-top">
+        <div class="d-flex align-items-center navbar-left">
+            <a href="#" class="menu-button d-none d-md-block">
+                <svg class="main" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9 17">
+                    <rect x="0.48" y="0.5" width="7" height="1" />
+                    <rect x="0.48" y="7.5" width="7" height="1" />
+                    <rect x="0.48" y="15.5" width="7" height="1" />
+                </svg>
+                <svg class="sub" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 17">
+                    <rect x="1.56" y="0.5" width="16" height="1" />
+                    <rect x="1.56" y="7.5" width="16" height="1" />
+                    <rect x="1.56" y="15.5" width="16" height="1" />
+                </svg>
+            </a>
+            <a href="#" class="menu-button-mobile d-xs-block d-sm-block d-md-none">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26 17">
+                    <rect x="0.5" y="0.5" width="25" height="1" />
+                    <rect x="0.5" y="7.5" width="25" height="1" />
+                    <rect x="0.5" y="15.5" width="25" height="1" />
+                </svg>
+            </a>
+        </div>
+        <a class="navbar-logo" href="@Url.Action("Index", "Home")">
+            <span class="logo d-none d-xs-block">
+                <img src="~/images/logo.png" class="img-fluid">
+            </span>
+            <span class="logo-mobile d-block d-xs-none"></span>
+        </a>
+        @if (User.Identity.IsAuthenticated)
+        {
+            var user = await userManager.FindByNameAsync(User.Identity.Name);
+            <div class="navbar-right">
+                @if (User.IsInRole("Salesman") || User.IsInRole("Administrator"))
+                {
+                    <div class="header-icons d-inline-block align-middle">
+                        <span id="switchSalesDescription"></span>
+                        <div class="d-none d-md-inline-block align-text-bottom mr-3">
+                            <div class="custom-switch custom-switch-primary-inverse custom-switch-small pl-1" data-toggle="tooltip" data-placement="right" title="" data-original-title="Vendedor Disponível?">
+                                <input class="custom-switch-input" id="switchSales" type="checkbox">
+                                <label class="custom-switch-btn" for="switchSales"></label>
+                            </div>
+                        </div>
+                    </div>
+                    <script type="text/javascript">
+                        function changeSwitchSalesDescription(salesmanAvailable) {
+                            $('#switchSalesDescription').html(salesmanAvailable ? 'Estou <b style="color: green;">disponível</b> para vendas!' : 'Estou <b style="color: red;">indisponível</b> para vendas!');
+                        }
+
+                        // entrada na página
+                        $('#switchSales').prop('checked', @(userFunctions.GetSalesmanAvailable(user.Id) ? "true" : "false"));
+                        changeSwitchSalesDescription(@(userFunctions.GetSalesmanAvailable(user.Id) ? "true" : "false"));
+
+                        // dinâmico
+                        $('#switchSales').change(function () {
+                            $.ajax({
+                                url:'@Url.Action("ChangeSalesmanStatus", "Home")',
+                                data: { salesmanAvailable: $('#switchSales').is(":checked") },
+                                success: function (retornoAjax) {
+                                    changeSwitchSalesDescription($('#switchSales').is(":checked"));
+                                    alert(retornoAjax ? 'Alteração feita com sucesso!' : 'Houve um erro ao atualizar seu cadastro.');
+                                }
+                            });
+                        });
+                    </script>
+                }
+
+                @if (!User.IsInRole("Client"))
+                {
+                    @if (User.CalendarCanAccess())
+                    {
+                        <div class="position-relative d-inline-block">
+                            <button class="header-icon btn btn-empty" type="button" id="notificationButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="simple-icon-calendar"></i> <span class="count" id="task-count">0</span>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-right mt-3 position-absolute" id="notificationDropdown">
+                                <div class="scroll ps" id="task-area"></div>
+                            </div>
+                        </div>
+                    }
+                    if (User.BellCanAccess())
+                    {
+                        <div class="position-relative d-inline-block">
+                            <button class="header-icon btn btn-empty" type="button" id="notificationButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="simple-icon-bell"></i> <span class="count" id="notification-count">0</span>
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-right mt-3 position-absolute" id="notificationDropdown">
+                                <div class="scroll ps" id="notification-area"></div>
+                            </div>
+                        </div>
+                    }
+                }
+
+                <div class="user d-inline-block">
+                    <button class="btn btn-empty p-0" type="button" data-toggle="dropdown" aria-haspopup="true"
+                            aria-expanded="false">
+                        <span class="name">@user.FirstName @user.LastName</span>
+                        <span>
+                            <!-- <img alt="Profile Picture" src="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/img/profile-pic-l.jpg" />-->
+                        </span>
+                    </button>
+
+                    <div class="dropdown-menu dropdown-menu-right mt-3">
+                        @*<a class="dropdown-item" href="@Url.Action("Info", "Account")">Conta</a>*@
+                        <a class="dropdown-item" href="@Url.Action("LogOut", "Account")">Sair</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </nav>
+    <div class="menu" style="z-index: 20;">
+        <div class="main-menu">
+            <div class="scroll">
+                <ul class="list-unstyled">
+                    <li class="@if (controller.Equals("Home")) {<text>active</text>}">
+                        <a href="@Url.Action("Index", "Home")">
+                            <i class="iconsminds-pie-chart"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    @if (User.CalendarCanAccess())
+                    {
+                        <li class="@if (controller.Equals("Client") && action.Equals("ClientCalendar")) {<text>active</text>}">
+                            <a href="@Url.Action("ClientCalendar", "Client")">
+                                <i class="iconsminds-calendar-4"></i>
+                                <span>Calendário</span>
+                            </a>
+                        </li>
+                    }
+                    @if (User.IndicationCanAccess())
+                    {
+                        <li class="@if (controller.Equals("Indication")) {<text>active</text>}">
+                            <a href="@Url.Action("Index", "Indication")">
+                                <i class="iconsminds-affiliate"></i>
+                                <span>Indicações</span>
+                            </a>
+                        </li>
+                    }
+                    @if (User.ClientCanAccess())
+                    {
+                        <li class="@if (controller.Equals("Client")) {<text>active</text>}">
+                            <a href="@Url.Action("Index", "Client")">
+                                <i class="iconsminds-filter-2"></i>
+                                <span>Leads</span>
+                            </a>
+                        </li>
+                    }
+                    @if (User.FreezedFamilyCanAccess() && User.FreezedFamilyCanAccessEdition())
+                    {
+                        <li class="@if (controller.Equals("FreezedFamily") && action.Equals("Index")) {<text>active</text>}">
+                            <a href="@Url.Action("Index", "FreezedFamily")">
+                                <i class="iconsminds-family-sign"></i>
+                                <span>Árvores Genealógicas</span>
+                            </a>
+                        </li>
+                    }
+                    @if (User.InvoiceCanAccess())
+                    {
+                        <li class="@if (controller.Equals("Invoice") && action.Equals("Index")) {<text>active</text>}">
+                            <a href="@Url.Action("Index", "Invoice")">
+                                <i class="iconsminds-billing"></i>
+                                <span>Orçamentos</span>
+                            </a>
+                        </li>
+                    }
+                    @if (User.FinancialCanAccess())
+                    {
+                        <li class="@if (controller.Equals("Financial") && action.Equals("Index")) {<text>active</text>}">
+                            <a href="@Url.Action("Index", "Financial")">
+                                <i class="iconsminds-financial"></i>
+                                <span>Financeiro</span>
+                            </a>
+                        </li>
+                    }
+                    @if (User.WorkbenchCanAccess())
+                    {
+                        <li class="@if (controller.Equals("Workbench") && action.Equals("Index")) {<text>active</text>}">
+                            <a href="@Url.Action("Index", "Workbench")">
+                                <i class="iconsminds-box-with-folders"></i>
+                                <span>Processos</span>
+                            </a>
+                        </li>
+                    }
+                    @if (User.WorkbenchCanAccess())
+                    {
+                        <li class="@if (controller.Equals("RegistryOffice") && action.Equals("Index")) {<text>active</text>}">
+                            <a href="@Url.Action("Index", "RegistryOffice")">
+                                <i class="iconsminds-office"></i>
+                                <span>Cartórios</span>
+                            </a>
+                        </li>
+                    }
+                    @if (User.IsInRole("Administrator"))
+                    {
+                        <li>
+                            <a href="#menu-administracao">
+                                <i class="iconsminds-gear"></i>
+                                <span>Configurações</span>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+        @if (User.IsInRole("Administrator"))
+        {
+            <div class="sub-menu">
+                <div class="scroll">
+                    <ul class="list-unstyled" data-link="menu-administracao">
+                        <li>
+                            <a href="@Url.Action("Index", "User", new { userType = (int)Web.Utils.UserType.NoAgent })">
+                                <i class="iconsminds-business-man"></i>
+                                <span class="d-inline-block">Usuários CRM</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="@Url.Action("Index", "User", new { userType = (int)Web.Utils.UserType.Agent })">
+                                <i class="iconsminds-business-man-woman"></i>
+                                <span class="d-inline-block">Usuário Representante</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="@Url.Action("Index", "User", new { userType = (int)Web.Utils.UserType.Client })">
+                                <i class="iconsminds-conference"></i>
+                                <span class="d-inline-block">Usuário Cliente</span>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="@Url.Action("Index", "ServiceType")">
+                                <i class="iconsminds-gear"></i>
+                                <span class="d-inline-block">Serviços</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="@Url.Action("Index", "SystemVariable")">
+                                <i class="iconsminds-gear"></i>
+                                <span class="d-inline-block">Variáveis</span>
+                            </a>
+                        </li>
+                    </ul>
+
+                </div>
+            </div>
+        }
+    </div>
+    <main>
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-12">
+                    <div class="container-fluid">
+                        <div class="modal fade" id="modal-new-notification" tabindex="-1" role="dialog" aria-labelledby="modal-new-notification-title" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header" style="padding: 1em;">
+                                        <h5 class="modal-title">Uma nova notificação foi adicionada a sua lista</h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body" style="padding: 1em;">
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <input type="hidden" id="modal-new-notification-clientId">
+                                                <input type="hidden" id="modal-new-notification-clientTaskId">
+                                                <label class="form-group has-float-label"><input disabled id="modal-new-notification-client" class="form-control" style="background-color: #ffffff;"> <span>Cliente</span></label>
+                                                <label class="form-group has-float-label"><input disabled id="modal-new-notification-title" class="form-control" style="background-color: #ffffff;"> <span>Título</span></label>
+                                                <label class="form-group has-float-label"><textarea disabled id="modal-new-notification-message" class="form-control" style="background-color: #ffffff;" rows="3"></textarea> <span>Mensagem</span></label>
+                                                <label class="form-group has-float-label"><input disabled id="modal-new-notification-task-date" class="form-control" style="background-color: #ffffff;"> <span>Data da Tarefa</span></label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <div class="col-md-6">
+                                            <button type="button" class="btn btn-secondary float-left" data-dismiss="modal"><i class="simple-icon-close"></i>&nbsp;Fechar</button>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <button onclick="redirectToCalendar()" type="button" class="btn btn-primary float-right" data-dismiss="modal"><i class="simple-icon-calendar"></i>&nbsp;Ver no Calendário</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @RenderBody()
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="page-footer">
+        <div class="footer-content">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-12 col-sm-6">
+                        <p class="mb-0 text-muted">Terra Nostra &copy; @DateTime.Now.Year :: Desenvolvido por Bit Flag (versão @string.Format("{0}.{1}-{2}", FUNCTIONS.Utils.Version.Major, FUNCTIONS.Utils.Version.Minor, FUNCTIONS.Utils.Version.Build))</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/js/vendor/perfect-scrollbar.min.js"></script>
+    <script src="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/js/vendor/mousetrap.min.js"></script>
+    <script src="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/js/dore.script.js"></script>
+    <script src="~/lib/signalR/signalr.min.js"></script>
+    <script type="text/javascript">
+        function getNotifications() {
+            $.post('@Url.Action("GetNotifications", "Client")', function (d) {
+                if (d == null) return;
+
+                var totalNotification = d.calendarNoticeEvents == null ? 0 : d.calendarNoticeEvents.length;
+                var totalTask = d.calendarTaskEvents == null ? 0 : d.calendarTaskEvents.length;
+
+                $('#notification-count').text(totalNotification);
+                $('#task-count').text(totalTask);
+
+                $('#task-area').empty();
+                $('#notification-area').empty();
+
+                setNotificationAlerts(d.calendarNoticeEvents, false);
+                setNotificationAlerts(d.calendarTaskEvents, true);
+
+                if (totalNotification == 0) {
+                    $('#notification-area').append($('<div>', { class: "d-flex flex-row border-bottom text-center pb-2 mb-2" }).append($('<b>', { style: "margin-left: 50%; transform: translateX(-50%);" }).append('Nenhum aviso.')));
+                }
+
+                if (totalTask == 0) {
+                    $('#task-area').append($('<div>', { class: "d-flex flex-row border-bottom text-center pb-2 mb-2" }).append($('<b>', { style: "margin-left: 50%; transform: translateX(-50%);" }).append('Nenhuma tarefa para hoje.')));
+                }
+            });
+        }
+
+        function setNotificationAlerts(events, isTask) {
+            var area = $('#' + (isTask ? 'task-area' : 'notification-area'));
+
+            $.each(events, function (i, e) {
+                if (i == 0) {
+                    area.append($('<div>', { class: "d-flex flex-row border-bottom text-center pb-2 mb-2" }).append($('<b>', { style: "margin-left: 50%; transform: translateX(-50%);" }).append((isTask ? 'Tarefas de hoje' : 'Avisos'))));
+                }
+
+                var row = $('<div>', { class: "d-flex flex-row mb-3 pb-3 border-bottom" }).append($('<div>', { class: "pl-3" }));
+
+                @if (User.CalendarCanAccess()) {
+                    <text>
+                    @*@Url.Action("ReadClientTask", "Client")?clientId=" + e.clientId + (isTask ? '' : '&clientTaskNotificationId=' + e.clientTaskNotificationId)*@
+                    var link = $('<a>', { href: "javascript: OpenModalNewNotification(" + e.clientTaskId + (isTask ? '' : ', ' + e.clientTaskNotificationId) + ")" });
+                    </text>
+                }else{
+                    <text>
+                    var link = $('<span>');
+                    </text>
+                }
+
+                var p1 = $('<p>', { class: "font-weight-medium mb-1" }).append(e.clientName);
+                var p2 = $('<p>', { class: "text-muted mb-0", style: 'line-height: .7rem;' }).append(e.title);
+                var p3 = $('<small>', { class: "text-muted mb-0 text-small", style: 'font-size: .6rem!important; line-height: .8rem!important;' }).append(!isTask ? 'Tarefa para ' + e._TaskDate + ' às ' + e._TaskDateTime : 'Tarefa às ' + e._TaskDateTime);
+
+                area.append(row.append(link.append(p1, p2, p3)));
+            });
+        }
+
+        function OpenModalNewNotification(clientTaskId, clientTaskNotificationId) {
+            $.post('@Url.Action("GetClientTask", "Client")', { clientTaskId: clientTaskId, clientTaskNotificationId: clientTaskNotificationId }, function (d) {
+                setTaskOnModalNotification(d);
+                $('#modal-new-notification').modal('show');
+
+                if (clientTaskNotificationId != null) {
+                    getNotifications();
+                }
+            });
+
+        }
+
+
+        const connection = new signalR.HubConnectionBuilder().withUrl("@Url.Content("~/notificationhub")").configureLogging(signalR.LogLevel.Information).build();
+        connection.start().catch(err => console.error(err));
+        connection.on('UpdateNotifications', (notification) => {
+            getNotifications();
+
+            if (notification != null) {
+                setTaskOnModalNotification(notification);
+
+                $('#modal-new-notification').modal('show');
+            }
+        });
+
+        function setTaskOnModalNotification(notification) {
+            var taskDate = moment(notification.taskDate);
+
+            $('#modal-new-notification-clientId').val(notification.clientId);
+            $('#modal-new-notification-clientTaskId').val(notification.clientTaskId);
+            $('#modal-new-notification-client').val(notification.clientName);
+            $('#modal-new-notification-title').val(notification.title);
+            $('#modal-new-notification-message').val(notification.message);
+            $('#modal-new-notification-task-date').val(taskDate.format('DD/MM/YYYY') + ' às ' + taskDate.format('HH:mm'));
+        }
+
+        function redirectToCalendar() {
+            var clientId = $('#modal-new-notification-clientId').val();
+            var clientTaskId = $('#modal-new-notification-clientTaskId').val();
+
+            window.location.href = '@Url.Action("ClientCalendar", "Client")' + '?clientId=' + clientId + '&clientTaskId=' + clientTaskId;
+        }
+
+        $(document).ready(function () {
+            getNotifications();
+        });
+    </script>
+
+    <script type="text/javascript">
+        var basePathForDore = '@Url.Content("~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/")';
+    </script>
+    <script src="~/assets/theme/Dore-JQuery-Admin-Dashboard-2.3.0/js/scripts.js"></script>
+
+    @RenderSection("Modals", required: false)
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

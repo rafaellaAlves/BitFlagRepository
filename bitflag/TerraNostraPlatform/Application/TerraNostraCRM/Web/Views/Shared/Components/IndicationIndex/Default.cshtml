@@ -1,0 +1,220 @@
+﻿@using Web.Utils
+<script type="text/javascript">
+    _MaskData();
+</script>
+
+<div class="row">
+    <div class="col-md-7">
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text"><i class="simple-icon-magnifier"></i></span>
+            </div>
+            <input id="_IndicationIndexSearch" type="text" class="form-control" placeholder="Procurar..." />
+        </div>
+    </div>
+    <div class="col-md-3">
+        <select id="IndicationFilter" class="form-control">
+            <option value="">Todos os Registros</option>
+            <option value="PENDING" selected="selected">Pendentes</option>
+            <option value="ACCEPTED">Aceitos</option>
+            <option value="DELETED">Excluídos</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <a href="@Url.Action("Manage", "Indication")" class="btn btn-success pull-right w-100"><i class="simple-icon-plus"></i>&nbsp;Novo</a>
+    </div>
+</div>
+<hr />
+
+<div class="table-wrapper">
+    <table id="_IndicationIndexTable" class="display table table-striped table-bordered table-condensed" style="border-collapse: collapse !important; width:100%;">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Serviço</th>
+                <th>E-mail</th>
+                <th>Telefone</th>
+                <th>Representante</th>
+                <th>Data</th>
+                @if (!User.IsInRole("Administrator"))
+                {
+                    <th>Status</th>
+                }
+                <th>&nbsp;</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+<script type="text/javascript">
+
+    var _IndicationIndexTypingTimer;
+    var _IndicationIndexDoneTypingInterval = 500;
+    var _IndicationIndexDatatables = $('#_IndicationIndexTable').DataTable({
+        "order": [[5, "desc"]],
+		proccessing: true,
+		serverSide: true,
+		searching: true,
+		lengthChange: false,
+		dom: 'tip',
+		ajax: {
+            url: '@Url.Action("List", "Indication")',
+            data: function (d) {
+                d.indicationFilter = $('#IndicationFilter').val()
+            },
+			type: 'POST'
+		},
+        columns: [
+            {
+                data: 'Name',
+                render: function (data, type, row) {
+                    if (!row.isDeleted) return '<b><a title="Editar Registro" href="@Url.Action("Manage","Indication")?id=' + row.indicationId + '">' + row.name + '</a></b>';
+
+                    return '<strike>' + row.name + '</strike>';
+                }
+            },
+            {
+                data: 'ServiceTypeName',
+                render: function (data, type, row) {
+                    if (!row.isDeleted) return row.serviceTypeName;
+
+                    return '<strike>' + row.serviceTypeName + '</strike>';
+                }
+            },
+            {
+                data: 'Email',
+                render: function (data, type, row) {
+                    if (!row.isDeleted) return row.email;
+
+                    return '<strike>' + row.email + '</strike>';
+                }
+            },
+            {
+                data: 'Phone',
+                render: function (data, type, row) {
+                    if (!row.isDeleted) return row.phone;
+
+                    return '<strike>' + row.phone + '</strike>';
+                }
+            },
+            {
+                data: 'UserName',
+                render: function (data, type, row) {
+                    if (!row.isDeleted) return row.userName;
+
+                    return '<strike>' + row.userName + '</strike>';
+                }
+            },
+            {
+                data: 'CreatedDate',
+                render: function (data, type, row) {
+                    if (!row.isDeleted) return row._CreatedDate;
+
+                    return '<strike>' + row._CreatedDate + '</strike>';
+                }
+            },
+            @if (!User.IsInRole("Administrator"))
+            {
+                <text>
+                {
+                    data: 'Accepted',
+                    render: function (data, type, row) {
+                        if (!row.isDeleted) return row.accepted ? '<span class="badge badge-pill badge-success text-center">Aceito</span>' : '<span class="badge badge-pill badge-warning text-white text-center">Pendente</span>';
+
+                        return row.accepted ? '<span class="badge badge-pill badge-success text-center"><strike>Aceito</strike></span>' : '<span class="badge badge-pill badge-warning text-white text-center"><strike>Pendente</strike></span>';
+                    }
+                },
+                </text>
+            }
+		    {
+                data: null,
+                render: function (data, type, row) {
+                    var isAdmin = false;
+
+                    @if (User.IndicationCanAccessEdition()) {<text>isAdmin = true;</text>}
+
+                    var r = '<div class="text-center" style="white-space: nowrap;">';
+                    if (row.isDeleted) {
+                        r += '<i class="fa fa-info-circle" data-toogle="tooltip" data-html="true" title="Excluído em ' + row._DeletedOnlyDate + ' às ' + row._DeletedOnlyHour + ' por ' + row.deletedName + '"></a> ';
+                    }
+                    else if (!row.accepted) {
+                        if (isAdmin) {
+                            r += '<a href="javascript:void(0)" onclick="Accept(' + row.indicationId + ')" class="badge badge-primary" style="padding: 5px;"><i class="simple-icon-check"></i>&nbsp;Aceitar</a> ';
+                        }
+                        r += '<a href="javascript:void(0)" onclick="RemoveIndication(' + row.indicationId + ')" class="badge badge-danger" style="padding: 5px; margin-top: .4em;"><i class="simple-icon-trash"></i>&nbsp;Excluir</a>';
+                    } else if (isAdmin) {
+                        r += '<i class="fa fa-info-circle" data-toogle="tooltip" data-html="true" title="Incluído como cliente em ' + row._AcceptedOnlyDate + ' às ' + row._AcceptedOnlyHour + ' por ' + row.acceptedName + '"></a> ';
+                    }
+                    r += '</div>';
+                    return r;
+			    }
+		    }
+        ],
+        drawCallback: function () {
+            _MaskData();
+            $('[data-toogle="tooltip"]').tooltip({
+                placement: 'top'
+            });
+        }
+    });
+
+    function _IndicationIndexDoneTyping() {
+        if ($.fn.DataTable.isDataTable('#_IndicationIndexTable')) {
+            _IndicationIndexDatatables.search($('#_IndicationIndexSearch').val()).draw();
+        }
+    }
+    $('#_IndicationIndexSearch').keyup(function () {
+        clearTimeout(_IndicationIndexDoneTypingInterval);
+        _IndicationIndexTypingTimer = setTimeout(_IndicationIndexDoneTyping, _IndicationIndexDoneTypingInterval);
+    });
+    $('#_IndicationIndexSearch').keydown(function () {
+        clearTimeout(_IndicationIndexDoneTyping);
+    });
+
+    function RemoveIndication(indicationId) {
+		if (confirm("Deseja realmente excluir este indicação?")) {
+            _RemoveIndication(indicationId, function (data) {
+                if(!data.hasError)
+                    $('#_IndicationIndexTable').DataTable().ajax.reload();
+                alert(data.message);
+			});
+		}
+	}
+
+    function _RemoveIndication(_indicationId, callback) {
+        var d = { id: _indicationId };
+		$.ajax({
+			url: '@Url.Action("RemoveIndication", "Indication")',
+			type: 'POST',
+			data: d,
+            dataType: 'Json',
+            success: function (data) {
+                callback(data)
+            }
+		});
+    }
+
+    function Accept(indicationId) {
+        if (confirm("Deseja realmente aceitar esta indicação?")) {
+            $.ajax({
+                url: '@Url.Action("Accept", "Indication")',
+                type: 'POST',
+                data: { indicationId: indicationId },
+                dataType: 'Json',
+                success: function (data) {
+                    if (data.hasError) {
+                        $('#_IndicationIndexTable').DataTable().ajax.reload();
+                        alert(data.message);
+                    } else {
+                        window.location.href = '@Url.Action("Manage", "Client")?id=' + data.code + '&saved=true';
+                        return;
+                    }
+                }
+		    });
+        }
+    }
+
+    $('#IndicationFilter').change(function () {
+        _IndicationIndexDoneTyping();
+    });
+</script>

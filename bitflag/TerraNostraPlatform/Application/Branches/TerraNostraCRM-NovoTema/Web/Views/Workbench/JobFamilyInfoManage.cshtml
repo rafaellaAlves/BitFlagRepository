@@ -1,0 +1,66 @@
+﻿@model DTO.Workbench.JobFamilyInfoManageViewModel
+@if (Context.Request.Query.ContainsKey("success"))
+{
+    <div id="alert-success" class="alert alert-success">
+        Informações salvas com sucesso!
+    </div>
+}
+@if (Context.Request.Query.ContainsKey("error"))
+{
+    <div id="alert-error" class="alert alert-success">
+        Houve um erro ao salvar as informações.
+    </div>
+}
+<div class="card">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-12">
+                <div id="JobFreezedFamilyItemInfoManageViewComponent">
+                    @(await Component.InvokeAsync<Web.ViewComponents.Job.JobFreezedFamilyItemInfoManageViewComponent>(new { id = Model.JobId, title = Model.Title, columns = Model.Columns, modules = Model.Modules, block = Model.Block }))
+                </div>
+            </div>
+        </div>
+        <hr />
+        <div class="row">
+            @if (Model.Block)
+            {
+                <div class="col-md-6">
+                    <a href="@Url.Action("GetSteps", "Workbench", new { jobId = Context.Request.Query["jobId"] })" class="btn btn-secondary"><span class="simple-icon-action-undo"></span>&nbsp;Voltar</a>
+                </div>
+                <div class="col-md-6 text-right">
+                    <a href="@Url.Action("JobFamilyInfoManagePrint", "Workbench", new { jobId = Context.Request.Query["jobId"], workflowStepId = Context.Request.Query["workflowStepId"] })" target="_blank" class="btn btn-light"><span class="simple-icon-printer"></span>&nbsp;Imprimir</a>
+                </div>
+            }
+            else
+            {
+                <div class="col-md-4">
+                    <a href="@Url.Action("GetSteps", "Workbench", new { jobId = Context.Request.Query["jobId"] })" class="btn btn-secondary"><span class="simple-icon-action-undo"></span>&nbsp;Voltar</a>
+                </div>
+                <div class="col-md-4 text-center">
+                    <a href="@Url.Action("JobFamilyInfoManagePrint", "Workbench", new { jobId = Context.Request.Query["jobId"], workflowStepId = Context.Request.Query["workflowStepId"] })" target="_blank" class="btn btn-light"><span class="simple-icon-printer"></span>&nbsp;Imprimir</a>
+                </div>
+                <div class="col-md-4 text-right">
+                    <button id="button-save" onclick="save()" type="button" class="btn btn-success"><span class="simple-icon-cloud-upload"></span>&nbsp;Salvar</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@if (!Model.Block)
+{
+    <text>
+        <script type="text/javascript">
+            function save() {
+                $('#button-save').prop('disabled', true);
+                jobFreezedFamilyItemInfoManageViewComponentSave(jobFreezedFamilyItemInfoManageViewComponentGetForm(), function (d) {
+                    if (d) {
+                        document.location.href = '@Html.Raw(Url.Action("GetSteps", "Workbench", new { jobId = Model.JobId }))';
+                    } else {
+                        document.location.href = '@Html.Raw(Url.Action("JobFamilyInfoManage", "Workbench", new { jobId = Model.JobId, workflowStepId = Model.WorkflowStepId, error = true }))';
+                    }
+                });
+            }
+        </script>
+    </text>
+}

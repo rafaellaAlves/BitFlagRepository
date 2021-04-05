@@ -1,0 +1,129 @@
+﻿@model List<Web.DTO.AdvisorViewModel>
+@{
+    ViewData["Title"] = "Escritórios Parceiros";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style type="text/css">
+    .card-style .card-body {
+        background: linear-gradient(to top, #c8d4e6, transparent);
+    }
+
+    .card-style {
+        margin-top: 1em;
+        box-shadow: 1px 9px 8px 4px #afafaf;
+    }
+
+    h4 i {
+        font-size: 14px;
+    }
+
+    .hr-after::after{
+        content: '';
+        width: 100%;
+        margin: 0px 30px 1em 30px;
+        border-bottom: 1px solid #e1e1e1;
+    }
+
+    .hr-after:last-child::after {
+        border-bottom: 0px;
+    }
+</style>
+
+<div class="card">
+    <div class="card-header" style="background: #949494; color: white;">
+        <i class="fas fa-building"></i> Relação de Escritórios de Advocacia Credenciados
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-12">
+                @*<form action="" method="post">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="control-label">Nome:</label>
+                                    <input class="form-control" type="text" name="nome" value="@ViewData["nome"]" />
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="control-label">Estado:</label>
+                                    <select class="form-control" name="uf">
+                                        <option value="">Selecione</option>
+                                        @if (Model != null)
+                                        {
+                                            foreach (var item in Model.Select(x => x.UF).Distinct())
+                                            {
+                                                <option value="@item">@item</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="control-label">Cidade:</label>
+                                    <select class="form-control" name="cidade">
+                                        <option value="">Selecione</option>
+                                        @if (Model != null)
+                                        {
+                                            foreach (var item in Model.Select(x => x.Cidade).Distinct())
+                                            {
+                                                <option value="@item">@item</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="control-label">&nbsp;</label><br />
+                                    <button type="submit" class="btn btn-primary"><i class="fa fa-search"></i>&nbsp;Buscar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    <hr />
+                    @if (Model != null)
+                    {*@
+                <div class="row">
+                    <div class="col-md-12">
+                        @foreach (var item in Model)
+                        {
+                            <div class="row hr-after">
+                                <div class="col-md-4 text-center">
+                                    <div class="order-1 p-2 mx-auto">
+                                        <a href="@item.Site" target="_blank">
+                                            <img class="img-fluid" src="@Url.Content(item.LogoUrl)" style=" height: 120px;" />
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="order-2 p-2 w-100 text-center">
+                                        <div class="mb-1">
+                                            <i class="fa fa-map-pin"></i>&nbsp;<b>@item.Cidade - @item.UF</b>
+                                        </div>
+                                        <h4 style="margin-top:0;">@item.Nome</h4>
+                                        <div class="mt-2">
+                                            <i class="fa fa-map-pin"></i>&nbsp;@Html.Raw(item.Endereco)
+                                        </div>
+                                        <div><i class="fa fa-phone"></i>&nbsp;@item.Telefone</div>
+                                        <div class="text-nowrap"><i class="fa fa-envelope"></i>&nbsp;@item.Email</div>
+                                        <div class="text-nowrap"><i class="fa fa-link"></i>&nbsp;<a style="color: #212529;" href="@item.Site" target="_blank">@item.Site</a></div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+                @*}
+                    else
+                    {
+                        <div class="text-center">
+                            <i>Utilize o filtro acima e clique em 'Buscar'.</i>
+                        </div>
+                    }*@
+            </div>
+        </div>
+    </div>
+</div>

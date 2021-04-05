@@ -1,0 +1,23 @@
+﻿@model AMaisImob_WEB.Models.CompanyViewModel
+@inject AMaisImob_DB.Models.AMaisImob_HomologContext context
+
+@{
+    var companyTypeFunctions = new AMaisImob_WEB.BLL.CompanyTypeFunctions(context);
+    string companyTypeName = companyTypeFunctions.GetData().Single(x => x.CompanyTypeId == Model.CompanyTypeId).Name;
+    ViewData["Title"] = companyTypeName + "s";
+}
+
+<div class="card shadow bg-light">
+    <div class="card-body">
+        <div id="_CompanyIndexViewComponent"></div>
+    </div>
+    @if (Model.ParentCompanyId.HasValue){
+    <div class="card-footer">
+        <a href="@Url.Action("Corretora","Company")" class="btn btn-secondary float-left"><i class="fa fa-arrow-left"></i>&nbsp;Voltar</a>
+    </div>
+    }
+</div>
+
+<script type="text/javascript">
+    $('#_CompanyIndexViewComponent').load('@Url.Action("CompanyIndexComponent", "Company")', { "companyTypeId": '@Model.CompanyTypeId', "parentcompanyId": @if(Model.ParentCompanyId.HasValue) {<text>@Model.ParentCompanyId</text>}else{<text>null</text>}});
+</script>

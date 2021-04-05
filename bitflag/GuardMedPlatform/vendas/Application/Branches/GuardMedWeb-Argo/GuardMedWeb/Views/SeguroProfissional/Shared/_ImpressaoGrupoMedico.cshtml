@@ -1,0 +1,522 @@
+﻿@model GuardMedWeb.Models.SeguradoProfissionalViewModel
+@using GuardMedWeb.BLL.Utils
+@inject DAL.GuardMedWebContext context
+@inject GuardMedWeb.BLL.SeguradoProfissional.EspecialidadePrecoFunctions especialidadePrecoFunctions
+@{
+    GuardMedWeb.Models.EspecialidadePrecoViewModel precos = (GuardMedWeb.Models.EspecialidadePrecoViewModel)ViewData["Precos"];
+
+
+    ViewData["Title"] = "GuardMed";
+
+    var planoSeguroProfissionalFunctions = new GuardMedWeb.BLL.SeguradoProfissional.PlanoSeguroProfissionalFunctions(context);
+    var pagamentoTipoFunctions = new GuardMedWeb.BLL.Pagamento.PagamentoTipoFunctions(context);
+    var especialidadeFunctions = new GuardMedWeb.BLL.SeguradoProfissional.EspecialidadeFunctions(context);
+    var rendaProtegidaPrecoFunctions = new GuardMedWeb.BLL.SeguradoProfissional.RendaProtegidaPrecoFunctions(context);
+
+    var maxGrupo = especialidadeFunctions.GetMaxGroup(Model.SeguradoProfissionalId.Value);
+    var especialidadePreco = especialidadePrecoFunctions.Get(Model.PlanoSeguroProfissionalId.Value, maxGrupo);
+
+    var tiposPagamento = pagamentoTipoFunctions.GetData();
+
+    var cartaoId = tiposPagamento.First(x => x.ExternalCode == "CARTAO").PagamentoTipoId;
+    var boletoId = tiposPagamento.First(x => x.ExternalCode == "BOLETO").PagamentoTipoId;
+
+    double coberturaExtraAnualDiretor = 0;
+    double coberturaExtraAnualJuridica = 0;
+    double coberturaExtraMensalDiretor = 0;
+    double coberturaExtraMensalJuridica = 0;
+    double coberturaDiretorSemIOF = 0;
+    double coberturaSocioEmpresaSemIOF = 0;
+    double precoAdmComIOF = 0;
+
+    double valorAtualIOF = 7.38;
+
+    if (Model.DiretorChefeEquipe == true && Model.CoberturaAdicionalDiretorChefeEquipe == true && Model.SocioEmpresaAreaMedica == true && Model.CoberturaAdicionalSocioEmpresaAreaMedica == true)
+    {
+        precoAdmComIOF = Model.PrecoAdm + (Model.PrecoAdm / 100 * 20);
+        coberturaExtraAnualDiretor = Model.PrecoTotalMenosAdm / 100 * 10;
+        coberturaExtraMensalDiretor = Model.PrecoTotalMenosAdm / 100 * 10;
+        coberturaExtraAnualJuridica = Model.PrecoTotalMenosAdm / 100 * 10;
+        coberturaExtraMensalJuridica = Model.PrecoTotalMenosAdm / 100 * 10;
+    }
+    else if (Model.DiretorChefeEquipe == true && Model.CoberturaAdicionalDiretorChefeEquipe == true)
+    {
+        precoAdmComIOF = Model.PrecoAdm + (Model.PrecoAdm / 100 * 10);
+        coberturaExtraAnualDiretor = Model.PrecoTotalMenosAdm / 100 * 10;
+        coberturaExtraMensalDiretor = Model.PrecoTotalMenosAdm / 100 * 10;
+    }
+    else if (Model.SocioEmpresaAreaMedica == true && Model.CoberturaAdicionalSocioEmpresaAreaMedica == true)
+    {
+        precoAdmComIOF = Model.PrecoAdm + (Model.PrecoAdm / 100 * 10);
+        coberturaExtraAnualJuridica = Model.PrecoTotalMenosAdm / 100 * 10;
+        coberturaExtraMensalJuridica = Model.PrecoTotalMenosAdm / 100 * 10;
+    }
+    else
+    {
+        precoAdmComIOF = Model.PrecoAdm;
+    }
+
+    double precoTotalSemIOF = Model.PrecoTotalMenosAdm - (Model.PrecoTotalMenosAdm / 100 * valorAtualIOF);
+
+    if (Model.CoberturaAdicionalDiretorChefeEquipe == true)
+    {
+        coberturaDiretorSemIOF = precoTotalSemIOF / 100 * 10;
+    }
+    if (Model.CoberturaAdicionalSocioEmpresaAreaMedica == true)
+    {
+        coberturaSocioEmpresaSemIOF = precoTotalSemIOF / 100 * 10;
+    }
+
+    double premioValor = precoTotalSemIOF + precoAdmComIOF + coberturaDiretorSemIOF + coberturaSocioEmpresaSemIOF;
+
+    double iof = 0;
+
+
+    double premioValorTotal = 0.0;
+
+    //condição para o grupo médico Unimed Amparo Cooperativa De Trabalho Medico
+    if (Model.GrupoMedico == 1021)
+    {
+
+        if (Model.PagamentoTipoId == 1) // A VISTA, BOLETO
+        {
+            iof = 57.01;
+            premioValorTotal = Model.PrecoTotal.Value;
+        }
+        else if (Model.PagamentoTipoId == 2)
+        {
+            iof = 57.01;
+            premioValorTotal = Model.PrecoMensal.Value;
+        }
+
+    }
+    //Demais grupos médicos
+    else
+    {
+        if (Model.PagamentoTipoId == 1) // A VISTA, BOLETO
+        {
+            iof = (Model.PrecoTotalMenosAdm + coberturaExtraAnualDiretor + coberturaExtraAnualJuridica) / 100 * valorAtualIOF;
+            premioValorTotal = Model.PrecoTotal.Value;
+        }
+        else if (Model.PagamentoTipoId == 2)
+        {
+            iof = (Model.PrecoTotalMenosAdm + coberturaExtraMensalDiretor + coberturaExtraMensalJuridica) / 100 * valorAtualIOF;
+            premioValorTotal = Model.PrecoMensal.Value;
+        }
+    }
+
+}
+
+<div style="width: 100%; text-align: center;">
+    <strong class="impressao-titulo guardmed-blue">CERTIFICADO INDIVIDUAL DE SEGURO Nº @Model.Referencia</strong><br />
+    <label class="impressao-subtitulo control-label">ESTE CERTIFICADO INDIVIDUAL DE SEGURO É EMITIDO PELA GUARDMED APOIO ADMINISTRATIVO LTDA</label>
+</div>
+<br />
+
+<table style="width: 100%;">
+    <tr>
+        <td style="text-align: center;">
+            <small>
+                <strong>APÓLICE DE RESPONSABILIDADE CIVIL PROFISSIONAL Nº:</strong>@if (Model.PlanoSeguroProfissionalId == 3)
+                {<text>10.07.8000036.37 </text>}
+            else
+            {<text>30.78.0078520.28</text>}
+            </small>
+
+        </td>
+
+    </tr>
+
+    <tr>
+
+        <td style="text-align: center;">
+
+            <small>Fator Seguradora S/A – Registro SUSEP 06122</small>
+
+        </td>
+
+    </tr>
+    @*<tr>
+            <td style="text-align: center;">
+                <small><strong>APÓLICE DE ACIDENTES PESSOAIS Nº:</strong> 01.82.6088599</small>
+            </td>
+        </tr>*@
+</table>
+
+<table style="width: 100%;">
+    <tr>
+        <td>
+            <small><strong>INÍCIO DE VIGÊNCIA:</strong>&nbsp;01/@Model.DataCompra.Value.Month.ToString("00")/@Model.DataCompra.Value.Year</small>
+        </td>
+        <td>
+            <small><strong>FIM DA VIGÊNCIA:</strong>&nbsp;01/@Model.DataCompra.Value.Month.ToString("00")/@(Model.DataCompra.Value.Year + 1)</small>
+        </td>
+        <td>
+            <small><i style="text-align:right;">DATA DE EMISSÃO:@Model._DataCompra</i></small>
+        </td>
+    </tr>
+</table>
+<br />
+<table style="width: 100%; margin-top:-1em; margin-bottom:1em;">
+    <tr>
+        <td colspan="4" class="bgguardmed-blue" style="border-radius: 15px 15px 0px 0px;">
+            <small style="color:white">DADOS DO ESTIPULANTE</small>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2"><small class="smallFont"><strong>NOME DO ESTIPULANTE:</strong> GUARDMED APOIO ADMINISTRATIVO LTDA</small></td>
+        <td colspan="2"><small class="smallFont"><strong>CNPJ:</strong> 34.787.252/0001-24</small></td>
+    </tr>
+    <tr>
+        <td><small class="smallFont"><strong>ENDEREÇO:</strong> RUA MANUEL DA NÓBREGA</small></td>
+        <td><small class="smallFont"><strong>Nº:</strong> 354</small></td>
+        <td><small class="smallFont"><strong>COMP:</strong> 8º ANDAR</small></td>
+        <td>&nbsp;</td>
+    </tr>
+    <tr>
+        <td><small class="smallFont"><strong>BAIRRO:</strong> PARAÍSO</small></td>
+        <td><small class="smallFont"><strong>CEP:</strong> 04.001-001</small></td>
+        <td><small class="smallFont"><strong>CIDADE:</strong> SÃO PAULO</small></td>
+        <td><small class="smallFont"><strong>UF:</strong> SP</small></td>
+    </tr>
+    <tr>
+        <td colspan="2"><small class="smallFont"><strong>E-MAIL:</strong><a href="mailto:contato@guardmed.com.br"> contato@guardmed.com.br</a></small></td>
+        <td colspan="2"><small class="smallFont"><strong>TELEFONE:</strong> (11) 99566-3535</small></td>
+    </tr>
+</table>
+<table style="width: 100%;">
+    <tr>
+        <td colspan="3" class="bgguardmed-blue" style="border-radius: 15px 15px 0px 0px;">
+            <small style="color:white">DADOS DO SEGURADO</small>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="2"><small><b>NOME DO SEGURADO:</b> @Model.Nome</small></td>
+        <td><small><b>DATA DE NASCIMENTO:</b> @(Model.DataNascimento.HasValue ? Model.DataNascimento.Value.ToString("dd/MM/yyyy") : "-")</small></td>
+    </tr>
+    <tr>
+        <td><small><b>CPF</b>: @Model.CPF</small></td>
+        <td><small><b>CRM Nº:</b> @Model.CRM</small></td>
+        <td><small><b>E-MAIL:</b> @Model.Email</small></td>
+    </tr>
+    <tr>
+        <td>
+            <small>
+                <b>TELEFONE:</b> @if (string.IsNullOrWhiteSpace(Model.Telefone))
+                {<text>-</text> }
+            else
+            { <text>@Model.Telefone</text>}
+            </small>
+        </td>
+        <td><small><b>CELULAR:</b> @Model.Celular</small></td>
+        <td>
+            <small>
+                <b>VENCIMENTO:</b> @if (Model.PagamentoTipoId == boletoId)
+                {<text>Vide vencimento no Boleto</text>}
+            else
+            {<text>Vide lançamento no Cartão</text>}
+            </small>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <small><b>ENDEREÇO:</b> @Model.Endereco,  @Model.EnderecoNumero - @Model.Bairro</small>
+        </td>
+        <td><small><b>CIDADE - UF:</b> @Model.Cidade -  @Model.Estado</small></td>
+        <td><small><b>CEP:</b> @Model.CEP</small></td>
+    </tr>
+    <tr>
+        <td colspan="3"><small><b>ESPECIALIDADES: </b> @(string.Join(", ", Model.EspecialidadeProfissional.Select(x => especialidadeFunctions.GetDataByID(x.EspecialidadeId).Nome))).</small></td>
+    </tr>
+    <tr>
+        <td colspan="3" class="bgguardmed-blue" style="border-radius: 0px 0px 15px 15px;">
+            &nbsp;
+        </td>
+    </tr>
+</table>
+
+<table style="width: 100%; margin-top:.5em;">
+    <tr>
+        <td class="bgguardmed-blue" style=" border-top-left-radius: 15px; border-top-right-radius:15px; padding: 8px;" colspan="2"><small style="color:white">Proteção Profissional para a Área de Saúde GuardMed</small></td>
+    </tr>
+    <tr style="line-height: 1px; height: 1px">
+        <td class="bgguardmed-grey" style="padding: 8px; "><small style="color:white">Serviços</small></td>
+        <td class="bgguardmed-grey" style="border-left: 1px solid black; padding: 8px; text-align: center; width: 200px"><small style="color:white">Valor</small></td>
+    </tr>
+    <tr>
+        <td style="border-bottom: 1px solid black;"><small class="smallFont">Serviço de Administração, Prevenção e Gerenciamento de Risco da Atividade Profissional na Área da Saúde</small></td>
+        <td style="border-left: 1px solid black; text-align: center; border-bottom: 1px solid black;">
+            <small class="smallFont">
+                @if (Model.VezesPagamento == 1)
+                {
+                    <span>R$ <span class="money">@especialidadePreco.PrecoAdmAnual</span></span>
+                }
+                else
+                {
+                    <span>R$ <span class="money">@especialidadePreco.PrecoAdmMensal</span></span>
+                }
+            </small>
+        </td>
+    </tr>
+
+</table>
+
+<table style="width: 100%; margin-top:.5em;">
+    <tr>
+        <td colspan="4" class="bgguardmed-blue" style="padding: 8px;"><small style="color:white">Fator Seguradora S/A – Responsabilidade Civil Profissional – Processo SUSEP do Produto 15414.005300/2011-51</small></td>
+    </tr>
+    <tr style="line-height: 14px; height: 1px">
+        <td class="bgguardmed-grey" style="width: 32%;"><small style="color:white;">Cobertura</small></td>
+        <td class="bgguardmed-grey" style="width: 20%; border-left: 1px solid black;"><small style="color:white;">Limite Máximo de Indenização  (LMI)</small></td>
+        <td class="bgguardmed-grey" style="width: 30%; border-left: 1px solid black;"><small style="color:white;">POS/ Franquia (Deduzidas por Prejuízos Indenizáveis)</small></td>
+        <td class="bgguardmed-grey" style="border-left: 1px solid black; padding: 8px; width: 18%; text-align: center;"><small style="color:white">Prêmio Líquido</small></td>
+    </tr>
+    <tr style="border-bottom:1px solid black">
+        <td><small class="smallFont" style="font-weight: bold">Responsabilidade Civil Profissional</small></td>
+        <td style="border-left: 1px solid black;">
+            <small class="smallFont">
+                R$
+                @if (Model.PlanoSeguroProfissionalId == 1 || Model.PlanoSeguroProfissionalId == 5)
+                {<text>200.000,00</text>}
+            else if (Model.PlanoSeguroProfissionalId == 2)
+            {<text>350.000,00</text>}
+        else if (Model.PlanoSeguroProfissionalId == 3)
+        {<text>500.000,00</text>}
+            </small>
+        </td>
+        <td style="border-left: 1px solid black;">
+            <small class="smallFont">
+                R$
+                @if (Model.PlanoSeguroProfissionalId == 1 || Model.PlanoSeguroProfissionalId == 5)
+                {<text>5.000,00</text>}
+            else if (Model.PlanoSeguroProfissionalId == 2)
+            {<text>5.000,00</text>}
+        else if (Model.PlanoSeguroProfissionalId == 3)
+        {<text>5.000,00</text>}
+            </small>
+        </td>
+        <td style="text-align: center; border-left: 1px solid black;">
+            <small class="smallFont">
+                R$ 64,37
+            </small>
+        </td>
+    </tr>
+    @if (Model.DiretorChefeEquipe == true && Model.CoberturaAdicionalDiretorChefeEquipe == true)
+    {
+        <tr>
+            <td style="border-bottom: 1px solid black;" colspan="3">
+                <small class="smallFont">
+                    &nbsp;&nbsp;Adicional Diretor Médico e/ou Chefe de Equipe
+                </small>
+            </td>
+            <td style="border-left: 1px solid black; border-bottom: 1px solid black; text-align: center; white-space: nowrap;">
+                <small class="smallFont">
+                    R$
+                    @if (Model.VezesPagamento > 1)
+                    {
+                        @coberturaDiretorSemIOF.ToPtBr();
+                    }
+                    else if (Model.VezesPagamento == 1)
+                    {
+                        @coberturaDiretorSemIOF.ToPtBr();
+                    }
+                </small>
+            </td>
+        </tr>
+    }
+    @if (Model.SocioEmpresaAreaMedica == true && Model.CoberturaAdicionalSocioEmpresaAreaMedica == true)
+    {
+        <tr>
+            <td style="border-bottom: 1px solid black;" colspan="3">
+                <small class="smallFont">
+                    &nbsp;&nbsp;Adicional Pessoa Jurídica
+                </small>
+            </td>
+            <td style="border-left: 1px solid black; text-align: center; white-space: nowrap; border-bottom: 1px solid black;">
+                <small class="smallFont">
+                    R$
+                    @if (Model.VezesPagamento == 1)
+                    {
+                        @coberturaSocioEmpresaSemIOF.ToPtBr();
+                    }
+                    else if (Model.VezesPagamento > 1)
+                    {
+                        @coberturaSocioEmpresaSemIOF.ToPtBr();
+                    }
+                </small>
+            </td>
+        </tr>
+    }
+    <tr>
+        <td class="bgguardmed-blue" colspan="@if (!Model.SeguradoClinicaVeterinariaId.HasValue) {<text>3</text>} else {<text>2</text>}" style=" text-align: right;">
+            <small style="color:white;">Prêmio/Valor</small>
+        </td>
+        <td class="bgguardmed-blue" style="text-align: left; border-left: 1px solid black;" @if (Model.SeguradoClinicaVeterinariaId.HasValue) { <text> colspan="2" </text> }>
+            <small style="color:white;">
+                R$ @especialidadePreco.PrecoMensal.ToString("#,###.##", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"))
+            </small>
+        </td>
+    </tr>
+    <tr>
+        <td class="bgguardmed-blue" colspan="@if (!Model.SeguradoClinicaVeterinariaId.HasValue) {<text>3</text>} else {<text>2</text>}" style=" text-align: right;">
+            <small style="color:white;">IOF</small>
+        </td>
+        <td class="bgguardmed-blue" style="text-align: left; border-left: 1px solid black;" @if (Model.SeguradoClinicaVeterinariaId.HasValue) { <text> colspan="2" </text> }>
+            <small style="color:white;">
+                <span>R$ 4,75</span>
+            </small>
+        </td>
+    </tr>
+    <tr>
+        <td class="bgguardmed-blue" style="border-radius: 0px 0px 0px 15px; text-align: right;" colspan="@if (!Model.SeguradoClinicaVeterinariaId.HasValue) {<text>3</text>} else {<text>2</text>}">
+            <small style="color:white;">Prêmio/Valor Total</small>
+        </td>
+        <td class="bgguardmed-blue" style="text-align: left; border-left: 1px solid black; border-radius: 0px 0px 15px 0px;" @if (Model.SeguradoClinicaVeterinariaId.HasValue) { <text> colspan="2" </text> }>
+            <small style="color:white;">
+                R$ @Math.Round(Model.PrecoMensal.Value, 2).ToString("#,###.##", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"))
+            </small>
+        </td>
+    </tr>
+</table>
+
+<table style="width: 100%; text-align:center; margin-top:.5em;">
+    <tr>
+        <td class="bgguardmed-blue">
+            <small style="color:white;">
+                Seguro faturado pelo grupo médico <b>Unimed Amparo Cooperativa de Trabalho Médico</b> - Valor Total Anual R$ @Model.PrecoTotal.Value.ToString("#,###.##", System.Globalization.CultureInfo.GetCultureInfo("pt-BR"))
+            </small>
+        </td>
+    </tr>
+</table>
+@if (Model.CoberturaAdicionalDiretorChefeEquipe == true && Model.CoberturaAdicionalSocioEmpresaAreaMedica == true)  
+{
+
+}
+else
+{
+    <div style="page-break-after: always;"></div>
+}
+<br />
+<table style="width: 100%;">
+    <tr>
+        <td class="bgguardmed-blue" style="border-top-left-radius: 15px; border-top-right-radius:15px; padding: 8px;" colspan="2"><small style="color:white">Abrangência da indenização e Coberturas</small></td>
+    </tr>
+    <tr>
+        <td class="bgguardmed-grey" style="width: 75%; padding: 8px;"><small style="color:white">Abrangência da Indenização</small></td>
+        <td class="bgguardmed-grey" style="width: 25%; border-left: 1px solid black; padding: 8px; text-align: center;"><small style="color:white">Limite Máximo de Indenização (LMI) -R$</small></td>
+    </tr>
+    <tr>
+        <td style="border-bottom: 1px solid black;"><small class="smallFont">a. Condenações pecuniárias provenientes de sentenças judiciais transitadas em julgado ou decisões arbitrais finais proferidas contra o Segurado.</small></td>
+        <td style="text-align: center; border-left: 1px solid black; border-bottom: 1px solid black;"><small class="smallFont">Até o limite Máximo</small></td>
+    </tr>
+    <tr>
+        <td style="border-bottom: 1px solid black;"><small class="smallFont">b. Acordos judiciais ou extrajudiciais negociados com o consentimento prévio e por escrito da Seguradora.</small></td>
+        <td style="text-align: center; border-left: 1px solid black; border-bottom: 1px solid black;"><small class="smallFont">Até o limite Máximo</small></td>
+    </tr>
+    <tr>
+        <td style="border-bottom: 1px solid black;"><small class="smallFont">c. Custos de Defesa referentes a reclamações cobertas.</small></td>
+        <td style="text-align: center; border-left: 1px solid black; border-bottom: 1px solid black;"><small class="smallFont">Até o limite Máximo</small></td>
+    </tr>
+    <tr>
+        <td style="border-bottom: 1px solid black;"><small class="smallFont">d. Processos judiciais civis e/ou procedimentos propostos por terceiros em face do segurado visando responsabilizá-lo civilmente por materiais e/ou danos estéticos e/ou danos e/ou danos corporais.</small></td>
+        <td style="text-align: center; border-left: 1px solid black; border-bottom: 1px solid black;"><small class="smallFont">Até o limite Máximo</small></td>
+    </tr>
+    <tr>
+        <td style="border-bottom: 1px solid black;"><small class="smallFont">e. Custos de defesa, exclusivamente destinados ao de defesa do Segurado, desde que de um fato gerador descrito na “d” acima.</small></td>
+        <td style="text-align: center; border-left: 1px solid black; border-bottom: 1px solid black;"><small class="smallFont">Até 3 vezes a tabela da OAB</small></td>
+    </tr>
+    <tr>
+        <td style="border-bottom: 1px solid black;"><small class="smallFont">f. A Seguradora responderá pelos custos na esfera disciplinar, em defesas perante os respectivos conselhos, sempre que relacionada a um risco coberto por este Seguro.</small></td>
+        <td style="text-align: center; border-left: 1px solid black; border-bottom: 1px solid black;"><small class="smallFont">Até o limite Máximo</small></td>
+    </tr>
+    <tr>
+        <td style="border-bottom: 1px solid black;"><small class="smallFont">g. A Seguradora responderá também, pelos custos de na esfera criminal, exclusivamente por atos incidentais causados a terceiros e cobertos presente apólice.</small></td>
+        <td style="text-align: center; border-left: 1px solid black; border-bottom: 1px solid black;"><small class="smallFont">Até o limite Máximo</small></td>
+    </tr>
+    <tr>
+        <td style="border-bottom: 1px solid black;"><small class="smallFont">h. Fica entendido e acordado que, em complemento descrito, a presente apólice cobrirá os custos de contratação de Empresa Especializada em Serviços de e Assessoria de Imagem, em comum acordo e mediante prévia autorização da Seguradora, quando houver comprovado prejuízo à imagem, à honra ou reputação de qualquer pessoa Segurada sob esta apólice, causada pela de notícia, reportagem ou vazamento de sigilosas, desde que os fatos ou acontecimentos estejam relacionados à prestação de serviço profissional do Segurado e cobertos pela presente apólice.</small></td>
+        <td style="text-align: center; border-left: 1px solid black; border-bottom: 1px solid black;"><small class="smallFont">Até o limite Máximo</small></td>
+    </tr>
+</table>
+
+<table style="width: 100%; margin-top:1em;">
+    <tr>
+        <td class="bgguardmed-blue" style="border-top-left-radius: 15px; border-top-right-radius:15px; padding: 8px;"><small style="color:white">Principais riscos excluídos</small></td>
+    </tr>
+    <tr>
+        <td>
+            <small class="smallFont">Além das exclusões constantes das Condições Gerais e Especiais, esse seguro não cobre:</small>
+            <ul style="list-style:disc;">
+                <li><small class="smallFont">Reclamações baseadas em, resultantes de ou como consequência de qualquer ato ou fato relacionado a prestação de serviços médicos que não sejam realizadas por profissionais da área médica, com especilidades devidamente reconhecidas pelo conselho federal de medicina (CFM), associação médica brasileira (AMB) e comissão nacional de residência médica (CNRM);</small></li>
+                <li><small class="smallFont">Reclamações baseadas em, resultantes de ou como consequência de qualquer ato ou fato relacionado a prestação de serviços médicos quando o segurado figurar na ação como Operadora de Plano de Saúde;</small></li>
+                <li><small class="smallFont">Estão excluídas da presente apólice reclamações decorrentes de cirurgias plásticas estéticas;</small></li>
+                <li><small class="smallFont">Estão excluídas da presente apólice reclamações decorrentes de procedimentos estéticos que envolvam toxina botulínica;</small></li>
+                <li><small class="smallFont">Estão excluídas reclamações por fatos já conhecidos pelo Segurado, bem como reclamações em andamento e/ou em processo de regulação de sinistro.</small></li>
+            </ul>
+        </td>
+    </tr>
+</table>
+
+@if (Model.CoberturaAdicionalDiretorChefeEquipe == true && Model.CoberturaAdicionalSocioEmpresaAreaMedica == true)
+{
+    <div style="page-break-after: always;"></div>
+}
+<table style="width: 100%; margin-top:.5em;">
+    <tr>
+        <td class="bgguardmed-blue" style="border-top-left-radius: 15px; border-top-right-radius:15px; padding: 8px;"><small style="color:white">Base de Contratação e âmbito de cobertura</small></td>
+    </tr>
+    <tr>
+        <td>
+            <small class="smallFont">
+                Seguro à base de Reclamações com Notificação;<br />
+                Em todo território nacional;<br />
+                @if (Model.HistoricoSeguro.HasValue && !Model.HistoricoSeguro.Value)
+                {
+                    <text>
+                        Retroatividade a partir do início de vigência do certificado;
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        Retroatividade a partir de <b>@Model._DataRetroatividade</b>. Esta data de retroatividade será acatada desde que apresentada à GuardMed no prazo máximo de até 3 dias corridos após a data de emissão deste certificado, as mesmas condições em apólice vigente até a data de ínicio de vigência deste certificado.
+                    </text>
+                }
+            </small>
+        </td>
+    </tr>
+</table>
+
+<br />
+
+<table style="width: 100%;">
+    <tr>
+        <td class="bgguardmed-blue" style="border-radius: 15px 15px 0px 0px; padding: 8px;"><small style="color:white">PAGAMENTO DO PRÊMIO DE SEGURO</small></td>
+    </tr>
+    <tr>
+        <td><small>O pagamento do seguro será efetuado pelo Segurado, Pessoa Física ou Jurídica, o não pagamento do prêmio de Seguro, implicará na suspensão da cobertura secutirária após 5 dias da data de vencimento, sendo que, após 10 dias da data de comunicação, não havendo regularização por parte do Segurado, o contrato será cancelado. Vide o artigo 757 do Código Civil - “Pelo contrato de seguro, o segurador se obriga, mediante o pagamento do prêmio, a garantir interesse legítimo do segurado, relativo a pessoa ou a coisa, contra riscos predeterminados.”</small></td>
+    </tr>
+</table>
+<br />
+<div class="_page-break"></div>
+<table>
+    <tr>
+        <td class="bgguardmed-blue" style="border-radius: 15px 15px 0px 0px;"><small style="color:white;">SEGURADORAS E CONDIÇÕES GERAIS DOS SEGUROS</small></td>
+    </tr>
+    <tr>
+        <td style="text-align: center;">
+            <small class="control-label smallFont" style="text-align:center">
+                Este seguro é garantido pela  Fator Seguradora S/A, SUSEP 06122, CNPJ: 33.061.862/0001-83. Avenida Santo Amaro, 48 7º andar – 04506-500 Vila Nova Conceição - São Paulo – SP. www.fatorseguradora.com.br telefone: 0800-77-07229<br />
+                A MAIS ADM E CORRETORA DE SEGUROS LTDA - Registro SUSEP 100695033 - CNPJ 12.939.904/0001-66, Rua Manuel da Nobrega, 354 - 8ª andar - Paraiso, São Paulo -SP - CEP 04001-001 - Telefone 11 3253-3678 - www.guardmed.com.br ATENDIMENTO SUSEP: 0800-021-8484 - Os segurados poderão consultar informações sobre os produtos através do site: www.susep.gov.br<br />
+                “SUSEP – Superintendência de Seguros Privados – Autarquia Federal responsável pela fiscalização, normatização e controle dos mercados de seguro, previdência complementar aberta, capitalização, resseguro e corretagem de seguros.”.<br />
+                Parágrafo único. Para fins do disposto no inciso VII, caso o segurado seja estrangeiro, poderá ser utilizado o número do passaporte, com a identificação do País de expedição.<br />
+                Art. 4º As sociedades seguradoras poderão emitir uma única apólice vinculada a vários produtos de seguro, com diferentes coberturas, desde que destinada a garantir um mesmo segurado, grupo segurado ou objeto segurável, contra diversos riscos.<br />
+                Art. 5º Poderão ser estabelecidos requisitos complementares para apólices e certificados individuais em função de critérios específicos inerentes a determinados ramos de seguro.<br />
+                Art. 6º Os documentos contratuais de que trata esta Circular deverão ser entregues ao segurado por ocasião da efetivação da contratação do plano de seguro, juntamente com as condições gerais, refletindo de forma clara todas as coberturas contratadas. Parágrafo único. O disposto no caput poderá ser realizado com a utilização de meios remotos.<br />
+                Art.7º As sociedades seguradoras terão o prazo de 180 dias para se adequarem ao disposto nesta Circular.<br />
+                Art. 8º Esta Circular entra em vigor na data de sua publicação, ficando revogadas a Circular Susep nº 5, de 11 de março 1969, a Circular Susep nº 34, de 22 de junho de 1972, a Circular Susep nº 39, de 3 de novembro de 1975, a Circular Susep nº 8, de 9 de fevereiro de 1976, a Circular Susep nº 176, de 11 de dezembro de 2001, a Circular Susep nº 401, de 25 de fevereiro de 2010, a Circular Susep nº 432, de 13 de abril de 2012, e a Circular Susep nº 434, de 19 de abril de 2012.<br />
+                <strong>Agora você faz parte de um grupo seleto de médicos que escolheu a GuardMed para fazer a gestão da sua apólice de Seguro.</strong>
+            </small>
+        </td>
+    </tr>
+</table>

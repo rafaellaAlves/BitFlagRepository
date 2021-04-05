@@ -1,0 +1,96 @@
+﻿@model DTO.Company.CompanyLawViewModel
+@{
+    ViewData["Title"] = "Ações";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="row">
+    <div class="col-md-12">
+        <div class="input-group">
+            <span class="input-group-addon"><i class="fa fa-search"></i></span>
+            <input id="search" type="text" class="form-control" placeholder="Procurar..." />
+            <span class="input-group-btn">
+                <a href="@Url.Action("New", "CompanyLawActionManagement")?companyLawId=@Model.CompanyLawId" class="btn btn-success pull-right"><i class="fa fa-plus"></i>&nbsp;Nova Ação</a>
+            </span>
+        </div>
+    </div>
+</div>
+<hr />
+<table id="tableCompanyLawActions" class="datatable table table-sm table-bordered table-striped" style="border-collapse: collapse !important;">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Data de Cadastro</th>
+            <th>Data de Conclusão</th>
+            <th>Custo Final do Projeto (R$)</th>
+            <th>&nbsp;</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+<div id="divControls">
+    <hr />
+	<a href="@Url.Action("Laws", "CompanyManagement")?id=@Model.CompanyId" class="btn btn-secondary float-left"><i class="fa fa-arrow-left"></i>&nbsp;Voltar</a>
+</div>
+<script type="text/javascript">
+    var typingTimer;
+    var doneTypingInterval = 500;
+    var datatables = $('#tableCompanyLawActions').DataTable({
+        proccessing: true
+        , serverSide: true
+        , searching: true
+        , lengthChange: false
+        , dom: 'tip'
+        , ajax: {
+            url: '@Url.Action("List", "CompanyLawActionManagement")'
+            , type: 'POST'
+            , data: {
+                companyLawId: @Model.CompanyLawId,
+            }
+        }, columns: [
+            { data: 'CompanyLawActionName' }
+			, { data: '_CompanyLawActionRegistrationDate' }
+			, { data: '_CompanyLawActionTargetDate' }
+			, { data: 'CompanyLawActionFinalProjectCost' }
+            , {
+                data: null
+                , sortable: false
+                , searchable: false
+                , render: function (data, type, row) {
+                    return '<div class="text-center"><a title="Editar" href="@Url.Action("Manage", "CompanyLawActionManagement")?id=' + row.CompanyLawActionId + '">Editar</a>&nbsp;|&nbsp;<a title="Excluir" href="javascript:void(0)" onclick="RemoveLawActionFromCompanyLaw(' + row.CompanyLawActionId + ')">Remover</a></div>';
+                }
+            }
+        ]
+});
+    function doneTyping() {
+        if ($.fn.DataTable.isDataTable('#tableCompanyLawActions')) {
+            datatables.search($('#search').val()).draw();
+        }
+    }
+    $('#search').keyup(function () {
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(doneTyping, doneTypingInterval);
+    });
+    $('#search').keydown(function () {
+        clearTimeout(typingTimer);
+    });
+</script>
+<script type="text/javascript">
+    function RemoveLawActionFromCompanyLaw(_companyLawActionId) {
+        if (confirm('Deseja realmente remover essa ação?')) {
+            _RemoveLawActionFromCompanyLaw(_companyLawActionId, function () {
+                $('#tableCompanyLawActions').DataTable().ajax.reload();
+                alert('Ação removida com sucesso!');
+            });
+        }
+    }
+    function _RemoveLawActionFromCompanyLaw(_companyLawActionId, callback) {
+        var d = { companyLawActionId: _companyLawActionId };
+        $.ajax({
+            url: '@Url.Action("RemoveLawActionFromCompanyLaw", "CompanyLawManagement")',
+            type: 'POST',
+            data: d,
+            dataType: 'json',
+            success: callback
+        });
+    }
+</script>

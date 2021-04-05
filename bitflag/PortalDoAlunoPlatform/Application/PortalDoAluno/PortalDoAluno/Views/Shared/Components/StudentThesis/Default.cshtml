@@ -1,0 +1,63 @@
+@model DTO.ClassStudent.StudentThesisViewModel
+<div class="row">
+    <div class="col">
+        <div class="form-group">
+            <label class="control-label">Título</label>
+            <textarea class="form-control" name="StudentThesis.Title" value="" rows="4">@Model.Title</textarea>
+        </div>
+    </div>
+</div>
+<div class="row text-center">
+    <div class="col">
+        <div class="form-group">
+            <label class="control-label" for="">Data do Protocolo</label>
+            <input class="form-control" name="StudentThesis.ProtocolDate" value="@Model.ProtocolDate" type="text" />
+        </div>
+    </div>
+    <div class="col">
+        <div class="form-group">
+            <label class="control-label" for="">Número do Protocolo</label>
+            <input class="form-control" name="StudentThesis.ProtocolNumber" value="@Model.ProtocolNumber" type="text" />
+        </div>
+    </div>
+    <div class="col">
+        <div class="form-group">
+            <label class="control-label" for="">Data de Aprovação</label>
+            <input class="form-control" name="StudentThesis.ApprovalDate" value="@Model.ApprovalDate" type="text" />
+        </div>
+    </div>
+    <div class="col">
+        <div class="form-group">
+            <label class="control-label" for="">Data de Apresentação</label>
+            <input class="form-control" name="StudentThesis.PresentationDate" value="@Model.PresentationDate" type="text" />
+        </div>
+    </div>
+</div>
+<div class="row text-center">
+    <div class="col-md-8">
+        <div class="form-group">
+            <label class="control-label" for="">Orientador</label>
+            <input class="form-control" name="StudentThesis.Advisor" value="@Model.Advisor" type="text" />
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="form-group">
+            <label class="control-label" for="">Conceito</label>
+            <input class="form-control" name="StudentThesis.Concept" value="@Model.Concept" type="text" />
+        </div>
+    </div>
+</div>
+<hr />
+<div class="row">
+    <div class="col text-center">
+        @if (!Model.HasFile)
+        {
+            <span><b>Tese Anexada:</b> Arquivo Indisponível</span>
+        }
+        else
+        {
+            <span><b>Tese Anexada:</b> <a href="@Url.Action("GetThesis", "ClassStudent", new { classStudentId = Model.ClassStudentId })">Visualizar</a></span>
+
+        }
+    </div>
+</div>

@@ -1,0 +1,37 @@
+﻿@model int
+
+@inject Web.Helpers.DropDownListHelper dropDownListHelper
+@inject Services.Contract.ContractSituationServices contractSituationServices
+@inject Services.Service.ServiceStatusServices serviceStatusServices
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card shadow ">
+            <div class="card-header card-header-default tx-uppercase justify-content-between  bg-gray-400">
+                <h6 class="mg-b-0 tx-14 tx-inverse"><i class="simple-icon-docs"></i>&nbsp;Contratos</h6>
+                <div class="card-option">
+                    <a href="" class="tx-gray-600 hover-white mg-l-10" data-toggle="collapse" aria-expanded="true" data-target="#client-contract-list-area"><i class="simple-icon-arrow-up lh-0"></i></a>
+                </div>
+            </div>
+            <div class="card-body bd collapse show" id="client-contract-list-area">
+                @(await Component.InvokeAsync<Web.ViewComponents.ContractIndexViewComponent>(new { clientId = Model, viewMode = DTO.Shared.ViewMode.NonEditable }) )
+            </div>
+        </div>
+    </div>
+</div>
+<br />
+<div class="row">
+    <div class="col-md-12">
+        <div class="card shadow ">
+            <div class="card-header card-header-default tx-uppercase justify-content-between  bg-gray-400">
+                <h6 class="mg-b-0 tx-14 tx-inverse"><i class="simple-icon-docs"></i>&nbsp;Serviços</h6>
+                <div class="card-option">
+                    <a href="" class="tx-gray-600 hover-white mg-l-10" data-toggle="collapse" aria-expanded="true" data-target="#client-service-list-area"><i class="simple-icon-arrow-up lh-0"></i></a>
+                </div>
+            </div>
+            <div class="card-body bd collapse show" id="client-service-list-area">
+                @(await Component.InvokeAsync<Web.ViewComponents.Service.ServiceIndexViewComponent>(new { clientId = Model, viewMode = DTO.Shared.ViewMode.NonEditable }))
+            </div>
+        </div>
+    </div>
+</div>

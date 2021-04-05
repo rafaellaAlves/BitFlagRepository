@@ -1,0 +1,82 @@
+﻿@inject Services.Residue.ResidueFamilyServices residueFamilyServices
+@inject Services.Residue.PhysicalStateServices physicalStateServices
+@inject Services.Residue.PackagingServices packagingServices
+@inject Services.Client.ClientServices clientServices
+@inject Services.Client.ClientCollectionAddressServices clientCollectionAddressServices
+
+@inject Web.Helpers.DropDownListHelper dropDownListHelper
+
+@{
+    var clientId = await clientServices.GetClientIdByLoggedUser(Context);
+    var clientCollectionAddress = await clientCollectionAddressServices.GetFirstDataAsync(x => x.ClientId == clientId && x.Main);
+}
+<form id="collection-request-form" action="@Url.Action("CollectionRequest", "Client")" method="post">
+    <input type="hidden" name="Step" value="1" />
+    <div class="card shadow">
+        <div class="card-header card-header-default card-header-destineja-green tx-uppercase justify-content-between bg-gray-400" data-toggle="slide" aria-expanded="true" data-target="#client-collection-request-manage-area" style="cursor: pointer;">
+            <h6 class="mg-b-0 tx-14 tx-inverse"><i class="simple-icon-basket-loaded"></i>&nbsp;Dados Gerais</h6>
+            <div class="card-option">
+                <a href="javascript:void(0)" class="tx-gray-600 hover-white mg-l-10"><i class="simple-icon-arrow-up lh-0" style="font-weight: bolder; color: black;"></i></a>
+            </div>
+        </div>
+        <div class="card-body bd collapse show" id="client-collection-request-manage-area">
+            <h6>Informe os dados referentes a coleta:</h6>
+            <br />
+            <div class="row form-group">
+                <div class="col-md-8">
+                    <label class="required">Resíduo</label>
+                    <input class="form-control" name="Residue" placeholder="Escreva o resíduo que você quer destinar. Exemplo: óleo, trapos, plastico, vidro..." />
+                </div>
+                <div class="col-md-4">
+                    <label class="required">Estado do Resíduo</label>
+                    @Html.DropDownList("PhysicalStateId", dropDownListHelper.ToSelectListItem(await physicalStateServices.GetDataAsNoTrackingAsync(), x => x.PhysicalStateId, x => x.Name), "Selecione", new { Class = "form-control" })
+                </div>
+            </div>
+            <div class="row form-group">
+                <div class="col-md">
+                    <label class="required">Família do Residuo</label>
+                    @Html.DropDownList("ResidueFamilyId", dropDownListHelper.ToSelectListItem(await residueFamilyServices.GetDataAsNoTrackingAsync(), x => x.ResidueFamilyId, x => x.Name), "Selecione", new { Class = "form-control" })
+                </div>
+                <div class="col-md">
+                    <label>Quantidade Aproximada (Kg)</label>
+                    <input class="form-control" name="_Weight" placeholder="Quantidade Aproximada" />
+                </div>
+                <div class="col-md">
+                    <label class="required">Acondicionamento</label>
+                    @Html.DropDownList("PackagingId", dropDownListHelper.ToSelectListItem(await packagingServices.GetDataAsNoTrackingAsync(), x => x.PackagingId, x => x.Name), "Selecione", new { Class = "form-control" })
+                </div>
+            </div>
+            <div class="row form-group">
+                <div class="col-md-12">
+                    <label>Observações</label>
+                    <textarea rows="4" class="form-control" name="Observation" placeholder="Observações"></textarea>
+                </div>
+            </div>
+            <div class="row form-group">
+                <div class="col-md-12">
+                    <label>Foto do Resíduo</label>
+                    <input class="form-control" type="file" name="Archive" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <br />
+    <div class="alert alert-destineja text-center" style="font-size: 16px; display: none; font-weight: bold;" role="alert" id="client-collection-request-address-alert">
+        Estamos quase terminando...
+        <br />
+        Precisamos apenas do seu endereço para coleta.
+    </div>
+    <div class="card shadow" id="client-collection-request-address-card" style="display: none;">
+        <div class="card-header card-header-default card-header-destineja-green tx-uppercase justify-content-between bg-gray-400" data-toggle="slide" aria-expanded="true" data-target="#client-collection-request-address-area" style="cursor: pointer;">
+            <h6 class="mg-b-0 tx-14 tx-inverse"><i class="iconsminds-map-marker-2"></i>&nbsp;Endereço de Coleta</h6>
+            <div class="card-option">
+                <a href="javascript:void(0)" class="tx-gray-600 hover-white mg-l-10"><i class="simple-icon-arrow-up lh-0" style="font-weight: bolder; color: black;"></i></a>
+            </div>
+        </div>
+        <div class="card-body bd collapse" id="client-collection-request-address-area" style="display: none;">
+            <h6>Informe o endereço de onde deverá ser realizado a coleta:</h6>
+            <br />
+            @(await Component.InvokeAsync<Web.ViewComponents.Shared.AddressViewComponent>(new { formId = "#collection-request-form", model = clientCollectionAddress == null? new DTO.Shared.AddressBaseViewModel() : ((ApplicationDbContext.Models.Shared.AddressBase)clientCollectionAddress).CopyToEntity<AddressBaseViewModel>() }))
+        </div>
+    </div>
+</form>

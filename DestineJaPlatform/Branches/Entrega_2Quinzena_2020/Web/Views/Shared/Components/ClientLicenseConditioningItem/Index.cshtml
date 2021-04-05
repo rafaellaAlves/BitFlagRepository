@@ -1,0 +1,72 @@
+﻿@model DTO.Shared.EntityViewMode<int>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="row">
+            <div class="col">
+                <table id="client-license-conditioning-files-table" class="display table table-striped table-bordered table-condensed w-100" style="border-collapse: collapse !important;">
+                    <thead>
+                        <tr>
+                            <th colspan="4" class="text-center">Histórico</th>
+                        </tr>
+                        <tr>
+                            <th>Protocolo</th>
+                            <th>Data de Protocolo</th>
+                            <th>Periodicidade</th>
+                            <th>&nbsp;</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script asp-cut-key="client-license-conditioning-files-file" asp-cut-key-load-from-controller="@Model.LoadFromController">
+    var clientLicenseConditioningItemsDatatables;
+    $(document).ready(function () {
+        clientLicenseConditioningItemsDatatables = $('#client-license-conditioning-files-table').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            dom: 'tip',
+            ajax: {
+                url: '@Url.Action("ListItems", "ClientLicenseConditioning")'
+                , data: function (d) {
+                    d.clientLicenseConditioningId = '@Model.Model'
+                }
+                , type: 'POST'
+            },
+            columns: [
+                { render: function (data, type, row) { return row.protocol; } },
+                { render: function (data, type, row) { return row.protocolDateFormated; } },
+                { render: function (data, type, row) { return row.clientLicenseConditioningPeriodicityName; } },
+                {
+                    render: function (data, type, row)
+                    {
+                        return getListActionsLink([
+                            { link: '@Url.Action("DownloadFile", "ClientLicenseConditioning")?id=' + row.clientLicenseConditioningItemId, text: '<i class="iconsminds-download"></i> Baixar' }
+                            //, { link: 'javascript:removeClientLicenseConditioningItems(' + row.clientLicenseConditioningItemId + ', \'' + row.fileName + '\')', text: '<i class="simple-icon-trash"></i> Remover' }
+                        ]);
+                    }
+                }
+            ]
+        });
+    });
+
+    @*function removeClientLicenseConditioningItems(id, name) {
+        bootboxConfirm("Deseja realmente excluir o item \"" + name + "\"?", function(result){
+            if (!result) return;
+
+            $.post('@Url.Action("RemoveFile", "ClientLicenseConditioning")', { id }, function (d) {
+                if (d.hasError)
+                    return;
+
+                bootbox.alert("Item \"" + name + "\" excluído com sucesso!");
+                clientLicenseConditioningItemsDatatables.ajax.reload();
+            });
+        });
+    }*@
+</script>

@@ -1,0 +1,145 @@
+﻿@{
+    Layout = null;
+}
+<html>
+<head>
+	<style>
+		@@media print {
+			page {
+				margin: 0;
+			}
+
+			body {
+				-webkit-print-color-adjust: exact !important;
+				color-adjust: exact !important;
+			}
+
+			.no-print, .no-print * {
+				display: none !important;
+			}
+
+			.smallFont {
+				font-size: 10px;
+			}
+
+			.no-screen {
+				display: block !important;
+			}
+		}
+
+
+		html {
+			height: 100%;
+		}
+
+		body {
+			/*height: 100%;*/
+			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+			/*background-color: #999;*/
+		}
+
+		.bgamaisimob-green {
+			background-color: #5d817a !important;
+		}
+
+		.amaisimob-grey {
+			color: #333333 !important;
+		}
+
+		.bgamaisimob-grey {
+			background-color: #a1a1a1 !important;
+		}
+
+		.bgamaisimob-darkgrey {
+			background-color: #888888 !important;
+		}
+
+		.amaisimob-white {
+			color: white !important;
+		}
+
+		.bgamaisimob-white {
+			background-color: white !important;
+		}
+
+		.amaisimob-orange {
+			color: orange; /*#f39a2d;*/
+		}
+
+		table {
+			border-collapse: collapse;
+		}
+
+			table td {
+				font-size: 0.7em;
+				padding: 6px;
+			}
+
+		.impressao-subtitulo {
+			font-size: 12px;
+			white-space: nowrap;
+		}
+
+		.impressao-titulo {
+			font-size: 18px;
+		}
+
+		.td-padding {
+			padding-top: 1px;
+			padding-bottom: 1px;
+		}
+
+		.row {
+			width: 100%;
+			display: flex;
+		}
+
+		.img-container {
+			width: 20%;
+			flex: 0 0 20%;
+			-webkit-box-flex: 0;
+			text-align: center;
+			margin-top: .4em;
+		}
+
+		.text-container {
+			width: 80%;
+			flex: 0 0 80%;
+			-webkit-box-flex: 0;
+		}
+	</style>
+	<link href="~/lib/fontawesome/css/fontawsome.css" rel="stylesheet" />
+	<script src="~/js/jquery/jquery-3.3.1.min.js"></script>
+	<script src="~/lib/jqueryMask/jquery.mask.min.js"></script>
+	<script type="text/javascript">
+		function _MaskData() {
+			$('.quota').mask('#,0', { reverse: true });
+			$('.date').mask('00/00/0000');
+			$('.time').mask('00:00:00');
+			$('.date-time').mask('00/00/0000 00:00:00');
+			$('.monthYear').mask('00/0000');
+			$('.cep').mask('00000-000');
+			$('.mobile').mask('(00) #0000-0000');
+			$('.phone').mask('(00) 0000-0000');
+			$('.percent5').mask('##0,00000', { reverse: true });
+			$('.percent2').mask('##0,00', { reverse: true });
+			$('.cnpj').mask('00.000.000/0000-00', { reverse: true, clearIfNotMatch: true });
+			$('.cpf').mask('000.000.000-00', { reverse: true, clearIfNotMatch: true });
+			$('._cpf').mask('#000.000.000-00', { reverse: true, clearIfNotMatch: true });
+			$('.money').mask('#.##0,00', { reverse: true });
+			$('.placa').mask('SSS-0000');
+			$('.fipe').mask('000000-0');
+			$('.renavam').mask('00000000-0');
+			$('.year').mask('0000');
+			$('.rg').mask('00.000.000-00');
+			$('.number').mask('#');
+		}
+	</script>
+</head>
+<body>
+    @{ await Html.RenderPartialAsync("~/Views/Certificate/Shared/_savedPrint.cshtml"); }
+</body>
+</html>
+
+
+

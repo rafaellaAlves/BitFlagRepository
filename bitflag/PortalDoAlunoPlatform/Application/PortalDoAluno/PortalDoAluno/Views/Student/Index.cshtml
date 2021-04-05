@@ -1,0 +1,54 @@
+﻿
+@{
+    ViewData["Title"] = "Alunos Cadastrados";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section HeaderButtons {
+    <div style="float: right;"><a href="@Url.Action("Manage", "Student")" class="btn btn-success"><i class="simple-icon-plus"></i>&nbsp;Novo Aluno</a></div>
+}
+<div class="row">
+    <div class="col-md-12">
+        <div id="alert-error" class="alert alert-danger" role="alert" style="display: none;">
+            <label id="alert-error-text"></label>
+        </div>
+    </div>
+</div>
+<table id="studentIndexTable" class="display table table-striped table-bordered table-condensed" style="border-collapse: collapse !important; width:100%;">
+    <thead>
+        <tr>
+            <th>Nome Completo</th>
+            <th>CPF</th>
+            <th>E-mail</th>
+            @*<th>Turma</th>*@
+            @*<th>&nbsp;</th>*@
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+
+@section Scripts {
+    <script type="text/javascript">
+        var datatables;
+        $(document).ready(function () {
+            datatables = $('#studentIndexTable').DataTable({
+                serverSide: false,
+                proccessing: true,
+                searching: true,
+                lengthChange: true,
+                //dom: 'tip',
+                ajax: {
+                    url: '@Url.Action("List", "Student")',
+                    type: 'POST'
+                },
+                columns: [
+                    { render: function (data, type, row) { return '<a href="@Url.Action("Manage", "Student")?id=' + row.studentId + '">' + row.name + '</a>'; } },
+                    { render: function (data, type, row) { return '<span class="cpf">' + row.cpf + '</span>'; } },
+                    { render: function (data, type, row) { return row.email; } },
+                    //{ render: function (data, type, row) { return row.courseFullName??"-"; } },
+                    @*{ render: function (data, type, row) { return '<div class="text-center">' + '<a href="@Url.Action("AdministrativeSituation", "Student")?id=' + row.studentId + '"><span class="badge badge-pill badge-primary mb-1">Financeiro</span></a>' + ' ' + '<a href="@Url.Action("StudentPresentialSituation", "Student")?id=' + row.studentId + '"><span class="badge badge-pill badge-primary mb-1">Presença</span></a>' + '</div>'; } },*@
+                ]
+            });
+        });
+    </script>
+}

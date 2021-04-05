@@ -1,0 +1,106 @@
+﻿@model DTO.Shared.EntityViewMode<List<DTO.Client.Report.ClientReportPGRSViewModel>>
+
+@inject Services.Residue.UnitOfMeasurementServices unitOfMeasurementServices
+
+@{
+    int totalMonth = 0;
+    double totalKg = 0, totalLt = 0, totalUn = 0;
+
+    var quilogramaID = (await unitOfMeasurementServices.GetDataByExternalCode("KILOGRAMA")).UnitOfMeasurementId;
+    var unidadeID = (await unitOfMeasurementServices.GetDataByExternalCode("UNIDADE")).UnitOfMeasurementId;
+    var litroID = (await unitOfMeasurementServices.GetDataByExternalCode("LITRO")).UnitOfMeasurementId;
+}
+<style type="text/css">
+    .bg-light-green {
+        background: #bfdaa9;
+    }
+</style>
+@{
+    var dateGroups = Model.Model.GroupBy(x => x._Month);
+    totalMonth = dateGroups.Count();
+
+    foreach (var dateGroup in dateGroups)
+    {
+        <div class="card ">
+            <div class="card-header card-header-default card-header-destineja-green tx-uppercase justify-content-between text-center bg-gray-400">
+                <h6 class="mg-b-0 tx-14 tx-inverse">@dateGroup.Key</h6>
+                <div class="card-option">
+                    <a href="" class="tx-gray-600 hover-white mg-l-10" data-toggle="collapse" aria-expanded="true" data-target="#@dateGroup.Key.Replace("/", "")"><i class="simple-icon-arrow-up lh-0"></i></a>
+                </div>
+            </div>
+            <div class="card-body bd collapse show" id="@dateGroup.Key.Replace("/", "")">
+                <div class="row mb-4">
+                    <div class="col table-responsive">
+                        <table class="table nowrap table-condensed table-bordered w-100 tablesizeline">
+                            <thead>
+                                <tr>
+                                    <th>Unidade</th>
+                                    <th>IBAMA</th>
+                                    <th>Resíduo</th>
+                                    <th>Família</th>
+                                    <th class="text-center">Geração Total</th>
+                                    <th>Classe</th>
+                                    <th>Acondicionamento</th>
+                                    <th>Tratamento / Destino Final</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var UnitOfMeasurementGroup in dateGroup.GroupBy(x => x.UnitOfMeasurementName))
+                                {
+                                    <tr class="tr-dark-alt">
+                                        <td  style="text-align:center;"  colspan="8">@UnitOfMeasurementGroup.Key</td>
+                                    </tr>
+                                    int i = 0;
+                                    @foreach (var item in UnitOfMeasurementGroup)
+                                    {
+                                        if (item.UnitOfMeasurementId == quilogramaID) { totalKg += item.Weight; }
+                                        else if (item.UnitOfMeasurementId == litroID) { totalLt += item.Weight; }
+                                        else if (item.UnitOfMeasurementId == unidadeID) { totalUn += item.Weight; }
+
+
+                                        <tr class="@(i % 2 == 0 ? "tr-pair" : "tr-odd")">
+                                            <th></th>
+                                            <td>@item.IBAMACode</td>
+                                            <td>@item.ResidueName</td>
+                                            <td>@item.ResidueFamilyName</td>
+                                            <td class="text-center">@item._Weight</td>
+                                            <td>@item.ResidueFamilyClassName</td>
+                                            <td>@item.PackingName</td>
+                                            <td>@item.ResidueDestinationTypeName.IfNullChange("-")</td>
+                                        </tr>
+                                        i++;
+                                    }
+                                    <tr>
+                                        <td style="border-right: 0;" class="bg-light-green">Total</td>
+                                        <td style="border-left: 0;" class="bg-light-green">@UnitOfMeasurementGroup.Sum(x => x.Weight).ToWeightPtBr()</td>
+                                        <td colspan="7"></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br />
+    }
+}
+
+@if (Model.Model.Count == 0)
+{
+    <div class="row">
+        <div class="col text-center mb-5 mt-5">
+            <i style="font-size: 30px;">Nenhum item encontrado</i>
+        </div>
+    </div>
+}
+else
+{
+    <hr />
+    <div class="row text-center" style="color: black; font-weight: bold;">
+        <div class="col-12 col-sm text-center">Total de Meses: @totalMonth</div>
+        <div class="col-12 col-sm text-center">Total de Quilogramas: @totalKg.ToWeightPtBr()</div>
+        <div class="col-12 col-sm text-center">Total de Litros: @totalLt.ToWeightPtBr()</div>
+        <div class="col-12 col-sm text-center">Total de Unidades: @totalUn.ToWeightPtBr()</div>
+    </div>
+}

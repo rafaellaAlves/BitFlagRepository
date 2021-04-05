@@ -1,0 +1,19 @@
+﻿<label class="required">Ano Inicial e Final</label>
+<div class="input-group mx-auto" id="start-and-end-year-input-group-filter">
+    <input class="form-control year required filter-input" data-filter-name="Ano Inicial" data-target="#start-and-end-year-input-group-filter" data-error-message="O Ano Inicial deve ser preenchido." autocomplete="off" name="StartYear" value="@ViewBag.StartYear" />
+    <div class="input-group-addon">
+        <i class="simple-icon-calendar"></i>
+    </div>
+    <input class="form-control year required filter-input" data-filter-name="Ano Final" data-target="#start-and-end-year-input-group-filter" data-error-message="O Ano Final deve ser preenchido." autocomplete="off" name="EndYear" value="@ViewBag.EndYear" />
+</div>
+
+<script type="text/javascript">
+    function validateStartAndEndYear() {
+        if ($('[name="StartYear"]').val() > $('[name="EndYear"]').val()) {
+            $('#start-and-end-year-input-group-filter').after('<div class="text-danger">O ano inicial não pode ser posterior ao ano final.<div>');
+            return false;
+        }
+
+        return true;
+    }
+</script>

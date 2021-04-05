@@ -1,0 +1,1124 @@
+﻿@model GuardMedWeb.Models.SeguradoProfissionalViewModel
+@inject GuardMedWeb.DAL.GuardMedWebContext context
+@inject GuardMedWeb.BLL.SeguradoProfissional.SeguradoProfissionalFunctions seguradoProfissionalFunctions
+@inject GuardMedWeb.BLL.SeguradoProfissional.PlanoSeguroProfissionalFunctions planoSeguroProfissionalFunctions
+@inject GuardMedWeb.BLL.SeguradoProfissional.MedicGroupFunctions medicGroupFunctions
+
+@using GuardMedWeb.BLL.Utils;
+
+@{
+    ViewData["Title"] = "GuardMed";
+
+    var especialidadeProfissionalFunctions = new GuardMedWeb.BLL.SeguradoProfissional.EspecialidadeProfissionalFunctions(context);
+    GuardMedWeb.Models.MedicGroupViewModel medicGroup = null;
+
+    if (ViewData.ContainsKey("MedicGroup"))
+    {
+        medicGroup = (GuardMedWeb.Models.MedicGroupViewModel)ViewData["MedicGroup"];
+    }
+
+    //var rendaProtegida = rendaProtegidaPrecoFunctions.GetData().Single(x => x.IdadeMin <= Model.Idade && x.IdadeMax >= Model.Idade);
+    //var rendaProtegidaPreco = rendaProtegida.PrecoMensal.ToString("#,##0.00");
+
+    var especialidades = especialidadeProfissionalFunctions.GetDataViewModel(especialidadeProfissionalFunctions.GetData(x => x.SeguradoProfissionalId == Model.SeguradoProfissionalId));
+}
+
+<style type="text/css">
+    .show-when-small {
+        display: none;
+    }
+
+    .hide-when-small {
+        display: block;
+    }
+
+    .oldPrice {
+        text-decoration: line-through;
+        color: white;
+    }
+
+        .oldPrice h5 {
+            font-size: 15px;
+            color: black;
+        }
+
+        .oldPrice h6 {
+            font-size: 12px;
+            color: black;
+            display: none;
+        }
+
+        .oldPrice strong {
+            font-size: 12px;
+            color: white;
+        }
+
+        .oldPrice #precoCarrinhoStrong {
+            font-size: 12px;
+            color: black;
+            display: none;
+        }
+
+    .discountPrice {
+        display: none;
+    }
+
+    .title-align-middle {
+        line-height: 38px;
+        vertical-align: middle;
+    }
+
+    .centsArea {
+        text-align: left;
+        line-height: 15px;
+        padding-top: 5px;
+    }
+
+    .cents {
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    .cifrao {
+        font-size: 20px;
+        font-weight: bold;
+        padding-top: 10px;
+    }
+
+    .perMonth {
+        font-size: 12px;
+        white-space: nowrap
+    }
+
+    @@media screen and (max-width: 575px) {
+        .hide-when-small {
+            display: none;
+        }
+
+        .show-when-small {
+            display: block;
+        }
+
+        .card {
+            margin-top: .5em;
+        }
+
+        .tableFont12 td small {
+            font-size: 12px;
+        }
+    }
+
+    .list-custom li {
+        margin-top: .5em;
+        font-size: 13px;
+    }
+
+    #CoberturaDiretorMedicoDiv[disabled] b {
+        color: #e9e9e9;
+    }
+
+    #CoberturaPessoaJuridicaDiv[disabled] b {
+        color: #e9e9e9;
+    }
+</style>
+
+@if (!Context.Request.Query.ContainsKey("RenewToken") || Model.PodeRenovar)
+{
+    Html.RenderPartial("~/Views/SeguroProfissional/Shared/_StepCotacao.cshtml");
+}
+else
+{
+    Html.RenderPartial("~/Views/SeguroProfissional/Shared/_StepCotacao_Renew.cshtml");
+}
+
+<br />
+
+<form id="CotacaoForm" method="post">
+    <div class="no-screen" style="text-align: center;">
+        <img src="~/assets/images/logo.png" class="img-circle" width="240" height="80">
+        <h4 style="margin-top: 1em;">Cotação de @(!Context.Request.Query.ContainsKey("RenewToken")? "Adesão" : "Renovação da Adesão") ao Programa de Proteção Profissional GuardMed</h4>
+        <hr />
+    </div>
+
+    <div id="infoIntro" class="w-100">
+        <label>Olá Dr(a). <strong>@Model.Nome</strong>.</label><br />
+        <label>
+            Veja os planos para o seu perfil com especialidades <b>@string.Join(", ", especialidades.Select(x => x.NomeEspecialidade))</b> @if (medicGroup != null)
+            {<text>e grupo médico</text> <b>@medicGroup.MedicGroupName</b>}.
+        </label><br />
+        @if (!Context.Request.Query.ContainsKey("RenewToken"))
+        {
+            <label>Anote o número desta simulação para acessos futuros: <strong># Referência @Model.Referencia</strong>.</label>
+        }
+
+        @if (Context.Request.Query.ContainsKey("RenewToken"))
+        {
+            <div class="row no-print mt-4">
+                @if (medicGroup != null)
+                {
+                    <div class="form-group col-md-7">
+                        <div class="input-group">
+                            <span class="input-group-addon">Grupo Médico</span>
+                            <input disabled class="form-control bg-white" value="@(medicGroup == null ? "Você não pertence a nenhum grupo médico associado." : medicGroup.MedicGroupName)" />
+                        </div>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <div class="input-group" id="medic-group-discount-area">
+                            <span class="input-group-addon">Desconto</span>
+                            <input class="form-control bg-white percent" name="MedicGroupDiscount" value="@(Model.DescontoGrupoMedico.HasValue? Model.DescontoGrupoMedicoFormatado : medicGroup.Discount)" />
+                        </div>
+                    </div>
+                    <div class="form-group col-md-2">
+                        <button class="btn btn-primary w-100" onclick="loadPrices()" type="button">Aplicar</button>
+                    </div>
+                }
+                else
+                {
+                    <div class="form-group mx-auto col-md-4" style="display: inherit;">
+                        <div class="input-group">
+                            <span class="input-group-addon">Desconto</span>
+                            <select class="form-control" id="discount" name="Discount">
+                                <option value="0">Sem Desconto</option>
+                                <option value="1" selected="@(Model.DescontoPlataforma == 1)">1%</option>
+                                <option value="2" selected="@(Model.DescontoPlataforma == 2)">2%</option>
+                                <option value="3" selected="@(Model.DescontoPlataforma == 3)">3%</option>
+                                <option value="4" selected="@(Model.DescontoPlataforma == 4)">4%</option>
+                                <option value="5" selected="@(Model.DescontoPlataforma == 5)">5%</option>
+                                <option value="6" selected="@(Model.DescontoPlataforma == 6)">6%</option>
+                                <option value="7" selected="@(Model.DescontoPlataforma == 7)">7%</option>
+                                <option value="8" selected="@(Model.DescontoPlataforma == 8)">8%</option>
+                                <option value="9" selected="@(Model.DescontoPlataforma == 9)">9%</option>
+                                <option value="10" selected="@(Model.DescontoPlataforma == 10)">10%</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary ml-3" onclick="loadPrices()" type="button">Aplicar</button>
+                    </div>
+                }
+            </div>
+        }
+        <div class="row">
+            <div class="form-group col">
+                <a href="javascript:void(0)" class="btn btn-primary no-print float-right" id="Imprimir" onclick="window.print();"><i class="fas fa-print"></i>&nbsp;Imprimir</a>
+            </div>
+        </div>
+        @if (Context.Request.Query.ContainsKey("RenewToken"))
+        {
+            //Botão de enviar por e-mail
+        }
+    </div>
+    <br />
+    <script type="text/javascript">
+        var IsSeguroPrincipalSelected = false;
+        var IsSeguroProtecaoSelected = false;
+    </script>
+    <input type="hidden" name="reference" value="@Model.Referencia" />
+    <input type="hidden" id="PlanoSeguroProfissionalId" name="PlanoSeguroProfissionalId" value="@Model.PlanoSeguroProfissionalId" />
+    <input type="hidden" id="ProtecaoRendaAceito" name="ProtecaoRenda" value="@Model.ProtecaoRenda" />
+
+    <div id="SeguroPrincipal">
+        <div class="row">
+            <div class="col-md-12">
+                <table style="margin: 0 auto; width: 100%; border-collapse: separate;" cellspacing="0" cellpadding="0">
+                    <tbody>
+                        <tr>
+                            @{
+                                var renewedInsurance = Model.RenovadoPor.HasValue ? seguradoProfissionalFunctions.GetDataViewModel(seguradoProfissionalFunctions.GetDataByID(Model.RenovadoPor)) : null;
+                                var renewedInsurancePlan = renewedInsurance != null ? planoSeguroProfissionalFunctions.GetDataByID(renewedInsurance.PlanoSeguroProfissionalId) : null;
+                            }
+                            @if (Context.Request.Query.ContainsKey("RenewToken"))
+                            {
+                                <td style="width: 2%" class="no-print">&nbsp;</td>
+                                <td style="text-align: center; color: #2e5071; border: 2px solid #2e5071; border-top-left-radius: 0.5em; border-top-right-radius: 0.5em; font-size: 1.2em;" class="no-print">Plano Atual - @renewedInsurancePlan?.Nome</td>
+                            }
+                            <td style="width: 2%">&nbsp;</td>
+                            <td style="text-align: center; color: #2e5071; border: 2px solid #2e5071; border-top-left-radius: 0.5em; border-top-right-radius: 0.5em; font-size: 1.2em;">GM 20</td>
+                            <td style="width: 2%">&nbsp;</td>
+                            <td style="text-align: center; color: #2e5071; border: 2px solid #2e5071; border-top-left-radius: 0.5em; border-top-right-radius: 0.5em; font-size: 1.2em;">GM 50</td>
+                            <td style="width: 2%">&nbsp;</td>
+                        </tr>
+                        <tr>
+                            @if (Context.Request.Query.ContainsKey("RenewToken"))
+                            {
+                                <td style="width: 2%" class="no-print">&nbsp;</td>
+                                <td style="text-align:center; width:33%; border: 2px solid #2e5071; background-color: #e8e8e8; color: black; padding: 1em;" class="no-print">
+                                    <div>
+                                        <div class="" style="color: black;">
+                                            <table style="margin-left: 50%; transform: translateX(-50%);">
+                                                <tr>
+                                                    <td class="cifrao">R$</td>
+                                                    <td style="font-size:40px; font-weight:bold;" class="PrecoMensal">@((renewedInsurance.PrecoTotal.Value / 12d).ToPtBr().Split(",")[0])</td>
+                                                    <td class="centsArea">
+                                                        ,<span class="PrecoMensalCents cents">@((renewedInsurance.PrecoTotal.Value / 12d).ToPtBr().Split(",")[1])</span><br />
+                                                        <span class="perMonth">mensais</span>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                        <div style="margin-top: -18px;"><small>Recorrente no cartão de crédito</small></div>
+                                        <h6>ou</h6>
+                                        <div><h6>R$ <span class="money">@renewedInsurance._PrecoTotal</span><span> à vista<br /> no boleto bancário</span></h6></div>
+                                        @if (renewedInsurance.DescontoPlataforma.HasValue) 
+                                        {
+                                            <div><h6>Com desconto aplicado de <b>@renewedInsurance.DescontoPlataforma</b>%</h6></div>
+                                        }
+                                    </div>
+                                </td>
+                            }
+                            <td>&nbsp;</td>
+                            <td style="text-align:center; width:33%; border: 2px solid #2e5071; background-color: #2e5071; color: white; padding: 1em;">
+                                <div>
+                                    <div class="oldPriceArea">
+                                        <table style="margin-left: 50%; transform: translateX(-50%);">
+                                            <tr>
+                                                <td class="cifrao">R$</td>
+                                                <td style="font-size:40px; font-weight:bold;" class="BasicoPrecoMensal PrecoMensal"></td>
+                                                <td class="centsArea">
+                                                    ,<span class="BasicoPrecoMensalCents PrecoMensalCents cents"></span><br />
+                                                    <span class="perMonth">mensais</span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                    <div class="AreaBasicoPrecoMensalDesconto discountPrice">
+                                        <table style="margin-left: 50%; transform: translateX(-50%);">
+                                            <tr>
+                                                <td class="cifrao">R$</td>
+                                                <td style="font-size:40px; font-weight:bold;" class="BasicoPrecoMensalDesconto"></td>
+                                                <td class="centsArea">
+                                                    ,<span class="BasicoPrecoMensalDescontoCents cents"></span><br />
+                                                    <span class="perMonth">mensais</span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                    <div style="margin-top: -18px;"><small>Recorrente no cartão de crédito</small></div>
+                                    <h6>ou</h6>
+                                    <div class="oldPriceArea"><h6>R$ <span class="BasicoPreco money"></span><span class="remove-with-discount"> à vista<br /> no boleto bancário</span></h6></div>
+                                    <h6 class="AreaBasicoPrecoDesconto discountPrice">R$ <span class="BasicoPrecoDesconto money"></span> à vista<br /> no boleto bancário</h6>
+                                </div>
+                                @if (!Context.Request.Query.ContainsKey("RenewToken") || Model.PodeRenovar)
+                                {
+                                    <div class="no-print">
+                                        <br />
+                                        <a href="javascript:void(0)" id="" class="btn btn-primary CotacaoSubmitButton1" style="border-color: #59c93e; background-color: #59c93e;">Selecionar</a>
+                                        <br />
+                                        <br />
+                                    </div>
+                                }
+                            </td>
+                            <td>&nbsp;</td>
+                            <td style="text-align:center; width:33%; border: 2px solid #2e5071; background-color: #2e5071; color: white; padding: 1em;">
+                                <div>
+                                    <div class="oldPriceArea">
+                                        <table style="margin-left: 50%; transform: translateX(-50%);">
+                                            <tr>
+                                                <td class="cifrao">R$</td>
+                                                <td style="font-size:40px; font-weight:bold;" class="IIPrecoMensal PrecoMensal"></td>
+                                                <td class="centsArea">
+                                                    ,<span class="IIPrecoMensalCents PrecoMensalCents cents"></span><br />
+                                                    <span class="perMonth">mensais</span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                    <div class="AreaIIPrecoMensalDesconto discountPrice">
+                                        <table style="margin-left: 50%; transform: translateX(-50%);">
+                                            <tr>
+                                                <td class="cifrao">R$</td>
+                                                <td style="font-size:40px; font-weight:bold;" class="IIPrecoMensalDesconto"></td>
+                                                <td class="centsArea">
+                                                    ,<span class="IIPrecoMensalDescontoCents cents"></span><br />
+                                                    <span class="perMonth">mensais</span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                    <div style="margin-top: -18px;"><small>Recorrente no cartão de crédito</small></div>
+                                    <h6>ou</h6>
+                                    <div class="oldPriceArea"><h6>R$ <span class="IIPreco money"></span><span class="remove-with-discount"> à vista<br /> no boleto bancário</span></h6></div>
+                                    <h6 class="AreaIIPrecoDesconto discountPrice">R$ <span class="IIPrecoDesconto money"></span> à vista<br /> no boleto bancário</h6>
+                                </div>
+                                @if (!Context.Request.Query.ContainsKey("RenewToken") || Model.PodeRenovar)
+                                {
+                                    <div class="no-print">
+                                        <br />
+                                        <a href="javascript:void(0)" id="" class="btn btn-primary CotacaoSubmitButton3" style="border-color: #59c93e; background-color: #59c93e;">Selecionar</a>
+                                        <br />
+                                        <br />
+                                    </div>
+                                }
+                            </td>
+                            <td>&nbsp;</td>
+                        </tr>
+                        <tr>
+                            <td colspan="7" style="height: 2px;"></td>
+                        </tr>
+                        <tr>
+                            @if (Context.Request.Query.ContainsKey("RenewToken"))
+                            {
+                                <td class="no-print">&nbsp;</td>
+                                <td style="text-align:center; border: 2px solid #2e5071; background-color: #e8e8e8; color: black; line-height: 20px;" class="no-print"><span style="margin-bottom:2px;"><small>Valor de cobertura individual</small> <br /> <b style="font-size: 20px;">R$ @renewedInsurancePlan?.ValorCobertura.ToPtBr()</b></span></td>
+                            }
+                            <td>&nbsp;</td>
+                            <td style="text-align: center; border: 2px solid #2e5071; background-color: #2e5071; color: white; line-height: 20px;" class="ProIArea"><span style="margin-bottom:2px;"> <small>Valor de cobertura individual</small> <br /> <b style="font-size: 20px; ">R$ 200.000,00</b></span></td>
+                            <td>&nbsp;</td>
+                            <td style="text-align:center; border: 2px solid #2e5071; background-color: #2e5071; color: white; line-height: 20px;" class="ProIIArea"><span style="margin-bottom:2px;"><small>Valor de cobertura individual</small> <br /> <b style="font-size: 20px;">R$ 500.000,00</b></span></td>
+                            <td>&nbsp;</td>
+                        </tr>
+                        <tr>
+                            <td colspan="7" style="height: 2px;"></td>
+                        </tr>
+                        <tr>
+                            @if (Context.Request.Query.ContainsKey("RenewToken"))
+                            {
+                                <td class="no-print">&nbsp;</td>
+                                <td style="text-align:center; border-top: 2px solid #2e5071; background-color: #D3D3D3;" class="no-print"><small><span style="font-size: 10px">P.O.S (Participação Obrigatória do Segurado)</span></small><br /><div style="margin-top: -10px;"><small>R$ @renewedInsurancePlan?.Franquia.ToPtBr()</small> </div></td>
+                            }
+                            <td>&nbsp;</td>
+                            <td style="text-align:center; border-top: 2px solid #2e5071; background-color: #D3D3D3;" class="ProIArea"><small> <span style="font-size: 10px">P.O.S (Participação Obrigatória do Segurado)</span></small> <br /> <div style="margin-top: -8px;"><small>10% dos Prejuízos Indenizáveis</small> </div></td>
+                            <td>&nbsp;</td>
+                            <td style="text-align:center; border-top: 2px solid #2e5071; background-color: #D3D3D3;" class="ProIIArea"><small><span style="font-size: 10px">P.O.S (Participação Obrigatória do Segurado)</span></small> <br /> <div style="margin-top: -8px;"><small>10% dos Prejuízos Indenizáveis</small> </div> </td>
+                            <td>&nbsp;</td>
+                        </tr>
+                        <tr>
+                            <td style="border-top: 2px solid #2e5071; padding: 1em;" colspan="7">
+                                <div style="line-height: 13px;">
+                                    <small style="font-size: 13px;"><b>O Programa de Proteção Profissional Guardmed é o produto mais completo do mercado, cobrindo:</b></small>
+                                    <ul class="list-custom" style="list-style: none;">
+                                        <li>As reclamações decorrentes do <b>ato médico profissional</b>, incluindo a negligência, imprudência e imperícia;</li>
+                                        <li>As indenizações de processos judiciais, civis e/ou administrativos decorrentes de <b>danos materiais, danos estéticos, danos morais</b> e <b>danos corporais</b> causados a terceiros no exercício da profissão;</li>
+                                        <li>As condenações por <b>sentenças judiciais transitadas em julgado</b> ou <b>decisões arbitrais finais</b>, além dos <b>acordos judiciais</b> ou <b>extrajudiciais</b> negociados com o consentimento da Seguradora.</li>
+                                        <li>O Programa conta ainda com cobertura para as <b>custas de defesa e honorários</b>, nas esferas civis, administrativas, criminais e/ou disciplinares, em defesas e/ou explicações.</li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="border-top: 2px solid #2e5071;  padding: 1em;" colspan="7">
+                                <div style="line-height: 13px;">
+                                    <small style="font-size:13px;"><b>Além das coberturas mencionadas acima, o Programa conta com os seguintes serviços ao profissional:</b></small>
+                                    <ul class="list-custom" style="list-style: none;">
+                                        <li>Orientação quanto à jurisprudência regional atual acerca de casos análogos: Pesquisa nos tribunais competentes, limitado a 20 (vinte) decisões que serão disponibilizadas em forma de relatório;</li>
+                                        <li>Intermediação entre o paciente (reclamante) e o profissional (reclamado);</li>
+                                        <li>Disponibilização de lista de documentos básicos que poderão ser reunidos e utilizados em eventual defesa judicial;</li>
+                                        <li>Disponibilização de modelos de documentos, contratos relacionados a atividade médica e legislação pertinente;</li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                @*TABELAS DE COBERTURAS ADICIONAIS ESCONDIDAS DO SISTEMA!*@
+                <table style="margin: 0 auto; width: 100%; border-collapse: separate;" cellspacing="0" cellpadding="0" hidden>
+                    <tbody>
+                        <tr>
+                            <td colspan="5">
+                                <div style="width: 100%; color: white; background-color: #2e5071; text-align: center;"><strong>Cobertura adicional (opcional)</strong></div>
+                                <table style="margin: 0 auto; width: 100%; border-collapse: separate;" cellspacing="0" cellpadding="0">
+                                    <tbody>
+
+                                        <tr>
+                                            <td style="border-top: 2px solid #2e5071; padding-top:10px;" colspan="10">
+                                                <div class="container3" style="background-color:#e8e8e8; text-align: left; height: 40px; padding-top: 7px; padding-left: 10px;">
+                                                    <strong>Cobertura adicional para Diretor Médico e/ou Chefe de Equipe</strong>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr><td colspan="5" style="padding-top: 10px;"></td></tr>
+                                        <tr>
+                                            <td style="text-align: center; color: black; border: 2px solid rgb(232,232,232); font-weight: bold; width: 33%">
+                                                <div style="background-color:#e8e8e8">GM 20 </div>
+                                                <div>
+                                                    <strong>+ R$ <b style="font-size: 23px"><span class="BasicoPrecoMensal10 money"></span></b>/mensais</strong>
+                                                </div>
+                                            </td>
+                                            <td>&nbsp;</td>
+                                            <td style="text-align: center; color: black; border: 2px solid rgb(232,232,232); font-weight: bold; width: 33%">
+                                                <div style="background-color:#e8e8e8">GM 30</div>
+                                                <div>
+                                                    <strong>+ R$ <b style="font-size: 23px"><span class="IPrecoMensal10 money"></span></b>/mensais</strong>
+                                                </div>
+                                            </td>
+                                            <td>&nbsp;</td>
+                                            <td style="text-align: center; color: black; border: 2px solid rgb(232,232,232); font-weight: bold; width: 33%">
+                                                <div style="background-color:#e8e8e8">GM 50</div>
+                                                <div>
+                                                    <strong>+ R$ <b style="font-size: 23px"><span class="IIPrecoMensal10"></span></b>/mensais</strong>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="text-align: left;" colspan="4">
+                                                <div class="container-fluid">
+                                                    <div class="row"> <b>O profissional possui cargo de Diretor Médico e/ou Chefe de Equipe?</b> </div>
+                                                </div>
+                                            </td>
+                                            <td style="padding: 10px;">
+                                                <div class="row">
+
+                                                    <div class="col-md-6 text-center">
+                                                        <div class="form-check form-check-inline">
+                                                            <input class="form-check-input" type="radio" name="DiretorChefeEquipe" id="DiretorChefeEquipeSim" value="True">
+                                                            <label class="form-check-label" for="inlineRadio3"><strong>Sim</strong></label>
+                                                            <br />
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-md-6 text-center">
+                                                        <div class="form-check form-check-inline">
+                                                            <input class="form-check-input" type="radio" name="DiretorChefeEquipe" id="DiretorChefeEquipeNao" value="False">
+                                                            <label class="form-check-label" for="inlineRadio4"><strong>Não</strong></label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr id="CoberturaDiretorMedicoDiv" disabled>
+                                            <td style="text-align: left;" colspan="3">
+                                                <div class="container-fluid">
+                                                    <div class="row">
+                                                        <b>Deseja contratar cobertura adicional para Diretor Médico?</b>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td style="width: 2px;">&nbsp;</td>
+                                            <td style="padding: 10px;">
+                                                <div class="row">
+
+                                                    <div class="col-md-6 text-center">
+                                                        <div class="form-check form-check-inline">
+                                                            <input class="form-check-input" type="radio" name="CoberturaAdicionalDiretorChefeEquipe" id="CoberturaDiretorMedicoSim" value="True" disabled>
+                                                            <label class="form-check-label" for="inlineRadio3"><b>Sim</b></label>
+                                                            <br />
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-md-6 text-center">
+                                                        <div class="form-check form-check-inline">
+                                                            <input class="form-check-input" type="radio" name="CoberturaAdicionalDiretorChefeEquipe" id="CoberturaDiretorMedicoNao" value="False" disabled>
+                                                            <label class="form-check-label" for="inlineRadio4"><b>Não</b></label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table style="margin: 0 auto; width: 100%; border-collapse: separate;" cellspacing="0" cellpadding="0" hidden>
+                    <tbody>
+                        <tr>
+                            <td style="border-top: 2px solid #2e5071; padding-top:10px;" colspan="5">
+                                <div class="container3" style="background-color:#e8e8e8; text-align: left; height: 40px; padding-top: 7px; padding-left: 10px; ">
+                                    <strong>Cobertura adicional para Pessoa Juridica</strong>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="5" style="padding-top: 10px"></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: center; color: black; border: 2px solid rgb(232,232,232); font-weight: bold; width: 33%">
+                                <div style="background-color:#e8e8e8">GM20</div>
+                                <div>
+                                    <strong>+ R$ <b style="font-size: 23px"><span class="BasicoPrecoMensal10 money"></span></b>/mensais</strong>
+                                </div>
+                            </td>
+                            <td></td>
+                            <td style="text-align: center; color: black; border: 2px solid rgb(232,232,232); font-weight: bold;; width: 33%">
+                                <div style="background-color:#e8e8e8">GM30</div>
+                                <div>
+                                    <strong>+ R$ <b style="font-size: 23px"><span class="IPrecoMensal10 money"></span></b>/mensais</strong>
+                                </div>
+                            </td>
+                            <td></td>
+                            <td style="text-align: center; color: black; border: 2px solid rgb(232,232,232); font-weight: bold; width: 33%">
+                                <div style="background-color:#e8e8e8">GM50</div>
+                                <div>
+                                    <strong>+ R$ <b style="font-size: 23px"><span class="IIPrecoMensal10"></span></b>/mensais</strong>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left;" colspan="4">
+                                <div class="container-fluid">
+                                    <div class="row">
+                                        <b>O profissional é socio de alguma empresa da área médica?</b>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="padding: 10px;">
+                                <div class="row">
+                                    <div class="col-md-6 text-center">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="SocioEmpresaAreaMedica" id="SocioEmpresaSim" value="True">
+                                            <label class="form-check-label" for="inlineRadio3"><strong>Sim</strong></label>
+                                            <br />
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 text-center">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="SocioEmpresaAreaMedica" id="SocioEmpresaNao" value="False">
+                                            <label class="form-check-label" for="inlineRadio4"><strong>Não</strong></label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr id="CoberturaPessoaJuridicaDiv" disabled>
+                            <td style="text-align: left;" colspan="4">
+                                <div class="container-fluid">
+                                    <div class="row">
+                                        <b>Deseja contratar cobertura adicional para Pessoa Juridica?</b>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="padding: 10px;">
+                                <div class="row">
+                                    <div class="col-md-6 text-center">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="CoberturaAdicionalSocioEmpresaAreaMedica" id="CoberturaPessoaJuridicaSim" value="True" disabled>
+                                            <label class="form-check-label" for="inlineRadio3"><b>Sim</b></label>
+                                            <br />
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6 text-center">
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="CoberturaAdicionalSocioEmpresaAreaMedica" id="CoberturaPessoaJuridicaNao" value="False" disabled>
+                                            <label class="form-check-label" for="inlineRadio4"><b>Não</b></label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</form>
+@if (Context.Request.Query.ContainsKey("RenewToken") && !Model.PodeRenovar)
+{
+<div class="row">
+    
+    <div class="col-md-6 form-group no-print"><a href="@Url.Action("Renew", "SeguroProfissional")?seguradoProfissionalId=@Model.RenovadoPor&RenewToken=@Context.Request.Query["RenewToken"]" class="btn btn-secondary"><i class="fas fa-arrow-left"></i>&nbsp;Voltar</a></div>
+    <div class="col-md-6 form-group text-right no-print"><a href="javascript:void(0)" id="save-discount" class="btn btn-primary"><i class="fas fa-upload"></i>&nbsp;Salvar</a></div>
+</div>
+    <script type="text/javascript">
+        $('#save-discount').click(function () {
+            if (!validateMedicGroupDiscount()) return;
+
+            var medicGroupDiscount = $('[name="MedicGroupDiscount"]').length > 0 ? $('[name="MedicGroupDiscount"]').val().replace('%', '') : null;
+
+            $.post('@Url.Action("SaveRenewDiscount", "SeguroProfissional")', { reference: '@Model.Referencia', discount: $('#discount').val(), medicGroupDiscount, renewToken: '@(Context.Request.Query.ContainsKey("RenewToken") ? Context.Request.Query["RenewToken"].ToString() : "")' }, function (d) {
+                alert(d.message);
+            });
+        });
+    </script>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-12 form-group text-right"><a href="javascript:void(0)" id="SubmitButton" class="btn btn-primary" style="display:none;"><i class="fas fa-arrow-right"></i>&nbsp;Continuar</a></div>
+    </div>
+}
+
+<script type="text/javascript">
+    function AtribuirValores(data) {
+
+        if (!data) return;
+
+        valoresPlano = data;
+
+        $('.BasicoPreco').empty().append(data[0]._PrecoAnual);
+        $('.BasicoPrecoMensal').empty().html(data[0]._PrecoMensal.split(',')[0]);
+        $('.BasicoPrecoMensalCents').empty().html(data[0]._PrecoMensal.split(',')[1]);
+        $('.BasicoPrecoMensal10').empty().text(data[0]._PrecoMensalCobertura);
+
+        $('.IPreco').empty().append(data[1]._PrecoAnual);
+
+        $('.IPrecoMensal').empty().html(data[1]._PrecoMensal.split(',')[0]);
+        $('.IPrecoMensalCents').empty().html(data[1]._PrecoMensal.split(',')[1]);
+
+        $('.IPrecoMensal10').empty().text(data[1]._PrecoMensalCobertura);
+
+        $('.IIPreco').empty().append(data[2]._PrecoAnual);
+        $('.IIPrecoMensal').empty().html(data[2]._PrecoMensal.split(',')[0]);
+        $('.IIPrecoMensalCents').empty().html(data[2]._PrecoMensal.split(',')[1]);
+        $('.IIPrecoMensal10').empty().text(data[2]._PrecoMensalCobertura);
+
+        if (data[0].precoMensalDesconto != null) {
+            $('.remove-with-discount').remove();
+            $('.oldPriceArea').addClass('oldPrice');
+
+            $('.oldPrice').find('td.cifrao').css('font-size', '16px');
+            $('.oldPrice').find('td.PrecoMensal').css('font-size', '30px');
+            $('.oldPrice').find('span.PrecoMensalCents').css('font-size', '10px');
+            $('.oldPrice').find('span.perMonth').css('font-size', '10px');
+            $('.oldPrice').find('.centsArea').css('line-height', '8px');
+            $('.oldPrice').find('.centsArea').css('padding-top', '0px');
+
+
+
+            $('.AreaBasicoPrecoMensalDesconto').show();
+            $('.AreaIPrecoMensalDesconto').show();
+            $('.AreaIIPrecoMensalDesconto').show();
+            $('.BasicoPrecoMensalDesconto').empty().append(data[0].precoMensalDesconto);
+            $('.IPrecoMensalDesconto').empty().append(data[1].precoMensalDesconto);
+            $('.IIPrecoMensalDesconto').empty().append(data[2].precoMensalDesconto);
+            $('.AreaBasicoPrecoDesconto').show();
+            $('.AreaIPrecoDesconto').show();
+            $('.AreaIIPrecoDesconto').show();
+
+            $('.BasicoPrecoMensal10').empty().text(data[0].precoMensalDescontoCobertura);
+            $('.IPrecoMensal10').empty().text(data[1].precoMensalDescontoCobertura);
+            $('.IIPrecoMensal10').empty().text(data[2].precoMensalDescontoCobertura);
+
+            $('.BasicoPrecoDesconto').empty().append(data[0].precoAnualDesconto);
+            $('.IPrecoDesconto').empty().append(data[1].precoAnualDesconto);
+            $('.IIPrecoDesconto').empty().append(data[2].precoAnualDesconto);
+
+            $('.BasicoPrecoMensal').empty().html(data[0]._PrecoMensal.split(',')[0]);
+            $('.BasicoPrecoMensalCents').empty().html(data[0]._PrecoMensal.split(',')[1]);
+
+            $('.IPrecoMensal').empty().html(data[1]._PrecoMensal.split(',')[0]);
+            $('.IPrecoMensalCents').empty().html(data[1]._PrecoMensal.split(',')[1]);
+
+            $('.IIPrecoMensal').empty().html(data[2]._PrecoMensal.split(',')[0]);
+            $('.IIPrecoMensalCents').empty().html(data[2]._PrecoMensal.split(',')[1]);
+
+            $('#newPriceArea').show();
+        }
+
+        //CalcularCoberturasAdicionais();
+    }
+    function LimparClasseDosCards() {
+        $('#ProBasicoCard').removeClass('shadow');
+        $('#ProICard').removeClass('shadow');
+        $('#ProIICard').removeClass('shadow');
+    }
+
+
+    $('#DiretorChefeEquipeNao').prop('checked', true);
+    $('#CoberturaDiretorMedicoNao').prop('checked', true);
+    $('#SocioEmpresaNao').prop('checked', true);
+    $("#CoberturaPessoaJuridicaNao").prop('checked', true);
+    //function Validar() {
+    //    var error = false;
+
+    //    if ($('#DiretorChefeEquipeSim').is(':checked') == false && $('#DiretorChefeEquipeNao').is(':checked') == false) {
+    //        error = true;
+    //    }
+    //    else {
+    //        if ($('#DiretorChefeEquipeSim').is(':checked') == true) {
+    //            if ($('#CoberturaDiretorMedicoSim').is(':checked') == false && $('#CoberturaDiretorMedicoNao').is(':checked') == false) {
+    //                error = true;
+    //            }
+    //        }
+
+    //    }
+    //    if ($('#SocioEmpresaSim').is(':checked') == false && $('#SocioEmpresaNao').is(':checked') == false) {
+    //        error = true;
+    //    }
+    //    else {
+    //        if ($('#SocioEmpresaSim').is(':checked') == true) {
+    //            if ($('#CoberturaPessoaJuridicaSim').is(':checked') == false && $('#CoberturaPessoaJuridicaNao').is(':checked') == false) {
+    //                error = true;
+    //            }
+    //        }
+
+    //    }
+    //    return (!error);
+    //}
+    //function HabilitarCoberturaAdicionalDiretorMedico() {
+    //    $("#CoberturaDiretorMedicoDiv").removeAttr('disabled');
+    //    $("#CoberturaDiretorMedicoSim").removeAttr('disabled');
+    //    $("#CoberturaDiretorMedicoNao").removeAttr('disabled');
+
+    //    AtribuirValores(valoresPlano);
+    //}
+    //function DesabilitarCoberturaAdicionalDiretorMedico() {
+    //    $("#CoberturaDiretorMedicoDiv").attr('disabled', 'disabled');
+    //    $("#CoberturaDiretorMedicoSim").attr('disabled', 'disabled');
+    //    $("#CoberturaDiretorMedicoNao").attr('disabled', 'disabled');
+
+    //    $("#CoberturaDiretorMedicoSim").prop('checked', false);
+    //    $("#CoberturaDiretorMedicoNao").prop('checked', false);
+
+    //    AtribuirValores(valoresPlano);
+    //}
+    //function HabilitarCoberturaAdicionalPessoaJuridica() {
+    //    $("#CoberturaPessoaJuridicaDiv").removeAttr('disabled');
+    //    $("#CoberturaPessoaJuridicaSim").removeAttr('disabled');
+    //    $("#CoberturaPessoaJuridicaNao").removeAttr('disabled');
+
+    //    AtribuirValores(valoresPlano);
+    //}
+    //function DesabilitarCoberturaAdicionalPessoaJuridica() {
+    //    $("#CoberturaPessoaJuridicaDiv").attr('disabled', 'disabled');
+    //    $("#CoberturaPessoaJuridicaSim").attr('disabled', 'disabled');
+    //    $("#CoberturaPessoaJuridicaNao").attr('disabled', 'disabled');
+
+    //    $("#CoberturaPessoaJuridicaSim").prop('checked', false);
+    //    $("#CoberturaPessoaJuridicaNao").prop('checked', false);
+
+    //    AtribuirValores(valoresPlano);
+    //}
+    //function CalcularCoberturasAdicionais() {
+    //    // SE SELECIONAR UM OU OUTRO +10%
+    //    if ($('#CoberturaDiretorMedicoSim').prop('checked') == true || $('#CoberturaPessoaJuridicaSim').prop('checked') == true) {
+
+    //        if (valoresPlano[0].precoMensalDesconto && valoresPlano[0].precoMensalDesconto != null) {
+    //            $('.BasicoPrecoMensalDesconto').html(valoresPlano[0].precoMensalDescontoCom10.split(',')[0]);
+    //            $('.BasicoPrecoMensalDescontoCents').html(valoresPlano[0].precoMensalDescontoCom10.split(',')[1]);
+
+    //            $('.IPrecoMensalDesconto').html(valoresPlano[1].precoMensalDescontoCom10.split(',')[0]);
+    //            $('.IPrecoMensalDescontoCents').html(valoresPlano[1].precoMensalDescontoCom10.split(',')[1]);
+
+    //            $('.IIPrecoMensalDesconto').html(valoresPlano[2].precoMensalDescontoCom10.split(',')[0]);
+    //            $('.IIPrecoMensalDescontoCents').html(valoresPlano[2].precoMensalDescontoCom10.split(',')[1]);
+
+    //            $('.BasicoPrecoDesconto').html(valoresPlano[0].precoAnualDescontoCom10);
+    //            $('.IPrecoDesconto').html(valoresPlano[1].precoAnualDescontoCom10);
+    //            $('.IIPrecoDesconto').html(valoresPlano[2].precoAnualDescontoCom10);
+
+    //            $('.BasicoPrecoMensal').html(valoresPlano[0].precoMensalCom10.split(',')[0]);
+    //            $('.BasicoPrecoMensalCents').html(valoresPlano[0].precoMensalCom10.split(',')[1]);
+
+    //            $('.IPrecoMensal').html(valoresPlano[1].precoMensalCom10.split(',')[0]);
+    //            $('.IPrecoMensalCents').html(valoresPlano[1].precoMensalCom10.split(',')[1]);
+
+    //            $('.IIPrecoMensal').html(valoresPlano[2].precoMensalCom10.split(',')[0]);
+    //            $('.IIPrecoMensalCents').html(valoresPlano[2].precoMensalCom10.split(',')[1]);
+    //        }
+    //        else {
+    //            $('.BasicoPrecoMensal').html(valoresPlano[0]._PrecoMensalCom10.split(',')[0]);
+    //            $('.BasicoPrecoMensalCents').html(valoresPlano[0]._PrecoMensalCom10.split(',')[1]);
+
+    //            $('.IPrecoMensal').html(valoresPlano[1]._PrecoMensalCom10.split(',')[0]);
+    //            $('.IPrecoMensalCents').html(valoresPlano[1]._PrecoMensalCom10.split(',')[1]);
+
+    //            $('.IIPrecoMensal').html(valoresPlano[2]._PrecoMensalCom10.split(',')[0]);
+    //            $('.IIPrecoMensalCents').html(valoresPlano[2]._PrecoMensalCom10.split(',')[1]);
+
+    //            $('.BasicoPreco').html(valoresPlano[0]._PrecoAnualCom10);
+    //            $('.IPreco').html(valoresPlano[1]._PrecoAnualCom10);
+    //            $('.IIPreco').html(valoresPlano[2]._PrecoAnualCom10);
+    //        }
+    //    }
+
+    //    // SE SELECIONAR OS DOIS +20 %
+    //    if ($('#CoberturaDiretorMedicoSim').prop('checked') == true && $('#CoberturaPessoaJuridicaSim').prop('checked') == true) {
+
+    //        if (valoresPlano[0].precoMensalDesconto != null) {
+    //            $('.BasicoPrecoMensalDesconto').html(valoresPlano[0].precoMensalDescontoCom20.split(',')[0]);
+    //            $('.BasicoPrecoMensalDescontoCents').html(valoresPlano[0].precoMensalDescontoCom20.split(',')[1]);
+
+    //            $('.IPrecoMensalDesconto').html(valoresPlano[1].precoMensalDescontoCom20.split(',')[0]);
+    //            $('.IPrecoMensalDescontoCents').html(valoresPlano[1].precoMensalDescontoCom20.split(',')[1]);
+
+    //            $('.IIPrecoMensalDesconto').html(valoresPlano[2].precoMensalDescontoCom20.split(',')[0]);
+    //            $('.IIPrecoMensalDescontoCents').html(valoresPlano[2].precoMensalDescontoCom20.split(',')[1]);
+
+    //            $('.BasicoPrecoDesconto').html(valoresPlano[0].precoAnualDescontoCom20);
+    //            $('.IPrecoDesconto').html(valoresPlano[1].precoAnualDescontoCom20);
+    //            $('.IIPrecoDesconto').html(valoresPlano[2].precoAnualDescontoCom20);
+    //            $('.BasicoPrecoMensal').html(valoresPlano[0].precoMensalCom20.split(',')[0]);
+    //            $('.BasicoPrecoMensalCents').html(valoresPlano[0].precoMensalCom20.split(',')[1]);
+
+    //            $('.IPrecoMensal').html(valoresPlano[1].precoMensalCom20.split(',')[0]);
+    //            $('.IPrecoMensalCents').html(valoresPlano[1].precoMensalCom20.split(',')[1]);
+
+    //            $('.IIPrecoMensal').html(valoresPlano[2].precoMensalCom20.split(',')[0]);
+    //            $('.IIPrecoMensalCents').html(valoresPlano[2].precoMensalCom20.split(',')[1]);
+    //        }
+    //        else {
+    //            $('.BasicoPrecoMensal').html(valoresPlano[0]._PrecoMensalCom20.split(',')[0]);
+    //            $('.BasicoPrecoMensalCents').html(valoresPlano[0]._PrecoMensalCom20.split(',')[1]);
+
+    //            $('.IPrecoMensal').html(valoresPlano[1]._PrecoMensalCom20.split(',')[0]);
+    //            $('.IPrecoMensalCents').html(valoresPlano[1]._PrecoMensalCom20.split(',')[1]);
+
+    //            $('.IIPrecoMensal').html(valoresPlano[2]._PrecoMensalCom20.split(',')[0]);
+    //            $('.IIPrecoMensalCents').html(valoresPlano[2]._PrecoMensalCom20.split(',')[1]);
+
+    //            $('.BasicoPreco').html(valoresPlano[0]._PrecoAnualCom20);
+    //            $('.IPreco').html(valoresPlano[1]._PrecoAnualCom20);
+    //            $('.IIPreco').html(valoresPlano[2]._PrecoAnualCom20);
+
+    //        }
+    //    }
+
+    //    // SE NAO TIVER NADA SELECIONADO, VOLTAR O VALOR NORMAL
+    //    if ($('#CoberturaDiretorMedicoSim').prop('checked') == false && $('#CoberturaPessoaJuridicaSim').prop('checked') == false) {
+
+    //        if (valoresPlano[0].precoMensalDesconto != null) {
+
+    //            $('.BasicoPrecoMensalDesconto').html(valoresPlano[0].precoMensalDesconto.split(',')[0]);
+    //            $('.BasicoPrecoMensalDescontoCents').html(valoresPlano[0].precoMensalDesconto.split(',')[1]);
+
+    //            $('.IPrecoMensalDesconto').html(valoresPlano[1].precoMensalDesconto.split(',')[0]);
+    //            $('.IPrecoMensalDescontoCents').html(valoresPlano[1].precoMensalDesconto.split(',')[1]);
+
+    //            $('.IIPrecoMensalDesconto').html(valoresPlano[2].precoMensalDesconto.split(',')[0]);
+    //            $('.IIPrecoMensalDescontoCents').html(valoresPlano[2].precoMensalDesconto.split(',')[1]);
+
+    //            $('.BasicoPrecoDesconto').html(valoresPlano[0].precoAnualDesconto);
+    //            $('.IPrecoDesconto').html(valoresPlano[1].precoAnualDesconto);
+    //            $('.IIPrecoDesconto').html(valoresPlano[2].precoAnualDesconto);
+    //            $('.BasicoPrecoMensal').html(valoresPlano[0].precoMensal.split(',')[0]);
+    //            $('.BasicoPrecoMensalCents').html(valoresPlano[0].precoMensal.split(',')[1]);
+
+    //            $('.IPrecoMensal').html(valoresPlano[1].precoMensal.split(',')[0]);
+    //            $('.IPrecoMensalCents').html(valoresPlano[1].precoMensal.split(',')[1]);
+
+    //            $('.IIPrecoMensal').html(valoresPlano[2].precoMensal.split(',')[0]);
+    //            $('.IIPrecoMensalCents').html(valoresPlano[2].precoMensal.split(',')[1]);
+    //        }
+    //        else {
+    //            $('.BasicoPrecoMensal').html(valoresPlano[0]._PrecoMensal.split(',')[0]);
+    //            $('.BasicoPrecoMensalCents').html(valoresPlano[0]._PrecoMensal.split(',')[1]);
+
+    //            $('.IPrecoMensal').html(valoresPlano[1]._PrecoMensal.split(',')[0]);
+    //            $('.IPrecoMensalCents').html(valoresPlano[1]._PrecoMensal.split(',')[1]);
+
+    //            $('.IIPrecoMensal').html(valoresPlano[2]._PrecoMensal.split(',')[0]);
+    //            $('.IIPrecoMensalCents').html(valoresPlano[2]._PrecoMensal.split(',')[1]);
+
+    //            $('.BasicoPreco').html(valoresPlano[0]._PrecoAnual);
+    //            $('.IPreco').html(valoresPlano[1]._PrecoAnual);
+    //            $('.IIPreco').html(valoresPlano[2]._PrecoAnual);
+    //        }
+    //    }
+
+    //    if ($('#DiretorChefeEquipeNao').prop('checked') == true && $('#SocioEmpresaNao').prop('checked') == true) {
+
+    //        if (valoresPlano[0].precoMensalDesconto != null) {
+
+    //            $('.BasicoPrecoMensalDesconto').html(valoresPlano[0].precoMensalDesconto);
+    //            $('.IPrecoMensalDesconto').html(valoresPlano[1].precoMensalDesconto);
+    //            $('.IIPrecoMensalDesconto').html(valoresPlano[2].precoMensalDesconto);
+    //            $('.BasicoPrecoDesconto').html(valoresPlano[0].precoAnualDesconto);
+    //            $('.IPrecoDesconto').html(valoresPlano[1].precoAnualDesconto);
+    //            $('.IIPrecoDesconto').html(valoresPlano[2].precoAnualDesconto);
+    //            $('.BasicoPrecoMensal').html(valoresPlano[0].precoMensal.split(',')[0]);
+    //            $('.BasicoPrecoMensalCents').html(valoresPlano[0].precoMensal.split(',')[1]);
+
+    //            $('.IPrecoMensal').html(valoresPlano[1].precoMensal.split(',')[0]);
+    //            $('.IPrecoMensalCents').html(valoresPlano[1].precoMensal.split(',')[1]);
+
+    //            $('.IIPrecoMensal').html(valoresPlano[2]._PrecoMensal.split(',')[0]);
+    //            $('.IIPrecoMensalCents').html(valoresPlano[2]._PrecoMensal.split(',')[1]);
+    //        }
+    //        else {
+    //            $('.BasicoPrecoMensal').html(valoresPlano[0]._PrecoMensal.split(',')[0]);
+    //            $('.BasicoPrecoMensalCents').html(valoresPlano[0]._PrecoMensal.split(',')[1]);
+
+    //            $('.IPrecoMensal').html(valoresPlano[1]._PrecoMensal.split(',')[0]);
+    //            $('.IPrecoMensalCents').html(valoresPlano[1]._PrecoMensal.split(',')[1]);
+
+    //            $('.IIPrecoMensal').html(valoresPlano[2]._PrecoMensal.split(',')[0]);
+    //            $('.IIPrecoMensalCents').html(valoresPlano[2]._PrecoMensal.split(',')[1]);
+
+    //            $('.BasicoPreco').html(valoresPlano[0]._PrecoAnual);
+    //            $('.IPreco').html(valoresPlano[1]._PrecoAnual);
+    //            $('.IIPreco').html(valoresPlano[2]._PrecoAnual);
+    //        }
+    //    }
+    //}
+</script>
+<script type="text/javascript">
+    var cardId = null;
+    var cardTitle = null;
+    var valoresPlano;
+
+    function loadPrices() {
+        if (!validateMedicGroupDiscount()) return;
+
+        var medicGroupDiscount = $('[name="MedicGroupDiscount"]').length > 0 ? $('[name="MedicGroupDiscount"]').val().replace('%', '') : null;
+
+        $.ajax({
+            url: '@Url.Action("Consulta", "SeguroProfissional")',
+		    type: 'POST',
+            data: { seguradoProfissionalId: '@Model.SeguradoProfissionalId', discount: $('#discount').val(), medicGroupDiscount  },
+            dataType: 'json',
+            success: AtribuirValores
+        });
+    }
+
+    function validateMedicGroupDiscount() {
+        $('#medic-group-discount-area').next('.text-danger').remove();
+
+        if ($('[name="MedicGroupDiscount"]').length > 0) {
+            if (IsNullOrWhiteSpace($('[name="MedicGroupDiscount"]').val())) {
+                $('#medic-group-discount-area').after('<div class="text-danger">Insira o desconto.</div>');
+                return false;
+            } else {
+                var valor = $('[name="MedicGroupDiscount"]').val().replace('%', '');
+                if (valor.indexOf(',') != -1) valor = valor.replace(',', '.');
+
+                if (parseFloat(valor) > 100) {
+                    $('#medic-group-discount-area').after('<div class="text-danger">O desconto deve ser inferior ou igual a 100%.</div>');
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    $(document).ready(function () {
+        loadPrices();
+
+        $('.CotacaoSubmitButton1').click(function () {
+            LimparClasseDosCards();
+            $('#ProBasicoCard').addClass('shadow');
+            $('#PlanoSeguroProfissionalId').val(1);
+            $('#CotacaoForm').submit();
+        });
+
+        $('.CotacaoSubmitButton2').click(function () {
+            LimparClasseDosCards();
+            $('#ProICard').addClass('shadow');
+            $('#PlanoSeguroProfissionalId').val(2);
+            $('#CotacaoForm').submit();
+        });
+
+        $('.CotacaoSubmitButton3').click(function () {
+            LimparClasseDosCards();
+            $('#ProIICard').addClass('shadow');
+            $('#PlanoSeguroProfissionalId').val(3);
+            $('#CotacaoForm').submit();
+        });
+
+        //$("#DiretorChefeEquipeSim").change(function () {
+        //    HabilitarCoberturaAdicionalDiretorMedico();
+        //});
+        //$("#DiretorChefeEquipeNao").change(function () {
+        //    DesabilitarCoberturaAdicionalDiretorMedico();
+        //});
+        //$('#CoberturaDiretorMedicoSim').change(function () {
+        //    AtribuirValores(valoresPlano);
+        //});
+        //$('#CoberturaDiretorMedicoNao').change(function () {
+        //    AtribuirValores(valoresPlano);
+        //});
+
+        //$("#SocioEmpresaSim").change(function () {
+        //    HabilitarCoberturaAdicionalPessoaJuridica();
+        //});
+        //$("#SocioEmpresaNao").change(function () {
+        //    DesabilitarCoberturaAdicionalPessoaJuridica();
+        //});
+        //$('#CoberturaPessoaJuridicaSim').change(function () {
+        //    AtribuirValores(valoresPlano);
+        //});
+        //$('#CoberturaPessoaJuridicaNao').change(function () {
+        //    AtribuirValores(valoresPlano);
+        //});
+
+        $('#CotacaoForm').submit(function () {
+            if (!validateMedicGroupDiscount()) return false;
+
+            if($('[name="MedicGroupDiscount"]').length > 0)
+                $('[name="MedicGroupDiscount"]').val($('[name="MedicGroupDiscount"]').val().replace('%', ''));
+
+            return true;
+        });
+
+        @if (Model.PlanoSeguroProfissionalId.HasValue) {
+            if (Model.PlanoSeguroProfissionalId == 1)
+            {
+            <text>
+                LimparClasseDosCards();
+                $('#ProBasicoCard').addClass('shadow');
+                $('#PlanoSeguroProfissionalId').val(1);
+            </text>
+            }else if (Model.PlanoSeguroProfissionalId == 2)
+            {
+            <text>
+                LimparClasseDosCards();
+                $('#ProICard').addClass('shadow');
+                $('#PlanoSeguroProfissionalId').val(2);
+            </text>
+            }else if (Model.PlanoSeguroProfissionalId == 3)
+            {
+            <text>
+                LimparClasseDosCards();
+                $('#ProIICard').addClass('shadow');
+                $('#PlanoSeguroProfissionalId').val(3);
+            </text>
+            }
+        }
+    });
+</script>
+<script type="text/javascript">
+@if (Model.DiretorChefeEquipe == true)
+{
+    <text>
+    $("#DiretorChefeEquipeSim").prop("checked", true);
+    </text>
+
+    if (Model.CoberturaAdicionalDiretorChefeEquipe == true)
+    {
+    <text>
+    $("#CoberturaDiretorMedicoSim").prop("checked", true);
+    </text>
+    }
+    else if (Model.CoberturaAdicionalDiretorChefeEquipe == false)
+    {
+    <text>
+    $("#CoberturaDiretorMedicoNao").prop("checked", true);
+    </text>
+    }
+
+    <text>
+    HabilitarCoberturaAdicionalDiretorMedico();
+    </text>
+}
+else if (Model.DiretorChefeEquipe == false)
+{
+    <text>
+    $("#DiretorChefeEquipeNao").prop("checked", true);
+    //DesabilitarCoberturaAdicionalDiretorMedico();
+    </text>
+}
+</script>
+
+<script type="text/javascript">
+@if (Model.SocioEmpresaAreaMedica == true)
+{
+    <text>
+    $("#SocioEmpresaSim").prop("checked", true);
+
+    </text>
+    if (Model.CoberturaAdicionalSocioEmpresaAreaMedica == true)
+    {
+    <text>
+    $("#CoberturaPessoaJuridicaSim").prop("checked", true);
+    </text>
+    }
+    else if (Model.CoberturaAdicionalSocioEmpresaAreaMedica == false)
+    {
+    <text>
+    $("#CoberturaPessoaJuridicaNao").prop("checked", true);
+    </text>
+    }
+
+    <text>
+    HabilitarCoberturaAdicionalPessoaJuridica();
+    </text>
+}
+else if(Model.SocioEmpresaAreaMedica == false)
+{
+    <text>
+    $("#SocioEmpresaNao").prop("checked", true);
+    //DesabilitarCoberturaAdicionalPessoaJuridica();
+    </text>
+}
+</script>

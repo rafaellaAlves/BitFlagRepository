@@ -1,0 +1,89 @@
+﻿@model DAL.Law
+
+@{
+    ViewData["Title"] = "Administração de Requisitos Legais";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="card shadow">
+    <div class="card-header">
+        Anexos do Requisito Legal - <b>@Model.Number: @Model.Title</b>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="input-group">
+                    <span class="input-group-addon"><i class="fa fa-search"></i></span>
+                    <input type="text" class="form-control" placeholder="Procurar..." data-toggle="search-datatable" data-target="#company-law-table" />
+                </div>
+            </div>
+        </div>
+        <hr />
+        <table id="company-law-table" class="datatable display table table-sm table-bordered table-striped" style="border-collapse: collapse !important; width: 100%">
+            <thead>
+                <tr>
+                    <th>Razão Social</th>
+                    <th>Nome Fantasia</th>
+                    <th>Anexos</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    <div class="card-footer">
+        <a href="@Url.Action("Index", "LawManagement", new { useFilter = true, page = Context.Request.Query["page"],  row = Context.Request.Query["row"] })" class="btn btn-secondary float-left"><i class="fa fa-arrow-left"></i>&nbsp;Voltar</a>
+    </div>
+</div>
+<script type="text/javascript">
+    var companyLawTable = $('#company-law-table').DataTable({
+        proccessing: true
+        , serverSide: false
+        , searching: true
+        , lengthChange: false
+        , dom: 'tip'
+        , ajax: {
+			url: '@Url.Action("ListCompanyAttachments", "LawManagement")'
+            , type: 'POST'
+            , data: function (d) {
+                d.LawId = @Model.LawId;
+            }
+		}
+		, columns: [
+			{ data: 'RazaoSocial' }
+			, { data: 'NomeFantasia' }
+			, {
+				data: 'AttachmentCount',
+				render: function (data, type, row, meta) {
+                    console.log(row);
+                    return '<a class="badge badge-info" href="javascript:openCompanyLawAttachmentModal(' + row.CompanyLawId + ')">' + row.AttachmentCount + ' Anexos&nbsp;<i class="fa fa-external-link-alt"></i></a>';
+                }
+            }
+        ]
+    });
+
+    function openCompanyLawAttachmentModal(companyLawId) {
+        $('#company-law-attachment-list-view-component').load('@Url.Action("CompanyLawAttachmentListViewComponent", "CompanyLawAttachmentManagement")', { companyLawId }, function () {
+            $('#modal-company-law-attachment').modal('show');
+        });
+    }
+</script>
+
+<div class="modal fade" id="modal-company-law-attachment" tabindex="-1" role="dialog" aria-labelledby="modal-export-title" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal-company-law-attachment">Anexos</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="company-law-attachment-list-view-component"></div>
+            </div>
+            <div class="modal-footer">
+                <div class="col-md-12 float-left">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fas fa-times"></i>&nbsp;Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

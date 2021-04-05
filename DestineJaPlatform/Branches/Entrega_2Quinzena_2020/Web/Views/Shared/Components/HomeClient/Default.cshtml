@@ -1,0 +1,147 @@
+﻿@inject Microsoft.AspNetCore.Identity.UserManager<AspNetIdentityDbContext.User> userManager
+@inject Services.Contract.ContractServices contractServices
+@inject Services.Client.ClientServices clientServices
+
+@model DTO.Home.HomeClientViewModel
+
+@{
+    var clientId = await clientServices.GetClientIdByLoggedUser(Context);
+}
+
+
+
+@if (await contractServices.ClientHasAnyContractOrService(clientId))
+{
+    <div class="row">
+        <div class="col-md form-group">
+            <div class="card pd-20 tx-white pd-sm-25 bg-primary">
+                <div class="d-flex align-items-center justify-content-between mg-b-10">
+                    <h6 class="card-body-title tx-white-8 tx-12 tx-spacing-1">Coletas Realizadas</h6>
+                </div><!-- d-flex -->
+                <div class="d-flex align-items-center pb-2 justify-content-between">
+                    <img src="@Url.Content("~/Imagens/graficos_home/azul.png")" style=" height: 45px; width: 60px;" />
+                    <h6 class="mg-b-0 mr-3 tx-white tx-lato tx-bold">@(Model.FinishedCollections ?? (object)"-")</h6>
+                </div>
+                <div class="d-flex align-items-center justify-content-between bd-t bd-white-2 pd-t-10">
+                    <div>
+                        <span class="tx-11 tx-white-6">Coletas do contrato</span>
+                        <h6 class="tx-white mg-b-0">@(Model.TotalCollections ?? (object)"-")</h6>
+                    </div>
+                    <div>
+                        <span class="tx-11 tx-white-6">Restante</span>
+                        <h6 class="tx-white mg-b-0">@(Model.RemainingCollections ?? (object)"-")</h6>
+                    </div>
+                </div>
+            </div><!-- card -->
+        </div>
+        <div class="col-md form-group">
+            <div class="card pd-20 pd-sm-25 bg-info">
+                <div class="d-flex align-items-center justify-content-between mg-b-10">
+                    <h6 class="card-body-title tx-white-8 tx-12 tx-spacing-1">Seu Peso Restante</h6>
+                </div><!-- d-flex -->
+                <div class="d-flex align-items-center pb-2 justify-content-between">
+                    <img src="@Url.Content("~/Imagens/graficos_home/azul_claro.png")" style=" height: 45px; width: 60px;" />
+                    <h6 class="mg-b-0 mr-3 tx-white tx-lato tx-bold">@(!string.IsNullOrWhiteSpace(Model._RemainingWeight)? $"{Model._RemainingWeight} Kg" : "-")</h6>
+                </div>
+                <div class="d-flex align-items-center justify-content-between bd-t bd-white-2 pd-t-10">
+                    <div>
+                        <span class="tx-11 tx-white-6">Contratado</span>
+                        <h6 class="tx-white mg-b-0">@(Model.ContractedWeight ?? (object)"-")</h6>
+                    </div>
+                    <div>
+                        <span class="tx-11 tx-white-6">Utilizado</span>
+                        <h6 class="tx-white mg-b-0">@(string.IsNullOrWhiteSpace(Model._RemainingWeight)? "-" : Model._CollectedWeight)</h6>
+                    </div>
+                </div>
+            </div><!-- card -->
+        </div>
+        <div class="col-md form-group">
+            <div class="card pd-20 pd-sm-25 bg-purple">
+                <div class="d-flex align-items-center justify-content-between mg-b-10">
+                    <h6 class="card-body-title tx-white-8 tx-12 tx-spacing-1">Valor da Mensalidade</h6>
+                </div><!-- d-flex -->
+                <div class="d-flex align-items-center pb-2 justify-content-between">
+                    <img src="@Url.Content("~/Imagens/graficos_home/roxo.png")" style=" height: 45px; width: 60px;" />
+                    <h6 class="mg-b-0 mr-3 tx-white tx-lato tx-bold">R$ @Model._ContractMonthlyPrice.IfNullChange("-")</h6>
+                </div>
+                <div class="d-flex align-items-center justify-content-between bd-t bd-white-2 pd-t-10">
+                    <div>
+                        <span class="tx-11 tx-white-6">&nbsp;</span>
+                        <h6 class="tx-white mg-b-0">&nbsp;</h6>
+                    </div>
+                    <div>
+                        <span class="tx-11 tx-white-6">&nbsp;</span>
+                        <h6 class="tx-white mg-b-0">&nbsp;</h6>
+                    </div>
+                </div>
+            </div><!-- card -->
+        </div>
+        <div class="col-md form-group">
+            <div class="card pd-20 pd-sm-25 bg-sl-primary">
+                <div class="d-flex align-items-center justify-content-between mg-b-10">
+                    <h6 class="card-body-title tx-white-8 tx-12 tx-spacing-1">previsão da próxima coleta</h6>
+                </div><!-- d-flex -->
+                <h5 class="tx-white tx-center" style="margin-bottom: 30px;">@Model._NextColletionDate</h5>
+                <div class="d-flex align-items-center justify-content-between bd-t bd-white-2 pd-t-10">
+                    <div>
+                        <span class="tx-11 tx-white-6">Sua Rota</span>
+                        <h6 class="tx-white mg-b-0">@(Model.Route ?? (object)"-")</h6>
+                    </div>
+                    <div>
+                        <span class="tx-11 tx-white-6">Ver Listagem</span>
+                        <h6 class="tx-white mg-b-0 text-center"><i style="cursor:pointer;" data-toggle="modal" data-target="#collections-modal" class="fa fa-external-link"></i></h6>
+                    </div>
+                </div>
+            </div><!-- card -->
+        </div>
+    </div>
+
+    <div class="row mt-2">
+        <div class="col form-group">
+            @(await Component.InvokeAsync<Web.ViewComponents.Home.HomeLastMonthlyCollectionsViewComponent>())
+        </div>
+        <div class="w-100"></div>
+        <div class="col form-group">
+            @(await Component.InvokeAsync<Web.ViewComponents.Home.HomeClientDemandClientTableViewComponent>())
+        </div>
+        <div class="w-100"></div>
+        <div class="col-md-6 col-12 form-group">
+            @(await Component.InvokeAsync<Web.ViewComponents.Home.HomeClientResidueFamilyChartViewComponent>())
+        </div>
+        <div class="col-md-6 col-12 form-group">
+            @(await Component.InvokeAsync<Web.ViewComponents.Home.HomeClientResidueTableViewComponent>())
+        </div>
+    </div>
+
+    <div class="modal fade" id="collections-modal" tabindex="-1" role="dialog" aria-labelledby="collections-modal-title" aria-hidden="true">
+        <div class="modal-dialog" style="width: 500px;" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="collections-modal-title">Coletas</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    @(await Component.InvokeAsync<Web.ViewComponents.Home.HomeClient.HomeClientCollectionsViewComponent>())
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="simple-icon-close"></i> Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="row">
+        <div class="col text-center text-destineja-xl">
+            @{ var user = await userManager.FindByNameAsync(User.Identity.Name); }
+            Seja Bem-Vindo(a) @user.FirstName @user.LastName
+        </div>
+    </div>
+    <hr />
+    <div class="alert alert-destineja tx-22 text-center mt-5" role="alert">
+        Ops!!! Você ainda não solicitou a sua coleta.
+    </div>
+}

@@ -1,0 +1,161 @@
+﻿@model DTO.Class.ClassViewModel
+@inject Web.Helpers.DropDownListHelper dropDownListHelper
+@inject Services.Course.CourseService courseService
+@{
+    ViewData["Title"] = "Turmas Cadastradas";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section HeaderButtons {
+    <button id="add-class-button-modal" class="btn btn-success"><i class="simple-icon-plus"></i>&nbsp;Nova Turma</button>
+}
+
+<table id="classIndexTable" class="display table table-striped table-bordered table-condensed" style="border-collapse: collapse !important; width:100%;">
+    <thead>
+        <tr>
+            <th>Descrição da Turma</th>
+            <th>Quantidade de Alunos</th>
+            @*<th>Quantidade de Módulos</th>*@
+            <th>&nbsp;</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+@section Modals {
+    <div class="modal fade" id="add-class-modal" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Incluir nova turma</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                </div>
+                <div class="modal-body">
+                    <form id="add-class-form">
+                        <div class="form-group">
+                            <label class="control-label">Curso</label>
+                            <select name="CourseId" class="form-control">
+                                @foreach (var item in await courseService.List())
+                                {
+                                    <option data-default-module-count="@item.DefaultModuleCount" value="@item.CourseId">@item.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group" style="display: none;">
+                            <label class="control-label required">Módulos</label>
+                            <input name="ModuleCount" type="number" required class="form-control" />
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label">Estado</label>
+                            <select name="State" class="form-control">
+                                <option value="AC">Acre</option>
+                                <option value="AL">Alagoas</option>
+                                <option value="AP">Amapá</option>
+                                <option value="AM">Amazonas</option>
+                                <option value="BA">Bahia</option>
+                                <option value="CE">Ceará</option>
+                                <option value="DF">Distrito Federal</option>
+                                <option value="ES">Espírito Santo</option>
+                                <option value="GO">Goiás</option>
+                                <option value="MA">Maranhão</option>
+                                <option value="MT">Mato Grosso</option>
+                                <option value="MS">Mato Grosso do Sul</option>
+                                <option value="MG">Minas Gerais</option>
+                                <option value="PA">Pará</option>
+                                <option value="PB">Paraíba</option>
+                                <option value="PR">Paraná</option>
+                                <option value="PE">Pernambuco</option>
+                                <option value="PI">Piauí</option>
+                                <option value="RJ">Rio de Janeiro</option>
+                                <option value="RN">Rio Grande do Norte</option>
+                                <option value="RS">Rio Grande do Sul</option>
+                                <option value="RO">Rondônia</option>
+                                <option value="RR">Roraima</option>
+                                <option value="SC">Santa Catarina</option>
+                                <option value="SP">São Paulo</option>
+                                <option value="SE">Sergipe</option>
+                                <option value="TO">Tocantins</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label required">Ano</label>
+                            <input type="text" name="Year" class="form-control year" placeholder="Ano" />
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label">Observações</label>
+                            <select name="Info" class="form-control">
+                                @for (int i = 1; i <= 9; i++)
+                                {
+                                    <option value="@string.Format("({0})", i)">@string.Format("({0})", i)</option>
+                                }
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    <button id="add-class-button" type="button" class="btn btn-primary">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script type="text/javascript">
+        var currentYear = parseInt('@DateTime.Now.Year');
+        $('#add-class-button-modal').click(function () {
+            $('#add-class-modal').modal('show');
+        });
+        $('#add-class-button').click(function () {
+            if (!validateInputs('add-class-form')) return;
+
+            if (!isNullOrWhiteSpace($('[name="ModuleCount"]').val()) && parseInt($('[name="ModuleCount"]').val()) <= 0) {
+                $('[name="ModuleCount"]').after('<div class="text-danger">Preencha uma quantidade válida.</div>');
+                return;
+            }
+
+            if (!isNullOrWhiteSpace($('[name="Year"]').val()) && parseInt($('[name="Year"]').val()) < currentYear) {
+                $('[name="Year"]').after('<div class="text-danger">O ano deve ser igual ou posterior a ' + currentYear + '</div>');
+                return;
+            }
+
+            var model = $('#add-class-form').serializeArray();
+            $.post('@Url.Action("Add", "Class")', model, function (d) {
+                if (d.hasError) {
+                    alert('Houve um erro ao criar a turma.');
+                } else {
+                    alert(d.message);
+                    $('#classIndexTable').DataTable().ajax.reload();
+                    $('#add-class-modal').modal('hide');
+                }
+            });
+        });
+        $('select[name="CourseId"]').change(function () {
+            $('input[name="ModuleCount"').val($('select[name="CourseId"] option:selected').data('default-module-count'));
+        }).change();
+    </script>
+    <script type="text/javascript">
+        var datatables;
+        $(document).ready(function () {
+            datatables = $('#classIndexTable').DataTable({
+                serverSide: false,
+                proccessing: true,
+                searching: true,
+                lengthChange: true,
+                order: [],
+                //dom: 'tip',
+                ajax: {
+                    url: '@Url.Action("List", "Class")',
+                    type: 'GET'
+                },
+                columns: [
+                    { render: function (data, type, row) { return row.classFullName; } },
+                    { render: function (data, type, row) { return row.studentsCount; } },
+                    //{ render: function (data, type, row) { return row.moduleCount; } },
+                    { render: function (data, type, row) { return '<div class="text-center"><a href="@Url.Action("Index", "ClassStudent")?classId=' + row.classId + '"><span class="badge badge-primary">Matriculados</span></a></div>'; } }
+                ]
+            });
+        });
+    </script>
+}

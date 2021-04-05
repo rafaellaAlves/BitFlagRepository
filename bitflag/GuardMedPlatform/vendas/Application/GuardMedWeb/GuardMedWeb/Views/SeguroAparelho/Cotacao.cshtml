@@ -1,0 +1,179 @@
+﻿@model GuardMedWeb.Models.SeguradoEquipamentoViewModel
+@{
+    ViewData["Title"] = "Seguro Aparelho Veterinario AmaisVet";
+
+    double precoSeguro = 0;
+    string _precoSeguro;
+    if (Model.PlanoSeguroEquipamentoId == 1)
+    {
+        precoSeguro = Convert.ToDouble(Model.PrecoEquipamento) * 0.019;
+    }
+    if (Model.PlanoSeguroEquipamentoId == 2)
+    {
+        precoSeguro = Convert.ToDouble(Model.PrecoEquipamento) * 0.042;
+    }
+
+    _precoSeguro = precoSeguro.ToString("0.00");
+    double duasVezes, tresVezes, quatroVezes;
+
+    duasVezes = precoSeguro / 2;
+    tresVezes = precoSeguro / 3;
+    quatroVezes = precoSeguro / 4;
+}
+
+<script type="text/javascript">
+
+    var preco = null;
+
+    function SalvarCotacao(planoId) {
+        $('#CotacaoForm').submit();
+        @*var d = $('#CotacaoForm').serializeArray();
+        $.post('@Url.Action("SalvarCotacao", "SeguroAparelho")', d, function (data) {
+            window.location.href = '@Url.Action("Formulario", "SeguroAparelho")?seguradoEquipamentoId=' + data.seguradoEquipamentoId;
+		});*@
+    }
+
+    function ConsultarCusto() {
+        var plano = @Model.PlanoSeguroEquipamentoId;
+        if (plano == 1) {
+            $('#CardTitle').text('Aparelho de Uso Interno');
+        }
+        if (plano == 2) {
+            $('#CardTitle').text('Aparelho de Uso Externo');
+        }
+        $('#PrecoSeguro').val('@_precoSeguro');
+
+        @if(duasVezes >= 100){<text>$('#2vezes').show(); $('#ou').show();</text>}
+/**/
+/**/
+        @if (tresVezes >= 100) {<text>$('#3vezes').show();</text>}
+/**/
+/**/
+        @if (quatroVezes >= 100) {<text>$('#4vezes').show();</text>}
+    }
+
+    $('#CotacaoForm').ready(function () {
+        ConsultarCusto();
+
+    });
+</script>
+
+
+<div class="row">
+    <div class="col-sm-12 mx-auto">
+        <div class="row">
+            <div class="rectangle" id="retangle1" style="height: 10px; width:17%; margin-left:16%; background:lightgrey;"></div>
+            <div class="rectangle" id="retangle2" style="height: 10px; width:17%; background:lightgrey;"></div>
+            <div class="rectangle" id="retangle3" style="height: 10px; width:17%; background-color:lightgrey;"></div>
+            <div class="rectangle" id="retangle4" style="height: 10px; width:17%; background-color:lightgrey;"></div>
+        </div>
+        <div class="row">
+            <div class="col-md-1 col-1"></div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="circle1" style="background-color: lightgrey; "></div>
+                <div class="mx-auto smallcircle" id="smallCircle1" style="background: white; display:none;"></div>
+            </div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="circle2" style="background-color: lightgrey;">
+                    <div style="padding-top:25px;">
+                        <div class="mx-auto smallcircle" id="smallCircle2" style="background: white; display:none;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="circle3" style="background-color: lightgrey;"></div>
+                <div class="mx-auto smallcircle" id="smallCircle3" style="background: white; display:none;"></div>
+            </div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="circle4" style=" background-color: lightgrey;"></div>
+                <div class="mx-auto smallcircle" id="smallCircle4" style="background: white; display:none;"></div>
+            </div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="circle5" style=" background-color: lightgrey;"></div>
+                <div class="mx-auto smallcircle" id="smallCircle5" style=" background: white; display:none;"></div>
+            </div>
+        </div>
+        <div class="row" style="margin-top:1em;">
+            <div class="col-md-1"></div>
+            <div class="col-sm-2 text-center"><label>Simulação</label></div>
+            <div class="col-sm-2 text-center"><strong style="color:#40615f">Custo do Seguro</strong></div>
+            <div class="col-sm-2 text-center"><label>Proposta</label></div>
+            <div class="col-sm-2 text-center"> <label>Contratar</label></div>
+            <div class="col-sm-2 text-center"> <label>Impressão</label></div>
+        </div>
+    </div>
+</div>
+<br />
+<script type="text/javascript">
+    $('#circle1').css("background", "#0a754e");
+    $('#circle2').css("background", "#0a754e").addClass("shadow");
+    $('#retangle1').css("background", "#13D68F");
+    $('#smallCircle2').show();
+</script>
+<br />
+
+<label class="control-label"> Olá Dr(a). <strong>@Model.Nome</strong>.</label><br />
+<label class="control-label">Veja a condição para a proteção do(s) seu(s) aparelho(s). Anote o número desta simulação para acessos futuros #Referência <strong>@Model.Referencia</strong>.</label>
+
+<form id="CotacaoForm" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="reference" value="@Model.Referencia" />
+    <input type="hidden" id="PrecoSeguro" name="PrecoSeguro" value="@Model.PrecoSeguro" />
+    <input type="hidden" id="seguradoEquipamentoId" name="seguradoEquipamentoId" value="@Model.SeguradoEquipamentoId" />
+    <div class="card-group" id="CardGeral">
+        <div class="card" id="Coberta">
+            <div class="card-header">
+                <h6 class="card-title text-center"><strong>Coberturas</strong></h6>
+            </div>
+            <div class="card-body">
+                <br/>
+                <div class="row">
+                    <div class="col-md-12"><small class="card-text">Básica: Acidente de Causa Externa</small></div>
+                    <div class="col-md-12"><small class="card-text">Roubo e/ou Subtração Mediante Arrombamento</small></div>
+                    <div class="col-md-12"><small class="card-text">Dano Elétrico</small></div>
+                    <br />
+                </div>
+                <hr />
+                <div class="row">
+                    <div class="col-md-12"><h5>Quantidade de Aparelhos</h5></div>
+                </div>
+                <hr />
+            </div>
+        </div>
+        <div class="card" id="ProICard">
+            <div class="card-header">
+                <h6 class="card-title text-center amaisvet-green"><strong id="CardTitle"></strong></h6>
+            </div>
+            <div class="card-body text-center">
+                <strong>Valores</strong>
+                <div class="row">
+                    <div class="col-md-12"><small class="card-text">R$ <span class="money">@Model.PrecoEquipamento</span></small></div>
+                    <div class="col-md-12"><small class="card-text">R$ <span class="money">@Model.PrecoEquipamento</span></small></div>
+                    <div class="col-md-12"><small class="card-text">R$ <span class="money">@Model.PrecoEquipamento</span></small></div>
+                    <br />
+                </div>
+                <hr />
+                <div class="row">
+                    <div class="col-md-12"><h5><strong>@Model.QtdEquipamento</strong></h5></div>
+                </div>
+                <hr />
+                <div class="row">
+                    <div></div>
+                    <div class="col-md-12"><h5><strong>R$ <span class="money">@_precoSeguro</span> à vista</strong></h5></div>
+                    <div id="ou" style="display:none;" class="col-md-12"><h6>ou</h6></div>
+                    <div id="2vezes" style="display:none;" class="col-md-12"><h6>R$ <span class="money">@duasVezes.ToString("0.00")</span> em 2 vezes</h6></div>
+                    <div id="3vezes" style="display:none;" class="col-md-12"><h6>R$ <span class="money">@tresVezes.ToString("0.00")</span> em 3 vezes</h6></div>
+                    <div id="4vezes" style="display:none;" class="col-md-12"><h6>R$ <span class="money">@quatroVezes.ToString("0.00")</span> em 4 vezes</h6></div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="text-center"><a href="javascript:void(0)" id="CotacaoSubmitButton" class="btn btn-primary">Avançar</a></div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script type="text/javascript">
+    $('#CotacaoSubmitButton').click(function () {
+        SalvarCotacao();
+    });
+</script>

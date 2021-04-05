@@ -1,0 +1,216 @@
+﻿@model int?
+@inject AMaisImob_WEB.BLL.CertificateContractualFunctions certificateContractualFunctions
+@inject AMaisImob_WEB.BLL.StatusTypeFunctions statusTypeFunctions
+@inject AMaisImob_WEB.BLL.GuarantorProductFunctions guarantorProductFunctions
+
+@{
+    ViewData["Title"] = "Garantia Contratual – AmaisImob Aluguel";
+    var statusId = (int)AMaisImob_WEB.Utils.ContractualGuaranteeTypes.New;
+    AMaisImob_WEB.Models.CertificateContractualViewModel certificateContractual = null;
+
+    if (Model.HasValue)
+    {
+        certificateContractual = certificateContractualFunctions.GetDataViewModel(certificateContractualFunctions.GetDataByID(Model));
+        var contractedStatusId = statusTypeFunctions.GetByExternalCode("CONTRATADO").StatusTypeId;
+
+        statusId = (certificateContractual.Inactive ? (int)AMaisImob_WEB.Utils.ContractualGuaranteeTypes.Inactive : (certificateContractual.StatusTypeId == contractedStatusId ? (int)AMaisImob_WEB.Utils.ContractualGuaranteeTypes.Active : (int)AMaisImob_WEB.Utils.ContractualGuaranteeTypes.New));
+    }
+
+    var cotacaoStatusId = statusTypeFunctions.GetByExternalCode("COTACAO").StatusTypeId;
+    var analiseStatusId = statusTypeFunctions.GetByExternalCode("ANALISE").StatusTypeId;
+
+    var basicGuarantorProduct = guarantorProductFunctions.GetDataByExternalCode("BASICO");
+    var completeGuarantorProduct = guarantorProductFunctions.GetDataByExternalCode("COMPLETO");
+}
+
+<style type="text/css">
+    .btn-success.active {
+        background-color: #006d36 !important;
+        border: 1px solid #006d36 !important;
+    }
+</style>
+<link href="~/css/guarantor-slider.css" rel="stylesheet" />
+
+@if (certificateContractual != null && certificateContractual.Inactive)
+{
+    <div class="alert alert-warning fade show text-center" role="alert" style="margin-top:8em;">
+        <strong>Atenção!</strong> O Formulário está desativado pois a garantia está inativa.
+    </div>
+}
+<div class="card shadow">
+    <div class="card-header card-header-custom-green"><b>Dados Gerais para Cotação de Garantia Contratual</b></div>
+    <div class="card-body">
+        <div class="alert alert-danger text-center" style="display: none; padding: 3px;" id="contractual-guarantee-manage-alert-error">
+            <h5>Por favor, verifique os campos com pendência.</h5>
+        </div>
+        <div id="_ContractualGuaranteeManageViewComponent"></div>
+    </div>
+    @if (certificateContractual == null || (Model.HasValue && certificateContractual.StatusTypeId == cotacaoStatusId) || User.IsInRole("Administrator"))
+    {
+        <div class="card-footer bg-white" id="contractual-guarantee-manage-card-footer">
+            @if (certificateContractual == null)
+            {
+                <a href="@Url.Action("Index","ContractualGuarantee")?statusId=@statusId" id="_ContractualGuaranteeIndexBackButton" class="btn btn-secondary float-left" style="color:white;"><i class="fa fa-arrow-left"></i>&nbsp;Voltar</a>
+                <button type="button" id="CriarContractualGuarantee" onclick="selectGuarantorProductId(null, true)" class="btn btn-success float-right mr-3"><i class="fas fa-calculator"></i> Calcular</button>
+            }
+            else if (Model.HasValue && certificateContractual.StatusTypeId == cotacaoStatusId)
+            {
+                <a href="@Url.Action("Index","ContractualGuarantee")?statusId=@statusId" class="btn btn-secondary float-right mr-3" style="color:white;"><i class="fa fa-arrow-left"></i>&nbsp;Sair</a>
+
+                if (!User.IsInRole("ImobiliariaVendas"))
+                {
+                    if (Context.Request.Query.ContainsKey("editable"))
+                    {
+                        <button type="button" id="CriarContractualGuarantee" onclick="selectGuarantorProductId(@certificateContractual.GuarantorProductId, true)" class="btn btn-success float-right mr-3"><i class="fas fa-calculator"></i>&nbsp;Calcular</button>
+                    }
+                    else
+                    {
+                        <a type="button" href="@Url.Action("Edit", "ContractualGuarantee", new { id = Model })" class="btn btn-primary float-right mr-3"><i class="fas fa-edit"></i>&nbsp;Editar</a>
+                        <button type="button" onclick="scroolDownToQuotes(); @(Context.Request.Query.ContainsKey("saved") ? "loadTaxItems();" : "")" class="btn btn-primary float-right mr-3"><i class="fas fa-calculator"></i>&nbsp;Calcular</button>
+                    }
+                }
+            }
+            else if (User.IsInRole("Administrator"))
+            {
+                if (Context.Request.Query.ContainsKey("editable"))
+                {
+                    <button type="button" id="CriarContractualGuarantee" onclick="selectGuarantorProductId(@certificateContractual.GuarantorProductId, true)" class="btn btn-success float-right mr-3"><i class="fas fa-upload"></i>&nbsp;Salvar</button>
+                }
+                else
+                {
+                    <a type="button" href="@Url.Action("Edit", "ContractualGuarantee", new { id = Model })" class="btn btn-primary float-right mr-3"><i class="fas fa-edit"></i>&nbsp;Editar</a>
+                }
+            }
+
+        </div>
+    }
+</div>
+@if (certificateContractual != null && !Context.Request.Query.ContainsKey("editable"))
+
+{
+    <div class="card shadow cotacao-area mt-4" id="cotacao-card">
+        <div class="card-header card-header-custom-green">
+            <b>Cotações</b>
+        </div>
+        <div class="card-body">
+            <a href="@(certificateContractual.StatusTypeId == cotacaoStatusId? $"javascript:openPriceQuoteCertificate({Model})" : Url.Action("AnalyzeCertificate", "ContractualGuarantee", new { id = Model }))" @(certificateContractual.StatusTypeId == cotacaoStatusId ? "" : (object)Html.Raw("target=\"_blank\"")) class="btn btn-primary float-right" style="color:white;"><i class="fa fa-print"></i>&nbsp;Imprimir</a>
+            @if (certificateContractual == null || (certificateContractual.StatusTypeId == cotacaoStatusId))
+            {
+                <div class="row">
+                    <div class="col-12 mb-3 text-center">
+                        <p style="font-size: 14px;">Escolha dentre as Garantias Contratuais <b>Básica</b> ou <b>Completa</b></p>
+                        <div style="font-size: 14px;">
+                            <label class="switch">
+                                <span style="position: absolute; transform: translate(-100%, -1px); left: -10px; font-size: 17px !important;">@basicGuarantorProduct.Description</span>
+                                <span style="position: absolute; transform: translate(100%, -1px); right: -10px; font-size: 17px !important; ">@completeGuarantorProduct.Description</span>
+                                <input type="checkbox" onchange="saveGuarantorProductId()" name="GuarantorProductId" @(certificateContractual != null && certificateContractual.GuarantorProductId == completeGuarantorProduct.GuarantorProductId ? "checked" : "")>
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            }
+            <div id="cotacao-area"></div>
+        </div>
+        <div class="card-footer bg-white">
+            <a href="@Url.Action("Index","ContractualGuarantee")?statusId=@statusId" class="btn btn-secondary float-left" style="color:white;"><i class="fa fa-arrow-left"></i>&nbsp;Voltar</a>
+        </div>
+    </div>
+}
+
+<script type="text/javascript">
+    $('#_ContractualGuaranteeManageViewComponent').load('@Url.Action("ContractualGuaranteeManageComponent", "ContractualGuarantee")?id=@(Model.HasValue? Model : (object)"")@(Context.Request.Query.ContainsKey("editable") ? Html.Raw("&editable=true") : (object)"")@(Context.Request.Query.ContainsKey("saved") ? Html.Raw("&saved=true") : (object)"")', function () {
+        @(Context.Request.Query.ContainsKey("editable")? "scrollDown();" : "")
+    });
+
+    function selectGuarantorProductId(guarantorProductId, redirectToIndex) {
+        if (VerificarCampos()) {
+            CertificateGuaranteeSave(guarantorProductId, redirectToIndex);
+        }
+    }
+
+    function scrollDown() {
+        $("html, body").animate({ scrollTop: $(document).height() }, 0);
+    }
+
+    function scroolDownToQuotes() {
+        $('#cotacao-card').show();
+        $("html, body").animate({ scrollTop: $('#contractual-guarantee-manage-card-footer').offset().top - 70 }, 500);
+    }
+
+    $('[type="checkbox"][name="GuarantorProductId"]').change(function () {
+        var val = '@basicGuarantorProduct.GuarantorProductId';
+        if (this.checked) val = '@completeGuarantorProduct.GuarantorProductId';
+
+        loadTaxItems(null, val, true);
+    });
+</script>
+
+
+<div class="modal fade" id="price-quote-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title">Imprimir Cotação</h6>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form action="@Url.Action("PriceQuoteCertificate", "ContractualGuarantee")" method="post" id="price-quote-modal-form" target="_blank">
+                    <input type="hidden" id="price-quote-modal-certificate-contractual-id" name="id" />
+                    <label>Selecione as garantidoras que aparecerão na impressão:</label>
+                    <div id="price-quote-modal-table"></div>
+                    <div id="price-quote-modal-selected-items"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <div class="text-right">
+                    <button class="btn btn-success" id="price-quote-modal-Save-button" style="width: 100px;"><i class="fas fa-print"></i>&nbsp;Imprimir</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function openPriceQuoteCertificate(certificateContractualId)
+    {
+        $('#price-quote-modal-selected-items').empty();
+
+        $('#price-quote-modal-certificate-contractual-id').val(certificateContractualId);
+
+        $('#price-quote-modal-table').empty().load('@Url.Action("CategoryGuarantorProctTaxItemsTable", "ContractualGuarantee")', { certificateContractualId: certificateContractualId });
+
+        $('#price-quote-modal').modal('show');
+    }
+
+    $('#price-quote-modal-Save-button').click(function () {
+        if ($('#price-quote-modal-form .checkbox-item:checked').length == 0) {
+            alert('Selecione ao menos um item');
+            return;
+        }
+
+        $.each($('#price-quote-modal-form .checkbox-item:checked'), function (i, e) {
+            var input = $('<input>', { type: 'hidden', name: 'categoryGuarantorProductTaxIds[]' });
+            input.val($(e).data('category-guarantor-product-tax-id'));
+
+            $('#price-quote-modal-selected-items').append(input);
+        });
+
+        $('#price-quote-modal-form').submit();
+
+        $('#price-quote-modal').modal('hide');
+    });
+
+    function saveGuarantorProductId() {
+       $.post('@Url.Action("SaveGuarantorProductId", "ContractualGuarantee")', { 'CertificateContractualId': '@Model', 'GuarantorProductId': $('[name="GuarantorProductId"]')[0].checked? '@completeGuarantorProduct.GuarantorProductId' : '@basicGuarantorProduct.GuarantorProductId' });
+   }
+</script>
+
+@if (Context.Request.Query.ContainsKey("cloned"))
+{
+    <script type="text/javascript">
+    alert('Duplicação realizada com sucesso! A garantia duplicada possui a referência #@certificateContractual.Reference');
+    </script>
+}

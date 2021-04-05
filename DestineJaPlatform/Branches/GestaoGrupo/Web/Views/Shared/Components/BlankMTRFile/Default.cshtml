@@ -1,0 +1,285 @@
+﻿@model DTO.Demand.DemandMTRFileViewModel
+
+@inject Services.SystemVariable.SystemVariableServices systemVariableServices
+@inject Services.Residue.ResidueFamilyServices residueFamilyServices
+@inject Services.Transporter.TransporterEnvironmentalDocumentationServices transporterEnvironmentalDocumentationServices
+@inject Services.Demand.DemandResidueFamilyServices demandResidueFamilyServices
+@inject Services.Residue.ResidueListServices residueListServices
+
+@{
+    var demandResidueFamilies = await demandResidueFamilyServices.GetDataAsNoTrackingAsync(x => x.DemandId == Model.Demand.DemandId);
+
+    var rcsi_Id = int.Parse((await systemVariableServices.GetDataByIdAsync("GLOBAL_ResidueFamilyID.RCSI")).Value);
+    var residuosContaminados_Ids = (await systemVariableServices.GetDataByIdAsync("GLOBAL_ResidueIDS.ResiduosContaminados")).Value.GetListFromString<int>(";");
+    var recipient = Newtonsoft.Json.JsonConvert.DeserializeObject<DTO.Client.ClientViewModel>((await systemVariableServices.GetDataByIdAsync("Demand.Print.Recipient.Company")).Value);
+}
+
+<div class="w-100 text-center">
+    <img src="~/Imagens/logo2.png" height="150" />
+</div>
+<div class="w-100 text-center">
+    <h4 style="color: black;">MANIFESTO DE TRANSPORTE DE RESÍDUOS</h4>
+</div>
+<div style="width:100%; text-align: right;">
+    <label>Nº @($"{Model.Demand.DestinaJaDemandId}/{Model.DemandClient.Order}")</label>
+</div>
+<div style="width:100%;">
+    <table class="table-b w-100 bb-0">
+        <thead>
+            <tr>
+                <td colspan="6" class="dark-bg">CLASSIFICAÇÃO: CLASSE I</td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="text-center">
+                <td class="bb-0">CÓD. ONU</td>
+                <td class="bb-0">FAMÍLIA</td>
+                <td class="bb-0">EST. FÍSICO</td>
+                <td class="bb-0">RISCO</td>
+                <td class="bb-0">CL. RISCO</td>
+                <td class="bb-0">EMBALAGEM</td>
+            </tr>
+            <tr class="text-center">
+                <td class="bt-0" style="font-weight:bold;">@Model.MTRFileResidue.ONUCode</td>
+                <td class="bt-0" style="font-weight:bold;">@(Model.DemandResidueFamilies.Count == 1? Model.MTRFileResidueFamily.Name : (Model.MTRFileResidueFamily.GroupName.IfNullChange(Model.MTRFileResidueFamily.Name)))</td>
+                <td class="bt-0" style="font-weight:bold;">@Model.MTRFileResidue.PhysicalStateName</td>
+                <td class="bt-0" style="font-weight:bold;">@Model.MTRFileResidue.Risk</td>
+                <td class="bt-0" style="font-weight:bold;">@Model.MTRFileResidue.RiskClass</td>
+                <td class="bt-0" style="font-weight: bold;">@(Model.ContractResidues.Count(x => x.ResidueFamilyId == Model.MTRFileResidueFamily.ResidueFamilyId) > 1? "Outras Formas" : Model.MTRFileResidue.PackagingName)</td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table-b w-100 bb-0">
+        <tbody>
+            <tr>
+                <td colspan="3" style="font-weight:bold; font-size: 17px;">GERADOR: @Model.Client.CompanyName.IfNullChange(Model.Client.NickName) @($"- {Model.Client.TradeName}".IfNullChange("", "- "))</td>
+            </tr>
+            <tr>
+                <td colspan="2">ENDEREÇO: @Model.ClientMainAddress.Address, @Model.ClientMainAddress.Number</td>
+                <td>BAIRRO: @Model.ClientMainAddress.Neighborhood</td>
+            </tr>
+            <tr>
+                <td style="width: 33%;">CIDADE: @Model.ClientMainAddress.City</td>
+                <td style="width: 33%;">TEL: @(Model.ClientContact != null? Model.ClientContact.Phone : Model.Client.Phone)</td>
+                <td style="width: 33%;">CONTATO: @(Model.ClientContact == null? "-" : Model.ClientContact.Name)</td>
+            </tr>
+            <tr>
+                <td>CNPJ: @(string.IsNullOrWhiteSpace(Model.Client.CNPJ) ? Model.Client.CPF.CPFMask() : Model.Client.CNPJ.CNPJMask())</td>
+                <td>IE: @Model.Client.IE</td>
+                <td>CEP: @Model.Client.CEP.CEPMask()</td>
+            </tr>
+            <tr>
+                <td colspan="3">&nbsp;</td>
+            </tr>
+            <tr>
+                <td colspan="3">
+                    <div style="display: flex; -ms-flex-wrap: wrap; flex-wrap: wrap;">
+                        HORA DA CHEGADA: <div style="width:100px; border-bottom:1px solid #a0a0a0;"></div> HORA DE SAÍDA: <div style="width:100px; border-bottom:1px solid #a0a0a0;"></div> DATA DE COLETA: <div style="width:100px; border-bottom:1px solid #a0a0a0;"></div>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table-b w-100 bb-0">
+        <tbody>
+            <tr>
+                @{
+                    var space = "&nbsp;&nbsp;&nbsp;&nbsp;";
+                }
+                <td>Visitou o cliente? <b>(@Html.Raw(space)) Sim</b> | <b>(@Html.Raw(space)) Não</b> - Motivo: </td>
+                <td rowspan="4" class="text-center" style="width: 20%; vertical-align: top;">NÚMERO DO CERTIFICADO</td>
+            </tr>
+            <tr>
+                <td>Coletou resíduo? <b>(@Html.Raw(space)) Sim</b> | <b>(@Html.Raw(space)) Não</b> - Motivo: </td>
+            </tr>
+            <tr>
+                <td>Coletou tudo? <b>(@Html.Raw(space)) Sim</b> | <b>(@Html.Raw(space)) Não</b> - Motivo: </td>
+            </tr>
+            <tr>
+                @{
+                    space = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+                }
+                <td>Quantidade: (@Html.Raw(space))Sacola   (@Html.Raw(space))Tambor   (@Html.Raw(space))Bombona   (@Html.Raw(space))Bag   (@Html.Raw(space))Lata</td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table-b w-100">
+        <tbody>
+            <tr>
+                <td colspan="2">Observações:</td>
+            </tr>
+            <tr>
+                <td class="bb-0 bt-0" style="width: 50%;">
+                    <div class="text-center" style="display: flex; -ms-flex-wrap: wrap; flex-wrap: wrap;">
+                        <div style="width:50%;">Resíduo</div>
+                        <div style="width:50%;">Peso</div>
+                    </div>
+                </td>
+                <td class="bb-0 bt-0" style="width: 50%;">
+                    <div class="text-center" style="display: flex; -ms-flex-wrap: wrap; flex-wrap: wrap;">
+                        <div style="width:50%;">Resíduo</div>
+                        <div style="width:50%;">Peso</div>
+                    </div>
+                </td>
+            </tr>
+            @{
+                var residues = Model.ContractResidues.Where(x => Model.DemandResidueFamilies.Select(c => c.ResidueFamilyId).Contains( x.ResidueFamilyId)).ToList();
+            }
+            @for (int i = 0; i < residues.Count; i += 2)
+            {
+                var margin = i + 2 >= residues.Count ? "margin-bottom: 1em;" : "";
+                var residueName = residues[i].Name;
+                <tr>
+                    <td class="bb-0 bt-0">
+                        <div style="display: flex; -ms-flex-wrap: wrap; flex-wrap: wrap; @margin">
+                            <div style="width:46%; margin-right:1%; margin-left:1%; border-bottom: 1px solid #a0a0a0;">@residueName</div>
+                            <div style="width:2%;" class="text-center">|</div>
+                            <div style="width:46%; margin-right:1%; margin-left:1%; border-bottom: 1px solid #a0a0a0;"></div>
+                        </div>
+                    </td>
+                    @{
+                        residueName = i + 1 >= residues.Count ? "" : residues[i + 1].Name;
+                    }
+                    <td class="bb-0 bt-0">
+                        <div style="display: flex; -ms-flex-wrap: wrap; flex-wrap: wrap; @margin">
+                            <div style="width:46%; margin-right:1%; margin-left:1%; border-bottom: 1px solid #a0a0a0;">@residueName</div>
+                            <div style="width:2%;" class="text-center">|</div>
+                            <div style="width:46%; margin-right:1%; margin-left:1%; border-bottom: 1px solid #a0a0a0;"></div>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<div style="width:100%; margin-top: 1em;">
+    <table class="w-100" style="border: 1px solid #dee2e6">
+        <tbody>
+            <tr class="text-center">
+                <td>DECLARAÇÃO DO EXPEDIDOR</td>
+            </tr>
+            <tr>
+                <td>
+                    <div style=" margin-top: 1em;">
+                        Declaro, por meio deste documento, que os resíduos coletados estão adequadamente acondicionados, embalados e rotulados em conformidade à legislação em vigor, para suportar os riscos normais de carregamento, transporte, descarregamento e destino final.
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div style="display: flex; -ms-flex-wrap: wrap; flex-wrap: wrap; margin-top: 4em;">
+                        <div style="width:32%; margin-right:.5%; margin-left:.5%; border-bottom: 1px solid #a0a0a0;"></div>
+                        <div style="width:32%; margin-right:.5%; margin-left:.5%; border-bottom: 1px solid #a0a0a0;"></div>
+                        <div style="width:32%; margin-right:.5%; margin-left:.5%; border-bottom: 1px solid #a0a0a0;"></div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div style="display: flex; -ms-flex-wrap: wrap; flex-wrap: wrap;">
+                        <div style="width:32%; margin-right:.5%; margin-left:.5%; text-align: center;">Nome Legível</div>
+                        <div style="width:32%; margin-right:.5%; margin-left:.5%; text-align: center;">Assinatura</div>
+                        <div style="width:32%; margin-right:.5%; margin-left:.5%; text-align: center;">CPF</div>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="w-100 bb-0 table-b">
+        <tbody>
+            <tr class="text-center">
+                <td colspan="3" class="dark-bg">TRANSPORTADOR</td>
+            </tr>
+            <tr>
+                @{
+                    var tranporterDocumentatinLicense = await transporterEnvironmentalDocumentationServices.GetDataByTransporterAndResidueFamily(Model.Transporter.TransporterId ?? 0, Model.MTRFileResidueFamily.ResidueFamilyId.Value);
+                }
+                <td colspan="@(Model.Transporter.IsCompany? "1" : "2")">@(Model.Transporter.IsCompany? "Razão Social" : "Nome"): @Model.Transporter.Name</td>
+                @if (Model.Transporter.IsCompany)
+                {
+                    <td>Nome Fantasia: @Model.Transporter.AlternativeName</td>
+                }
+                <td>Licença: @(tranporterDocumentatinLicense != null? tranporterDocumentatinLicense.License : "")</td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="w-100 bb-0 bt-0 table-b">
+        <tbody>
+            <tr>
+                <td>Endereço: @Model.Transporter.Address</td>
+                <td>Nº @Model.Transporter.Number</td>
+                <td>Bairro: @Model.Transporter.Neighborhood</td>
+                <td>Cidade: @Model.Transporter.City</td>
+                <td>Estado: @Model.Transporter.State</td>
+            </tr>
+            <tr>
+                <td colspan="3">CNPJ: @Model.Transporter.CNPJ.CNPJMask()</td>
+                <td colspan="2">Telefone: @Model.Transporter.Phone</td>
+            </tr>
+            <tr>
+                <td colspan="5">Motorista: @Model.TransporterDriver.DriverName</td>
+            </tr>
+            <tr>
+                <td colspan="2">Número MOPP: @Model.TransporterDriver.MOPP</td>
+                <td colspan="2">Número CNH: @Model.TransporterDriver.CNH</td>
+                <td>Habilitação: </td>
+            </tr>
+            <tr>
+                <td colspan="2">Veículo: @Model.TransporterVehicle.Model (@Model.TransporterVehicle.Manufacturer)</td>
+                <td colspan="2">Habilitação CAT: @Model.TransporterDriver.Category</td>
+                <td>Placa: @Model.TransporterVehicle.LicensePlate</td>
+            </tr>
+            <tr>
+                <td colspan="3">Número do CIV: @Model.TransporterVehicle.CIV</td>
+                <td colspan="2">Número do CIPP: @Model.TransporterVehicle.CIPPModel</td>
+            </tr>
+            <tr>
+                <td colspan="5">
+                    <div class="w-100 text-center">
+                        <div style="border: 1px solid #a0a0a0; width: 45%; margin-left: 50%; transform: translateX(-50%); margin-top: 5em;"></div>
+                        <div>Ass. Responsável pelo transporte</div>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="w-100 bb-0 bt-0 table-b">
+        <tbody>
+            <tr class="text-center">
+                <td colspan="3" class="dark-bg">DESTINADOR</td>
+            </tr>
+            <tr>
+                <td>Razão Social: @recipient.CompanyName</td>
+                <td>Fantasia: @recipient.TradeName</td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="w-100 bt-0 table-b">
+        <tbody>
+            <tr>
+                <td>Endereço: @recipient.Address</td>
+                <td>Nº @recipient.Number</td>
+                <td>Bairro: @recipient.Neighborhood</td>
+                <td>Cidade: @recipient.City</td>
+                <td>Estado: @recipient.State</td>
+            </tr>
+            <tr>
+                <td>CNPJ: @recipient.CNPJ.CNPJMask()</td>
+                <td>Telefone: @recipient.Phone</td>
+                <td colspan="3">E-mail: <a href="mailto:@recipient.CentralEmail">@recipient.CentralEmail</a></td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <div class="w-100 text-center">
+                        <div style="border: 1px solid #a0a0a0; width: 70%; margin-left: 50%; transform: translateX(-50%); margin-top: 13em;"></div>
+                        <div>Assinatura do Receptor</div>
+                    </div>
+                </td>
+                <td colspan="3" class="text-center" style="vertical-align:bottom;">
+                    <span>CARIMBO</span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

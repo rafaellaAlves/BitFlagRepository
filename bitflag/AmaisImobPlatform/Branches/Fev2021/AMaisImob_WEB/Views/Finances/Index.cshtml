@@ -1,0 +1,307 @@
+﻿@using AMaisImob_WEB.Utils;
+@{
+    ViewData["Title"] = "Área Financeira";
+
+    int? userRealEstateAgencyId = null;
+    int? userRealEstateId = null;
+    if (ViewData.ContainsKey("UserRealEstateAgencyId"))
+    {
+        userRealEstateAgencyId = (int)ViewData["UserRealEstateAgencyId"];
+        userRealEstateId = (int)ViewData["UserRealEstateId"];
+    }
+}
+
+<style type="text/css">
+    tbody tr td {
+        vertical-align: middle !important;
+    }
+</style>
+
+<div class="card shadow bg-light">
+    <div class="card-body">
+        <div class="row">
+            @if (User.IsInRealEstate())
+            {
+                <input type="hidden" id="RealEstateAgencyId" name="RealEstateAgencyId" value="@userRealEstateAgencyId" />
+            }
+            else
+            {
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Corretora</span>
+                        </div>
+                        <select class="form-control" id="RealEstateAgencyId" name="RealEstateAgencyId">
+                            <option value="">Selecione</option>
+                            @foreach (var item in (List
+               <AMaisImob_DB.Models.Company>
+                   )ViewData["RealEstateAgency"])
+                            {
+                                var companyName = string.IsNullOrWhiteSpace(item.RazaoSocial) ? item.FirstName + " " + item.LastName : item.RazaoSocial;
+                                if (ViewBag.RealEstateAgencyId != null && (int)ViewBag.RealEstateAgencyId == item.CompanyId)
+                                {
+                                    <option value="@item.CompanyId" selected data-name="@companyName">@companyName</option>
+                                }
+                                else
+                                {
+                                    <option value="@item.CompanyId" data-name="@companyName">@companyName</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+            }
+            @if (User.IsInRealEstate())
+            {
+                <input id="RealEstateId" name="RealEstateId" type="hidden" value="@userRealEstateId" />
+            }
+            else
+            {
+                <div class="form-group col-md-3">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Imobiliária</span>
+                        </div>
+                        <select class="form-control" id="RealEstateId">
+                            <option value="">Selecione uma corretora</option>
+                        </select>
+                    </div>
+                </div>
+            }
+            <div class="form-group col-md-3">
+                <div class="input-group" id="_CertificateManageReferenceMonthArea">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">Mês de Referência</span>
+                    </div>
+                    <input type="text" class="form-control monthYear" name="_refMonth" value="@ViewBag.ReferenceMonth" id="_CertificateManageReferenceMonth" placeholder="Mês de Referência">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <button id="button-charges" class="btn btn-primary w-100"><i class='fas fa-search'></i>&nbsp;Buscar Cobranças</button>
+            </div>
+        </div>
+        <hr />
+
+        @if (User.IsInRole("Administrator"))
+        {
+            <div class="row" style="margin-bottom:1em; display:none;" id="gerar-boleto-area">
+                <div class="col-md-12 text-center">
+                    <button class="btn btn-success" id="gerar-boleto-botao"><i class="fas fa-barcode"></i>&nbsp;<span id="gerar-boleto-texto">Gerar Boletos para Todas as Imobiliárias</span></button>
+                </div>
+            </div>
+            <script type="text/javascript">
+                $('#gerar-boleto-botao').click(function () {
+                    if (!confirm('Deseja realmente gerar os boletos?')) return;
+
+                    $.post('@Url.Action("ChargeActiveRealEstates")',
+                        {
+                            realEstateAgencyId: $('#RealEstateAgencyId').val(),
+                            realEstateId: $('#RealEstateId').val(),
+                            _mouthRefence: $('#_CertificateManageReferenceMonth').val()
+                        },
+                        function (d) {
+                            alert(d.message);
+                            if (!d.hasError) {
+                                window.location.href = '@Url.Action("Index", "Finances")?referenceMonth=' + $('#_CertificateManageReferenceMonth').val() + '&realEstateAgencyId=' + $('#RealEstateAgencyId').val() + '&realEstateId=' + $('#RealEstateId').val();
+                            }
+                        }
+                    )
+                });
+            </script>
+        }
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div id="no-real-estate">
+                            <div class="text-center"><i>Por favor, selecione o mês de referência para visualizar suas cobranças.</i></div>
+                        </div>
+                        <div id="no-data" style="display: none;">
+                            <div class="text-center"><i>Nenhuma cobrança existente.</i></div>
+                        </div>
+                        <div id="table-container" style="display: none;">
+                            <table class="table table-bordered table-striped" id="table" style="width: 100%;">
+                                <thead>
+                                    <tr>
+                                        <th style="width:300px;">Imobiliária</th>
+                                        <th>Descrição</th>
+                                        <th>Valor</th>
+                                        <th>Mês/Ano Referência</th>
+                                        <th>Vencimento</th>
+                                        <th>Pago?</th>
+                                        <th>&nbsp;</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $('#RealEstateAgencyId').change(function () {
+        GetRealEstates();
+    });
+
+    $('#button-charges').click(function () {
+
+        if (!$('#_CertificateManageReferenceMonth').val())
+        {
+            alert('Por favor, selecione o mês de referência.');
+            $('#no-real-estate').show();
+            $('#no-data').hide();
+            $('#table-container').hide();
+            $('#gerar-boleto-area').hide();
+
+            return false;
+        }
+
+        $('#gerar-boleto-area').show();
+        if (!IsNullOrWhiteSpace($('#RealEstateId').val())) {
+            $('#gerar-boleto-texto').text('Gerar Boletos para Imobiliária ' + $('#RealEstateId :selected').data('name'));
+        }
+        else if (!IsNullOrWhiteSpace($('#RealEstateAgencyId').val())) {
+            $('#gerar-boleto-texto').text('Gerar Boletos para Todas as Imobiliárias da Corretora ' + $('#RealEstateAgencyId :selected').data('name'));
+        } else {
+            $('#gerar-boleto-texto').text('Gerar Boletos para Todas as Imobiliárias');
+        }
+
+
+        $.get('@Url.Action("GetCharges", "Finances")', { realEstateAgencyId: $('#RealEstateAgencyId').val(), realEstateId: $('#RealEstateId').val(), _ReferenceMonth: $('#_CertificateManageReferenceMonth').val() }, function (d) {
+
+            $('#table').DataTable().destroy();
+            $('#tbody').empty();
+
+            if (d.length == 0) {
+                $('#no-real-estate').hide();
+                $('#no-data').show();
+                $('#table-container').hide();
+                return false;
+            }
+
+            $.each(d, function (i, e) {
+                var tr = $('<tr />', { id: 'tr' + e.chargeId });
+                $(tr).append('<td>' + e.companyName + '</td>');
+                $(tr).append('<td>' + e.description + '</td>');
+                $(tr).append('<td>R$ ' + e._Price + '</td>');
+                $(tr).append('<td>' + e._ReferenceDate + '</td>');
+                $(tr).append('<td>' + e._DueDate + '</td>');
+                $(tr).append('<td id="isPayed' + e.chargeId + '">' + (e.isPayed? 'Sim' : 'Não') + '</td>');
+
+                var actions = "<td><a target='_blank' class='btn btn-primary' href='" + e.iuguUrl + "'><i class='fas fa-barcode'></i>&nbsp;Boleto</a>";
+
+                @if (User.IsInRole("Administrator")) {
+                <text>
+                actions += "&nbsp;" + (e.isPayed ? "" : "<a id='pagar" + e.chargeId + "' href='javascript:void(0)' class='btn btn-success' onclick='Pagar(" + JSON.stringify({ chargeId: e.chargeId, payedToken: e.payedToken }) + ")'><i class='fas fa-check'></i>&nbsp;Pago</a>");
+                actions += "&nbsp;" + (e.isPayed ? "" : "<a id='excluir" + e.chargeId + "' href='javascript:void(0)' class='btn btn-danger' onclick='Excluir(" + JSON.stringify({ chargeId: e.chargeId }) + ")'><i class='fas fa-trash'></i>&nbsp;Excluir</a>");
+                </text>
+                }
+                $(tr).append(actions + "</td>");
+                $('#tbody').append(tr);
+            });
+
+            $('#table').DataTable({
+                searching: false,
+                ordering: false,
+                lengthChange: false
+            });
+
+            $('#no-real-estate').hide();
+            $('#no-data').hide();
+            $('#table-container').show();
+
+        });
+    });
+
+    function GetRealEstates(realEstateId) {
+        if (IsNullOrWhiteSpace($('#RealEstateAgencyId').val())) {
+            $('#RealEstateId').empty();
+            $('#RealEstateId').append($('<option>', { value: '' }).append('Selecione um corretora.'));
+        }
+        else {
+            $.ajax({
+                url: '@Url.Action("GetRealEstatesByRealEstateAgencyId", "Company")',
+                type: 'POST',
+                datatype: 'JSON',
+                data: { id: $('#RealEstateAgencyId').val() },
+                success: function (data) {
+                    $('#RealEstateId').empty();
+                    if (data == false || data.length == 0) {
+                        $('#RealEstateId').append($('<option>', { value: '' }).append('Nenhuma imobiliária encontrada.'));
+                    }
+                    if (data.length > 0) {
+                        $('#RealEstateId').append($('<option>', { value: '' }).append('Selecione'));
+                        for (var i = 0; i < data.length; i++) {
+                            var companyName = IsNullOrWhiteSpace(data[i].razaoSocial) ? data[i].firstName + " " + data[i].lastName : data[i].razaoSocial;
+                            var option = $('<option>', { value: data[i].companyId });
+                            option.data('name', companyName);
+                            option.append(companyName);
+                            $('#RealEstateId').append(option);
+                        }
+                    }
+
+                    if (realEstateId != null) {
+                        $('#RealEstateId').val(realEstateId);
+                        $('#button-charges').click();
+                    }
+                }
+            });
+        }
+    }
+
+    function Pagar(d) {
+        if (!confirm('Deseja realemente declarar como paga esta fatura?')) return;
+
+        $.post('@Url.Action("PayCharge")',
+            {
+                chargeId: d.chargeId,
+                payedToken: d.payedToken
+            },
+            function (_d) {
+                alert(_d.message);
+                if (!_d.hasError) {
+                    if ($('#pagar' + d.chargeId).length > 0) {
+                        $('#pagar' + d.chargeId).remove();
+                        $('#isPayed' + d.chargeId).text('Sim');
+                        $('#excluir' + d.chargeId).remove();
+                    }
+                }
+            }
+        )
+    }
+
+    function Excluir(d) {
+        if (!confirm('Deseja realemente excluir esta fatura?')) return;
+
+        $.post('@Url.Action("RemoveCharge")',
+            {
+                chargeId: d.chargeId,
+            },
+            function (_d) {
+                alert(_d.message);
+                if (!_d.hasError) {
+                    window.location.href = '@Url.Action("Index", "Finances")?referenceMonth=' + $('#_CertificateManageReferenceMonth').val() + '&realEstateAgencyId=' + $('#RealEstateAgencyId').val() + '&realEstateId=' + $('#RealEstateId').val();
+                    //if ($('#tr' + d.chargeId).length > 0) {
+                    //    $('#tr' + d.chargeId).remove();
+                    //}
+                }
+            }
+        )
+    }
+
+
+    @if (ViewBag.RealEstateId == null && (!string.IsNullOrWhiteSpace(ViewBag.ReferenceMonth) || ViewBag.RealEstateAgencyId != null)) {
+        <text>
+    $('#button-charges').click();
+        </text>
+    }
+    @if(ViewBag.RealEstateAgencyId != null)
+    {
+        <text>
+    GetRealEstates(@ViewBag.RealEstateId);
+        </text>
+    }
+</script>

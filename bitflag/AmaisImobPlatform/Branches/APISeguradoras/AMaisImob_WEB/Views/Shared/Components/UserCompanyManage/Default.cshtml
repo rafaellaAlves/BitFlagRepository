@@ -1,0 +1,54 @@
+﻿@model AMaisImob_WEB.Models.UserCompanyManageViewModel
+
+
+<div id="_UserCompanyManageAlertError" class="alert alert-danger fade show text-center" style="display:none;">
+    <b>Houve um erro ao salvar os dados, tente novamente.</b>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <label>Usuários:</label>
+        <select class="form-control" id="Usuarios" multiple>
+            @foreach (var user in (List<AMaisImob_DB.Models.User>)ViewData["Users"])
+            {
+                if (Model.UserIds.Contains(user.Id))
+                {
+                    <option value="@(user.Id)" selected>@(user.FirstName + " " + user.LastName)</option>
+                    continue;
+                }
+                <option value="@(user.Id)">@(user.FirstName + " " + user.LastName)</option>
+            }
+        </select>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#Usuarios').select2({
+        allowClear: true,
+        escapeMarkup: function (markup) { return markup; },
+        placeholder: "Selecione os usuários para @Html.Raw(string.IsNullOrWhiteSpace(Model.Company.RazaoSocial)?Model.Company.FirstName + " " + Model.Company.LastName : Model.Company.RazaoSocial)",
+        "language": {
+            "noResults": function () {
+                return 'Nenhum usuário encontrado, <a href="@Url.Action("Manage", "Account")">clique aqui</a> para criar novos.';
+            }
+        },
+        closeOnSelect: false
+    });
+
+    function _UserCompanyManageSave() {
+        $.ajax({
+            url: '@Url.Action("Manage", "UserCompany")',
+            type: 'POST',
+            datatype: 'JSON',
+            data: { companyId: '@Model.Company.CompanyId', userIds: $('#Usuarios').val() },
+            success: function (data) {
+                if (data.hasError) {
+                    $('#_UserCompanyManageAlertError').show();
+                } else {
+                    $('#_UserCompanyManageAlertError').hide();
+                    _UserCompanyManageCallBack(data.code);
+                }
+            }
+        });
+    }
+</script>

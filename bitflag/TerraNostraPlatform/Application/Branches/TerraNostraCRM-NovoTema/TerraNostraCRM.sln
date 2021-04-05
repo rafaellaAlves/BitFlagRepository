@@ -1,0 +1,106 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29306.81
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Web", "Web\Web.csproj", "{3B792F19-1793-474E-8264-A2141F2A3A59}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DB", "DB\DB.csproj", "{18203BE2-ECC3-4831-9E08-31FADFA53326}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FUNCTIONS", "FUNCTIONS\FUNCTIONS.csproj", "{B358800B-8A84-497D-AEA1-9938DD02C6AF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DTO", "ViewModel\DTO.csproj", "{18AE5890-BEF0-4670-85A5-3DF9FFBD14A7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "API", "API\API.csproj", "{B91A05D1-ED40-40CA-A98A-BB7B8846FB7B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GoogleDriveAPI", "GoogleDriveAPI\GoogleDriveAPI.csproj", "{E0E96019-B07A-451D-BCC8-921BFB3A76A2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TerraNostraIdentityDbContext", "TerraNostraIdentityDbContext\TerraNostraIdentityDbContext.csproj", "{57EC05E0-65CA-43EC-912E-20D2F1C806DB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Helpers", "Helpers\Helpers.csproj", "{B4BC0BEC-CBC3-42EC-90CD-FDEC6E20BE60}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BackgroundService", "CalendarNotificationService\BackgroundService.csproj", "{4D7CEFBD-24AF-47EE-AB3F-1F600B4BFEBC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3B792F19-1793-474E-8264-A2141F2A3A59}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B792F19-1793-474E-8264-A2141F2A3A59}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B792F19-1793-474E-8264-A2141F2A3A59}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B792F19-1793-474E-8264-A2141F2A3A59}.Release|Any CPU.Build.0 = Release|Any CPU
+		{18203BE2-ECC3-4831-9E08-31FADFA53326}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{18203BE2-ECC3-4831-9E08-31FADFA53326}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{18203BE2-ECC3-4831-9E08-31FADFA53326}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{18203BE2-ECC3-4831-9E08-31FADFA53326}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B358800B-8A84-497D-AEA1-9938DD02C6AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B358800B-8A84-497D-AEA1-9938DD02C6AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B358800B-8A84-497D-AEA1-9938DD02C6AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B358800B-8A84-497D-AEA1-9938DD02C6AF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{18AE5890-BEF0-4670-85A5-3DF9FFBD14A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{18AE5890-BEF0-4670-85A5-3DF9FFBD14A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{18AE5890-BEF0-4670-85A5-3DF9FFBD14A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{18AE5890-BEF0-4670-85A5-3DF9FFBD14A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B91A05D1-ED40-40CA-A98A-BB7B8846FB7B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B91A05D1-ED40-40CA-A98A-BB7B8846FB7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B91A05D1-ED40-40CA-A98A-BB7B8846FB7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B91A05D1-ED40-40CA-A98A-BB7B8846FB7B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E0E96019-B07A-451D-BCC8-921BFB3A76A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E0E96019-B07A-451D-BCC8-921BFB3A76A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E0E96019-B07A-451D-BCC8-921BFB3A76A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E0E96019-B07A-451D-BCC8-921BFB3A76A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{57EC05E0-65CA-43EC-912E-20D2F1C806DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{57EC05E0-65CA-43EC-912E-20D2F1C806DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{57EC05E0-65CA-43EC-912E-20D2F1C806DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{57EC05E0-65CA-43EC-912E-20D2F1C806DB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4BC0BEC-CBC3-42EC-90CD-FDEC6E20BE60}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4BC0BEC-CBC3-42EC-90CD-FDEC6E20BE60}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4BC0BEC-CBC3-42EC-90CD-FDEC6E20BE60}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4BC0BEC-CBC3-42EC-90CD-FDEC6E20BE60}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D7CEFBD-24AF-47EE-AB3F-1F600B4BFEBC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D7CEFBD-24AF-47EE-AB3F-1F600B4BFEBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D7CEFBD-24AF-47EE-AB3F-1F600B4BFEBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D7CEFBD-24AF-47EE-AB3F-1F600B4BFEBC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D6033EAC-FE63-408B-B304-1019168E4F67}
+	EndGlobalSection
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 10
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = https://chokosysvsts.visualstudio.com/
+		SccLocalPath0 = .
+		SccProjectUniqueName1 = Web\\Web.csproj
+		SccProjectName1 = Web
+		SccLocalPath1 = Web
+		SccProjectUniqueName2 = DB\\DB.csproj
+		SccProjectName2 = DB
+		SccLocalPath2 = DB
+		SccProjectUniqueName3 = FUNCTIONS\\FUNCTIONS.csproj
+		SccProjectName3 = FUNCTIONS
+		SccLocalPath3 = FUNCTIONS
+		SccProjectUniqueName4 = ViewModel\\DTO.csproj
+		SccProjectName4 = ViewModel
+		SccLocalPath4 = ViewModel
+		SccProjectUniqueName5 = API\\API.csproj
+		SccProjectName5 = API
+		SccLocalPath5 = API
+		SccProjectUniqueName6 = GoogleDriveAPI\\GoogleDriveAPI.csproj
+		SccProjectName6 = GoogleDriveAPI
+		SccLocalPath6 = GoogleDriveAPI
+		SccProjectUniqueName7 = TerraNostraIdentityDbContext\\TerraNostraIdentityDbContext.csproj
+		SccProjectName7 = TerraNostraIdentityDbContext
+		SccLocalPath7 = TerraNostraIdentityDbContext
+		SccProjectUniqueName8 = Helpers\\Helpers.csproj
+		SccProjectName8 = Helpers
+		SccLocalPath8 = Helpers
+		SccProjectUniqueName9 = CalendarNotificationService\\BackgroundService.csproj
+		SccProjectName9 = CalendarNotificationService
+		SccLocalPath9 = CalendarNotificationService
+	EndGlobalSection
+EndGlobal

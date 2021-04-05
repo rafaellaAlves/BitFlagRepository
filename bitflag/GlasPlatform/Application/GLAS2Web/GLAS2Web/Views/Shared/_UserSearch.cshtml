@@ -1,0 +1,105 @@
+﻿@inject DAL.GLAS2Context context
+@{
+
+	int companyId = -1;
+
+	if (ViewData.ContainsKey("companyId"))
+	{
+		int.TryParse(ViewData["companyId"].ToString(), out companyId);
+	}
+}
+<div id="_9BC4837E272B4529A20E706ACB1B5ED7">
+	<div class="input-group">
+		<span class="input-group-addon"><i class="fa fa-search"></i></span>
+		<input id="_9BC4837E272B4529A20E706ACB1B5ED7_search" class="form-control" type="text" placeholder="Procurar usuários..." />
+		<script type="text/javascript">
+            var _9BC4837E272B4529A20E706ACB1B5ED7_typingTimer;
+            var _9BC4837E272B4529A20E706ACB1B5ED7_doneTypingInterval = 500;
+
+            function _9BC4837E272B4529A20E706ACB1B5ED7_DoneTyping() {
+                $('#_9BC4837E272B4529A20E706ACB1B5ED7_listGroupUserSearch').empty();
+                var q = $('#_9BC4837E272B4529A20E706ACB1B5ED7_search').val();
+
+				$.ajax({
+					@if(companyId != -1){
+						<text>
+							url: '@Url.Action("QuickList", "UserManagement")?companyId=@companyId',
+						</text>
+						}
+					else{
+						<text>
+							url: '@Url.Action("QuickList", "UserManagement")',
+						</text>
+						}
+                    type: 'POST',
+                    data: JSON.stringify(q),
+                    contentType: 'application/json; charset=utf-8',
+					success: function (data) {
+						if (data.data.length == 0) {
+							$('#_9BC4837E272B4529A20E706ACB1B5ED7_listGroupUserSearch').html('<i class="text-center">Nenhum usuário encontrado.</a>');
+							if (IsNullOrWhiteSpace(q)) {
+								@if (companyId != -1) {
+									<text>
+										_UserSearchClearSearch();
+									</text>
+								}
+							}
+							}
+
+						$.each(data.data, function (i, e) {
+	                            $('#_9BC4837E272B4529A20E706ACB1B5ED7_listGroupUserSearch').append(function () {
+									var listGroupItem = $('<li class="list-group-item" />');
+									var listGroupItemA = $('<a class="_9BC4837E272B4529A20E706ACB1B5ED7 float-left" href="javascript:void(0);" data-user-id="' + e.UserId + '" data-first-name="' + e.FirstName + '" data-last-name="' + e.LastName + '" data-email="' + e.Email + '" data-main-role="' + e.MainRole +'">' + e.FirstName + ' ' + e.LastName + '</a>');
+									var listGroupItemB = $('<b class="float-right">' + e.Roles + '</b>');
+
+									$(listGroupItem).append(listGroupItemA);
+									$(listGroupItem).append(listGroupItemB);
+
+									return listGroupItem;
+								});
+								})
+
+								$('._9BC4837E272B4529A20E706ACB1B5ED7').click(function () {
+									var d = { UserId: parseInt($(this).data('user-id')), FirstName: $(this).data('first-name'), LastName: $(this).data('last-name'), Email: $(this).data('email'), MainRole: $(this).data('main-role') };
+									_UserSearchSelectCallBack(d);
+								});
+						}
+                });
+            }
+            $('#_9BC4837E272B4529A20E706ACB1B5ED7_search').keyup(function () {
+                clearTimeout(_9BC4837E272B4529A20E706ACB1B5ED7_typingTimer);
+                _9BC4837E272B4529A20E706ACB1B5ED7_typingTimer = setTimeout(_9BC4837E272B4529A20E706ACB1B5ED7_DoneTyping, _9BC4837E272B4529A20E706ACB1B5ED7_doneTypingInterval);
+            });
+            $('#_9BC4837E272B4529A20E706ACB1B5ED7_search').keydown(function () {
+                clearTimeout(_9BC4837E272B4529A20E706ACB1B5ED7_typingTimer);
+            });
+
+		</script>
+	</div>
+	<hr />
+	<div style="height: 100%; width: 100%; overflow-y:auto;">
+		<ul id="_9BC4837E272B4529A20E706ACB1B5ED7_listGroupUserSearch" class="list-group"></ul>
+	</div>
+	<script type="text/javascript">
+
+		function _UserSearchClearSearch() {
+			$('#_9BC4837E272B4529A20E706ACB1B5ED7_search').val('');
+			$('#_9BC4837E272B4529A20E706ACB1B5ED7_listGroupUserSearch').empty();
+			$('#_9BC4837E272B4529A20E706ACB1B5ED7_listGroupUserSearch').html('<i class="text-center">Faça a busca no campo acima.</a>');
+			}
+
+
+		@if (companyId != -1)
+		{
+			<text>
+				_9BC4837E272B4529A20E706ACB1B5ED7_DoneTyping();
+			</text>
+		}
+		else
+		{
+			<text>
+				_UserSearchClearSearch();
+			</text>
+		}
+	</script>
+</div>

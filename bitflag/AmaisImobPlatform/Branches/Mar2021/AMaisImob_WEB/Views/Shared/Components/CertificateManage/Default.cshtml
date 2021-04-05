@@ -1,0 +1,1033 @@
+﻿@model AMaisImob_WEB.Models.CertificateViewModel
+@inject AMaisImob_DB.Models.AMaisImob_HomologContext context
+@using AMaisImob_WEB.Utils;
+
+@{
+    var propertyTypes = new AMaisImob_WEB.BLL.PropertyTypeFunctions(context).GetData();
+    var products = new AMaisImob_WEB.BLL.ProductFunctions(context).GetData();
+
+    var otherId = propertyTypes.Single(x => x.ExternalCode == "OUTROS").PropertyTypeId;
+
+    int? certificateType = null;
+    if (ViewData.ContainsKey("CertificateType") && ViewData["CertificateType"] != null)
+    {
+        certificateType = int.Parse(ViewData["CertificateType"].ToString());
+    }
+
+    bool isRenovation = Model.CertificateId.HasValue && (Model.VigencyDate.IsInTimeToRenovate());
+    bool isSimulation = !Model.IsSimulation.HasValue || (Model.IsSimulation.HasValue && Model.IsSimulation.Value);
+}
+<style type="text/css">
+        /*input, select {
+            text-transform: uppercase;
+        }
+        #_CertificateManageRenterEmail, #_CertificateManageLocatorEmail {
+            text-transform: none;
+        }*/
+    .ui-widget-content {
+        background: #f39a2dbf !important;
+    }
+        .ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default, .ui-button, html .ui-button.ui-state-disabled:hover, html .ui-button.ui-state-disabled:active {
+            border: 1px solid #506b66 !important;
+            background: #5e807a !important;
+        }
+</style>
+<script type="text/javascript">
+    _MaskData();
+
+    //$('input').on('input', function () {
+    //    this.value = this.value.toUpperCase();
+    //});
+</script>
+
+<script type="text/javascript">
+    //Fields's Id to disable when is an update.
+    var disableFields = ["_CertificateManageRealEstateAgencyId", "_CertificateManageRealEstateId", "_CertificateManageInsurancePolicyId", "_CertificateManageProductId", "_CertificateManagePropertyTypeId", "_CertificateManageHabitationTypeId", "_CertificateManagePropertyTypeDescription", "_CertificateManagePaymentTimes", "_CertificateManageConstructionTypeId", "_CertificateManageAssistanceId"];
+
+    var assistancePrice = 0;
+    var planPrice = 0;
+    var taxaInquiliniPrice = 0;
+    var monthlyTotal = 0;
+
+    function _CertificateManageSave(isSimulation) {
+        //primeiro salva o plano livre se houver
+        var freePlan = $('#_CertificateManagePlanId option[value="' + $('#_CertificateManagePlanId').val() + '"]').data('free-plan');
+        if (freePlan) {
+            if (typeof _FreePlanCoverageSavePlan == 'function') {
+                //criar o plano e salvar as coberturas
+                _FreePlanCoverageSavePlan(_CertificateManageSaveCertificate, isSimulation);
+            }
+        } else {
+            var planId = $('#_CertificateManagePlanId').val();
+            _CertificateManageSaveCertificate(planId, isSimulation);
+        }
+
+    }
+
+    function _CertificateManageSaveCertificate(planId, isSimulation) {
+        var freePlan = $('#_CertificateManagePlanId option[value="' + $('#_CertificateManagePlanId').val() + '"]').data('free-plan');
+
+        var d = $('#_CertificateManageForm').serializeArray();
+        d.push({ 'name': 'PlanId', 'value': planId });
+        d.push({ 'name': 'TaxaInquilini', 'value': taxaInquiliniPrice});
+        d.push({ 'name': 'IsSimulation', 'value': isSimulation});
+
+        $.post('@Url.Action("Manage", "Certificate")', d, function (data) {
+            if (data.hasError) {
+                $('#alertErrorCertificate').show();
+                return;
+            }
+            //callBack - atualizar o plano com o certificateId e recarregar a pagina
+            _CertificateManageCallBack(data.code, planId, freePlan);
+	    });
+    }
+
+function _CertificateManageValidate(isSimulation) {
+
+    var _CertificateManagehasError = false;
+	$('.text-danger').remove();
+
+    if (IsNullOrWhiteSpace($('#_CertificateManageRenterName').val())) {
+        $('#_CertificateManageRenterName').after('<div class="text-danger">Preencha o nome do lacatário.</div>');
+        _CertificateManagehasError = true;
+	}
+
+    if (IsNullOrWhiteSpace($('#_CertificateManageRenterCpf').val())) {
+        $('#_CertificateManageRenterCpf').after('<div class="text-danger">Preencha o CPF/CNPJ do locatário.</div>');
+        _CertificateManagehasError = true;
+	}
+
+    if (IsNullOrWhiteSpace($('#_CertificateManageLocatorName').val())) {
+        $('#_CertificateManageLocatorName').after('<div class="text-danger">Preencha o nome do lacator.</div>');
+        _CertificateManagehasError = true;
+    }
+
+    if (IsNullOrWhiteSpace($('#_CertificateManageLocatorCpf').val())) {
+        $('#_CertificateManageLocatorCpf').after('<div class="text-danger">Preencha o CPF/CNPJ do locator.</div>');
+        _CertificateManagehasError = true;
+    }
+
+    if (IsNullOrWhiteSpace($('#_CertificateManagePropertyTypeId').val())) {
+        $('#_CertificateManagePropertyTypeId').after('<div class="text-danger">Escolha um tipo de imóvel.</div>');
+        _CertificateManagehasError = true;
+    } else if ($('#_CertificateManagePropertyTypeId').val() == '@otherId' && IsNullOrWhiteSpace($('#_CertificateManagePropertyTypeDescription').val())) {
+        $('#_CertificateManagePropertyTypeDescription').after('<div class="text-danger">Insira a descrição do tipo de imóvel.</div>');
+        _CertificateManagehasError = true;
+    }
+
+    if (IsNullOrWhiteSpace($('#_CertificateManageInsurancePolicyId').val())) {
+        $('#_CertificateManageInsurancePolicyId').after('<div class="text-danger">Escolha um produto.</div>');
+        _CertificateManagehasError = true;
+    } else {
+        //validar plano livre
+        var freePlan = $('#_CertificateManagePlanId option[value="' + $('#_CertificateManagePlanId').val() + '"]').data('free-plan');
+        if (freePlan) {
+            if (typeof _FreePlanCoverageValidacao == 'function') {
+                if (!_FreePlanCoverageValidacao())
+                    _CertificateManagehasError = true;
+            }
+
+            @*if(!isSimulation && IsNullOrWhiteSpace($('#_CertificateManageAssistanceIdHidden').val())){
+                $('#_CertificateManageAssistanceIdHidden').after('<div class="text-danger">Escolha uma assistência.</div>');
+                _CertificateManagehasError = true;
+            }*@
+        }
+
+        else if (IsNullOrWhiteSpace($('#_CertificateManagePlanId').val())) {
+            $('#planArea').after('<div class="text-danger">Escolha um plano.</div>');
+            _CertificateManagehasError = true;
+        }
+    }
+
+    if (IsNullOrWhiteSpace($('#_CertificateManageRealEstateId').val())) {
+        $('#_CertificateManageRealEstateId').after('<div class="text-danger">Escolha uma imobiliária.</div>');
+        _CertificateManagehasError = true;
+    }
+
+    if (IsNullOrWhiteSpace($('#_CertificateManageEndereco').val())) {
+        $('#_CertificateManageEndereco').after('<div class="text-danger">Preencha o endereço.</div>');
+        _CertificateManagehasError = true;
+    }
+    if (IsNullOrWhiteSpace($('#_CertificateManageCep').val())) {
+        $('#_CertificateManageCep').after('<div class="text-danger">Preencha o CEP.</div>');
+        _CertificateManagehasError = true;
+    }
+    if (IsNullOrWhiteSpace($('#_CertificateManageNumero').val())) {
+        $('#_CertificateManageNumero').after('<div class="text-danger">Preencha o número.</div>');
+        _CertificateManagehasError = true;
+    }
+    if (IsNullOrWhiteSpace($('#_CertificateManageBairro').val())) {
+        $('#_CertificateManageBairro').after('<div class="text-danger">Preencha o bairro.</div>');
+        _CertificateManagehasError = true;
+    }
+    if (IsNullOrWhiteSpace($('#_CertificateManageCidade').val())) {
+        $('#_CertificateManageCidade').after('<div class="text-danger">Preencha a cidade.</div>');
+        _CertificateManagehasError = true;
+    }
+    if (IsNullOrWhiteSpace($('#_CertificateManageUF').val())) {
+        $('#_CertificateManageUF').after('<div class="text-danger">Preencha o estado.</div>');
+        _CertificateManagehasError = true;
+    }
+
+    var propertyExternalCode = $('#_CertificateManagePropertyTypeId option[value="' + $('#_CertificateManagePropertyTypeId').val() + '"]').data('external-code');
+    if (propertyExternalCode == "CASA" && IsNullOrWhiteSpace($('#_CertificateManageConstructionTypeId').val())) {
+        $('#_CertificateManageConstructionTypeId').after('<div class="text-danger">Escolha um tipo de construção.</div>');
+        _CertificateManagehasError = true;
+    }
+
+    var productExternalCode = $('#_CertificateManageInsurancePolicyId option[value="' + $('#_CertificateManageInsurancePolicyId').val() + '"]').data('external-code');
+    if (IsNullOrWhiteSpace($('#_CertificateManageHabitationTypeId').val()) && productExternalCode == "Residencial1") {
+        $('#_CertificateManageHabitationTypeId').after('<div class="text-danger">Escolha um tipo de habitação.</div>');
+        _CertificateManagehasError = true;
+    }
+
+    //if (IsNullOrWhiteSpace($('#_CertificateManagePaymentTimes').val())) {
+    //    $('#_CertificateManagePaymentTimes').after('<div class="text-danger">Preencha as vezes de pagamento.</div>');
+    //    _CertificateManagehasError = true;
+    //}
+
+    $.each($('.validate-special-carecters').not('disabled'), function (i, e) {
+        var charReg = /^\s*[a-zA-ZÀÁÂÃÄÅàáâãäåÒÓÔÕÖòóôõöÈÉÊËèéêëÇçÌÍÎÏìíîïÙÚÛÜùúûüÿÑñ\s]+\s*$/;
+
+        var inputVal = $(e).val();
+
+        if (!IsNullOrWhiteSpace(inputVal) && !charReg.test(inputVal)) {
+            _CertificateManagehasError = true;
+            $(e).after('<div class="text-danger">Este campo possuí caracteres não permitidos.</div>');
+        }
+    });
+
+    $.each($('.validate-special-carecters-with-numbers').not('disabled'), function (i, e) {
+        var charReg = /^\s*[0-9a-zA-ZÀÁÂÃÄÅàáâãäåÒÓÔÕÖòóôõöÈÉÊËèéêëÇçÌÍÎÏìíîïÙÚÛÜùúûüÿÑñ\s]+\s*$/;
+
+        var inputVal = $(e).val();
+
+        if (!IsNullOrWhiteSpace(inputVal) && !charReg.test(inputVal)) {
+            _CertificateManagehasError = true;
+            $(e).after('<div class="text-danger">Este campo possuí caracteres não permitidos.</div>');
+        }
+    });
+
+    if (_CertificateManagehasError) {
+        $('#_CertificateManageAlertError').show();
+    } else {
+        $('#_CertificateManageAlertError').hide();
+    }
+
+    return (!_CertificateManagehasError);
+    }
+
+    $('#_CertificateManageButtonSubmit').click(function () {
+        if (_CertificateManageValidate(false)) {
+            _CertificateManageSave(false);
+        }
+    });
+
+    $('#_CertificateManageSaveButtonSubmit').click(function () {
+        if (_CertificateManageValidate(true)) {
+            _CertificateManageSave(true);
+        }
+    });
+
+@if (Model.CertificateId.HasValue && !isSimulation)
+{
+<text>
+    $('#_CertificateManageButtonSubmit').text("Salvar");
+    $('#_CertificateManageCardHeaderTitle').text('Atualização de certificado');
+</text>
+}
+</script>
+
+<form id="_CertificateManageForm" method="post">
+    <input type="hidden" id="_CertificateManageCertificateId" name="CertificateId" value="@Model.CertificateId" />
+    <input type="hidden" id="_CertificateManageReference" name="Reference" value="@Model.Reference" />
+    <div class="card shadow bg-light">
+        <div class="card-header card-header-custom-green">Produto</div>
+        <div class="card-body">
+            <div class="row">
+                @if (User.IsInRealEstate() || User.IsInRole("Corretor"))
+                {
+                    <input type="hidden" id="_CertificateManageRealEstateAgencyId" name="RealEstateAgencyId" value="@Model.RealEstateAgencyId" />
+                }
+                else
+                {
+                    <div class="form-group col-md-4">
+                        <label class="control-label">Corretora*</label>
+                        <select class="form-control" id="_CertificateManageRealEstateAgencyId" name="RealEstateAgencyId">
+                            <option value="">Selecione</option>
+                            @foreach (var item in (List<AMaisImob_DB.Models.Company>)ViewData["RealEstateAgency"])
+                            {
+                                var companyName = string.IsNullOrWhiteSpace(item.RazaoSocial) ? item.FirstName + " " + item.LastName : item.RazaoSocial;
+                                if (item.CompanyId == Model.RealEstateAgencyId)
+                                {
+                                    <option selected="selected" value="@item.CompanyId">@companyName</option>
+                                    continue;
+                                }
+                                <option value="@item.CompanyId">@companyName</option>
+                            }
+                        </select>
+                    </div>
+                }
+                @if (User.IsInRealEstate())
+                {
+                    <input id="_CertificateManageRealEstateId" name="RealEstateId" type="hidden" value="@Model.RealEstateId" />
+                }
+                else
+                {
+                    <div class="form-group col-md-4">
+                        <label class="control-label">Imobiliária*</label>
+                        <select class="form-control" id="_CertificateManageRealEstateId" name="RealEstateId">
+                            <option value="">Selecione uma imobiliária</option>
+                        </select>
+                    </div>
+                }
+                <div class="form-group col-md-4">
+                    <label class="control-label">Produto*</label>
+                    <select class="form-control" id="_CertificateManageInsurancePolicyId" name="InsurancePolicyId">
+                        <option value="">Selecione um produto</option>
+                    </select>
+                </div>
+                <input type="hidden" value="@Model.ProductId" id="_CertificateManageProductId" name="ProductId" />
+            </div>
+        </div>
+    </div>
+    <br />
+    <div class="card shadow bg-light">
+        <div class="card-header card-header-custom-green">Partes do Contrato</div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group col-md-3">
+                    <label class="control-label">Nome do Locatário*</label>
+                    <input type="text" class="form-control" id="_CertificateManageRenterName" name="RenterName" value="@Model.RenterName" placeholder="Nome do Locatário">
+                </div>
+                <div class="form-group col-md-3">
+                    <label class="control-label">CPF/CNPJ do Locatário*</label>
+                    <input type="text" class="form-control _cpf" id="_CertificateManageRenterCpf" name="RenterCpf" value="@Model.RenterCpf" placeholder="CPF/CNPJ do Locatário">
+                </div>
+                <div class="form-group col-md-3">
+                    <label class="control-label">E-mail do Locatário</label>
+                    <input type="text" class="form-control" id="_CertificateManageRenterEmail" name="RenterEmail" value="@Model.RenterEmail" placeholder="E-mail do Locatário">
+                </div>
+                <div class="form-group col-md-3">
+                    <label class="control-label">Celular do Locatário</label>
+                    <input type="text" class="form-control mobile" id="_CertificateManageRenterPhone" name="RenterPhone" value="@Model.RenterPhone" placeholder="Celular do Locatário">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-3">
+                    <label class="control-label">Nome do Locador*</label>
+                    <input type="text" class="form-control" id="_CertificateManageLocatorName" name="LocatorName" value="@Model.LocatorName" placeholder="Nome do Locador">
+                </div>
+                <div class="form-group col-md-3">
+                    <label class="control-label">CPF/CNPJ do Locador*</label>
+                    <input type="text" class="form-control _cpf" id="_CertificateManageLocatorCpf" name="LocatorCpf" value="@Model.LocatorCpf" placeholder="CPF/CNPJ do Locador">
+                </div>
+                <div class="form-group col-md-3">
+                    <label class="control-label">E-mail do Locador</label>
+                    <input type="text" class="form-control" id="_CertificateManageLocatorEmail" name="LocatorEmail" value="@Model.LocatorEmail" placeholder="E-mail do Locador">
+                </div>
+                <div class="form-group col-md-3">
+                    <label class="control-label">Celular do Locador</label>
+                    <input type="text" class="form-control mobile" id="_CertificateManageLocatorPhone" name="LocatorPhone" value="@Model.LocatorPhone" placeholder="Celular do Locador">
+                </div>
+            </div>
+        </div>
+    </div>
+    <br />
+    <div class="card shadow bg-light">
+        <div class="card-header card-header-custom-green">Dados do Imóvel</div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group col-md-2">
+                    <label class="control-label">CEP</label>
+                    <input type="text" class="form-control cep" id="_CertificateManageCep" name="Cep" value="@Model.Cep" placeholder="CEP">
+                </div>
+                <div class="form-group col-md-6">
+                    <label class="control-label">Endereço</label>
+                    <input type="text" class="form-control validate-special-carecters" id="_CertificateManageEndereco" name="Endereco" value="@Model.Endereco" placeholder="Endereço">
+                </div>
+                <div class="form-group col-md-2">
+                    <label class="control-label">Número</label>
+                    <input type="text" class="form-control number" id="_CertificateManageNumero" name="Numero" value="@Model.Numero" placeholder="Número">
+                </div>
+                <div class="form-group col-md-2">
+                    <label class="control-label">Complemento</label>
+                    <input type="text" class="form-control validate-special-carecters-with-numbers" id="_CertificateManageComplemento" name="Complemento" value="@Model.Complemento" placeholder="Complemento" maxlength="30">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-4">
+                    <label class="control-label">Bairro</label>
+                    <input type="text" class="form-control" id="_CertificateManageBairro" name="Bairro" value="@Model.Bairro" placeholder="Bairro">
+                </div>
+                <div class="form-group col-md-4">
+                    <label class="control-label">Cidade</label>
+                    <input type="text" class="form-control" id="_CertificateManageCidade" name="Cidade" value="@Model.Cidade" placeholder="Cidade">
+                </div>
+                <div class="form-group col-md-4">
+                    <label class="control-label">Estado</label>
+                    <select id="_CertificateManageUF" name="UF" class="form-control">
+                        <option value="">Selecione</option>
+                        @foreach (var item in AMaisImob_WEB.Utils.StatesUtils.GetEstados())
+                        {
+                            if (item.EstadoId == Model.Uf)
+                            {
+                                <option selected="selected" value="@item.EstadoId">@item.Description</option>
+                                continue;
+                            }
+                            <option value="@item.EstadoId">@item.Description</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-3">
+                    <label class="control-label">Tipo de imóvel*</label>
+                    <select id="_CertificateManagePropertyTypeId" name="PropertyTypeId" class="form-control">
+                        <option value="">Escolha um produto</option>
+                    </select>
+                </div>
+                <div class="form-group col-md-3" id="TipoConstrucaoArea" style="display:none;">
+                    <label class="control-label">Tipo de construção*</label>
+                    <select class="form-control" id="_CertificateManageConstructionTypeId" name="ConstructionTypeId">
+                        <option value="">Selecione</option>
+                        @foreach (var item in (List<AMaisImob_DB.Models.ConstructionType>)ViewData["ConstructionType"])
+                        {
+                            if (item.ConstructionTypeId == Model.ConstructionTypeId)
+                            {
+                                <option selected="selected" value="@item.ConstructionTypeId">@item.Name</option>
+                                continue;
+                            }
+                            <option value="@item.ConstructionTypeId">@item.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group col-md-3" id="HabitationTypeArea" style="display:none;">
+                    <label class="control-label">Tipo de habitação*</label>
+                    <select class="form-control" id="_CertificateManageHabitationTypeId" name="HabitationTypeId">
+                        <option value="">Selecione</option>
+                        @foreach (var item in (List<AMaisImob_DB.Models.HabitationType>)ViewData["HabitationType"])
+                        {
+                            if (item.HabitationTypeId == Model.HabitationTypeId)
+                            {
+                                <option selected="selected" value="@item.HabitationTypeId">@item.Name</option>
+                                continue;
+                            }
+                            <option value="@item.HabitationTypeId">@item.Name</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group col-md-3">
+                    <label class="control-label">Referência Imobiliária:</label>
+                    <input type="text" class="form-control" id="_CertificateManageRealEstateReference" name="RealEstateReference" value="@Model.RealEstateReference" placeholder="Referência Imobiliária">
+                </div>
+                <div class="form-group col-md-12" id="PropertyTypeDescriptionArea" style="display:none;">
+                    <label class="control-label">Descrição do tipo</label>
+                    <textarea class="form-control" id="_CertificateManagePropertyTypeDescription" name="PropertyTypeDescription" placeholder="Descrição do tipo">@Model.PropertyTypeDescription</textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br />
+    <div class="card shadow bg-light">
+        <div class="card-header card-header-custom-green">Plano</div>
+        <div class="card-body">
+            <div class="row">
+                <div class="form-group col-md-6">
+                    <label>Planos</label>
+                    <select class="form-control" id="_CertificateManagePlanId"></select>
+                </div>
+            </div>
+            <div class="row" id="_CertificateManagePlanCoverageViewComponentArea" style="display:none;">
+                <div class="form-group col-md-12">
+                    <div class="form-control" id="_CertificateManagePlanCoverageViewComponent"></div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group col-md-6">
+                    <label>Assistências</label>
+                    <select class="form-control" id="_CertificateManageAssistanceId"></select>
+                    <input type="hidden" id="_CertificateManageAssistanceIdHidden" name="AssistanceId" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <br />
+    <div class="card shadow bg-light">
+        <div class="card-header card-header-custom-green">Taxas e Valores</div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <div class="form-row">
+                        <div class="form-group col-md-12">
+                            <label class="control-label">Taxa adesão clube inquilino: <b>R$ <span id="taxaInquiliniPrice">0</span>,00</b></label>
+                            <div style="margin-top:10px;" id="taxaInquiliniSlider"></div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-12" style="text-align: left; line-height: 15px; vertical-align: middle;">
+                            <label>Valor Mensal do Seguro: <b>R$ <span id="valorMensalSeguro" class="money">0,00</span></b></label>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-12" style="text-align: left; line-height: 15px; vertical-align: middle;">
+                            <label>Valor Total Mensal: <b>R$ <span id="valorTotalMensal" class="money">0,00</span></b></label>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-12" style="text-align: left; line-height: 15px; vertical-align: middle;">
+                            <label>Valor Total Anual: <b>R$ <span id="valorTotalAnual" class="money">0,00</span></b></label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group col-md-6">
+                    <div class="form-row">
+                        <div class="form-group col-md-12" style="text-align: center; margin-top: 40px;">
+                            <img src="~/image/Clube_do_Inquilino.png" style="height:100px;" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br />
+    <div class="card shadow bg-light">
+        <div class="card-header card-header-custom-green">Forma de Pagamento</div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group col-md-3">
+                    <label class="control-label">Parcelamento*</label>
+                    <select class="form-control" id="_CertificateManagePaymentTimes" name="PaymentTimes">
+
+                        @if (Model.PaymentTimes == 12)
+                        {
+                            <option style="font-weight: bold;" value="12" selected>12</option>
+                        }
+                        else
+                        {
+                            <option style="font-weight: bold;" value="12">12</option>
+                        }
+                        @for (int i = 1; i <= 11; i++)
+                        {
+                            if (Model.PaymentTimes == i)
+                            {
+                                <option value="@i" selected>@i</option>
+                                continue;
+                            }
+                            <option value="@i">@i</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer">
+            <div class="row">
+                <div class="col-md-6">
+                    <a href="@Url.Action("Index","Certificate")@if(certificateType.HasValue){<text>?certificateType=@certificateType</text>}" class="btn btn-secondary float-left" style="color:white; line-height: 26px; width: 100px; font-size: 14px !important;"><i class="fa fa-arrow-left"></i>&nbsp;Voltar</a>
+                </div>
+                <div class="col-md-6">
+                    <div class=" float-right">
+                        @if (Model.IsApproved.HasValue && Model.IsApproved.Value)
+                        {
+                            <button type="button" id="_CertificateManageButtonSubmit" class="btn btn-success" style="margin-right: 20px; line-height: 26px; width: 100px; font-size: 14px !important;"><i class="fa fa-check"></i>&nbsp;Aderir</button>
+                        }
+                        @if (isSimulation && (!Model.IsApproved.HasValue || (Model.IsApproved.HasValue && Model.IsApproved.Value)))
+                        {
+                            <button type="button" id="_CertificateManageSaveButtonSubmit" class="btn btn-primary" style="line-height: 26px; width: 100px; font-size: 14px !important;"><i class="fa fa-cloud-upload-alt"></i>&nbsp;Salvar</button>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<div id="_CertificateManageAlertError" class="alert alert-danger fade show text-center" role="alert" style="display: none; margin-top:1em;">
+    <strong>Atenção!</strong> O Formulário contém erros.
+</div>
+<script type="text/javascript">
+    $(function () {
+        $("#taxaInquiliniSlider").slider({
+            classes: {
+                "ui-slider": "highlight"
+            },
+            max: 120,
+            min: 0,
+            slide: function (event, ui) {
+                $('#taxaInquiliniPrice').text(ui.value);
+                taxaInquiliniPrice = ui.value;
+                CalculateGrandTotal();
+            }
+            @if(Model.TaxaInquilini.HasValue) {<text>, value: '@Model.TaxaInquilini'</text>}
+            @if(!isSimulation && (Model.CertificateId.HasValue && !isRenovation) || (Model.IsApproved.HasValue && !Model.IsApproved.Value) || (Model.IsDeleted.HasValue && Model.IsDeleted.Value)) {<text>, disabled: true</text>}
+        });
+    });
+
+    @if(Model.TaxaInquilini.HasValue) {<text>
+    $('#taxaInquiliniPrice').text('@Model.TaxaInquilini');
+    taxaInquiliniPrice = @Model.TaxaInquilini;
+    CalculateGrandTotal();
+    </text>}
+
+    $("#_CertificateManageCep").blur(function () {
+
+        var cep = $(this).val().replace(/\D/g, '');
+
+        $('.CEPError').remove();
+        if (cep != "") {
+            var validacep = /^[0-9]{8}$/;
+
+            if (validacep.test(cep)) {
+
+                LimparCamposEndereco();
+
+                $.getJSON("https://viacep.com.br/ws/" + cep + "/json/?callback=?", function (dados) {
+                    if (!("erro" in dados)) {
+                        $("#_CertificateManageEndereco").val(dados.logradouro);
+                        $("#_CertificateManageBairro").val(dados.bairro);
+                        $("#_CertificateManageCidade").val(dados.localidade);
+                        $("#_CertificateManageUF").val(dados.uf);
+                    } else {
+                        LimparCamposEndereco();
+                        $('#_CertificateManageCep').after('<div class="text-danger CEPError">CEP não encontrado.</div>');
+                    }
+                });
+            }
+            else {
+                LimparCamposEndereco();
+                $('#_CertificateManageCep').after('<div class="text-danger CEPError">Formato de CEP inválido.</div>');
+            }
+        }
+        else {
+            limpa_formulário_cep();
+        }
+    });
+
+    function LimparCamposEndereco() {
+        $("#_CertificateManageEndereco").val("");
+        $("#_CertificateManageBairro").val("");
+        $("#_CertificateManageCidade").val("");
+        $("#_CertificateManageUF").val("");
+    }
+
+    $('#_CertificateManagePropertyTypeId').change(function () {
+        if ($('#_CertificateManagePropertyTypeId').val() == '@otherId') {
+            $('#PropertyTypeDescriptionArea').show();
+            $('#_CertificateManagePropertyTypeDescription').val('');
+        } else {
+            $('#PropertyTypeDescriptionArea').hide();
+            $('#_CertificateManagePropertyTypeDescription').val('');
+        }
+
+
+        var propertyExternalCode = $('#_CertificateManagePropertyTypeId option[value="' + $('#_CertificateManagePropertyTypeId').val() + '"]').data('external-code');
+        if (propertyExternalCode == 'CASA') {
+            $('#TipoConstrucaoArea').show();
+        } else {
+            $('#TipoConstrucaoArea').hide();
+        }
+    });
+
+    @if (Model.PropertyTypeId == otherId)
+    {
+        <text>
+        $('#PropertyTypeDescriptionArea').show();
+        </text>
+    }
+
+
+    function GetPropertyTypes() {
+        $.ajax({
+            url: '@Url.Action("GetPropertyTypesByProductId", "Product")',
+            type: 'POST',
+            datatype: 'JSON',
+            data: { productId: $('#_CertificateManageProductId').val() },
+            success: function (data) {
+                $('#_CertificateManagePropertyTypeId').empty();
+                $.each(data, function (i, e) {
+                    var option = '<option value="' + e.propertyTypeId + '" data-external-code="' + e.externalCode + '"';
+                    if (data[i].propertyTypeId  == '@Model.PropertyTypeId') {
+                        option += 'selected="selected"';
+
+                        if(e.externalCode == 'CASA'){
+                            $('#TipoConstrucaoArea').show();
+                        } else {
+                            $('#TipoConstrucaoArea').hide();
+                        }
+                    }
+                    option += '>' + e.name + '</option>';
+                    $('#_CertificateManagePropertyTypeId').append(option);
+                });
+
+                SetPlanPrice();
+                CalculateGrandTotal();
+            }
+        });
+    }
+
+    function GetPlans() {
+        $.ajax({
+            url: '@Url.Action("GetPlansByProduct", "Product")',
+            type: 'POST',
+            datatype: 'JSON',
+            data: { productId: $('#_CertificateManageProductId').val(), certificateId: '@Model.CertificateId' },
+            success: function (data) {
+                $('#_CertificateManagePlanId').empty();
+                var hasFreePlan = false;
+                $.each(data, function (i, e) {
+                    var option = '<option data-monthly-price="' + e.monthlyPrice + '" data-assistanceid="' + e.assistanceId + '" value="' + e.planId + '"';
+
+                    if (e.planId == '@Model.PlanId') {
+                        option += 'selected="selected"';
+
+                        if (e.certificateId != null) {
+                            option += 'data-free-plan="true"';
+                            hasFreePlan = true;
+                        }
+                    }
+                    else if (e.certificateId != null) {
+                        option += 'data-free-plan="true"';
+                        hasFreePlan = true;
+                    }
+
+                    option += '>' + e.name + ' (R$ ' + e._PlanAssitancePrice + '/mês)</option>';
+                    $('#_CertificateManagePlanId').append(option);
+                });
+
+                if (!hasFreePlan && data.length > 0) {
+                    var option = '<option value="" data-free-plan="true" >Plano livre</option> ';
+                    $('#_CertificateManagePlanId').append(option);
+                }
+
+                LoadPlanCoverageViewComponent($('#_CertificateManagePlanId').val());
+                SetPlanPrice();
+                CalculateGrandTotal();
+            }
+        });
+    }
+    function LoadPlanCoverageViewComponent(planId) {
+        var _planId = planId == null ? $('#_CertificateManagePlanId').val() : planId;
+
+        $('#_CertificateManagePlanCoverageViewComponent').load('@Url.Action("FreePlanCoverageComponent", "Plan")', { 'certificateId': @if(Model.CertificateId.HasValue){<text>'@Model.CertificateId'</text>}else{<text>null</text>}, 'productId': $('#_CertificateManageProductId').val(), 'planId': _planId });
+        $('#_CertificateManagePlanCoverageViewComponentArea').show();
+    }
+
+    $('#_CertificateManagePlanId').change(function () {
+
+        $('#_CertificateManagePlanCoverageViewComponent').empty();
+        $('#_CertificateManagePlanCoverageViewComponentArea').hide();
+
+        LoadPlanCoverageViewComponent();
+
+        SetPlanPrice();
+        CalculateGrandTotal();
+    });
+
+    function SetPlanPrice() {
+        var optionSelector = $('#_CertificateManagePlanId option[value="' + $('#_CertificateManagePlanId').val() + '"]');
+        var value = optionSelector.data('monthly-price');
+        var assistanceId = optionSelector.data('assistanceid');
+
+        @*@if (!Model.CertificateId.HasValue)
+        {
+            <text>*@
+        if (value == null || value == '') planPrice = 0;
+        else planPrice = value;
+            @*</text>
+        }
+        else {
+            <text>
+            planPrice = @Model.PlanPrice.Value.ToString("0.00").Replace(",",".");
+            </text>
+        }*@
+        //assitencia associada ao plano
+        if (assistanceId != null) {
+            $('#_CertificateManageAssistanceId').val(assistanceId).attr('disabled', 'disabled');
+            $('#_CertificateManageAssistanceIdHidden').val(assistanceId);
+        } else {
+            $('#_CertificateManageAssistanceId').removeAttr('disabled');
+        }
+        if (assistanceId == null && IsNullOrWhiteSpace('@Model.AssistanceId')) {
+            $('#_CertificateManageAssistanceIdHidden').val('');
+            $('#_CertificateManageAssistanceId').val('').removeAttr('disabled');
+        }
+
+        SetAssistancePrice();
+        }
+
+    function GetAssistances() {
+        $.ajax({
+            url: '@Url.Action("GetAssistancesByProductId", "Assistance")',
+            type: 'POST',
+            datatype: 'JSON',
+            data: { productId: $('#_CertificateManageProductId').val() },
+            success: function (data) {
+                $('#_CertificateManageAssistanceId').empty();
+                if (data == false || data.length == 0) {
+                    $('#_CertificateManageAssistanceId').append($('<option>', { value: '' }).append('Nenhuma assistência encontrada.'));
+                }
+                if (data.length > 0) {
+                    $('#_CertificateManageAssistanceId').append($('<option>', { value: '' }).append('Selecione um assistência'));
+                    for (var i = 0; i < data.length; i++) {
+                        var option = $('<option>', { value: data[i].assistanceId }).append(data[i].name).data('value', data[i].value);
+                        if (data[i].assistanceId == '@Model.AssistanceId') {
+                            option.attr('selected', 'selected');
+                            assistancePrice = data[i].value;
+                            CalculateGrandTotal();
+                        }
+                        $('#_CertificateManageAssistanceId').append(option);
+                    }
+                }
+                $('#_CertificateManageAssistanceIdHidden').val($('#_CertificateManageAssistanceId').val());
+            }
+        });
+    }
+    $('#_CertificateManageAssistanceId').change(function () {
+
+        $('#_CertificateManageAssistanceIdHidden').val($('#_CertificateManageAssistanceId').val());
+
+        SetAssistancePrice();
+        CalculateGrandTotal();
+    });
+
+    function SetAssistancePrice() {
+        var value = $('#_CertificateManageAssistanceId option[value="' + $('#_CertificateManageAssistanceId').val() + '"]').data('value');
+        if (value == null || value == '') assistancePrice = 0;
+        else assistancePrice = value;
+    }
+
+    function _CertificateManageGetFreePlanPrice(freePlanPrice) {
+        planPrice = freePlanPrice;
+        var freePlanSelector = $('#_CertificateManagePlanId option[data-free-plan="true"]');
+        if (freePlanSelector != null)
+            freePlanSelector.text('Plano Livre (R$ ' + $('.money').masked(freePlanPrice.toFixed(2)) + '/mês)');
+        CalculateGrandTotal();
+    }
+
+    function CalculateGrandTotal() {
+        var _planPrice = (planPrice == null ? 0 : planPrice) + (assistancePrice == null ? 0 : assistancePrice);
+
+        monthlyTotal = _planPrice + taxaInquiliniPrice / 12;
+
+        var annualTotal = (((Math.round(_planPrice * 100)/100) * 12) + taxaInquiliniPrice).toFixed(2);
+        var _monthlyTotal = monthlyTotal.toFixed(2);
+
+        var _annualTotal = ReplaceDots(annualTotal);
+        _monthlyTotal = ReplaceDots(_monthlyTotal);
+
+        $('#valorMensalSeguro').text(ReplaceDots(_planPrice.toFixed(2)));
+        $('#valorTotalMensal').text(_monthlyTotal);
+        $('#valorTotalAnual').text(_annualTotal);
+        //$('#valorMensalAssistencia').text($('.money').masked(assistancePrice.toFixed(2)));
+
+
+        $('#_CertificateManagePaymentTimes option[value="12"]').text('Mensais de R$ ' + ReplaceDots(monthlyTotal.toFixed(2)));
+        for (var i = 11; i > 0; i--) {
+            var value = ((annualTotal) / i);
+            value = ReplaceDots(value.toFixed(2));
+                $('#_CertificateManagePaymentTimes option[value="' + i + '"]').text(i + 'x de R$ ' + value);
+        }
+
+        return { MonthlyTotal: _monthlyTotal, AnnualTotal: _annualTotal};
+    }
+
+    function CleanPrices() {
+        assistancePrice = 0;
+        planPrice = 0;
+        //taxaInquiliniPrice = 0;
+        monthlyTotal = 0;
+
+        CalculateGrandTotal();
+    }
+
+    $('#_CertificateManagePaymentTimes').change(function () {
+        CalculateGrandTotal();
+    });
+
+    $('#_CertificateManageRealEstateAgencyId').change(function () {
+        $('#_CertificateManageProductId').val('');
+        $('#_CertificateManagePlanId').empty();
+        CleanPrices();
+        //limpar component de plano livre
+        $('#_CertificateManagePlanCoverageViewComponent').empty();
+        $('#_CertificateManagePlanCoverageViewComponentArea').hide();
+
+        $('#PropertyTypeDescriptionArea').hide();
+        $('#_CertificateManagePropertyTypeDescription').val('');
+        $('#_CertificateManagePropertyTypeId').empty();
+
+        GetRealEstates();
+        GetInsurancePolicies();
+    });
+
+    function GetRealEstates() {
+        $.ajax({
+            url: '@Url.Action("GetRealEstatesByRealEstateAgencyId", "Company")',
+            type: 'POST',
+            datatype: 'JSON',
+            data: { id: $('#_CertificateManageRealEstateAgencyId').val() },
+            success: function (data) {
+                $('#_CertificateManageRealEstateId').empty();
+                if (data == false || data.length == 0) {
+                    $('#_CertificateManageRealEstateId').append($('<option>', { value: '' }).append('Nenhuma imobiliária encontrada.'));
+                }
+                if (data.length > 0) {
+                    $('#_CertificateManageRealEstateId').append($('<option>', { value: '' }).append('Selecione'));
+                    for (var i = 0; i < data.length; i++) {
+                        var companyName = IsNullOrWhiteSpace(data[i].razaoSocial) ? data[i].firstName + " " + data[i].lastName : data[i].razaoSocial;
+                        var option = $('<option>', { value: data[i].companyId }).append(companyName);
+                        if (data[i].companyId == '@Model.RealEstateId') {
+                            option.attr('selected', 'selected');
+                        }
+                        $('#_CertificateManageRealEstateId').append(option);
+                    }
+                }
+            }
+        });
+    }
+
+    function GetInsurancePolicies() {
+        $.ajax({
+            url: '@Url.Action("GetInsurancePoliciesByRealEstateAgencyId", "InsurancePolicy")',
+            type: 'POST',
+            datatype: 'JSON',
+            data: {
+                id: $('#_CertificateManageRealEstateAgencyId').val(),
+                @if (Model.CertificateId.HasValue && !isSimulation)
+                {
+                    <text>
+                    showExpired: true
+                    </text>
+                }
+                else
+                {
+                    <text>
+                    showExpired: false
+                    </text>
+                }
+            },
+            success: function (data) {
+                $('#_CertificateManageInsurancePolicyId').empty();
+                if (data == false || data.length == 0) {
+                    $('#_CertificateManageInsurancePolicyId').append($('<option>', { value: '' }).append('Nenhuma apólice encontrada.'));
+                }
+                if (data.length > 0) {
+                    $('#_CertificateManageInsurancePolicyId').append($('<option>', { value: '' }).append('Selecione'));
+                    for (var i = 0; i < data.length; i++) {
+                        var option = $('<option>', { value: data[i].insurancePolicyId }).append(data[i].productName).data('ProductId', data[i].productId).data('external-code', data[i].productExternalCode);
+                        if (data[i].insurancePolicyId == '@Model.InsurancePolicyId') {
+                            $('#_CertificateManageProductId').val(data[i].productId);
+                            option.attr('selected', 'selected');
+
+                            assistancePrice = 0;
+                            planPrice = 0;
+                            GetPlans();
+                            GetAssistances();
+                            GetPropertyTypes();
+                            UpdateHabitationTypeArea();
+                        }
+                        $('#_CertificateManageInsurancePolicyId').append(option);
+                    }
+                }
+                UpdateHabitationTypeArea();
+                HideConstructionTypeArea(false);
+            }
+        });
+    }
+    @if (Model.RealEstateAgencyId.HasValue)
+    {
+        <text>
+    GetRealEstates();
+    GetInsurancePolicies();
+        </text>
+    }
+
+    $('#_CertificateManageInsurancePolicyId').change(function () {
+        var productId = $('#_CertificateManageInsurancePolicyId option[value="' + $('#_CertificateManageInsurancePolicyId').val() + '"]').data('ProductId');
+        $('#_CertificateManageProductId').val(productId);
+
+        assistancePrice = 0;
+        planPrice = 0;
+        GetPlans();
+        GetAssistances();
+        GetPropertyTypes();
+        UpdateHabitationTypeArea();
+        HideConstructionTypeArea(true);
+    });
+
+    function UpdateHabitationTypeArea() {
+        var productExternalCode = $('#_CertificateManageInsurancePolicyId option[value="' + $('#_CertificateManageInsurancePolicyId').val() + '"]').data('external-code');
+        if (productExternalCode == "Residencial1") {
+            $('#HabitationTypeArea').show();
+        } else {
+            $('#HabitationTypeArea').hide();
+        }
+    }
+
+    function HideConstructionTypeArea(clear) {
+        if(clear) $('#_CertificateManageConstructionTypeId').val('');
+        $('#TipoConstrucaoArea').hide();
+    }
+
+
+    @if ((Model.IsDeleted.HasValue && Model.IsDeleted.Value || Model.IsApproved.HasValue && !Model.IsApproved.Value)) {
+        <text>
+    function LockScreen() {
+        $('input').attr('disabled', 'disabled').attr('name', '');
+        $('select').attr('disabled', 'disabled').attr('name', '');
+        $('textarea').attr('disabled', 'disabled').attr('name', '');
+    };
+    LockScreen();
+
+    if (typeof _CertificateManageIsLocked === 'function') {
+
+        var message= "";
+
+    @if ((Model.IsApproved.HasValue && !Model.IsApproved.Value)) {<text>
+        message = "Não é possível editar este certificado, pois ele precisa passar por uma análise.";
+        </text>}
+
+    @if ((Model.IsDeleted.HasValue && Model.IsDeleted.Value)) {<text>
+        message = "Não é possível editar este certificado, pois ele foi excluído por @Model.NameDeletedBy em @Model._DeletedDate .";
+        </text>}
+        _CertificateManageIsLocked(message);
+            }
+        </text>
+    }
+
+    //se for atualização e não for de renovação ou não for simulação
+    @if (Model.CertificateId.HasValue && !isRenovation && !isSimulation)
+    {
+        <text>
+            for (var i = 0; i < disableFields.length; i++) {
+                $('#' + disableFields[i]).attr('disabled', 'disabled').attr('name', '');
+            }
+        </text>
+    }
+
+    //for renovação e não estiver cancelado ou para aporovar
+    @if (isRenovation && !(Model.IsDeleted.HasValue && Model.IsDeleted.Value || Model.IsApproved.HasValue && !Model.IsApproved.Value))
+    {
+        <text>
+        _CertificateManageShowWarningBox('Este é um certificado de renovação, então todos os campos podem ser alterados.');
+        </text>
+    }
+
+    $('#_CertificateManageRenterCpf').keyup(function () {
+        CPFChangeMask('_CertificateManageRenterCpf');
+    });
+    $('#_CertificateManageLocatorCpf').keyup(function () {
+        CPFChangeMask('_CertificateManageLocatorCpf');
+    });
+
+    function CPFChangeMask(selectorId) {
+        if ($('#' + selectorId).val().length > 14 && $('#' + selectorId).hasClass("_cpf")) {
+            $('#' + selectorId).removeClass("_cpf").addClass("cnpj");
+        } else if ($('#' + selectorId).val().length <= 14 && $('#' + selectorId).hasClass("cnpj")) {
+            $('#' + selectorId).removeClass("cnpj").addClass("_cpf");
+        }
+        _MaskData();
+    }
+    CPFChangeMask('_CertificateManageRenterCpf');
+    CPFChangeMask('_CertificateManageLocatorCpf');
+</script>

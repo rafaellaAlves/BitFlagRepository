@@ -1,0 +1,76 @@
+﻿
+<div class="row">
+    <div class="col table-responsive">
+        <table id="family-table" class="display table table-striped table-bordered table-condensed w-100 tablesizeline" style="border-collapse: collapse !important;">
+            <thead>
+                <tr>
+                    <th>Família</th>
+                    <th style="text-align:center">Abreviação</th>
+                    <th>Classe</th>
+                    <th style="text-align:center">Risco</th>
+                    <th style="text-align:center">Cl. Risco</th>
+                    <th style="text-align:center">Cód ONU</th>
+                    <th style="text-align:center">Resíduos</th>
+                    <th style="width:60px !important;">&nbsp;</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<script asp-cut-key="residue-family-index">
+    var familyDatatables;
+    $(document).ready(function () {
+        familyDatatables = $('#family-table').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            pageLength: 30,
+            dom: 'tip',
+            ajax: {
+                url: '@Url.Action("List", "ResidueFamily")',
+                type: 'POST'
+            },
+            columns: [
+                { render: function (data, type, row) { return row.name; } },
+                { render: function (data, type, row) { return  '<div class="text-center">' + isNull(row.nameAbbreviation, '-'); } },
+                { render: function (data, type, row) { return row.residueFamilyClassName; } },
+                { render: function (data, type, row) { return '<div class="text-center">' + row.risk; } },
+                { render: function (data, type, row) { return '<div class="text-center">' + row.riskClass; } },
+                { render: function (data, type, row) { return '<div class="text-center">' + row.onuCode; } },
+                { render: function (data, type, row) { return '<div class="text-center">' + row.residueCount; } },
+                {
+                    render: function (data, type, row)
+                    {
+                        return '<div class="text-center">' +
+                            @*'&nbsp;<a href=\'@Url.Action("Manage", "Client")?id=' + row.clientId + '\' title="Visualizar"><span class="badge badge-pill badge-primary"><i class="simple-icon-magnifier"></i>&nbsp;Visualizar</span></a>' +*@
+                            '&nbsp;<a href="@Url.Action("Index", "Residues")?ResidueFamilyId=' + row.residueFamilyId + '" title="Inserir Resíduo"><span class="badge badge-pill badge-primary"><i class="simple-icon-plus"></i></span></a>' +
+                            '&nbsp;<a href=\'javascript:openResidueFamilyModal(' + JSON.stringify(row) + ')\' title="Editar"><span class="badge badge-pill badge-success"><i class="simple-icon-note"></i></span></a>' +
+                            '&nbsp;<a href=\'javascript:removeFamily(' + JSON.stringify(row) + ')\' title="Excluir"><span class="badge badge-pill badge-danger"><i class="simple-icon-trash"></i></span></a>' +
+                            '</div>';
+                    }
+                }
+            ]
+        });
+    });
+
+    function removeFamily(entity) {
+        bootboxConfirm("Deseja realmente excluir a Família \"" + entity.name + "\"?", function(result){
+            if (!result) return;
+
+            $.post('@Url.Action("Delete", "ResidueFamily")', { id: entity.residueFamilyId }, function () {
+                alert("A Família \"" + entity.name + "\" foi excluída com sucesso!");
+                familyDatatables.ajax.reload();
+            });
+        });
+    }
+
+    function openResidueFamilyModal(data) {
+        loadResidueFamilyData(data);
+
+        $('#add-family-modal').modal('show');
+    }
+</script>
+

@@ -1,0 +1,173 @@
+﻿@model bool
+@using WEB.Utils;
+@using Microsoft.AspNetCore.Identity;
+@inject WEB.BLL.UserFunctions userFunctions
+@inject UserManager<DB.Models.AspNetUser> userManager
+@{
+
+    int? userRealEstateAgencyId = null;
+    if (ViewData.ContainsKey("UserRealEstateAgencyId"))
+    {
+        userRealEstateAgencyId = (int)ViewData["UserRealEstateAgencyId"];
+    }
+    int? userRealEstateId = null;
+    if (ViewData.ContainsKey("UserRealEstateId"))
+    {
+        userRealEstateId = (int)ViewData["UserRealEstateId"];
+    }
+
+    var user = await userManager.GetUserAsync(User);
+    PlataformaEscritorioViewModel plataforma = userFunctions.GetPlataformaEscritorioByUserId(user.Id);
+
+}
+
+    <div class="row">
+        @if (User.IsInRealEstate() || User.IsInRole("Corretor"))
+        {
+            <input type="hidden" id="_CertificateManageRealEstateAgencyId" name="RealEstateAgencyId" value="@userRealEstateAgencyId" />
+        }
+        else
+        {
+            <div class="col-md-4">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">@WEB.Configuration.InsuranceConfiguration.CorretoraDisplayName</span>
+                    </div>
+                    <select class="form-control" id="_CertificateManageRealEstateAgencyId" name="PlataformId">
+                        <option value="">Selecione</option>
+                        @foreach (var item in (List<DB.Models.Company>)ViewData["RealEstateAgency"])
+                        {
+                            var companyName = string.IsNullOrWhiteSpace(item.RazaoSocial) ? item.FirstName + " " + item.LastName : item.RazaoSocial;
+                            <option value="@item.CompanyId">@companyName</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        }
+        @if (User.IsInRealEstate())
+        {
+            <input id="_CertificateManageRealEstateId" name="RealEstateId" type="hidden" value="@userRealEstateId" />
+        }
+        else
+        {
+            <div class="form-group col-md-4 @if (User.IsInRole("Corretor")) {<text>offset-md-0</text>}">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text">@WEB.Configuration.InsuranceConfiguration.PartnerDisplayName</span>
+                    </div>
+                    <select class="form-control" id="_CertificateManageRealEstateId" name="PartnerId">
+                        <option value="">Selecione</option>
+                    </select>
+                </div>
+            </div>
+        }
+
+        <div class="form-group col-md-4">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">Desconto</span>
+                </div>
+                <select class="form-control" id="_DescontoAreaLogada" name="DescontoPlataforma">
+                    <option value="0">Sem Desconto</option>
+                    <option value="1">1%</option>
+                    <option value="2">2%</option>
+                    <option value="3">3%</option>
+                    <option value="4">4%</option>
+                    <option value="5">5%</option>
+                    <option value="6">6%</option>
+                    <option value="7">7%</option>
+                    <option value="8">8%</option>
+                    <option value="9">9%</option>
+                    <option value="10">10%</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        
+            <div class="col-md-2">
+                <a href="@Url.Action("Index", "Report")" class="btn btn-secondary pull-left w-100" style="color:white;"><i class="fas fa-arrow-left"></i>&nbsp;Voltar</a>
+            </div>
+        <div class="col-md-8"></div>
+            <div class="col-md-2">
+                <button id="button-redirect" class="btn btn-success pull-right w-100">Avançar&nbsp;<i class="fas fa-arrow-right"></i></button>
+            </div>
+        
+    </div>
+
+<script type="text/javascript">
+
+
+
+
+
+    function getVendasUrl() {
+
+        if ($('#_DescontoAreaLogada').val() != 0) {
+            return '@WEB.Configuration.InsuranceConfiguration.VendasWebsite?p=' + $('#_CertificateManageRealEstateAgencyId').val() + '&e=' + $('#_CertificateManageRealEstateId').val() + '&d=' + $('#_DescontoAreaLogada').val();
+        }
+
+        return '@WEB.Configuration.InsuranceConfiguration.VendasWebsite?p=' + $('#_CertificateManageRealEstateAgencyId').val() + '&e=' + $('#_CertificateManageRealEstateId').val();
+     }
+    $('#button-redirect').click(function () {
+
+         if (!$('#_CertificateManageRealEstateAgencyId').val()) {
+             alert('Por favor, selecione uma plataforma.');
+             return false;
+         }
+         if (!$('#_CertificateManageRealEstateId').val()) {
+             alert('Por favor, selecione um escritório.');
+             return false;
+         }
+         window.open(getVendasUrl(), "_blank");
+     });
+
+    function GetRealEstates() {
+        if (IsNullOrWhiteSpace($('#_CertificateManageRealEstateAgencyId').val())) {
+            $('#_CertificateManageRealEstateId').empty();
+            $('#_CertificateManageRealEstateId').append($('<option>', { value: '' }).append('Selecione uma Plataforma.'));
+        }
+        else {
+            $.ajax({
+                url: '@Url.Action("GetAcceptedRealEstatesByRealEstateAgencyId", "Company")',
+                type: 'POST',
+                datatype: 'JSON',
+                data: { id: $('#_CertificateManageRealEstateAgencyId').val() },
+                success: function (data) {
+                    $('#_CertificateManageRealEstateId').empty();
+                    if (data == false || data.length == 0) {
+                        $('#_CertificateManageRealEstateId').append($('<option>', { value: '' }).append('Nenhum escritório encontrado.'));
+                    }
+                    if (data.length > 0) {
+                        $('#_CertificateManageRealEstateId').append($('<option>', { value: '' }).append('Selecione'));
+                        for (var i = 0; i < data.length; i++) {
+                            var companyName = IsNullOrWhiteSpace(data[i].razaoSocial) ? data[i].firstName + " " + data[i].lastName : data[i].razaoSocial;
+                            var option = $('<option>', { value: data[i].companyId }).append(companyName);
+                            $('#_CertificateManageRealEstateId').append(option);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+
+    $('#_CertificateManageRealEstateAgencyId').change(function () {
+        GetRealEstates();
+    });
+
+    @if (userRealEstateAgencyId.HasValue && !User.IsInRealEstate())
+    {
+        <text>
+    GetRealEstates();
+        </text>
+    }
+
+    @*@if (User.IsInRealEstate())
+     {
+        <text>
+    window.open(getVendasUrl(), "_blank");
+        </text>
+     }*@
+
+</script>

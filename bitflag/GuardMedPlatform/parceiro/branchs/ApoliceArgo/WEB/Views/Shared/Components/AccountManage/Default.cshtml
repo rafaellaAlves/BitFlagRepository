@@ -1,0 +1,360 @@
+﻿@model WEB.Models.UserViewModel
+@using Microsoft.AspNetCore.Identity;
+@using WEB.Utils;
+@inject WEB.BLL.CompanyFunctions companyFunctions
+@inject WEB.BLL.UserCompanyFunctions userCompanyFunctions
+@inject UserManager<DB.Models.AspNetUser> userManager
+@inject WEB.BLL.UserMedicGroupFunctions userMedicGroupFunctions
+@inject WEB.BLL.MedicGroupFunctions medicGroupFunctions
+
+@{
+    int agencyId = 0;
+    if (User.IsInRole("Corretor"))
+    {
+        var user = userManager.GetUserId(User);
+        agencyId = companyFunctions.GetRealEstateAgencyId(Convert.ToInt32(user));
+    }
+    DB.Models.Company company = null;
+    if (Model.UserId != null)
+    {
+        var userCompany = userCompanyFunctions.GetDataByUserId((int)Model.UserId).FirstOrDefault();
+
+        if (userCompany != null)
+        {
+            company = companyFunctions.GetDataByID(userCompany.CompanyId);
+        }
+    }
+
+
+}
+
+<script type="text/javascript">
+    _MaskData();
+</script>
+
+<script type="text/javascript">
+
+function _AccountManageSave() {
+    var d = $('#_AccountManageForm').serializeArray();
+    d.push({ 'name': 'Role', 'value': $('#_AccountManageRole').val() });
+    $.post('@Url.Action("Manage", "Account")', d, function (data) {
+        if (data.hasError) {
+            $('#_AccountManageAlertSuccess').hide();
+            $('#_AccountManageAlertError').show();
+            if (!IsNullOrWhiteSpace(data.fieldError)) {
+                $('#' + data.fieldError).after('<div class="text-danger">' + data.message + '</div>');
+            } else {
+                alert(data.message);
+            }
+        }
+        else {
+            _AccountManageCallBack(data.data);
+		}
+	});
+}
+
+function _AccountManageValidate() {
+    var _AccountManagehasError = false;
+	$('.text-danger').remove();
+
+    if (IsNullOrWhiteSpace($('#_AccountManageFirstName').val())) {
+        $('#_AccountManageFirstName').after('<div class="text-danger">Preencha o Nome.</div>');
+        _AccountManagehasError = true;
+	}
+
+    if (IsNullOrWhiteSpace($('#_AccountManageLastName').val())) {
+        $('#_AccountManageLastName').after('<div class="text-danger">Preencha o Sobrenome.</div>');
+        _AccountManagehasError = true;
+	}
+
+    if (IsNullOrWhiteSpace($('#_AccountManageEmail').val())) {
+        $('#_AccountManageEmail').after('<div class="text-danger">Preencha um e-mail.</div>');
+        _AccountManagehasError = true;
+    }
+
+    if (IsNullOrWhiteSpace($('#_AccountManageBornDate').val())) {
+        $('#_AccountManageBornDate').after('<div class="text-danger">Preencha a Data de Nascimento.</div>');
+        _AccountManagehasError = true;
+    }
+    if (IsNullOrWhiteSpace($('#_AccountManagePhoneNumber').val())&&IsNullOrWhiteSpace($('#_AccountManageMobileNumber').val())) {
+        $('#_AccountManagePhoneNumber').after('<div class="text-danger">Preencha pelo menos um Numero.</div>');
+        $('#_AccountManageMobileNumber').after('<div class="text-danger">Preencha pelo menos um Numero.</div>');
+        _AccountManagehasError = true;
+    }
+
+    if ($('#_AccountManageRole').val() == "CORRETOR") {
+        if (IsNullOrWhiteSpace($('#_plataformas').val())) {
+            $('#_plataformas').after('<div class="text-danger">Selecione a plataforma.</div>');
+            _AccountManagehasError = true;
+        }
+    }
+
+    if ($('#_AccountManageRole').val() == "IMOBILIARIAOPERACIONAL" || $('#_AccountManageRole').val() == "IMOBILIARIOADMINISTRATIVO") {
+        if (IsNullOrWhiteSpace($('#_plataformas').val())) {
+            $('#_plataformas').after('<div class="text-danger">Selecione a plataforma.</div>');
+            _AccountManagehasError = true;
+        }
+        if (IsNullOrWhiteSpace($('#_escritorios').val())) {
+            $('#_escritorios').after('<div class="text-danger">Selecione um Escritório.</div>');
+            _AccountManagehasError = true;
+        }
+    }
+
+    if ($('#_AccountManageRole').val() == "GRUPOMEDICO" && IsNullOrWhiteSpace($('[name="MedicGroupId"]').val())) {
+        $('[name="GroupMedicId"]').after('<div class="text-danger">Selecione o Grupo Médico.</div>');
+        _AccountManagehasError = true;
+    }
+
+	@if (Model.UserId == null)
+    {
+		<text>
+    if (IsNullOrWhiteSpace($('#_AccountManagePassword').val())) {
+        $('#_AccountManagePassword').after('<div class="text-danger">Defina uma senha.</div>');
+        _AccountManagehasError = true;
+			}
+
+    if (IsNullOrWhiteSpace($('#_AccountManagePasswordConfirmation').val())) {
+        $('#_AccountManagePasswordConfirmation').after('<div class="text-danger">Preencha a confirmação de senha.</div>');
+        _AccountManagehasError = true;
+			}
+
+    if ($('#_AccountManagePasswordConfirmation').val() != $('#_AccountManagePassword').val()) {
+        $('#_AccountManagePasswordConfirmation').after('<div class="text-danger">Senha de Confirmação errada.</div>');
+				_AccountManagehasError = true;
+			}
+		</text>
+    }
+
+    if (_AccountManagehasError) {
+        $('#_AccountManageAlertError').show();
+    } else {
+        $('#_AccountManageAlertError').hide();
+    }
+
+    return (!_AccountManagehasError);
+}
+
+</script>
+
+<script type="text/javascript">
+    function _UserTakeOffSuccessAlert() {
+        $('#_AccountManageAlertSuccess').hide();
+    }
+</script>
+
+<div id="_AccountManageAlertSuccess" class="alert alert-success fade show text-center" style="display: none;">
+    <b>Os dados foram salvos com sucesso!</b>
+</div>
+<div id="_AccountManageAlertError" class="alert alert-danger fade show text-center" role="alert" style="display: none;">
+    <strong>Atenção!</strong> O Formulário contém erros.
+</div>
+<form id="_AccountManageForm" method="post">
+    <input type="hidden" id="_AccountManageUserId" name="UserId" value="@Model.UserId" />
+    <div class="row">
+        <div class="form-group col-md-4">
+            <label class="control-label">Perfil*</label>
+            <select class="form-control" id="_AccountManageRole">
+                @foreach (var role in ((List<DB.Models.Role>)ViewData["Roles"]).OrderBy(x => x.Name))
+                {
+                    if (Model.Role == role.Description)
+                    {
+                        <option value="@role.NormalizedName" selected>@role.Description</option>
+                        continue;
+                    }
+                    <option value="@role.NormalizedName">@role.Description</option>
+
+                }
+            </select>
+        </div>
+
+        @if (User.IsInRole("Administrator"))
+        {
+            <div class="form-control-group col-md-4" id="_plataformasDiv">
+                <label class="control-label">Plataforma</label>
+                <select class="form-control" id="_plataformas" name="companyId">
+                    <option value="">Selecione</option>
+                    @foreach (var item in (List<DB.Models.Company>)ViewData["RealEstateAgency"])
+                    {
+                        var companyName = string.IsNullOrWhiteSpace(item.RazaoSocial) ? item.FirstName + " " + item.LastName : item.RazaoSocial;
+                        @if (company != null && company.CompanyId == item.CompanyId && company.CompanyTypeId == 1)
+                        {
+                            <option selected value="@company.CompanyId">@companyName</option>
+                        }
+                        else if (company != null && company.CompanyTypeId == 2 && company.ParentCompanyId == item.CompanyId)
+                        {
+                            <option selected value="@company.ParentCompanyId">@companyName</option>
+                        }
+                        else
+                        {
+                            <option value="@item.CompanyId">@companyName</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="form-control-group col-md-4" id="_escritoriosDiv">
+                <label class="control-label">Escritório</label>
+                <select class="form-control" id="_escritorios" name="partnerId">
+                    <option value="">Selecione</option>
+                </select>
+            </div>
+
+            <div class="form-control-group col-md-4" id="_grupoMedicoDiv">
+                <label class="control-label">Grupo Médico</label>
+                <select class="form-control" name="MedicGroupId">
+                    <option value="">Selecione</option>
+                    @{
+                        var groupMedicId = Model.UserId.HasValue ? await userMedicGroupFunctions.GetMedicGroupIdByUserId(Model.UserId.Value) : null;
+                        foreach (var item in medicGroupFunctions.GetData())
+                        {
+                            <option selected="@(item.MedicGroupId == groupMedicId)" value="@item.MedicGroupId">@item.MedicGroupName</option>
+                        }
+                    }
+                </select>
+            </div>
+        }
+        @if (User.IsInRole("Corretor"))
+        {
+
+            <input hidden id="_plataformas" name="companyId" value="@agencyId" />
+
+
+            <div class="form-control-group col-md-4">
+                <label class="control-label">Escritório</label>
+                <select class="form-control" id="_escritorios" name="partnerId">
+                    <option value="">Selecione</option>
+                </select>
+            </div>
+
+        }
+    </div>
+
+    <hr />
+    <div class="form-row">
+        <div class="form-group col-md-5">
+            <label class="control-label" for="_AccountManageFirstName">Nome*</label>
+            <input type="text" class="form-control" id="_AccountManageFirstName" name="FirstName" value="@Model.FirstName" placeholder="Nome">
+        </div>
+        <div class="form-group col-md-7">
+            <label class="control-label" for="_AccountManageLastName">Sobrenome*</label>
+            <input type="text" class="form-control" id="_AccountManageLastName" name="LastName" value="@Model.LastName" placeholder="Sobrenome">
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group col-md-5">
+            <label class="control-label" for="_AccountManageEmail">E-mail*</label>
+            <input type="email" class="form-control" id="_AccountManageEmail" name="Email" value="@Model.Email" placeholder="E-mail">
+        </div>
+        <div class="form-group col-md-4">
+            <label class="control-label" for="_AccountManagePassword">Senha*</label>
+            <input type="password" class="form-control" id="_AccountManagePassword" name="Password" value="" placeholder="Senha">
+        </div>
+        <div class="form-group col-md-3">
+            <label class="control-label" for="_AccountManagePasswordConfirmation">Confirmação de Senha*</label>
+            <input type="password" class="form-control" id="_AccountManagePasswordConfirmation" value="" placeholder="Confirmação de Senha">
+        </div>
+        <div class="form-group col-md-3">
+            <label class="control-label">Data de Nascimento*</label>
+            <input type="text" class="form-control date" id="_AccountManageBornDate" name="_BornDate" value="@Model._BornDate" placeholder="Data de Nascimento">
+        </div>
+        <div class="form-group col-md-3">
+            <label class="control-label" for="_AccountManagePhoneNumber">Telefone</label>
+            <input type="text" class="form-control phone" id="_AccountManagePhoneNumber" name="PhoneNumber" value="@Model.PhoneNumber" placeholder="Telefone">
+        </div>
+        <div class="form-group col-md-3">
+            <label class="control-label" for="_AccountManageMobileNumber">Celular</label>
+            <input type="text" class="form-control mobile" id="_AccountManageMobileNumber" name="MobileNumber" value="@Model.MobileNumber" placeholder="Celular">
+        </div>
+
+        <div class="form-group col-md-3">
+            <label class="control-label">Ativo?</label>
+            <select class="form-control" id="_AccountManageIsActive" name="IsActive">
+                <option value="True" selected="selected">Sim</option>
+                <option value="False">Não</option>
+            </select>
+        </div>
+        @if (Model != null && Model.UserId != null)
+        {
+            <script type="text/javascript">
+            $('#_AccountManageIsActive').find('[value=' + "@Model.IsActive" + ']').attr('selected', true);
+            </script>
+        }
+    </div>
+</form>
+<script type="text/javascript">
+        function GetRealEstates() {
+        if (IsNullOrWhiteSpace($('#_plataformas').val())) {
+            $('#_escritorios').empty();
+            $('#_escritorios').append($('<option>', { value: '' }).append('Selecione uma Plataforma.'));
+        }
+        else {
+            $.ajax({
+                url: '@Url.Action("GetRealEstatesByRealEstateAgencyId", "Company")',
+                type: 'POST',
+                datatype: 'JSON',
+                data: { id: $('#_plataformas').val() },
+                success: function (data) {
+                    if (data == null) {
+                        return;
+                    }
+                    $('#_escritorios').empty();
+                    if (data == false || data.length == 0) {
+                        $('#_plataformas').append($('<option>', { value: '' }).append('Nenhum escritório encontrado.'));
+                    }
+                    if (data.length > 0) {
+                        $('#_escritorios').append($('<option>', { value: '' }).append('Selecione'));
+                        for (var i = 0; i < data.length; i++) {
+                            var companyName = IsNullOrWhiteSpace(data[i].razaoSocial) ? data[i].firstName + " " + data[i].lastName : data[i].razaoSocial;
+                            var option = $('<option>', { value: data[i].companyId }).append(companyName);
+                            @if (company != null && company.CompanyTypeId == 2)
+                            {
+                            <text>
+                            if (data[i].companyId == @company.CompanyId) {
+                                option.attr("selected", "selected");
+                            }
+                            </text>
+                            }
+                            $('#_escritorios').append(option);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+
+    $('#_plataformas').change(function () {
+        GetRealEstates();
+    });
+
+
+    $('#_AccountManageRole').change(function () {
+        verificarRole();
+    }).change();
+
+
+    function verificarRole() {
+        $('#_plataformasDiv').hide();
+        $('#_escritoriosDiv').hide();
+        $('#_grupoMedicoDiv').hide();
+
+        if ($('#_AccountManageRole').val() == "CORRETOR") {
+            $('#_plataformasDiv').show();
+        }
+        else if ($('#_AccountManageRole').val() == "IMOBILIARIAOPERACIONAL" || $('#_AccountManageRole').val() == "IMOBILIARIOADMINISTRATIVO") {
+            $('#_plataformasDiv').show();
+            $('#_escritoriosDiv').show();
+        }
+        else if ($('#_AccountManageRole').val() == "GRUPOMEDICO") {
+            $('#_grupoMedicoDiv').show();
+        }
+    }
+
+    @if (User.IsInRole("Corretor") || company != null)
+    {
+        <text>
+    GetRealEstates();
+
+        </text>
+    }
+
+</script>

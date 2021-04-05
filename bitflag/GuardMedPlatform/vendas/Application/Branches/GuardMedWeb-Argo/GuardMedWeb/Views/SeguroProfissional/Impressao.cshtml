@@ -1,0 +1,86 @@
+﻿@model GuardMedWeb.Models.SeguradoProfissionalViewModel
+@inject DAL.GuardMedWebContext context
+@{
+    ViewData["Title"] = "GuardMed";
+
+    var pagamentoTipoFunctions = new GuardMedWeb.BLL.Pagamento.PagamentoTipoFunctions(context);
+
+
+    double mensalLiquido, mensalIOF;
+    mensalIOF = Convert.ToDouble(Model.PrecoMensal) - 19.17;
+    mensalLiquido = mensalIOF * 0.9962;
+}
+<style>
+    table {
+        border-collapse: collapse;
+    }
+
+        table td {
+            padding-left: 4px;
+        }
+
+    .no-screen {
+        display: none !important;
+    }
+
+    .impressao-subtitulo {
+        font-size: 13px;
+        white-space: nowrap;
+    }
+
+    .impressao-titulo {
+        font-size: 24px;
+    }
+
+    ._page-break {
+        page-break-after: avoid;
+    }
+
+    @@media print {
+        .no-screen {
+            display: block !important;
+        }
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-6">
+        @if (Model.PagamentoTipoId == 1)
+        {
+        <a href="@Model.IUGU_invoice_secure_url" target="_blank" class="btn btn-primary no-print" style="color: white;"><i class="fas fa-barcode"></i>&nbsp;Ver Boleto Bancário</a>
+        }
+    </div>
+    <div class="col-md-6 text-right">
+        <a href="javascript:void(0)" class="btn btn-primary no-print" id="Imprimir"><i class="fas fa-print"></i>&nbsp;Imprimir</a>
+      
+    </div>
+</div>
+
+<div style="text-align: center; margin-bottom: 1em;" class="no-screen">
+    <img src="@Url.Content("~/assets/images/logo.png")" style="width: 240px; height: 60px;" />
+</div>
+
+
+@{
+    switch (Model.PlanoSeguroProfissionalExternalCode)
+    {
+        case "GM20-ARGO":
+        case "GM30-ARGO":
+        case "GM50-ARGO":
+        case "GMFULL-ARGO":
+            Html.RenderPartial("~/Views/SeguroProfissional/Shared/_ImpressaoArgo.cshtml");
+            break;
+        case "FATOR20-UNIMED":
+            Html.RenderPartial("~/Views/SeguroProfissional/Shared/_ImpressaoGrupoMedico.cshtml");
+            break;
+        default:
+            Html.RenderPartial("~/Views/SeguroProfissional/Shared/_Impressao.cshtml");
+            break;
+    }
+}
+
+<script type="text/javascript">
+    $('#Imprimir').click(function () {
+        window.print();
+    });
+</script>

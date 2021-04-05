@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "HUa9hGCcMDJc0mOn2xBsNWSo5j4IGLtBfo5mXouKYySwbCDCxmuNvQ93zHJZ+ZnhbuqnTOG6bK6qQuHJcLIFZQ==",
+  "success": true,
+  "projectFilePath": "C:\\repositorios\\bitflag\\AmaisVetPlatform\\Application\\Branches\\AmaisVetPlatform-SegundaVia\\DTO\\DTO.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Rafaella Alves Silva\\.nuget\\packages\\newtonsoft.json\\12.0.3\\newtonsoft.json.12.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}

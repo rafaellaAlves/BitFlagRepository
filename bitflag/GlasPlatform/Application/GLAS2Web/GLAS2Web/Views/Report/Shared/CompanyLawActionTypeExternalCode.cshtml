@@ -1,0 +1,15 @@
+﻿@{
+    var companyLawActionType = (ViewData["CompanyLawActionType"] as List<DAL.CompanyLawActionType>);
+}
+<div class="form-group">
+    <label class="control-label">@translationFunctions.GetTranslation("Tipo da Ação", User.FindFirstValue("CultureInfo"))</label>
+    <select multiple="multiple" class="form-control ReportParameter" style="width: 100%;" data-hidden-parameter="CompanyLawActionTypeExternalCode">
+        @if (companyLawActionType != null)
+        {
+            @foreach (var item in companyLawActionType)
+            {
+                <option value="@item.ExternalCode">@item.Name</option>
+            }
+        }
+    </select>
+</div>

@@ -1,0 +1,70 @@
+﻿@inject FUNCTIONS.Invoice.InvoiceItemFunctions invoiceItemFunctions
+@{
+    var invoiceItemServices = invoiceItemFunctions.GetInvoiceItemServiceTypeViewModel(invoiceItemFunctions.GetInvoiceItemServices(x => x.IsActive == true));
+}
+<div class="modal fade" id="NewServiceModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Adicionar Item</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="ServiceIsCredit" value="true" />
+                <div class="row">
+                    <div class="col-md-6">
+                        <label>Descição</label>
+                        <select class="form-control" id="ServiceTypeId">
+                            @foreach (var item in invoiceItemServices.OrderBy(x => x.Order))
+                            {
+                                <option value="@item.InvoiceItemServiceTypeId" data-is-credit="@item.IsCredit" data-name="@item.Name" data-value="@item._Value">@item.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label>Valor</label>
+                        <input class="form-control money" id="ServiceValue" placeholder="Valor" />
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="row">
+                    <div class="col-md-6">
+                        <button type="button" class="btn btn-secondary pull-left" data-dismiss="modal"><i class="fas fa-times"></i>&nbsp;Fechar</button>
+                    </div>
+                    <div class="col-md-6">
+                        <button type="button" class="btn btn-success pull-right" id="save-new-service-button"><i class="simple-icon-plus"></i>&nbsp;Adicionar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $('#save-new-service-button').click(function () {
+        if (serviceValidation()) {
+            addServiceOnTable();
+        }
+    });
+
+    $('#NewServiceModal').on('hidden.bs.modal', function () {
+        $('#ServiceTypeId').val(1);
+        $('#ServiceTypeId').change();
+        $('.text-danger').remove();
+    });
+
+    $('#ServiceTypeId').change(function () {
+        var option = $('#ServiceTypeId option[value="' + $('#ServiceTypeId').val() + '"]');
+        $('#ServiceIsCredit').val($(option).data('is-credit'));
+
+        var value = $(option).data('value');
+        if (value == null || value === undefined) {
+            $('#ServiceValue').val('');
+        } else {
+            $('#ServiceValue').val(value);
+        }
+        $('#ServiceValue').select();
+    }).change();
+</script>

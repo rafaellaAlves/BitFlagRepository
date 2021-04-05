@@ -1,0 +1,175 @@
+﻿@model Web.DTO.SeguradoProfissionalViewModel
+
+@inject Web.Services.Especialidade.EspecialidadeService especialidadeService
+@inject Web.Services.SeguradoProfissional.SeguradoProfissionalService seguradoProfissionalService
+
+@{
+    var especialidades = (await especialidadeService.GetDataAsNoTrackingAsync()).OrderBy(x => x.Nome);
+}
+
+<style type="text/css">
+    .plan-table .top {
+        text-align: center;
+        color: #2e5071;
+        border: 2px solid #2e5071;
+        border-top-left-radius: 0.5em;
+        border-top-right-radius: 0.5em;
+        font-size: 1.2em;
+        background: #D3D3D3;
+    }
+
+    .plan-table .mid {
+        text-align: center;
+        border: 2px solid #2e5071;
+        background-color: #2e5071;
+        color: white;
+        line-height: 20px;
+    }
+
+    .plan-table .bottom {
+        text-align: center;
+        border: 2px solid #2e5071;
+        background-color: #D3D3D3;
+    }
+</style>
+
+<form id="my-account-professional-update-form" action="@Url.Action("MyAccountUpdateProfessionalData", "Home")" method="post">
+    <div class="card card-dark-green-theme" style="box-shadow: 0px 9px 10px 0px #b5b5b5;">
+        <div class="card-header">
+            <i class="fas fa-user-plus"></i> Escolha até 3 especialidade para o seu seguro
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <div class="input-group mb-2">
+                            <div class="input-group-prepend">
+                                <span style="font-size: 12px; font-weight: bold;" class="input-group-text">Especialidade 1</span>
+                            </div>
+                            @if (Model.Especialidades.Count > 0)
+                            {
+                                <input class="form-control" type="text" disabled value="@Model.Especialidades[0].Nome" />
+                            }
+                            else
+                            {
+                                <select class="form-control" name="Especialidade1">
+                                    <option value="">Selecione</option>
+                                    @foreach (var item in especialidades)
+                                    {
+                                        <option value="@item.EspecialidadeId">@item.Nome</option>
+                                    }
+                                </select>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <div class="input-group mb-2">
+                            <div class="input-group-prepend">
+                                <span style="font-size: 12px; font-weight: bold;" class="input-group-text">Especialidade 2</span>
+                            </div>
+                            @if (Model.Especialidades.Count > 1)
+                            {
+                                <input class="form-control" type="text" disabled value="@Model.Especialidades[1].Nome" />
+                            }
+                            else
+                            {
+                                <select class="form-control" name="Especialidade2">
+                                    <option value="">Selecione</option>
+                                    @foreach (var item in especialidades)
+                                    {
+                                        <option value="@item.EspecialidadeId">@item.Nome</option>
+                                    }
+                                </select>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12" style="@(Model.Especialidades.Count <= 1? "display:none;" : "")" id="especialidade-3-area">
+                    <div class="form-group">
+                        <div class="input-group mb-2">
+                            <div class="input-group-prepend">
+                                <span style="font-size: 12px; font-weight: bold;" class="input-group-text">Especialidade 3</span>
+                            </div>
+                            @if (Model.Especialidades.Count > 2)
+                            {
+                                <input class="form-control" type="text" disabled value="@Model.Especialidades[2].Nome" />
+                            }
+                            else
+                            {
+                                <select class="form-control" name="Especialidade3">
+                                    <option value="">Selecione</option>
+                                    @foreach (var item in especialidades)
+                                    {
+                                        <option value="@item.EspecialidadeId">@item.Nome</option>
+                                    }
+                                </select>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br />
+    @{
+        seguradoProfissionalService.TryGetNextPlan(Model.SeguradoProfissionalId, out Web.DTO.Plano.PlanoSeguroProfissionalViewModel nextPlan);
+        if (nextPlan != null)
+        {
+            <div class="card card-dark-green-theme" style="box-shadow: 0px 9px 10px 0px #b5b5b5;">
+                <div class="card-header">
+                    <i class="fas fa-cart-plus"></i> Deseja fazer um upgrade em seu plano?
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-12 plan-table">
+                            <div class="top">
+                                <label>@nextPlan.Nome</label>
+                            </div>
+                            <div class="mid">
+                                <label>Valor de cobertura individual</label>
+                                <h4>R$ @nextPlan._ValorCobertura</h4>
+                            </div>
+                            <div class="bottom">
+                                <small>Franquia (Deduzida dos Prejuízos Indenizáveis)</small>
+                                <br />
+                                <small>R$ @nextPlan._Franquia</small>
+                            </div>
+                        </div>
+                        <div class="col-md-12 mt-2">
+                            <label style="font-size: 16px;"><input type="checkbox" name="UpgradePlan" /> Desejo atualizar para o plano <b>@nextPlan.Nome</b></label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+
+</form>
+
+<script type="text/javascript">
+    $('#my-account-professional-update-form [name="Especialidade2"]').change(function () {
+        if (IsNullOrWhiteSpace($(this).val()))
+            $('#especialidade-3-area').hide();
+        else
+            $('#especialidade-3-area').show();
+    });
+    $('#my-account-professional-update-form [name="UpgradePlan"]').change(function () {
+        $(this).val(this.checked);
+    });
+
+    function insuredProfissionalDataUpdateValidate() {
+        var editedFields = 0;
+
+        $('#my-account-professional-update-form select').each(function (i, e) { if (!IsNullOrWhiteSpace($(e).val())) editedFields++; }); //adicionou alguma especialidade
+
+        if ($('#my-account-professional-update-form [name="UpgradePlan"]').val() == 'true') editedFields++; //selecionar em alterar o plano
+
+        if (editedFields == 0) {
+            bootbox.alert('Nenhuma informação foi alterada.<br />Para salvar, altere algum dos campos.');
+        }
+
+        return editedFields > 0;
+    }
+</script>

@@ -1,0 +1,368 @@
+﻿@model DTO.Route.RouteClientParametersViewModel
+
+@inject Services.Contract.ContractPeriodicityServices contractPeriodicityServices
+@inject Services.Route.RouteTypeServices routeTypeServices
+
+@{
+    var contratoTypeId = (await routeTypeServices.GetDataByExternalCode("CONTRATO"))?.RouteTypeId;
+
+    var perDemandStatus = await contractPeriodicityServices.GetDataByExternalCode("PORDEMANDA");
+}
+
+<link href="~/assets/css/route.css" rel="stylesheet" />
+
+<div class="row align-items-end justify-content-between" id="route-client-table-filter-area">
+    <div class="col-md-auto form-group">
+        <button type="button" onclick="openRouteClientModal()" class="btn btn-primary w-100"><i class="simple-icon-plus"></i>&nbsp;Adicionar Geradores na Rota</button>
+    </div>
+    <div class="col-md-auto form-group">
+        <label>Periodicidade (Filtro)</label>
+        <select class="form-control" name="FilterPeriodicity" data-disabledAll="false" onchange="routeClientTable.draw();">
+            <option value="">Selecione</option>
+            @foreach (var item in (await contractPeriodicityServices.GetDataAsNoTrackingAsync()).OrderBy(x => x.Order))
+            {
+                <option value="@item.ContractPeriodicityId">@item.Name</option>
+            }
+        </select>
+    </div>
+</div>
+<div class="row">
+    <div class="col-12">
+        <div class="alert alert-success" role="alert" id="client-table-insert-success-alert" style="display:none;"></div>
+    </div>
+</div>
+<div class="row">
+    <div class="col table-responsive">
+        <table class="nowrap table table-bordered table-condensed w-100" id="route-client-table">
+            <thead>
+                <tr style="background: #a1a1a1; color: white;">
+                    <th></th>
+                    <th>Sequência</th>
+                    <th>Código</th>
+                    <th>Razão Social</th>
+                    <th>Nome Fantasia</th>
+                    <th>Cidade</th>
+                    <th>Bairro</th>
+                    <th>Endereço</th>
+                    <th>Família</th>
+                    <th>Periodicidade</th>
+                    <th>Situação</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.RouteClient.OrderBy(x => x.Order))
+                {
+                    var addressId = item.ClientCollectionAddressId;
+
+                    <tr data-addressId="@addressId" style="background-color: @item.RowColor" data-contractId="@item.ContractId" data-serviceId="@item.ServiceId">
+                        <td><i class="simple-icon-shuffle"></i></td>
+                        <td class="text-center">@item.Order</td>
+                        <td><a data-disabledAll="false" href="@Url.Action("Manage", "Client", new { id = item.ClientId})" target="_blank">@item.ClientId</a></td>
+                        <td>@item.CompanyName</td>
+                        <td>@item.TradeName</td>
+                        <td>@item.City</td>
+                        <td>@item.Neighborhood</td>
+                        <td>@item.Address, @item.Number</td>
+                        <td>
+                            <span class="address-family-name" data-addressId="@addressId">@item.ResidueFamilyName</span>
+                        </td>
+                        @if (Model.Route.RouteTypeId == contratoTypeId)
+                        {
+                            <td data-filter="@item.PeriodicityId">@item.PeriodicityName</td>
+                        }
+                        else
+                        {
+                            <td data-filter="@perDemandStatus.ContractPeriodicityId">@perDemandStatus.Name</td>
+                        }
+                        <td>@(item.InOtherRoutesCount > 1? "Em mais de uma rota" : item.SituationName)</td>
+                        <td>
+                            <div class="text-center">
+                                <a href="javascript:openSelectResidueFamilyModal(@addressId, '@item.ContractId', '@item.ServiceId')" class="badge badge-pill badge-info"><i class="simple-icon-basket-loaded"></i></a>&nbsp;
+                                <a href="javascript:removeClientAddress(@addressId)" class="badge badge-pill badge-danger"><i class="simple-icon-trash"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<hr />
+<div class="row">
+    <div class="col-md-2">
+        <b style="display: inline-flex; margin-bottom: 10px; margin-top: 7px;">Totalizador da Rota</b>
+        <input id="route-manage-address-count" class="form-control" disabled />
+    </div>
+    <div class="col-md-10">
+        <div class="card card-body tx-mutted bd-0" style=" padding-bottom: 1px; padding-top: 7px;">
+            <div class="row" style="padding: 5px;">
+                <div class="col-6 col-md legend text-md-center" style="padding-top: 0;">
+                    <b style="display: inline-flex; margin-bottom: 10px;">Legendas</b>
+                    <br />
+                    <div style="background: #8ccee6;"></div>
+                    <label style="margin-left:0;">Encerrado</label>
+                </div>
+                <div class="col-6 col-md legend text-md-center">
+                    <div style="background: #f0a1a1;"></div>
+                    <label>Inadimplente</label>
+                </div>
+                <div class="col-6 col-md legend text-md-center">
+                    <div style="background: #f9d5ad;"></div>
+                    <label>Sem Contrato</label>
+                </div>
+                <div class="col-6 col-md legend text-md-center">
+                    <div style="background: #d1d1d1;"></div>
+                    <label>Suspenso</label>
+                </div>
+                <div class="col-6 col-md legend text-md-center">
+                    <div style="background: #c9adf0;"></div>
+                    <label>A expirar</label>
+                </div>
+                <div class="col-6 col-md legend text-md-center">
+                    <div style="background:white;"></div>
+                    <label>Regular</label>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<modal id="route-client-modal" title-id="route-client-modal-title" title="Adicionar Geradores na Rota" modal-lg="true" hide-footer="true">
+    @(await Component.InvokeAsync<Web.ViewComponents.Route.RouteClientSelectionViewComponent>())
+</modal>
+
+<div class="modal fade" id="route-client-family-modal" tabindex="-1" role="dialog" aria-labelledby="route-client-modal-family-title" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold" id="route-client-modal-family-title">Familías vinculadas ao Contrato/Serviço do Gerador</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="route-client-family-modal-view-component"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-success" type="button" onclick="_selectResidueFamiliesCallback()">Salvar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript" asp-cut-key="route-client">
+    //guarda as familias selecionadas para cada cliente
+    var addressFamilyIds = [];
+    var routeClientTable;
+    @foreach (var item in Model.RouteClient)
+    {
+        var addressId = item.ClientCollectionAddressId;
+        if (item._RouteResidueFamilyIds.Count == 0){ continue; }
+
+        <text>
+            addressFamilyIds.push({
+                familyIds: @($"[{string.Join(",", item._RouteResidueFamilyIds)}]"),
+                clientCollectionAddressId: '@(item.ClientCollectionAddressId)'
+            });
+        </text>
+    }
+
+    $(document).ready(function () {
+        routeClientTable = $('#route-client-table').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            dom: 'tip',
+            scrollY: '400px',
+            scrollCollapse: true,
+            paging: false,
+            columnDefs: [
+                { orderable: true, className: 'text-center reorder', targets: 1 },
+                { targets: [0], orderData: [1] },
+                { orderable: false, targets: [0, 2, 3, 4, 5, 6, 7, 8, 9, 10] }
+            ],
+            rowReorder: { dataSrc: 1 },
+            drawCallback: function () {
+                $('#route-manage-address-count').val($(this).DataTable().rows().count());
+
+                //Atualza visualmente os numeros da coluna "Sequência"
+                $('#route-client-table').DataTable().rows({ order: 'applied' }).nodes().each(function (e, i) {
+                    var td = $(e).find('td')[1];
+                    if(td != null) td.innerHTML = i + 1;
+                });
+
+                setTimeout(function () {
+                    $('#route-client-table').DataTable().columns.adjust();
+                }, 1); //atualiza a largura das colunas
+            }
+        });
+    });
+
+    function openRouteClientModal() {
+        $('#route-client-modal .text-danger').remove();
+        $('#route-client-modal input, #route-client-modal select').val('');//limpa os campos
+
+        if (routeClientAddTable != null) {
+            routeClientAddTable.rows().remove();
+            routeClientAddTable.draw();
+        }
+        if (routeClientAddressAddTable != null) {
+            routeClientAddressAddTable.rows().remove();
+            routeClientAddressAddTable.draw();
+        }
+
+        $('#route-client-modal').modal('show');
+
+        $('#route-client-modal').on('shown.bs.modal', function () {
+            routeClientAddressAddTable.columns.adjust(); //atualiza a largura das colunas
+            routeClientAddTable.columns.adjust();
+
+            initSearchDataTable();
+        });
+    }
+
+    function setAddressInRoute(p)
+    {
+        if (p.length == 0) return;
+        var index = $('#route-client-table').DataTable().rows().count() + 1;
+        $.post('@Url.Action("GetClientAddresses", "Route")', p, function (d) {
+            $.each(d, function (i, e) {
+                var isContract = e.contractId != null;
+
+                if ($('#route-client-table tr[data-addressId="' + e.clientCollectionAddressId + '"]').length > 0) return;
+
+                var r = $('#route-client-table').DataTable().row.add(
+                    $('<tr>').append(
+                        $('<td>').append('<i class="simple-icon-shuffle"></i>'),
+                        $('<td>').append(index + i),
+                        @*$('<td>').append(isContract? '<a href="/@Url.Action("View", "Contract")?id=' + (isContract ? e.contractId : e.serviceId) + '" target="_blank">' + e.contractCode + '</a>' : '-'),*@
+                        $('<td>').append('<a href="@Url.Action("Manage","Client")?id=' + e.clientId + '" target="_blank">' + e.clientId + '</a>'),
+                        $('<td>').append(e.companyName),
+                        $('<td>').append(e.tradeName),
+                        $('<td>').append(e.city),
+                        $('<td>').append(e.neighborhood),
+                        $('<td>').append(e.address + ', ' + e.number),
+                        $('<td>').append('<span class="address-family-name" data-addressId="' + e.clientCollectionAddressId + '""></span>'),
+                        ($('#RouteTypeId').val() == '@contratoTypeId' ? $('<td>', { 'data-filter': e.periodicityId }).append(e.periodicityName) : $('<td>', { 'data-filter': '@perDemandStatus.ContractPeriodicityId' }).append('@perDemandStatus.Name')),
+                        $('<td>').append(e.inOtherRoute ? 'Em mais de uma rota' : e.situationName),
+                        $('<td>').append('<div class="text-center"><a data-address-id="' + e.clientCollectionAddressId + '" href="javascript:openSelectResidueFamilyModal(' + e.clientCollectionAddressId + ', ' + isNull(e.contractId, null) + ', ' + isNull(e.serviceId, null) + ')" class="badge badge-pill btn-teal badge-insert-families"><i class="simple-icon-basket-loaded"></i></a>&nbsp;<a href="javascript:removeClientAddress(' + e.clientCollectionAddressId + ')" class="badge badge-pill badge-danger"><i class="simple-icon-trash"></i></a></div>')
+                    )
+                );
+
+                $(r.node()).attr('data-addressId', e.clientCollectionAddressId);
+                $(r.node()).attr('data-contractId', e.contractId);
+                $(r.node()).attr('data-serviceId', e.serviceId);
+
+                $(r.node()).css('background-color', e.rowColor);
+            });
+
+            $('#route-client-table').DataTable().draw();
+            $('#route-client-table').DataTable().columns.adjust();
+
+            _setSelectedClientAsUnselectable();
+
+            $('#client-table-insert-success-alert').show();
+            $('#client-table-insert-success-alert').text(d.length + ' geradores foram incluídos na rota!');
+            setTimeout(function () { $('#client-table-insert-success-alert').fadeOut(2000); }, 8000);
+            $('#route-client-modal').modal('hide');
+        });
+    }
+
+    //desabilita os checkboxes de endereços adicionados a lista
+    function _setSelectedClientAsUnselectable()
+    {
+        setSelectedClientAsUnselectable($('#route-client-table tr[data-addressId]').map(function (i, e) {
+            return {
+                addressId: $(e).data('addressid')
+            }
+        }));
+    }
+
+    function openSelectResidueFamilyModal(addressId, contractId, serviceId) {
+        $('#route-client-family-modal-view-component').empty();
+
+        if ($('#RouteTypeId').length > 0 && $('#RouteTypeId').val() == '@contratoTypeId') {
+            serviceId = null;
+        } else {
+            contractId = null;
+        }
+
+        $('#route-client-family-modal-view-component').load('@Url.Action("RouteResidueFamilyViewComponent", "Route")', { addressId, contractId, serviceId }, function () {
+            $('#route-client-family-modal').modal('show');
+
+            //Setar famílias já selecionadas
+            var index = addressFamilyIds.findIndex(x => (x.clientCollectionAddressId == addressId));
+
+            if (index != -1) {
+                $.each(addressFamilyIds[index].familyIds, function (i, e) {
+                    var elem = $('#route-client-families-selection-table input[type="checkbox"][data-family-id="' + e + '"]');
+                    if (elem.length == 0) return;
+
+                    elem[0].checked = true;
+                });
+            }
+        });
+    }
+
+    function selectResidueFamiliesCallback(d)
+    {
+        //remove o dado do cliente caso ele já exista
+        var index = addressFamilyIds.findIndex(x => x.clientCollectionAddressId == d.clientCollectionAddressId);
+
+        if (index != -1) addressFamilyIds.splice(index, 1);
+
+        if (d.families.length > 0) { //caso não tenha adicionado família e clique em salvar não seta os dados
+            addressFamilyIds.push({
+                familyIds: d.families.map(function (e, i) { return e.id; }),//apenas o Id da familia vai ser usado para salvar
+                clientCollectionAddressId: d.clientCollectionAddressId
+            });
+        }
+
+        //Colocando a classe das famílias selecionadas na lista
+        var spanFamilyName = $('.address-family-name[data-addressId="' + (d.clientCollectionAddressId) + '"]');
+
+        spanFamilyName.text(
+            d.families.map(function (e, i) { return e.name; })//obtendo o nome das classes das famílias selecionadas
+            .join('/')
+        );
+
+        $('#route-client-family-modal').modal('hide');
+
+        //mensagem de sucesso
+        $('#client-table-insert-success-alert').show();
+        $('#client-table-insert-success-alert').text('Famílias inseridas com sucesso!');
+        setTimeout(function () { $('#client-table-insert-success-alert').fadeOut(2000); }, 8000);
+
+        //altera o estilo do botão
+        $('.badge-insert-families[data-address-id="' + d.clientCollectionAddressId + '"]').removeClass('btn-teal').addClass('badge-info');
+    }
+
+    function removeClientAddress(addressId)
+    {
+        bootboxConfirm('Deseja realmente remover este endereço da Rota?', function (d) {
+            if (!d) return;
+
+            routeClientTable.row($('#route-client-table tr[data-addressId="' + addressId + '"]')).remove();
+            routeClientTable.draw();
+
+            //remove as familias do cliente caso exista
+            var index = addressFamilyIds.findIndex(x => x.clientCollectionAddressId == addressId);
+
+            if (index != -1) addressFamilyIds.splice(index, 1);
+
+            $('#route-client-table').DataTable().columns.adjust();
+        });
+    }
+
+    $.fn.dataTable.ext.search.push(
+        function (settings, data, dataIndex) {
+            if (settings.sInstance != "route-client-table") return true;
+
+            var periodicity = $('#route-client-table-filter-area [name="FilterPeriodicity"]').val();
+
+            return isNullOrWhiteSpace(periodicity) || periodicity == $(settings.aoData[dataIndex].anCells[9]).data('filter');
+        }
+    );
+</script>

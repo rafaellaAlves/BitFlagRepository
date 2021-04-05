@@ -1,0 +1,42 @@
+﻿@model int
+
+<div class="row">
+    <div class="col">
+        <table id="StudentClassTable" class="display table table-striped table-bordered table-condensed" style="border-collapse: collapse !important; width:100%;">
+            <thead>
+                <tr>
+                    <th style="width: 100%;">Turma</th>
+                    <th>&nbsp;</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+<script type="text/javascript">
+    var datatables;
+    $(document).ready(function () {
+        datatables = $('#StudentClassTable').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: true,
+            //dom: 'tip',
+            ajax: {
+                url: '@Url.Action("ListStudentClass", "ClassStudent")',
+                data: function (d) {
+                    d.studentId = '@Model'
+                },
+                type: 'POST'
+            },
+            columns: [
+                { render: function (data, type, row) { return row.classFullName; } },
+                {
+                    render: function (data, type, row) {
+                        return '<div class="text-center" style="white-space: nowrap;">' + '<a target="_blank" href="@Url.Action("AdministrativeSituation", "ClassStudent")?classId=' + row.classId + '&classStudentId=' + row.classStudentId + '&newWindow=true"><span class="badge badge-primary">Boletos</span></a>' + ' ' + '<a target="_blank" href="@Url.Action("Finance", "ClassStudent")?classId=' + row.classId + '&classStudentId=' + row.classStudentId + '&newWindow=true"><span class="badge badge-primary">Financeiro</span></a>' + ' ' + '<a target="_blank" href="@Url.Action("Document", "ClassStudent")?classId=' + row.classId + '&classStudentId=' + row.classStudentId + '&newWindow=true"><span class="badge badge-primary">Documentação</span></a>' + ' ' + '<a target="_blank" href="@Url.Action("PresentialSituation", "ClassStudent")?classId=' + row.classId + '&classStudentId=' + row.classStudentId + '&newWindow=true"><span class="badge badge-primary">Presença</span></a></div>';
+                    }
+                }
+            ]
+        });
+    });
+</script>

@@ -1,0 +1,9 @@
+C:\repositorios\DestineJaPlatform\Application\DTO\bin\Debug\netcoreapp3.1\DTO.deps.json
+C:\repositorios\DestineJaPlatform\Application\DTO\bin\Debug\netcoreapp3.1\DTO.dll
+C:\repositorios\DestineJaPlatform\Application\DTO\bin\Debug\netcoreapp3.1\DTO.pdb
+C:\repositorios\DestineJaPlatform\Application\DTO\obj\Debug\netcoreapp3.1\DTO.csprojAssemblyReference.cache
+C:\repositorios\DestineJaPlatform\Application\DTO\obj\Debug\netcoreapp3.1\DTO.AssemblyInfoInputs.cache
+C:\repositorios\DestineJaPlatform\Application\DTO\obj\Debug\netcoreapp3.1\DTO.AssemblyInfo.cs
+C:\repositorios\DestineJaPlatform\Application\DTO\obj\Debug\netcoreapp3.1\DTO.csproj.CoreCompileInputs.cache
+C:\repositorios\DestineJaPlatform\Application\DTO\obj\Debug\netcoreapp3.1\DTO.dll
+C:\repositorios\DestineJaPlatform\Application\DTO\obj\Debug\netcoreapp3.1\DTO.pdb

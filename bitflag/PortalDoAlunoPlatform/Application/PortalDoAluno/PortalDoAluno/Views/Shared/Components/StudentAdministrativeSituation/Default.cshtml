@@ -1,0 +1,68 @@
+@model DTO.ASAAS.Payment.PaymentListModel
+
+@if (Model.Data.Any(x => x.IsOverdue))
+{
+    <div class="row">
+        <div class="col">
+            <div class="alert alert-danger rounded" role="alert"><b>Atenção!</b> Aluno com cobranças pendentes.</div>
+        </div>
+    </div>
+}
+<div class="row">
+    <div class="col">
+        @if (Model.Data.Count == 0)
+        {
+            <div class="text-center">
+                <i>Nenhuma cobrança gerada até o momento.</i>
+            </div>
+        }
+        else
+        {
+            <table id="studentIndexTable" class="display table table-striped table-bordered table-condensed" style="border-collapse: collapse !important; width:100%;">
+                <thead>
+                    <tr>
+                        <th>Parcela</th>
+                        <th>Turma</th>
+                        <th>Vencimento</th>
+                        <th>Valor Original</th>
+                        <th>Data de Pagamento</th>
+                        <th>Situação</th>
+                        <th>&nbsp;</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Data.OrderBy(x => x.DueDate))
+                    {
+                        <tr class="@(item.IsPayed ? "text-success" : (item.IsOverdue ? "text-danger font-weight-bold" : string.Empty))">
+                            <td>@(item.Description??"-")</td>
+                            <td>@(item.ExternalReference??"-")</td>
+                            <td>@item.DueDate.ToString("dd/MM/yyyy")</td>
+                            <td>R$ @item.Value.ToString("#,##0.00")</td>
+                            <td>@(item.PaymentDate.HasValue ? item.PaymentDate.Value.ToString("dd/MM/yyyy") : "-") </td>
+                            <td>@(item._Status)</td>
+                            <td class="text-center">
+                                <a href="@item.InvoiceUrl" target="_blank"><span class="badge badge-pill badge-primary">Recibo</span></a>
+                                <a href="@item.BankSlipUrl" target="_blank"><span class="badge badge-pill badge-primary">Boleto</span></a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+
+<script type="text/javascript">
+        var datatables;
+        $(document).ready(function () {
+            datatables = $('#studentIndexTable').DataTable({
+                serverSide: false,
+                proccessing: true,
+                searching: true,
+                lengthChange: true,
+                order: [],
+                //dom: 'tip',
+              
+            });
+        });
+</script>

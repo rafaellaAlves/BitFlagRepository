@@ -1,0 +1,64 @@
+﻿@model int
+@inject Services.Demand.DemandClientServices demandClientServices
+
+@{
+    Layout = "~/Views/Shared/_LayoutClean.cshtml";
+}
+
+<style type="text/css">
+    @@media print {
+        .no-print {
+            display: none;
+        }
+
+        .break-page {
+            page-break-after: always;
+        }
+    }
+
+    .table-b, .table-b td {
+        border: 1px solid #dee2e6;
+    }
+
+    .bb-0, .bb-0 tr:last-child td {
+        border-bottom: 0 !important;
+    }
+
+    .bt-0, .bt-0 tr:last-child td {
+        border-top: 0 !important;
+    }
+
+    main {
+        -webkit-print-color-adjust: exact;
+    }
+
+    .dark-bg {
+        background: #696969;
+        color: white;
+    }
+</style>
+
+@{
+    var demandClients = (await demandClientServices.GetDataAsNoTrackingAsync(x => x.DemandId == Model)).OrderBy(x => x.Order).ToList();
+}
+<div class="w-100 no-print" style=" margin-top: 3em;">
+    <a href="@Url.Action("Manage", "Demand", new { id = Model })" class="btn btn-secondary"><i class="simple-icon-arrow-left"></i>&nbsp;Voltar</a>
+    <a href="javascript:window.print();" class="btn btn-primary float-right"><i class="simple-icon-printer"></i>&nbsp;Imprimir</a>
+</div>
+@for (var i = 0; i < demandClients.Count; i++)
+{
+    var item = demandClients[i];
+    @(await Component.InvokeAsync<Web.ViewComponents.Demand.BlankMTRFileViewComponent>(item.DemandClientId))
+    if (i < demandClients.Count - 1)
+    {
+        <div class="break-page"></div>
+    }
+}
+
+@section Scripts{
+    <script type="text/javascript">
+        $(document).ready(function () {
+            window.print();
+        });
+    </script>
+}

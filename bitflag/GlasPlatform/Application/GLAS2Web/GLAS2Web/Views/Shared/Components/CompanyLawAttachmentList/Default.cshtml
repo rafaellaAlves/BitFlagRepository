@@ -1,0 +1,50 @@
+﻿@model int
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="input-group">
+            <span class="input-group-addon"><i class="fa fa-search"></i></span>
+            <input type="text" class="form-control" placeholder="Procurar..." data-toggle="search-datatable" data-target="#company-law-attachment-table" />
+        </div>
+    </div>
+</div>
+<hr />
+<table id="company-law-attachment-table" class="datatable display table table-sm table-bordered table-striped" style="border-collapse: collapse !important; width: 100%">
+    <thead>
+        <tr>
+            <th>Nome</th>
+            <th>Data</th>
+            <th style="width:70px">Download</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<script type="text/javascript">
+    var companyLawTable = $('#company-law-attachment-table').DataTable({
+        proccessing: true
+        , serverSide: false
+        , searching: true
+        , lengthChange: false
+        , dom: 'tip'
+        , ajax: {
+			url: '@Url.Action("List", "CompanyLawAttachmentManagement")'
+            , type: 'POST'
+            , data: function (d) {
+                d.CompanyLawId = @Model;
+            }
+		}
+		, columns: [
+			{ data: 'Name' }
+            , { data: '_CreatedDate' }
+			, {
+                data: 'CompanyLawAttachmentId',
+                render: function (data, type, row, meta) {
+                    return '<div class="text-center"><a class="badge badge-info" href="@Url.Action("GetCompanyLawAttachment", "CompanyLawAttachmentManagement")?companyLawAttachmentId=' + row.CompanyLawAttachmentId + '"><i class="fa fa-download"></i></a></div>';
+                }
+            }
+        ]
+    });
+
+    $(document).ready(searchDatatableInitialize);
+</script>

@@ -1,0 +1,224 @@
+﻿@inject Services.Demand.DemandStatusServices demandStatusServices
+@inject Services.Demand.DemandServices demandServices
+@inject Web.Helpers.DropDownListHelper dropDownListHelper
+
+<div class="row" id="demand-index-table-filter-area">
+    <div class="col-md form-group">
+        <input type="text" class="form-control" placeholder="Pesquisar" data-toggle="search-datatable" data-target="#demand-table" />
+    </div>
+    <div class="col-md-auto col-12 form-group">
+        <input type="text" class="form-control" placeholder="MTR de Coleta" id="demand-search" onkeyup="demandSearch()" />
+    </div>
+    <div class="col-md-auto col-12 form-group">
+        @Html.DropDownList("DemandStatusId", dropDownListHelper.ToSelectListItem((await demandStatusServices.GetDataAsNoTrackingAsync()).OrderBy(x => x.Order), x => x.DemandStatusId, x => x.Name, ""), "Status da Coleta", new { Class = "form-control", onchange = "demandDatatables.draw();" })
+    </div>
+    <div class="col-md-auto col-12 form-group">
+        <select class="form-control" name="StatusId" onchange="demandDatatables.draw();">
+            <option value="">Status da Demanda</option>
+            <option value="1">Aberta</option>
+            <option value="2">Fechada</option>
+            <option value="3">Cancelada</option>
+        </select>
+    </div>
+    <div class="col-md-2">
+        <a href="@Url.Action("Manage", "Demand")" class="btn btn-primary w-100"><i class="simple-icon-plus"></i>&nbsp;Novo</a>
+    </div>
+</div>
+<hr />
+<div class="row">
+    <div class="col-12 text-center mb-1" style="font-size: 18px;">
+        <b>@(await demandServices.GetDemandsThisMonth())</b> MTR(s) de Coletas feitos este mês.
+    </div>
+    <div class="col table-responsive">
+        <table id="demand-table" class="display nowrap table table-striped table-bordered table-condensed w-100 tablesizeline" style="border-collapse: collapse !important;">
+            <thead>
+                <tr>
+                    <th style="text-align:center">MTR</th>
+                    <th style="text-align:center">Saída</th>
+                    <th style="text-align:center">Chegada</th>
+                    <th style="text-align:center">Rota</th>
+                    <th style="text-align:center">Qtd Geradores</th>
+                    <th style="text-align:center">Status</th>
+                    <th style="text-align:center">Demanda</th>
+                    <th style="text-align:center">MTRs Destinação</th>
+                    <th width="60px">&nbsp;</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<script asp-cut-key="demand-index">
+    var demandDatatables;
+    $(document).ready(function () {
+        demandDatatables = $('#demand-table').DataTable({
+            order: [[0, "desc"]],
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            //scrollX: true,
+            pageLength: 30,
+            dom: 'tip',
+            ajax: {
+                url: '@Url.Action("List", "Demand")',
+                type: 'POST'
+            },
+            columnDefs: [{
+                targets: [0],
+                orderData: [10, 9]
+            }],
+            columns: [
+                { render: function (data, type, row) { return '<div class="text-center" data-sort="' + row.demandId + '">' + row.destinaJaDemandId + '</div>'; } },
+                { render: function (data, type, row) { return '<div class="text-center">' + row._DepartureDate + '</div>'; } },
+                { render: function (data, type, row) { return '<div class="text-center">' + row._ArriveDate + '</div>'; } },
+                { render: function (data, type, row) { return row.routeId + ' - ' + row.routeName; } },
+                { render: function (data, type, row) { return '<div class="text-center"><a href="javascript:openDemandClientModal(' + row.demandId + ')">' + row.totalClient + '</a></div>'; } },
+                { render: function (data, type, row) { return '<div data-demand-status-id="' + row.demandStatusId + '" class="text-center">' + isNull(row.demandStatusName, '-') + '</div>'; } },
+                { render: function (data, type, row) { return '<div data-status-id="' + (row.cancel ? 3 : (row.closed ? 2 : (row.cancel ? 3 : 1))) + '" class="text-center">' + (row.closed ? 'Fechada' : (row.cancel? 'Cancelada' : 'Aberta')) + '</div>'; } },
+                { render: function (data, type, row) { return '<div class="text-center">' + isNull(row.demandDestinationIds, '-') + '</div>'; } },
+                {
+                    render: function (data, type, row) {
+                        var r = '<div class="text-center">';
+
+                        if (!row.cancel) {
+                            r += '<a href=\'@Url.Action("Manage", "Demand")?id=' + row.demandId + '\' title="Editar"><span class="badge badge-pill badge-success"><i class="simple-icon-note"></i></span></a>';
+                        } else {
+                            r += '<a href=\'@Url.Action("Manage", "Demand")?id=' + row.demandId + '\' title="Visualizar"><span class="badge badge-pill badge-success"><i class="simple-icon-magnifier"></i></span></a>';
+                        }
+
+                        if (!row.closed && !row.cancel) {
+                            r += '&nbsp;<a href=\'@Url.Action("Close", "Demand")?id=' + row.demandId + '\' title="Fechar Demanda"><span class="badge badge-pill badge-primary"><i class="fa fa-lock"></i></span></a>' +
+                                '&nbsp;<a href=\'javascript:cancelDemand(' + row.demandId + ')\' title="Cancelar"><span class="badge badge-pill badge-danger"><i class="simple-icon-close"></i></span></a>';
+                        } else if (!row.cancel) {
+                            r += '&nbsp;<a href=\'@Url.Action("Close", "Demand")?id=' + row.demandId + '\' title="Visualizar/Editar Fechamento"><span class="badge badge-pill badge-primary"><i class="fa fa-lock"></i></span></a>';
+                        }
+                        if (row.closed) {
+                            r += '&nbsp;<a href=\'javascript:unlockDemand("' + row.destinaJaDemandId + '", ' + row.demandId + ')\' title="Abrir MTR de Coleta"><span class="badge badge-pill badge-warning"><i class="fa fa-unlock"></i></span></a>';
+                        }
+
+                        r += '</div>';
+
+                        return r;
+                    }
+                },
+                { visible: false, render: function (data, type, row) { return row.destinaJaDemandId.split('/')[0]; } }
+                ,{
+                    visible: false, render: function (data, type, row) {
+                        var split = row.destinaJaDemandId.split('/');
+
+                        if (split.length < 2) return null;
+
+                        return split[1];
+                    }
+                }
+                , { visible: false, render: function (data, type, row) { return row.demandClientCompanyNames; } }
+                , { visible: false, render: function (data, type, row) { return row.demandClientTradeNames; } }
+            ]
+        });
+    });
+
+
+    function cancelDemand(destinaJaDemandId, demandId) {
+        bootbox.prompt({
+            title: "Deseja realmente cancelar a demanda \"" + destinaJaDemandId + "\"?<br/>Insira o motivo a baixo:",
+            inputType: 'textarea',
+            buttons: {
+                confirm: {
+                    label: 'Sim',
+                    className: 'btn-success'
+                },
+                cancel: {
+                    label: 'Não',
+                    className: 'btn-danger mr-auto float-left'
+                }
+            },
+            callback: function (result) {
+                if (result == null) return;
+
+                $.post('@Url.Action("Cancel", "Demand")', { demandId, reason: result }, function (d) {
+                    bootbox.alert(d.message);
+                    if (d.hasError) return;
+
+                    demandDatatables.ajax.reload();
+                });
+            }
+        });
+    }
+
+    function unlockDemand(destinaJaDemandId, demandId) {
+        bootbox.prompt({
+            title: "Deseja realmente abrir a demanda \"" + destinaJaDemandId + "\"?<br/>Insira o motivo a baixo:",
+            inputType: 'textarea',
+            buttons: {
+                confirm: {
+                    label: 'Sim',
+                    className: 'btn-success'
+                },
+                cancel: {
+                  label: 'Não',
+                    className: 'btn-danger mr-auto float-left'
+                }
+            },
+            callback: function (result) {
+                if (result == null) return;
+
+                $.post('@Url.Action("Unlock", "Demand")', { demandId, reason: result }, function (d) {
+                    bootbox.alert(d.message);
+                    if (d.hasError) return;
+
+                    demandDatatables.ajax.reload();
+                });
+            }
+        });
+    }
+
+    $.fn.dataTable.ext.search.push(
+        function (settings, data, dataIndex) {
+            if (settings.sInstance != "demand-table") return true;
+
+            var r = true;
+
+            var demandStatusID = $('#demand-index-table-filter-area [name="DemandStatusId"]').val();
+
+            var statusID = $('#demand-index-table-filter-area [name="StatusId"]').val();
+
+            r = isNullOrWhiteSpace(statusID) || statusID == $(settings.aoData[dataIndex].anCells[6]).find('[data-status-id]').data('status-id');
+            r = r && (isNullOrWhiteSpace(demandStatusID) || demandStatusID == $(settings.aoData[dataIndex].anCells[5]).find('[data-demand-status-id]').data('demand-status-id'));
+
+            return r;
+        }
+    );
+
+    function openDemandClientModal(demandId)
+    {
+        $('#demand-index-demand-clients-view-component').load('@Url.Action("LoadDemandClientQuickListViewComponent", "Demand")', { demandId }, function () {
+            $('#demand-index-demand-clients').modal('show');
+            InitializeFunctions();
+        });
+    }
+
+    function demandSearch() {
+        demandDatatables.column(0).search($('#demand-index-table-filter-area #demand-search').val()).draw();
+    }
+</script>
+
+<div class="modal fade" id="demand-index-demand-clients" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content" style="max-width: 550px;">
+            <div class="modal-header">
+                <h5 class="modal-title tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold" id="demand-index-demand-clients-title">Geradores</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+            </div>
+            <div class="modal-body">
+                <div id="demand-index-demand-clients-view-component"></div>
+            </div>
+            <div class="modal-footer">
+                <div class="col-md-12">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="simple-icon-close"></i>&nbsp;Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

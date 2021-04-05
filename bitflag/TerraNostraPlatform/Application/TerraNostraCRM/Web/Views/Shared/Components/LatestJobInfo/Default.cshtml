@@ -1,0 +1,15 @@
+﻿@model DTO.Job.JobInteractionViewModel
+
+    <dl class="row">
+        <dt class="col-sm-4">Etapa Atual</dt>
+        <dd class="col-sm-8">@(Model.StepDescription == null ? "-" : Model.StepDescription)</dd>
+
+        <dt class="col-sm-4">Responsável</dt>
+        <dd class="col-sm-8">@(Model.UserName == null ? "-" : Model.UserName)</dd>
+
+        <dt class="col-sm-4">Última Interação</dt>
+        <dd class="col-sm-8">@(Model._CreatedDate == null ? "-" : Model._CreatedDate)</dd>
+
+        <dt class="col-sm-4">Observações</dt>
+        <dd class="col-sm-8"><p>@(Model.Message == null ? "-" : Model.Message)</p></dd>
+    </dl>

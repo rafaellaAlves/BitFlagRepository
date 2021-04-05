@@ -1,0 +1,21 @@
+﻿@model int
+@using DTO.Utils
+
+@inject Web.Helpers.DropDownListHelper dropDownListHelper
+
+<form id="form-client-collection-address">
+    <input type="hidden" name="ClientId" value="@Model" />
+    <input type="hidden" name="ClientCollectionAddressId" />
+    <div class="address-sm w-100">
+        @( await Component.InvokeAsync<Web.ViewComponents.Shared.AddressViewComponent>(new { model = Model.CopyToEntity<DTO.Shared.AddressBaseViewModel>(), formId = "#form-client-collection-address" }) )
+         <div class="col-md-6" id="main-address-area">
+            <div class="form-group">
+                <label class="control-label">Endereço Principal?</label>
+                    <select class="form-control" name="Main">
+                        <option value="false">Não</option>
+                        <option value="true">Sim</option>
+                    </select>
+                </div>
+            </div>
+    </div>
+</form>

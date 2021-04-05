@@ -1,0 +1,13 @@
+﻿@{
+    ViewData["Title"] = "Serviços";
+}
+<h1 class="mb-2"><small>Serviços</small></h1>
+<div class="card">
+    <div class="card-body">
+        <div id="_ServiceTypeIndexViewComponent"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#_ServiceTypeIndexViewComponent').load('@Url.Action("ServiceTypeIndexComponent", "ServiceType")');
+</script>

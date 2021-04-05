@@ -1,0 +1,395 @@
+﻿@model DTO.User.UserModel
+
+@inject BLL.Permission.CompanyUserRoleFunctions companyUserRoleFunctions
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var componentID = string.Format("_{0}", Guid.NewGuid().ToString("N"));
+    ViewData["Title"] = "Detalhes do Usuário";
+    List<DTO.Company.CompanyViewModel> companies = (ViewData["Companies"] as List<DTO.Company.CompanyViewModel>);
+}
+@{ Html.RenderPartial("~/Views/Shared/_TopMessages.cshtml"); }
+
+
+<div id="@componentID">
+    <script type="text/javascript">
+        function MoreInfo() {
+            $('#@componentID #moreInfo').hide();
+            $('#@componentID #divMoreInfo').show();
+        }
+        function LessInfo() {
+            $('#@componentID #moreInfo').show();
+            $('#@componentID #divMoreInfo').hide();
+        }
+        function Create() {
+            var d = $('#@componentID form').serializeArray();
+        }
+    </script>
+    <form id="form" action="@Url.Action("Manage", "UserManagement")" method="post">
+        <div class="card shadow">
+            <div class="card-header">
+                @translationFunctions.GetTranslation("Detalhes do Usuário", User.FindFirstValue("CultureInfo"))
+            </div>
+            <div class="card-body">
+                <input type="hidden" id="UserId" name="UserId" value="@Model.UserId" />
+                <div id="divRequiredInfo">
+                    @if (!Model.UserId.HasValue && companies != null)
+                    {
+                        <div class="form-row" id="AddToCompanyIdContainer">
+                            <div class="form-group col-md-12">
+                                <label class="control-label">
+                                    @translationFunctions.GetTranslation("Unidades de Negócios Associadas ao Usuário", User.FindFirstValue("CultureInfo"))
+                                    @if (User.IsInRole(BLL.User.ProfileNames.Biotera) || User.IsInRole(BLL.User.ProfileNames.Biotera))
+                                    {
+                                        <small>(obrigatório na criação de um novo usuário)</small>
+                                    }
+                                </label>
+                                <select class="form-control" name="AddToCompanyId" id="AddToCompanyId" multiple>
+                                    @foreach (var item in companies)
+                                    {
+                                        <option value="@item.CompanyId">@item.NomeFantasia - @item.RazaoSocial (@item.Cnpj)</option>
+                                    }
+                                </select>
+                                <script type="text/javascript">
+                                    $('#AddToCompanyId').select2();
+                                </script>
+                            </div>
+                        </div>
+                    }
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label class="control-label" for="FirstName">@translationFunctions.GetTranslation("Nome", User.FindFirstValue("CultureInfo"))</label>
+                            <input type="text" class="form-control" id="FirstName" name="FirstName" value="@Model.FirstName" placeholder="@translationFunctions.GetTranslation("Nome", User.FindFirstValue("CultureInfo"))">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label class="control-label" for="LastName">@translationFunctions.GetTranslation("Sobrenome", User.FindFirstValue("CultureInfo"))</label>
+                            <input type="text" class="form-control" id="LastName" name="LastName" value="@Model.LastName" placeholder="@translationFunctions.GetTranslation("Sobrenome", User.FindFirstValue("CultureInfo"))">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label class="control-label" for="Email">@translationFunctions.GetTranslation("E-mail", User.FindFirstValue("CultureInfo"))</label>
+                            <input type="email" class="form-control" id="Email" name="Email" value="@Model.Email" placeholder="@translationFunctions.GetTranslation("E-mail", User.FindFirstValue("CultureInfo"))">
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label class="control-label" for="Password">@translationFunctions.GetTranslation("Senha", User.FindFirstValue("CultureInfo"))</label>
+                            <input type="password" class="form-control" id="Password" name="Password" value="" placeholder="@translationFunctions.GetTranslation("Senha", User.FindFirstValue("CultureInfo"))">
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label class="control-label" for="PasswordConfirmation">@translationFunctions.GetTranslation("Confirmação da Senha", User.FindFirstValue("CultureInfo"))</label>
+                            <input type="password" class="form-control" id="PasswordConfirmation" value="" placeholder="@translationFunctions.GetTranslation("Confirmação da Senha", User.FindFirstValue("CultureInfo"))">
+                        </div>
+                    </div>
+                    <a id="moreInfo" href="javascript: MoreInfo();">@translationFunctions.GetTranslation("Mais Informações", User.FindFirstValue("CultureInfo"))...</a>
+                </div>
+                <div id="divMoreInfo" style="display: none;">
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label class="control-label">@translationFunctions.GetTranslation("Skype", User.FindFirstValue("CultureInfo"))</label>
+                            <input type="text" class="form-control" id="Skype" name="Skype" value="@Model.Skype" placeholder="@translationFunctions.GetTranslation("Skype", User.FindFirstValue("CultureInfo"))">
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label class="control-label" for="MobileNumber">@translationFunctions.GetTranslation("Celular", User.FindFirstValue("CultureInfo"))</label>
+                            <input type="text" class="form-control mobile" id="MobileNumber" name="MobileNumber" value="@Model.MobileNumber" placeholder="@translationFunctions.GetTranslation("Celular", User.FindFirstValue("CultureInfo"))">
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label class="control-label" for="PhoneNumber">@translationFunctions.GetTranslation("Telefone", User.FindFirstValue("CultureInfo"))</label>
+                            <input type="text" class="form-control phone" id="PhoneNumber" name="PhoneNumber" value="@Model.PhoneNumber" placeholder="@translationFunctions.GetTranslation("Telefone", User.FindFirstValue("CultureInfo"))">
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="form-row">
+                        <div class="form-group col-md-3">
+                            <label class="control-label">@translationFunctions.GetTranslation("Ativo?", User.FindFirstValue("CultureInfo"))</label>
+                            <select class="form-control" id="IsActive" name="IsActive">
+                                <option value="True" selected>@translationFunctions.GetTranslation("Sim", User.FindFirstValue("CultureInfo"))</option>
+                                <option value="False">@translationFunctions.GetTranslation("Não", User.FindFirstValue("CultureInfo"))</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label class="control-label">@Html.Raw(translationFunctions.GetTranslation("Idioma <small>(Aplicado no próximo login)</small>", User.FindFirstValue("CultureInfo")))</label>
+                            <select class="form-control" id="CultureInfo" name="CultureInfo">
+                                <option value="pt-BR" @(Model.CultureInfo != null && Model.CultureInfo.ToUpper().Equals("PT-BR") ? "selected=\"selected\"" : "")>Português</option>
+                                <option value="es-ES" @(Model.CultureInfo != null && Model.CultureInfo.ToUpper().Equals("ES-ES") ? "selected=\"selected\"" : "")>Espanhol</option>
+                            </select>
+                        </div>
+                        @if (User.IsInRole(BLL.User.ProfileNames.Administrator) || User.IsInRole(BLL.User.ProfileNames.Master))
+                        {
+                            <div class="form-group col-md-3">
+                                <label class="control-label">Perfil</label>
+                                <select class="form-control" id="MainRole" name="MainRole">
+                                    <option value="@BLL.User.ProfileNames.Administrator">System</option>
+                                    <option value="@BLL.User.ProfileNames.Master">Master</option>
+                                    <option value="@BLL.User.ProfileNames.Biotera">Biotera</option>
+                                    <option value="@BLL.User.ProfileNames.Cliente" selected>Cliente</option>
+                                </select>
+                            </div>
+                        }
+                        else if (User.IsInRole(BLL.User.ProfileNames.Biotera))
+                        {
+                            <div class="form-group col-md-3">
+                                <label class="control-label">Perfil</label>
+                                <select class="form-control" id="MainRole" name="MainRole">
+                                    <option value="@BLL.User.ProfileNames.Biotera" selected>Biotera</option>
+                                    <option value="@BLL.User.ProfileNames.Cliente" selected>Cliente</option>
+                                </select>
+                            </div>
+                        }
+                        else if (User.IsInRole(BLL.User.ProfileNames.Cliente))
+                        {
+                            <div class="form-group col-md-3" style="visibility: hidden;">
+                                <label class="control-label">Perfil</label>
+                                <select class="form-control" id="MainRole" name="MainRole">
+                                    <option value="@BLL.User.ProfileNames.Cliente" selected>Cliente</option>
+                                </select>
+                            </div>
+                        }
+
+                        @if (!Model.UserId.HasValue && companies != null)
+                        {
+                            <div class="form-group col-md-6">
+                                <label class="control-label">Papel nas unidades de negócio selecionadas</label>
+                                <select class="form-control" id="CompanyRole" name="CompanyRole">
+                                    <option>-</option>
+                                </select>
+                                <script type="text/javascript">
+                                    $('#MainRole').change(function () {
+                                        $('#CompanyRole').empty();
+                                        switch ($('#MainRole').val()) {
+                                            default:
+                                                $('#CompanyRole').append('<option value="">-</option>');
+                                                $('#AddToCompanyIdContainer').hide();
+                                                break;
+                                            case '@BLL.User.ProfileNames.Biotera':
+                                                $('#CompanyRole').append('<option value="@BLL.User.ProfileNames.BioteraConsultor">Consultor</option>');
+                                                $('#CompanyRole').append('<option value="@BLL.User.ProfileNames.BioteraAuditor">Auditor</option>');
+                                                $('#AddToCompanyIdContainer').show();
+                                                break;
+                                            case '@BLL.User.ProfileNames.Cliente':
+                                                $('#CompanyRole').append('<option value="@BLL.User.ProfileNames.ClienteAdministrador">Administrador</option>');
+                                                $('#CompanyRole').append('<option value="@BLL.User.ProfileNames.ClienteSupervisor">Supervisor</option>');
+                                                $('#CompanyRole').append('<option value="@BLL.User.ProfileNames.ClienteOperador">Operador</option>');
+                                                $('#AddToCompanyIdContainer').show();
+                                                break;
+                                        }
+                                    });
+                                </script>
+                            </div>
+                        }
+                        else if (Model.UserId.HasValue)
+                        {
+                            <div class="form-group col-md-3">
+                                <label class="control-label">Data de Criação</label>
+                                <input class="form-control" disabled value="@(Model._CreatedDate??"-")" />
+                            </div>
+                        }
+                        <script type="text/javascript">
+                            @if (!string.IsNullOrWhiteSpace(Model.MainRole))
+                            {
+                            <text>
+                            $('#MainRole').val('@Model.MainRole');
+                            </text>
+                            }
+
+                            $('#MainRole').change();
+                        </script>
+                    </div>
+                    <a id="lessInfo" href="javascript: LessInfo();">@translationFunctions.GetTranslation("Menos Informações", User.FindFirstValue("CultureInfo"))...</a>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div id="divControls">
+                    <a href="@Url.Action("Index", "UserManagement", new { useFilter = true })" class="btn btn-secondary float-left"><i class="fa fa-arrow-left"></i>&nbsp;@translationFunctions.GetTranslation("Voltar", User.FindFirstValue("CultureInfo"))</a>
+                    <button type="button" id="buttonSubmit" class="btn btn-success float-right"><i class="fa fa-plus"></i>&nbsp;@translationFunctions.GetTranslation("Criar Usuário", User.FindFirstValue("CultureInfo"))</button>
+                    <script type="text/javascript">
+						$('#buttonSubmit').click(function () {
+							@if (Model.UserId != null)
+							{
+							<text>
+								var hasError = false;
+								$('#form .invalid-feedback').remove();
+								$('#alertForm').hide();
+
+
+								// First Name
+								if (IsNullOrWhiteSpace($('#FirstName').val())) {
+									$('#FirstName').after('<div class="invalid-feedback">Preencha o primeiro nome.</div>');
+									hasError = true;
+								}
+
+								// Last Name
+								if (IsNullOrWhiteSpace($('#LastName').val())) {
+									$('#LastName').after('<div class="invalid-feedback">Preencha o último nome.</div>');
+									hasError = true;
+								}
+
+								if (!IsNullOrWhiteSpace($('#Password').val())) {
+									// Password Confirmation
+									if (IsNullOrWhiteSpace($('#PasswordConfirmation').val())) {
+										$('#PasswordConfirmation').after('<div class="invalid-feedback">Preencha a confirmação de senha.</div>');
+										hasError = true;
+									}
+
+									// Wrong Passwords Confirmation
+									else if ($('#PasswordConfirmation').val() != $('#Password').val()) {
+										$('#PasswordConfirmation').after('<div class="invalid-feedback">Senha de Confirmação errada.</div>');
+										hasError = true;
+									}
+								}
+
+								if (hasError) {
+									$('#alertForm').show();
+									$("html, body").animate({ scrollTop: 0 }, "slow");
+									$('#form .invalid-feedback').show();
+								}
+								else {
+									$('#form').submit();
+								}
+							</text>
+							}
+							else
+							{
+							<text>
+								var hasError = false;
+								$('#form .invalid-feedback').remove();
+								$('#alertForm').hide();
+
+
+								// First Name
+								if (IsNullOrWhiteSpace($('#FirstName').val()))
+								{
+									$('#FirstName').after('<div class="invalid-feedback">Preencha o primeiro nome.</div>');
+									hasError = true;
+								}
+
+								// Last Name
+								if (IsNullOrWhiteSpace($('#LastName').val()))
+								{
+									$('#LastName').after('<div class="invalid-feedback">Preencha o último nome.</div>');
+									hasError = true;
+								}
+
+								// E-mail
+								if (IsNullOrWhiteSpace($('#Email').val()))
+								{
+									$('#Email').after('<div class="invalid-feedback">Preencha um E-mail.</div>');
+									hasError = true;
+								}
+
+								// Invalid E-mail
+								else if (!ValidEmail($('#Email').val())) {
+									$('#Email').after('<div class="invalid-feedback">E-mail preenchido de forma errada.</div>');
+									hasError = true;
+								}
+
+								//Password
+								if (IsNullOrWhiteSpace($('#Password').val()))
+								{
+									$('#Password').after('<div class="invalid-feedback">Defina uma senha.</div>');
+									hasError = true;
+								}
+								// Password Confirmation
+								if (IsNullOrWhiteSpace($('#PasswordConfirmation').val()))
+								{
+									$('#PasswordConfirmation').after('<div class="invalid-feedback">Preencha a confirmação de senha.</div>');
+									hasError = true;
+								}
+
+								// Wrong Passwords Confirmation
+								if ($('#PasswordConfirmation').val() != $('#Password').val())
+								{
+									$('#PasswordConfirmation').after('<div class="invalid-feedback">Senha de Confirmação errada.</div>');
+									hasError = true;
+                                }
+
+                                @if(!User.IsInRole(BLL.User.ProfileNames.Administrator) && !User.IsInRole(BLL.User.ProfileNames.Master))
+                                {
+                                    <text>
+                                if ($('#MainRole').val() == '@BLL.User.ProfileNames.Biotera' || $('#MainRole').val() == '@BLL.User.ProfileNames.Cliente') {
+                                    if ($('#AddToCompanyId').val().length == 0) {
+                                        $('#AddToCompanyId').parent().append('<div class="invalid-feedback">Por favor, selecione ao menos uma unidade de negócio da lista.</div>');
+                                        hasError = true;
+                                    }
+                                }
+                                    </text>
+                                }
+
+								if (hasError)
+								{
+									$('#alertForm').show();
+									$("html, body").animate({ scrollTop: 0 }, "slow");
+									$('#form .invalid-feedback').show();
+								}
+								else
+								{
+									$('#form').submit();
+								}
+							</text>
+							}
+						});
+                    </script>
+                    @if (Model.UserId != null)
+                    {
+                <script type="text/javascript">
+                            $('#@componentID #Email').prop('disabled', true);
+                            $('#@componentID #IsActive').val('@Model.IsActive');
+							$('#@componentID #buttonSubmit').removeClass('btn-success');
+							$('#@componentID #buttonSubmit').addClass('btn-primary');
+							$('#@componentID #buttonSubmit').html('<i class="fa fa-cloud-upload-alt"></i>&nbsp;@translationFunctions.GetTranslation("Salvar Usuário", User.FindFirstValue("CultureInfo"))');
+							MoreInfo();
+                </script>
+                    }
+                    else
+                    {
+                        <script type="text/javascript">
+                            MoreInfo();
+                        </script>
+                    }
+                </div>
+            </div>
+        </div>
+    </form>
+
+    @if (Model.UserId.HasValue && Model.MainRole != "Administrator")
+    {
+        <div class="card mt-4 shadow">
+            <div class="card-header">Unidades de Negócio Associadas</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <table class="table table-striped table-bordered table-condensed" id="user-manage-companies-table">
+                            <thead>
+                                <tr>
+                                    <th>Razão Social</th>
+                                    <th>CNPJ</th>
+                                    <th>Ativa?</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in companyUserRoleFunctions.UserCompanies(Model.UserId.Value))
+                                {
+                                    <tr>
+                                        <td>@item.RazaoSocial</td>
+                                        <td class="cnpj">@item.Cnpj</td>
+                                        <td class="text-center">@(item.IsActive? "Sim" : "Não")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <script type="text/javascript">
+                    $(document).ready(function () {
+                        $('#user-manage-companies-table').DataTable({
+                            proccessing: true
+                            , serverSide: false
+                            , searching: false
+                            , lengthChange: false
+                            , dom: 'tip'
+                        });
+                    });
+                </script>
+            </div>
+        </div>
+    }
+</div>

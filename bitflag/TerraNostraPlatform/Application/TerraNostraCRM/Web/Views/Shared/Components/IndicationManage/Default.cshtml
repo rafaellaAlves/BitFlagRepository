@@ -1,0 +1,131 @@
+﻿@model DTO.Indication.IndicationViewModel
+@inject DB.TerraNostraContext context
+@inject UserManager<TerraNostraIdentityDbContext.User> userManager
+
+@using Microsoft.AspNetCore.Identity
+
+@{
+    var serviceTypeFunctions = new FUNCTIONS.ServiceType.ServiceTypeFunctions(context);
+    var serviceTypes = serviceTypeFunctions.GetData(x => !x.IsDeleted);
+
+    var _user = await userManager.GetUserAsync(User);
+}
+
+<script type="text/javascript">
+    function _IndicationManageValidate() {
+	    var hasError = false;
+	    $('#_IndicationManageForm .text-danger').remove();
+
+        if (IsNullOrWhiteSpace($('#_IndicationManageName').val())) {
+            $('#_IndicationManageName').after('<div class="text-danger">Preencha o nome.</div>');
+            hasError = true;
+        }
+        if (IsNullOrWhiteSpace($('#_IndicationManageEmail').val())) {
+            $('#_IndicationManageEmail').after('<div class="text-danger">Preencha o e-mail.</div>');
+            hasError = true;
+        }
+        if (IsNullOrWhiteSpace($('#_IndicationManagePhone').val())) {
+            $('#_IndicationManagePhone').after('<div class="text-danger">Preencha o telefone.</div>');
+            hasError = true;
+        }
+
+        if (hasError) {
+            $('#_IndicationManageAlertErrorIndication').show();
+        }
+        else {
+            $('#_IndicationManageForm .text-danger').remove();
+            $('#_IndicationManageAlertErrorIndication').hide();
+        }
+
+	    return (!hasError);
+    }
+
+    function _IndicationManageSave() {
+	    var d = $('#_IndicationManageForm').serializeArray();
+        $.post('@Url.Action("Manage", "Indication")', d, function (data) {
+            if (data.hasError) {
+                if (data.data != null) $('#_IndicationManage' + data.data).after('<div class="text-danger">' + data.message + '</div>'); //data.data contem o nome do campo que ocorreu o erro
+                else alert('Houve um erro ao salvar a indicação.');
+
+                $('#_IndicationManageForm .text-danger').show();
+                $('#_IndicationManageAlertErrorIndication').show();
+            } else {
+                $('#_IndicationManageIndicationId').val(data.code);
+                _IndicationManageCallBack(data.code);
+            }
+	    });
+    }
+</script>
+
+<form id="_IndicationManageForm" method="post" enctype="multipart/form-data">
+    <div id="_IndicationManageAlertErrorIndication" class="alert alert-danger fade show text-center" role="alert" style="display: none;">
+        <strong>Atenção!</strong> O Formulário contém erros.
+    </div>
+    <input type="hidden" id="_IndicationManageIndicationId" name="IndicationId" value="@Model.IndicationId" />
+    <div class="form-row">
+        @if (User.IsInRole("Administrator"))
+        {
+            <div class="form-group col-md-4" id="_IndicationManageUserIdArea">
+                <label>Representante</label>
+                <select class="form-control" id="_IndicationManageUserId" name="UserId" @if (Model.IndicationId.HasValue) { <text> disabled</text>}>
+                    @foreach (var user in (List<TerraNostraIdentityDbContext.User>)ViewData["Users"])
+                    {
+                        if (Model.UserId == user.Id || (!Model.UserId.HasValue && _user.Id == user.Id))
+                        {
+                            <option value="@(user.Id)" selected>@(user.FirstName + " " + user.LastName)</option>
+                            continue;
+                        }
+                        <option value="@(user.Id)">@(user.FirstName + " " + user.LastName)</option>
+                    }
+                </select>
+                @if (Model.IndicationId.HasValue)
+                {
+                    <input type="hidden" id="_IndicationManageUserId" name="UserId" value="@Model.UserId" />
+                }
+            </div>
+        }
+        else
+        {
+            <input type="hidden" id="_IndicationManageUserId" name="UserId" value="@if (Model.UserId.HasValue) { <text>@Model.UserId</text>}else  {<text>@_user.Id</text>}" />
+        }
+        <div class="form-group col-md-@if (User.IsInRole("Administrator")) {<text>8</text>}else {<text>3</text>}">
+            <label class="control-label">Nome*</label>
+            <input type="text" class="form-control" id="_IndicationManageName" name="Name" value="@Model.Name" placeholder="Nome">
+        </div>
+        <div class="form-group col-md-@if (User.IsInRole("Administrator")) {<text>4</text>}else {<text>3</text>}">
+            <label class="control-label" for="Email">E-mail*</label>
+            <input type="text" class="form-control" id="_IndicationManageEmail" name="Email" value="@Model.Email" placeholder="E-mail">
+        </div>
+        <div class="form-group col-md-@if (User.IsInRole("Administrator")) {<text>4</text>}else {<text>3</text>}">
+            <label class="control-label" for="PhoneNumber">Telefone</label>
+            <input type="text" class="form-control " id="_IndicationManagePhone" name="Phone" value="@Model.Phone" placeholder="Telefone">
+        </div>
+        <div class="form-group col-md-@if (User.IsInRole("Administrator")) {<text>4</text>}else {<text>3</text>}" id="IndicationTypeArea">
+            <label>Tipo de Serviço*</label>
+            <select class="form-control" id="ServiceTypeId" name="ServiceTypeId">
+                @foreach (var serviceType in serviceTypes)
+                {
+                    if (Model.ServiceTypeId == serviceType.ServiceTypeId)
+                    {
+                        <option value="@(serviceType.ServiceTypeId)" selected>@(serviceType.Name)</option>
+                        continue;
+                    }
+                    <option value="@(serviceType.ServiceTypeId)">@(serviceType.Name)</option>
+                }
+            </select>
+        </div>
+    </div>
+</form>
+
+<script type="text/javascript">
+    _MaskData();
+
+    @if (Model.Accepted) {
+        <text>
+            $('input, textarea, select').attr('disabled', 'disabled');
+
+            $('#_IndicationManageButtonSubmit').hide();
+        </text>
+    }
+
+</script>

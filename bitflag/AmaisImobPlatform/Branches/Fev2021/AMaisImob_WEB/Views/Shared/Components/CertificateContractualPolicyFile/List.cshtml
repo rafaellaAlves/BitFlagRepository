@@ -1,0 +1,47 @@
+﻿@model List<AMaisImob_DB.Models.CertificateContractualApolicyFile>
+
+<table class="table table-striped table-condensed table-bordered w-100" id="certificate-contractual-policy-file-table">
+    <thead>
+        <tr>
+            <td>Arquivo</td>
+            <td></td>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.FileName</td>
+                <td style="width: 40px;">
+                    <a href="@Url.Action("DownloadPolicyFile", "ContractualGuarantee", new { id = item.CertificateContractualApolicyFileId })" target="_blank"><i class="fas fa-download"></i></a>
+                    @if (User.IsInRole("Administrator"))
+                    {
+                        <text>
+                        &nbsp;
+                        <a href="javascript:removeCertificateContractualApolicyFile(@item.CertificateContractualApolicyFileId, '@item.FileName')"><i class="fas fa-trash"></i></a>
+                        </text>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<script type="text/javascript">
+    var datatables = $('#certificate-contractual-policy-file-table').DataTable({
+        proccessing: true,
+        serverSide: false,
+        searching: true,
+        lengthChange: false,
+        dom: 'tip'
+    });
+
+    function removeCertificateContractualApolicyFile(id, name)
+    {
+        if (!confirm('Deseja realmente remover o arquivo \'' + name + '\'')) return;
+
+        $.post('@Url.Action("RemovePolicyFile", "ContractualGuarantee")', { id }, function () {
+            if (typeof loadCertificateContractualPolicyFileListViewComponent == 'function') loadCertificateContractualPolicyFileListViewComponent();
+        });
+    }
+</script>

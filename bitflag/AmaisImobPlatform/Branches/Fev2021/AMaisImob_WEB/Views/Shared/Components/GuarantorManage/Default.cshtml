@@ -1,0 +1,159 @@
+﻿@model GuarantorViewModel
+
+@inject AMaisImob_WEB.BLL.GuarantorTypeFunctions guarantorTypeFunctions
+
+
+<style type="text/css">
+        @@font-face {
+            font-family: 'Avenir';
+            src: url('@Url.Content("~/assets/fonts/0078f486-8e52-42c0-ad81-3c8d3d43f48e.woff2")'), url('@Url.Content("~/assets/fonts/bc176270-17fa-4c78-a343-9fe52824e501.woff")'), url('@Url.Content("~/assets/fonts/d513e15e-8f35-4129-ad05-481815e52625.woff2")');
+        }
+</style>
+
+<style>
+    body {
+        font-family: Avenir;
+    }
+</style>
+
+
+<div id="_ErrorDiv" class="alert alert-danger fade show text-center" role="alert" style="display: none;">
+    <strong>Atenção!</strong> O Formulário contém erros.
+</div>
+<div id="_SuccessDiv" class="alert alert-success fade show text-center" role="alert" style="display: none;">
+    Os dados foram salvos com sucesso.
+</div>
+<form id="_GuarantorForm" method="post">
+    <div class="form-row">
+        <input name="GuarantorId" value="@Model.GuarantorId" type="hidden" />
+        <div class="form-group col-md-3">
+            <label class="control-label" for="">Razão Social*</label>
+            <input type="text" class="form-control" id="_RazaoSocial" name="RazaoSocial" placeholder="Razao Social" value="@Model.RazaoSocial">
+        </div>
+        <div class="form-group col-md-3">
+            <label class="control-label" for="">Nome Fantasia*</label>
+            <input type="text" class="form-control" id="_NomeFantasia" name="NomeFantasia" value="@Model.NomeFantasia" placeholder="Nome Fantasia">
+        </div>
+        <div class="form-group col-md-2">
+            <label class="control-label">Tipo de Garantidora:</label>
+            <select class="form-control" name="GuarantorTypeId" id="GuarantorTypeId">
+                <option>Selecione</option>
+                @foreach (var item in guarantorTypeFunctions.GetData().OrderBy(x => x.Order))
+                {
+                    if (Model.GuarantorTypeId == item.GuarantorTypeId)
+                    {
+                        <option value="@item.GuarantorTypeId" selected>@item.Name</option>
+                        continue;
+                    }
+                    <option value="@item.GuarantorTypeId">@item.Name</option>
+                }
+            </select>
+        </div>
+        <div class="form-group col-md-2">
+            <label class="control-label">Tipo pagamento:</label>
+            <select class="form-control" name="TipoPagamento" id="_TipoPagamento">
+                <option>Selecione</option>
+                <option value="1">Mensal</option>
+                <option value="2">Anual</option>
+            </select>
+        </div>
+        <div class="form-group col-md-2">
+            <label class="control-label">Ativo?</label>
+            <select class="form-control" id="_IsActive" name="IsActive">
+                <option value="True">Sim</option>
+                <option value="False">Não</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="col-md-12">
+            <label>Rodapé da impressão de Garantia Contratual</label>
+            <textarea id="printFooterText">@Model.PrintFooterText</textarea>
+        </div>
+    </div>
+    <hr />
+    <div class="form-row">
+        <div class="form-group col-md-12 text-center">
+            <div class="col-md-12">
+                <label class="control-label" for="">LogoTipo</label>
+            </div>
+            @if (Model.GuarantorId.HasValue)
+            {
+                <div class="col-md-12">
+                    <img src="@Url.Action("GetGuarantorLogo", "Guarantor", new { guarantorId = Model.GuarantorId })" height="100" />
+                </div>
+            }
+            <div class="col-md-12">
+                <input type="file" id="_LogoTipo" name="Logotipo">
+            </div>
+        </div>
+    </div>
+</form>
+
+<script type="text/javascript">
+    function GuarantorManageSave() {
+        var d = $('#_GuarantorForm').serializeArray();
+        var formData = new FormData();
+
+        $.each(d, function (i, e) {
+            formData.append(e.name, e.value);
+        });
+
+        if ($('#_LogoTipo').prop('files').length > 0) {
+            formData.append('Image', $('#_LogoTipo').prop('files')[0]);
+        }
+
+        formData.append('PrintFooterText', $('#printFooterText').summernote('code'));
+
+        $.ajax({
+            url: '@Url.Action("Manage", "Guarantor")',
+            data: formData,
+            type: 'POST',
+			contentType: false,
+			processData: false,
+            success: function (data) {
+                if (data.hasError) {
+                    alert(data.message);
+                    $('#_SuccessDiv').hide();
+                    return;
+                }
+
+                $('#_SuccessDiv').show();
+	        }
+        });
+    }
+
+    function ValidarCampos() {
+        if (IsNullOrWhiteSpace($('#_NomeFantasia').val())) {
+            $('#_ErrorDiv').show();
+            $('#_NomeFantasia').after('<div class="text-danger">Preencha o Nome Fantasia</div>');
+        }
+        else if (IsNullOrWhiteSpace($('#_RazaoSocial').val())) {
+            $('#_ErrorDiv').show();
+            $('#_RazaoSocial').after('<div class="text-danger">Preencha a Razão Social</div>');
+        }
+        else {
+            return true;
+        }
+    }
+
+    $('#printFooterText').summernote({
+        toolbar: [
+            ['style', ['bold', 'italic', 'underline', 'clear']],
+            ['font', ['strikethrough', 'superscript', 'subscript']],
+            ['fontsize', ['fontsize']],
+            ['color', ['color']],
+            ['para', ['ul', 'ol', 'paragraph']],
+            ['height', ['height']]
+        ],
+        height: 150
+    });
+</script>
+@if (Model.GuarantorId != null)
+{
+    <script type="text/javascript">
+        $('#_IsActive').find('[value=' + "@Model.IsActive" + ']').attr('selected', true);
+        $('#_TipoPagamento').find('[value=' + "@Model.TipoPagamento" + ']').attr('selected', true);
+    </script>
+
+}

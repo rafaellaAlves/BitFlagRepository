@@ -1,0 +1,309 @@
+@model int
+
+    <div class="row">
+        <div class="col-md form-group">
+            <div class="input-group">
+                <div class="input-group-addon">
+                    <i class="simple-icon-magnifier"></i>
+                </div>
+                <input type="text" class="form-control" id="transporter-driver-index-search" placeholder="Pesquisar..." data-toggle="search-datatable" data-target="#transporter-driver-index-table">
+            </div>
+        </div>
+        <div class="col-md-auto col form-group">
+            <a href="javascript:openTransporterDriverEditModal()" class="btn btn-primary text-nowrap w-100"><i class="simple-icon-plus"></i>&nbsp;Adicionar</a>
+        </div>
+    </div>
+<hr />
+<div id="success-area-transporter-driver-index"></div>
+<div class="row">
+    <div class="col-md-12 table-responsive">
+        <table id="transporter-driver-index-table" class="display nowrap table table-striped table-bordered table-condensed w-100" style="border-collapse: collapse !important;">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>CNH</th>
+                    <th>CPF</th>
+                    <th>RG</th>
+                    <th>ASO</th>
+                    <th>MOPP</th>
+                    <th>Vencimento</th>
+                    <th>&nbsp;</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="transporter-driver-index-modal" tabindex="-1" role="dialog" aria-labelledby="transporter-driver-index-modal-title" aria-hidden="true">
+    <div class="modal-dialog modal-lg w-100" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold" id="transporter-driver-index-modal-title"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @(await Component.InvokeAsync("TransporterDriverManage", new { transporterId = Model }))
+            </div>
+            <div class="modal-footer">
+                <div class="col-md-6">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="simple-icon-close"></i>&nbsp;Fechar</button>
+                </div>
+                <div class="col-md-6">
+                    <button type="button" class="btn btn-success float-right" id="transporter-driver-index-modal-save-button"><i class="simple-icon-cloud-upload"></i>&nbsp;Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script asp-cut-key="transporter-driver-index">
+    var transporterDriverDatatables;
+    $(document).ready(function () {
+        transporterDriverDatatables = $('#transporter-driver-index-table').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            dom: 'tip',
+            scrollX: true,
+            ajax: {
+                url: '@Url.Action("List", "TransporterDriver")',
+                data: function (d) {
+                    d.transporterId = '@Model'
+                },
+                type: 'POST'
+            },
+            columns: [
+                { render: function (data, type, row) { return row.driverName; } },
+                { render: function (data, type, row) { return '<div class="float-right">' + getDownloadIcon(row, 'CNH') + '</div>' + (isNullOrWhiteSpace(row.cnh) ? '-' : row.cnh); } },
+                { render: function (data, type, row) { return isNullOrWhiteSpace(row.cpf) ? '-' : '<div class="cpf">' + row.cpf + '</div>'; } },
+                { render: function (data, type, row) { return isNullOrWhiteSpace(row.rg) ? '-' : row.rg + ' - ' + row.rgState; } },
+                { render: function (data, type, row) { return isNull(row.aso, '-') + getDownloadIcon(row, 'ASO'); } },
+                { render: function (data, type, row) { return isNull(row.mopp, '-') + getDownloadIcon(row, 'MOPP'); } },
+                { render: function (data, type, row) { return isNull(formatDate(row.moppDueDate), '-'); } },
+                @*{ render: function (data, type, row) { return '<a target="_blank" href="@Url.Action("GetArchive", "TransporterDriver")?id=' + row.transporterDriverId + '">' + row.fileName + '</a>'; } },*@
+                {
+                    render: function (data, type, row)
+                    {
+                        var r = `<div class="text-center text-nowrap">
+                            <a href=\'javascript:openTransporterDriverEditModal(` + JSON.stringify(row) + `)\' title="Editar"><span class="badge badge-pill badge-success"><i class="simple-icon-note"></i></span></a>&nbsp;`;
+
+                        if (row.isActive) r += '&nbsp;<a href=\'javascript:inactiveTransporterDriver(' + JSON.stringify(row) + ')\' title="Inativar"><span class="badge badge-pill badge-warning"><i class="fa fa-unlock"></i></span></a>';
+                        else r += '&nbsp;<a href=\'javascript:activeTransporterDriver(' + JSON.stringify(row) + ')\' title="Ativar"><span class="badge badge-pill badge-danger"><i class="simple-icon-lock"></i></span></a>';
+
+                        r += `&nbsp;<a href=\'javascript:removeTransporterDriver(` + JSON.stringify(row) + `)\' title="Excluir"><span class="badge badge-pill badge-danger"><i class="simple-icon-trash"></i></span></a>`;
+                        r += '</div>';
+
+                        return r;
+                    }
+                }
+            ]
+        });
+    });
+
+    function getDownloadIcon(transporterDriver, archive)
+    {
+        var success = false;
+        var fileName = '', mimeType = "";
+
+        if (archive == 'CNH' && transporterDriver.cnhGuidName != null) { success = true; fileName = transporterDriver.cnhFileName; mimeType = transporterDriver.cnhMimeType; }
+        if (archive == 'MOPP' && transporterDriver.moppGuidName != null) { success = true; fileName = transporterDriver.moppFileName; mimeType = transporterDriver.moppMimeType; }
+        if (archive == 'ASO' && transporterDriver.asoGuidName != null) { success = true; fileName = transporterDriver.asoFileName; mimeType = transporterDriver.asoMimeType; }
+
+        if (success) return ' <a href=\'javascript:driverDownloadBootbox(' + JSON.stringify({ transporterDriverId: transporterDriver.transporterDriverId, archive, fileName, mimeType }) + ')\' class="simple-icon-cloud-download"></a>'
+
+        return '';
+    }
+
+    function driverDownloadBootbox(d) {
+        var size = 'medium';
+
+        var message = $('<div>');
+        message.append($('<h4>').append('Arquivo <b>(' + d.fileName + ')</b>'));
+
+
+        if (d.mimeType.indexOf('image') != -1) {
+            var row = $('<div>', { class: 'row mt-3' });
+            var col = $('<div>', { class: 'col-md-12 text-center' });
+            var img = $('<img>', { class: 'transporter-driver-image', src: '@Url.Action("GetArchive", "TransporterDriver")?id=' + d.transporterDriverId + '&archive=' + d.archive, style: 'min-height:150px; max-height: 400px; max-width: 750px;' });
+            img.on("error", function () { imageNotFound('.transporter-driver-image') });
+
+            message.append(row.append(col.append(img)));
+
+            size = 'large';
+        }
+
+         bootbox.dialog({
+             message: message.html(),
+             size: size,
+            buttons: {
+                delete: {
+                    label: "<i class=\"simple-icon-close\"></i> Excluir",
+                    className: 'btn-danger mr-auto float-left',
+                    callback: function () {
+                        deleteDriverFile(d.transporterDriverId, d.archive, d.fileName)
+                    }
+                },
+                download: {
+                    label: "<i class=\"simple-icon-cloud-download\"></i> Download",
+                    className: 'btn-success',
+                    callback: function () {
+                        window.location.href = '@Url.Action("GetArchive", "TransporterDriver")?id=' + d.transporterDriverId + '&archive=' + d.archive;
+                    }
+                }
+            }
+        });
+    }
+
+    function deleteDriverFile(transporterDriverId, archive, fileName) {
+        bootboxConfirm("Deseja realmente excluir o arquivo \"" + fileName + "\"?", function(result){
+            if (!result) {
+                downloadBootbox({transporterDriverId, archive, fileName})
+                return;
+            }
+
+            $.post('@Url.Action("RemoveFile", "TransporterDriver")', { id: transporterDriverId, archive }, function () {
+                bootbox.alert("Arquivo \"" + fileName + "\" excluído com sucesso!");
+                transporterDriverDatatables.ajax.reload();
+            });
+        });
+    }
+
+    function removeTransporterDriver(transporterDriver) {
+        bootboxConfirm("Deseja realmente excluir o motorista \"" + transporterDriver.driverName + "\"?", function(result){
+            if (!result) return;
+
+            $.post('@Url.Action("DeleteDefinitively", "TransporterDriver")', { id: transporterDriver.transporterDriverId }, function () {
+
+                bootbox.alert("Motorista \"" + transporterDriver.driverName + "\" excluído com sucesso!");
+                transporterDriverDatatables.ajax.reload();
+            });
+        });
+    }
+
+    function inactiveTransporterDriver(transporterDriver) {
+        bootboxConfirm("Deseja realmente desativar o motorista \"" + transporterDriver.driverName + "\"?", function(result){
+            if (!result) return;
+
+            $.post('@Url.Action("Inactive", "TransporterDriver")', { id: transporterDriver.transporterDriverId }, function () {
+
+                bootbox.alert("Motorista \"" + transporterDriver.driverName + "\" desativado com sucesso!");
+                transporterDriverDatatables.ajax.reload();
+            });
+        });
+    }
+
+    function activeTransporterDriver(transporterDriver) {
+        bootboxConfirm("Deseja realmente ativar o motorista \"" + transporterDriver.driverName + "\"?", function(result){
+            if (!result) return;
+
+            $.post('@Url.Action("Active", "TransporterDriver")', { id: transporterDriver.transporterDriverId }, function () {
+
+                bootbox.alert("Motorista \"" + transporterDriver.driverName + "\" ativado com sucesso!");
+                transporterDriverDatatables.ajax.reload();
+            });
+        });
+    }
+
+    function openTransporterDriverEditModal(data) {
+        $('#form-transporter-driver [name=\'TransporterDriverId\']').val(data == null? '' : data.transporterDriverId);
+
+        $('#form-transporter-driver [name=\'CNH\']').val(data == null? '' : data.cnh);
+        $('#form-transporter-driver [name=\'MOPP\']').val(data == null? '' : data.mopp);
+        $('#form-transporter-driver [name=\'DriverName\']').val(data == null? '' : data.driverName);
+        $('#form-transporter-driver [name=\'CompanyPhone\']').val(data == null? '' : data.companyPhone);
+        $('#form-transporter-driver [name=\'RG\']').val(data == null ? '' : data.rg);
+        $('#form-transporter-driver [name=\'RGState\']').val(data == null ? $('#form-transporter-driver [name=\'RGState\'] option:first').val() : data.rgState);
+        $('#form-transporter-driver [name=\'_CPF\']').val(data == null ? '' : $('.cpf').masked(data.cpf));
+        $('#form-transporter-driver [name=\'_BirthDate\']').val(data == null ? '' : data._BirthDate);
+        $('#form-transporter-driver [name=\'CNH\']').val(data == null ? '' : data.cnh);
+        $('#form-transporter-driver [name=\'MOPP\']').val(data == null? '' : data.mopp);
+        $('#form-transporter-driver [name=\'ASO\']').val(data == null ? '' : data.aso);
+        $('#form-transporter-driver [name=\'_MOPPDueDate\']').val(data == null ? '' : data._MOPPDueDate);
+        $('#form-transporter-driver [name=\'CNHArchive\']').val('');
+        $('#form-transporter-driver [name=\'MOPPArchive\']').val('');
+        $('#form-transporter-driver [name=\'ASOArchive\']').val('');
+        $('#form-transporter-driver [name=\'Category\']').val(data == null ? '' : data.category);
+
+        //remove arquivos selecionado no FilePound
+        $('.filepond--file-action-button.filepond--action-remove-item').click();
+
+        $('#transporter-driver-index-modal-title').text(data == null ? 'Novo Motorista' : 'Editar Motorista');
+
+        $('#transporter-driver-index-modal').modal('show');
+
+        InitializeFunctions();
+    }
+
+    $('#transporter-driver-index-modal-save-button').click(function () {
+      
+   
+        if(!validateInputs('form-transporter-driver')) return;
+
+        var formData = new FormData();
+
+        $('#form-transporter-driver').serializeArray().forEach(function (e) {
+            formData.append(e.name, e.value);
+        });
+
+        if ($('#form-transporter-driver [name=\'CNHArchive\']')[0].files.length > 0) {
+            formData.append('CNH', $('#form-transporter-driver [name=\'CNHArchive\']')[0].files[0]);
+        }
+
+        if ($('#form-transporter-driver [name=\'MOPPArchive\']')[0].files.length > 0) {
+            formData.append('MOPP', $('#form-transporter-driver [name=\'MOPPArchive\']')[0].files[0]);
+        }
+
+        if ($('#form-transporter-driver [name=\'ASOArchive\']')[0].files.length > 0) {
+            formData.append('ASO', $('#form-transporter-driver [name=\'ASOArchive\']')[0].files[0]);
+        }
+
+        $('#success-area-transporter-driver-index').empty();
+
+        $.ajax({
+            url: '@Url.Action("ManageAjax", "TransporterDriver")',
+			type: 'POST',
+			contentType: false,
+			processData: false,
+            data: formData,
+            success: function (d) {
+                if (!d.success) {
+                    var div = $('<div>');
+                    var row = $('<div>', { class: 'row' });
+                    var title = $('<div>', { class: 'col-md-12' }).append($('<h5>').append('O arquivo foi salvo com sucesso, porem os seguintes arquivos não foram inseridos.'));
+
+                    var table = $('<table>', { class: 'table table-bordered table-striped' });
+                    var tHead = $('<thead>').append($('<tr>').append($('<td>').append('Arquivo'), $('<td>').append('Motivo')));
+                    var tBody = $('<tbody>');
+
+                    $.each(d.erros, function (i, e) {
+                        tBody.append($('<tr>').append($('<td>').append(e.item), $('<td>').append(e.message)));
+                    });
+
+                    div.append(row.append(title, $('<div>', { class: 'col-md-12' }).append(table.append(tHead, tBody))));
+
+                    bootbox.alert(div.html());
+                    return;
+                }
+
+                formDataTransporterDriver = new FormData();
+
+                transporterDriverDatatables.ajax.reload();
+                transporterDriverDatatables.search($('#transporter-driver-index-search').val()).draw();
+
+                $('#success-area-transporter-driver-index').empty().append(successMessage());
+
+                $('#transporter-driver-index-modal').modal('hide');
+            }
+        });
+    })
+
+    $('.nav-link').on('shown.bs.tab', function () {
+        setTimeout(function () {
+            $('#transporter-driver-index-table').DataTable().columns.adjust();
+        }, 10);
+    });
+</script>

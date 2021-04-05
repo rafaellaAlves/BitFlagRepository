@@ -1,0 +1,169 @@
+﻿@model DTO.Subscription.SubscriptionViewModel
+@inject Services.Subscription.SubscriptionService subscription
+@inject Services.Plan.PlanService PlanService
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Atualização de Plano";
+}
+
+<div class="row">
+    <div class="col-md-6">
+        <div id="menu" class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12 text-center">
+                        @await Html.PartialAsync("../Shared/_LayoutMenuHome.cshtml");
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="row">
+            <div class="col-12">
+                <div class="mb-2">
+                    <h2>
+                        Olá Dr(a). Aqui você pode obter a 2° via do seu certificado ou fazer um upgrade do seu plano.
+                    </h2>
+                </div>
+                <hr />
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card card-blue">
+                    <div class="card-body ">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="form-group">
+                                    <label class="control-label">Nome</label>
+                                    <input readonly="readonly" name="FullName" id="FullName" value="@Model.FullName" type="text" class="form-control" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="control-label">Data de Nascimento</label>
+                                    <input readonly="readonly" name="BirthDate" id="BirthDate" value="@Model.BirthDateFormatted" type="text" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="control-label">CPF</label>
+                                    <input readonly="readonly" name="Cpf" id="Cpf" value="@Model.Cpf" type="text" class="form-control" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="control-label ">CRMV</label>
+                                    <input readonly="readonly" name="Crmv" id="Crmv" value="@Model.Crmv" type="text" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group">
+                                    <label class="control-label">Referência</label>
+                                    <input readonly="readonly" name="Reference" id="Reference" value="@Model.Reference" type="text" class="form-control" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-md-12 text-right">
+                        <a href="@Url.Action("UpgradeSubscription", "Home")" class="btn btn-primary">Nova Consulta</a>
+                    </div>
+                </div>
+                <hr />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-5">
+                                <div class="form-group">
+                                    <label class="control-label">Plano Atual</label>
+                                    <input name="PlanNameClient" id="PlanNameClient" value="@Model.PlanName" type="text" class="form-control" disabled />
+                                </div>
+                            </div>
+                            <div class="col-5">
+                                <div class="form-group">
+                                    <label class="control-label">Valor da Assinatura</label>
+                                    <input name="PriceClient" id="PriceClient" value="@Model.MonthlyTotalFormatted" type="text" class="form-control" disabled />
+                                </div>
+                            </div>
+                            <div class="col-2 pt-4 pb-4">
+                                <a id="print" target="_blank" href="@Url.Action("Certificate", "Subscription", new  { reference = Model.Reference })"><span><i class="fa fa-print fa-3x"></i></span></a>
+                            </div>
+                        </div>
+
+                        @*<div class="row">
+                                <p>Dr(a) você ainda pode melhorar a sua proteção, fazendo um upgrade do seu Plano.</p>
+                                <input hidden name="PlanId1"/>
+                                <div class="col-sm-5">
+                                    <div class="form-group">
+                                        <input name="PlanName1" id="PlanName1" type="text" class="form-control" disabled />
+                                    </div>
+                                </div>
+                                <div class="col-sm-5">
+                                    <div class="form-group">
+                                        <input name="Price1" id="Price1" type="text" class="form-control " disabled />
+                                    </div>
+                                </div>
+                                <div class="col-sm-2 pl-0">
+                                    <div class="form-group">
+                                        <a name="Upgrade" href="@Url.Action("PlansUpgradeChoose", "Subscription", new { })" id="upgrade" type="button" class="btn btn-success">Upgrade</a>
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="row">
+                                <input hidden name="PlanId2" />
+                                <div class="col-sm-5">
+                                    <div class="form-group">
+                                        <input name="PlanName2" id="PlanName2" type="text" class="form-control" disabled />
+                                    </div>
+                                </div>
+                                <div class="col-sm-5">
+                                    <div class="form-group">
+                                        <input name="Price2" id="Price2" type="text" class="form-control " disabled />
+                                    </div>
+                                </div>
+                                <div class="col-sm-2 pl-0">
+                                    <div class="form-group">
+                                        <a name="Upgrade" href="@Url.Action("PlansUpgradeChoose", "Subscription", new { })" id="upgrade" type="button" class="btn btn-success">Upgrade</a>
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="row">
+                                <input hidden name="PlanId3"/>
+                                <div class="col-sm-5">
+                                    <div class="form-group">
+                                        <input name="PlanName3" id="PlanName3" type="text" class="form-control" disabled />
+                                    </div>
+                                </div>
+                                <div class="col-sm-5">
+                                    <div class="form-group">
+                                        <input name="Price3" id="Price3" type="text" class="form-control " disabled />
+                                    </div>
+                                </div>
+                                <div class="col-sm-2 pl-0">
+                                    <div class="form-group">
+                                        <a name="Upgrade" href="@Url.Action("PlansUpgradeChoose", "Subscription", new { })" id="upgrade" type="button" class="btn btn-success">Upgrade</a>
+                                    </div>
+                                </div>
+
+                            </div>*@
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

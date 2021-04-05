@@ -1,0 +1,60 @@
+﻿@model List<DTO.Home.HomeDemandClientListViewModel>
+
+@inject Services.Home.HomeServices homeServices
+@inject Services.Client.ClientServices clientServices
+@{
+    var clientId = await clientServices.GetClientIdByLoggedUser(Context);
+}
+<style type="text/css">
+    #home-client-collections-table td, #home-client-collections-table th {
+        text-align: center;
+    }
+</style>
+
+<div class="row">
+    <div class="col table-responsive">
+        <table class="table nowrap table-condensed table-bordered w-100" id="home-client-collections-table">
+            <thead>
+                <tr>
+                    <th colspan="8" class="text-center">LISTAGEM DE COLETA</th>
+                </tr>
+                <tr>
+                    <th>MTR</th>
+                    <th>Data</th>
+                    <th>Peso (Kg)</th>
+                </tr>
+            </thead>
+            <tbody>
+                @await foreach (var item in homeServices.GetHomeGetNextVisits(clientId, DateTime.Now.AddDays(7)))
+                {
+                    <tr>
+                        <td>-</td>
+                        <td>@item.ToBrazilianDateFormat() (Previsão)</td>
+                        <td>-</td>
+                    </tr>
+                }
+                @foreach (var item in Model.OrderByDescending(x => x.VisitedDate))
+                {
+                    <tr>
+                        <td>@item.DestineJaDemandId</td>
+                        <td>@item._VisitedDate</td>
+                        <td>@item.Weight.ToWeightPtBr()</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script type="text/javascript" asp-cut-key="home-client-collections">
+    $(document).ready(function () {
+        $('#home-client-collections-table').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            dom: 'tip',
+            ordering: false,
+        });
+    });
+</script>

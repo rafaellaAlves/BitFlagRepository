@@ -1,0 +1,9 @@
+C:\repositorios\bitflag\Nova pasta\TerraNostraPlatform\Application\Branches\TerraNostraCRM-NovoTema\TerraNostraIdentityDbContext\bin\Debug\netcoreapp2.2\TerraNostraIdentityDbContext.deps.json
+C:\repositorios\bitflag\Nova pasta\TerraNostraPlatform\Application\Branches\TerraNostraCRM-NovoTema\TerraNostraIdentityDbContext\bin\Debug\netcoreapp2.2\TerraNostraIdentityDbContext.dll
+C:\repositorios\bitflag\Nova pasta\TerraNostraPlatform\Application\Branches\TerraNostraCRM-NovoTema\TerraNostraIdentityDbContext\bin\Debug\netcoreapp2.2\TerraNostraIdentityDbContext.pdb
+C:\repositorios\bitflag\Nova pasta\TerraNostraPlatform\Application\Branches\TerraNostraCRM-NovoTema\TerraNostraIdentityDbContext\obj\Debug\netcoreapp2.2\TerraNostraIdentityDbContext.csprojAssemblyReference.cache
+C:\repositorios\bitflag\Nova pasta\TerraNostraPlatform\Application\Branches\TerraNostraCRM-NovoTema\TerraNostraIdentityDbContext\obj\Debug\netcoreapp2.2\TerraNostraIdentityDbContext.AssemblyInfoInputs.cache
+C:\repositorios\bitflag\Nova pasta\TerraNostraPlatform\Application\Branches\TerraNostraCRM-NovoTema\TerraNostraIdentityDbContext\obj\Debug\netcoreapp2.2\TerraNostraIdentityDbContext.AssemblyInfo.cs
+C:\repositorios\bitflag\Nova pasta\TerraNostraPlatform\Application\Branches\TerraNostraCRM-NovoTema\TerraNostraIdentityDbContext\obj\Debug\netcoreapp2.2\TerraNostraIdentityDbContext.csproj.CoreCompileInputs.cache
+C:\repositorios\bitflag\Nova pasta\TerraNostraPlatform\Application\Branches\TerraNostraCRM-NovoTema\TerraNostraIdentityDbContext\obj\Debug\netcoreapp2.2\TerraNostraIdentityDbContext.dll
+C:\repositorios\bitflag\Nova pasta\TerraNostraPlatform\Application\Branches\TerraNostraCRM-NovoTema\TerraNostraIdentityDbContext\obj\Debug\netcoreapp2.2\TerraNostraIdentityDbContext.pdb

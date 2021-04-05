@@ -1,0 +1,80 @@
+﻿@inject DAL.GLAS2Context context
+@{ var guid = "_" + Guid.NewGuid().ToString("N");
+
+	int companyLawId = -1;
+	bool canDelete = false;
+
+	if (ViewData.ContainsKey("companyLawId"))
+	{
+		int.TryParse(ViewData["companyLawId"].ToString(), out companyLawId);
+	}
+
+	if (ViewData.ContainsKey("canDelete"))
+	{
+		bool.TryParse(ViewData["canDelete"].ToString(), out canDelete);
+	}
+
+	bool companyLawIsCompleted = false;
+
+	if (companyLawId != -1)
+	{
+		var companyLawFunctions = new BLL.Company.CompanyLawFunctions(context);
+		companyLawIsCompleted = companyLawFunctions.CompanyLawIsCompleted(companyLawId);
+	}
+}
+
+<div id="@guid">	
+	<div id="@Html.Raw(guid + "_attachmentContainer")">
+		<i>Nenhum anexo encontrado.</i>
+	</div>
+	<script type="text/javascript">
+		function _ListCompanyLawActionAttachments(companyLawActionId) {
+				var formData = new FormData();
+				formData.append('companyLawActionId', companyLawActionId);
+            $.ajax({
+					url: '@Url.Action("List", "CompanyLawActionAttachmentManagement")',
+                type: 'POST',
+                processData: false,
+                contentType: false,
+                data: formData,
+                success: function (d) {
+					if (d.data.length == 0) {
+						_CompanyLawActionAttachmentsClearSearch();
+						return;
+					}
+                    $('#@Html.Raw(guid + "_attachmentContainer")').empty();
+					$.each(d.data, function (i, e) {
+						$('#@Html.Raw(guid + "_attachmentContainer")').append('<div class="card p-3 list-group-item list-group-item-action flex-column" style= "margin-bottom: 5px;" ><div class="d-flex w-100 justify-content-between" ><a class="mb-1" href="@Url.Action("GetCompanyLawActionAttachment", "CompanyLawActionAttachmentManagement")?companyLawActionAttachmentId=' + e.CompanyLawActionAttachmentId + '" data-holder-rendered="true">' + e.Name + '</a>@if (!companyLawIsCompleted && canDelete) {<text><small><a href="javascript:void(0)" onclick="RemoveCompanyLawActionAttachmentFromCompanyLaw(' + e.CompanyLawActionAttachmentId + ')">Excluir</a></small></text>}</div><small class="float-left">Data de criação: ' + e._CreatedDate + ' | Tamanho: ' + e.Length + ' B</small><br/></div >');
+						});
+						}
+				});
+        }
+        function _CompanyLawActionAttachmentsClearSearch() {
+            $('#@Html.Raw(guid + "_attachmentContainer")').empty();
+			$('#@Html.Raw(guid + "_attachmentContainer")').append('<i>Nenhum anexo encontrado.</i>');
+		}
+
+		function RemoveCompanyLawActionAttachmentFromCompanyLaw(_companyLawActionAttachmentId) {
+			if (confirm('Deseja realmente remover esse anexo?')) {
+				_RemoveCompanyLawActionAttachmentFromCompanyLaw(_companyLawActionAttachmentId, function () {
+					_ListCompanyLawActionAttachments(@Model.CompanyLawActionId);
+					alert('Anexo removido com sucesso!');
+					$('#alertErrorLawActionAttachment').hide();
+					$('#alertSuccessLawActionAttachment').hide();
+					$('.text-danger').remove();
+				});
+			}
+		}
+		function _RemoveCompanyLawActionAttachmentFromCompanyLaw(_companyLawActionAttachmentId, callback) {
+			var d = { companyLawActionAttachmentId: _companyLawActionAttachmentId };
+			$.ajax({
+				url: '@Url.Action("RemoveLawActionAttachmentFromCompanyLawAction", "CompanyLawActionAttachmentManagement")',
+				type: 'POST',
+				data: d,
+				dataType: 'json',
+				success: callback
+			});
+		}
+
+	</script>
+</div>

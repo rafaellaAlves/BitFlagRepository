@@ -1,0 +1,93 @@
+﻿<div class="row">
+    <div class="col-md-12">
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text"><i class="simple-icon-magnifier"></i></span>
+            </div>
+            <input id="_messageIndexSearch" type="text" class="form-control" placeholder="Procurar..." />
+        </div>
+    </div>
+</div>
+<hr />
+<div class="table-wrapper">
+    <table id="_messageIndexTable" class="display table table-striped table-bordered table-condensed" style="border-collapse: collapse !important; width:100%;">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Última Mensagem</th>
+                <th>&nbsp;</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<script type="text/javascript">
+
+    var _messageIndexTypingTimer;
+    var _messageIndexDoneTypingInterval = 500;
+    var datatables = $('#_messageIndexTable').DataTable({
+		proccessing: true,
+		serverSide: false,
+		searching: true,
+		lengthChange: false,
+		dom: 'tip',
+		ajax: {
+			url: '@Url.Action("List", "Message")',
+			type: 'POST'
+		},
+		columns: [
+            {
+                data: 'LastMessageSender',
+            render: function (data, type, row) {
+                return row.lastMessageSender;
+                }
+            },
+            {
+                data: 'LastMessage',
+                render: function (data, type, row) {
+                    return row.lastMessage;
+                }
+            },
+			{
+				data: null,
+				render: function (data, type, row) {
+                    return '<div class="text-center"><a href="javascript:void(0)" title="Mensagens" ><i class="far fa-message"></i></a></div>';
+				}
+			}
+		]
+	});
+
+    function _messageIndexDoneTyping() {
+        if ($.fn.DataTable.isDataTable('#_messageIndexTable')) {
+            datatables.search($('#_messageIndexSearch').val()).draw();
+        }
+    }
+    $('#_messageIndexSearch').keyup(function () {
+        clearTimeout(_messageIndexDoneTypingInterval);
+        _messageIndexTypingTimer = setTimeout(_messageIndexDoneTyping, _messageIndexDoneTypingInterval);
+    });
+    $('#_messageIndexSearch').keydown(function () {
+        clearTimeout(_messageIndexDoneTyping);
+    });
+
+    function RemoveMessage(id) {
+		if (confirm("Deseja realmente excluir este usuário?")) {
+            _RemoveMessage(id, function () {
+                $('#_messageIndexTable').DataTable().ajax.reload();
+				alert("Usuário excluído com sucesso!");
+			});
+		}
+	}
+
+    function _RemoveMessage(_id, callback) {
+        var d = { id: _id};
+		$.ajax({
+			url: '@Url.Action("RemoveMessage", "Message")',
+			type: 'POST',
+			data: d,
+			dataType: 'Json',
+			success: callback
+		});
+	}
+</script>

@@ -1,0 +1,83 @@
+﻿@using Web.Utils
+@model DTO.Client.ClientViewModel
+@{
+    ViewData["Title"] = "Gerar Nova Árvore de Orçamento";
+    ViewData["SubTitle"] = string.Format("{0} {1}", Model.FirstName, Model.LastName);
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+}
+<div class="mb-2">
+    <h2 class="mb-2" style="font-size:25px;"><b>@Model.ClientName</b><br /><small>Gerar árvore de orçamento</small></h2>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="alert alert-primary">
+                    Selecione na tabela abaixo os membros da família que serão parte dessa versão da árvore de orçamento.
+                </div>
+                <div class="alert alert-danger" id="alert-error" style="display:none;">
+                    <span id="alert-error-text"></span>
+                </div>
+                <div class="alert alert-success" id="alert-success" style="display:none;">
+                    <b>Árvore gerada com sucesso!</b>
+                </div>
+                <div id="_FamilyFreezeManageViewComponent"></div>
+                <hr />
+                <a href="@Url.Action("Index", "Family")?clientId=@Model.ClientId" class="btn btn-secondary pull-left"><i class="simple-icon-action-undo"></i>&nbsp;Voltar</a>
+                @if (!User.InvoiceCanAccessEdition())
+                {
+                    <button class="btn btn-primary float-right" id="FamilyFreezeSaveButton" style="display:none">Gerar Nova Árvore de Orçamento&nbsp;<i class="simple-icon-action-redo"></i></button>
+                }
+                else
+                {
+                    <button class="btn btn-primary float-right" id="FamilyFreezeSaveButton">Gerar Nova Árvore de Orçamento&nbsp;<i class="simple-icon-action-redo"></i></button>
+                }
+
+
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $('#_FamilyFreezeManageViewComponent').load('@Url.Action("FamilyFreezeManageViewComponent", "Family")', { clientId: '@Model.ClientId' });
+
+    function FamilyFreezeValidation() {
+        var hasError = false;
+
+        if ($('#FamilyFreezeForm input:checked').length == 0) {
+            $('#alert-error-text').text('Selecione ao menos um item.');
+            $('html, body').animate({ scrollTop: 0 }, 'slow');
+            $('#alert-error').show().fadeOut(5000);
+            hasError = true;
+        }
+
+        return !hasError;
+    }
+
+    function FamilyFreezeSave() {
+        var data = [];
+        data.push({ name: 'clientId', value: '@Model.ClientId' });
+
+        $.each($('#FamilyFreezeForm input:checked'), function (i, e) {
+            data.push({ name: '[' + i + '].FamilyMemberId', value: $(e).val() });
+            data.push({ name: '[' + i + '].ClientApplicantId', value: $(e).data('client-applicant-id') });
+            data.push({ name: '[' + i + '].FamilyMemberTypeId', value: $(e).data('family-member-type-id') });
+        });
+
+        $.post('@Url.Action("FreezeFamily", "Family")', data, function (d) {
+            if (d > 0) {
+                document.location.href = '@Url.Action("Manage", "Invoice")?clientId=@Context.Request.Query["clientId"]&freezedFamilyId=' + d + '&saved=true';
+            } else {
+                alert('Houve um erro ao gerar a árvore de orçamento.');
+                return false;
+            }
+        });
+    }
+
+    $('#FamilyFreezeSaveButton').click(function () {
+        if (FamilyFreezeValidation()) {
+            FamilyFreezeSave();
+        }
+    });
+</script>

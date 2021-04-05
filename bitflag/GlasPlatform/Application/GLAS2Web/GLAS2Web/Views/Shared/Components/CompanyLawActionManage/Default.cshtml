@@ -1,0 +1,558 @@
+﻿@model DTO.Company.CompanyLawActionViewModel
+@inject DAL.GLAS2Context context
+@inject Microsoft.AspNetCore.Identity.UserManager<DAL.Identity.User> userManager
+@{
+    var companyLawFunctions = new BLL.Company.CompanyLawFunctions(context);
+    var companyLawActionStatusFunctions = new BLL.Company.CompanyLawActionStatusFunctions(context);
+
+    int companyId = companyLawFunctions.GetCompanyIdFromCompanyLawId(Model.CompanyLawId);
+    var companyUserRoleFunctions = new BLL.Permission.CompanyUserRoleFunctions(context);
+    var user = await userManager.GetUserAsync(User);
+
+    bool isMaster = User.IsInRole(BLL.User.ProfileNames.Administrator) || User.IsInRole(BLL.User.ProfileNames.Master);
+    bool isBioteraConsultor = companyUserRoleFunctions.CompanyUserHasRole(companyId, user.Id, new List<string>() { BLL.User.ProfileNames.BioteraConsultor });
+
+    bool isClienteAdministrador = companyUserRoleFunctions.CompanyUserHasRole(companyId, user.Id, new List<string>() { BLL.User.ProfileNames.ClienteAdministrador }); ;
+    bool isClienteSupervisor = companyUserRoleFunctions.CompanyUserHasRole(companyId, user.Id, new List<string>() { BLL.User.ProfileNames.ClienteSupervisor }); ;
+    bool isClienteOperador = companyUserRoleFunctions.CompanyUserHasRole(companyId, user.Id, new List<string>() { BLL.User.ProfileNames.ClienteOperador }); ;
+
+    var companyLawIsCompleted = companyLawFunctions.CompanyLawIsCompleted(Model.CompanyLawId);
+
+    bool canDelete = false;
+    if (isMaster) { canDelete = true; }
+
+    int conclusionId = companyLawActionStatusFunctions.GetData().FirstOrDefault(x => x.ExternalCode == "COMPLETED").CompanyLawActionStatusId;
+}
+<script type="text/javascript">
+    function CompanyLawActionManageMoreInfo() {
+        $('#companyLawActionManageLessInfo').hide();
+        $('#companyLawActionManageDivMoreInfo').show();
+    }
+    function CompanyLawActionManageLessInfo() {
+        $('#companyLawActionManageLessInfo').show();
+        $('#companyLawActionManageDivMoreInfo').hide();
+    }
+    function CompanyLawActionManageCreate() {
+        var d = $('#companyLawActionManageForm').serializeArray();
+        $.post('@Url.Action("ManageAjax", "CompanyLawActionManagement")', d, function (data) {
+			if (typeof (CompanyLawActionSaveCallback) === 'undefined') {
+                alert('Implement "CompanyLawActionSaveCallback"!');
+                return;
+            }
+            CompanyLawActionSaveCallback(data);
+		});
+    }
+</script>
+
+<form id="companyLawActionManageForm" method="post">
+    <div class="card shadow">
+        <div class="card-body">
+            <div id="alertFormErrorCompanyLawAction" class="alert alert-danger fade show" role="alert" style="display: none;">
+                <strong>Atenção!</strong> O formulário contém erros. Por favor, revise as informações abaixo.
+            </div>
+
+            <input type="hidden" id="CompanyLawActionId" name="CompanyLawActionId" value="@Model.CompanyLawActionId" />
+            <input type="hidden" id="CompanyLawId" name="CompanyLawId" value="@Model.CompanyLawId" />
+            <div id="companyLawActionManageDivRequiredInfo">
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label class="control-label" for="Name">@translationFunctions.GetTranslation("Nome", User.FindFirstValue("CultureInfo"))</label>
+                        @if (companyLawIsCompleted)
+                        {
+                            <input type="text" class="form-control" value="@Model.Name" placeholder="@translationFunctions.GetTranslation("Nome", User.FindFirstValue("CultureInfo"))" disabled>
+                            <input type="hidden" id="Name" name="Name" value="@Model.Name" />
+                        }
+                        else
+                        {
+                            <input type="text" class="form-control" id="Name" name="Name" value="@Model.Name" placeholder="@translationFunctions.GetTranslation("Nome", User.FindFirstValue("CultureInfo"))">
+                        }
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label class="control-label" for="RegistrationDate">@translationFunctions.GetTranslation("Data de Cadastro", User.FindFirstValue("CultureInfo"))</label>
+                        <input type="text" class="form-control date" value="@Model.RegistrationDate" placeholder="@translationFunctions.GetTranslation("Data de Cadastro", User.FindFirstValue("CultureInfo"))" disabled>
+                        <input type="hidden" id="RegistrationDate" name="RegistrationDate" value="@Model.RegistrationDate" />
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label class="control-label" for="TargetDate">@translationFunctions.GetTranslation("Data de Conclusão", User.FindFirstValue("CultureInfo"))</label>
+                        @if (companyLawIsCompleted)
+                        {
+                            <input type="text" class="form-control date" value="@Model.TargetDate" placeholder="@translationFunctions.GetTranslation("Data de Renovação", User.FindFirstValue("CultureInfo"))" disabled>
+                            <input type="hidden" id="TargetDate" name="TargetDate" value="@Model.TargetDate" />
+                        }
+                        else
+                        {
+                            <input type="text" class="form-control date" id="TargetDate" name="TargetDate" value="@Model.TargetDate" placeholder="@translationFunctions.GetTranslation("Data de Renovação", User.FindFirstValue("CultureInfo"))">
+                        }
+                    </div>
+
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-3">
+                        <label class="control-label" for="CompanyLawActionStatusId">@translationFunctions.GetTranslation("Status", User.FindFirstValue("CultureInfo"))</label>
+                        @if (companyLawIsCompleted || isClienteOperador)
+                        {
+                            <select class="form-control" disabled>
+                                <option value="@Model.CompanyLawActionStatusId">@translationFunctions.GetTranslation(Model.CompanyLawActionStatusName, User.FindFirstValue("CultureInfo"))</option>
+                            </select>
+                            <input type="hidden" id="CompanyLawActionStatusId" name="CompanyLawActionStatusId" value="@Model.CompanyLawActionStatusId" />
+                        }
+                        else
+                        {
+                            <select class="form-control" name="CompanyLawActionStatusId" id="CompanyLawActionStatusId">
+                                @foreach (var item in ((IEnumerable<DAL.CompanyLawActionStatus>)ViewData["CompanyLawActionStatus"]).ToList())
+                                {
+                                    <option value="@item.CompanyLawActionStatusId">@translationFunctions.GetTranslation(item.Name, User.FindFirstValue("CultureInfo"))</option>
+                                }
+                            </select>
+                        }
+                        <script type="text/javascript">
+                                $('#CompanyLawActionStatusId').val('@Model.CompanyLawActionStatusId');
+                        </script>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label class="control-label" for="CompanyLawActionTypeId">@translationFunctions.GetTranslation("Tipo", User.FindFirstValue("CultureInfo"))</label>
+                        @if (companyLawIsCompleted)
+                        {
+                            <select class="form-control" disabled>
+                                <option value="@Model.CompanyLawActionTypeId">@translationFunctions.GetTranslation(Model.CompanyLawActionTypeName, User.FindFirstValue("CultureInfo"))</option>
+                            </select>
+                            <input type="hidden" id="CompanyLawActionTypeId" name="CompanyLawActionTypeId" value="@Model.CompanyLawActionTypeId" />
+                        }
+                        else
+                        {
+                            <select class="form-control" name="CompanyLawActionTypeId" id="CompanyLawActionTypeId">
+                                @foreach (var item in ((IEnumerable<DAL.CompanyLawActionType>)ViewData["CompanyLawActionType"]).ToList())
+                                {
+                                <option value="@item.CompanyLawActionTypeId">@translationFunctions.GetTranslation(item.Name, User.FindFirstValue("CultureInfo"))</option>
+                                }
+                            </select>
+                        }
+                        <script type="text/javascript">
+                                $('#CompanyLawActionTypeId').val('@Model.CompanyLawActionTypeId');
+                        </script>
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label class="control-label" for="SupervisorId">@translationFunctions.GetTranslation("Supervisor", User.FindFirstValue("CultureInfo"))</label>
+                        @if (companyLawIsCompleted || isClienteOperador)
+                        {
+                            <input type="text" class="form-control" id="SupervisorName" value="@Model.SupervisorName" disabled="disabled" />
+                            <input type="hidden" id="SupervisorId" name="SupervisorId" value="@Model.SupervisorId" />
+                        }
+                        else
+                        {
+                            <input type="hidden" class="form-control" id="SupervisorId" name="SupervisorId" value="@Model.SupervisorId" />
+                            <div class="input-group" id="Supervisor">
+                                <span class="input-group-btn">
+                                    <button class="btn btn-secondary" type="button" onclick="OpenModalUserSearch('Supervisor')"><i class="fa fa-search"></i></button>
+                                </span>
+                                <input type="text" class="form-control" id="SupervisorName" name="SupervisorName" value="@Model.SupervisorName" disabled="disabled" />
+                                <span class="input-group-btn">
+                                    <script type="text/javascript">
+                                        function ClearSupervisor() {
+                                            $('#SupervisorName').val('');
+                                            $('#SupervisorId').val('');
+                                        }
+                                    </script>
+                                    <button class="btn btn-secondary" type="button" onclick="ClearSupervisor()"><i class="fa fa-times"></i></button>
+                                </span>
+                            </div>
+                        }
+                    </div>
+                    <div class="form-group col-md-3">
+                        <label class="control-label" for="ResponsibleId">@translationFunctions.GetTranslation("Responsável", User.FindFirstValue("CultureInfo"))</label>
+                        @if (companyLawIsCompleted || isClienteOperador)
+                        {
+                            <input type="text" class="form-control" value="@Model.ResponsibleName" disabled="disabled" />
+                            <input type="hidden" id="ResponsibleName" name="ResponsibleId" value="@Model.ResponsibleId" />
+                        }
+                        else
+                        {
+                            <input type="hidden" id="ResponsibleId" name="ResponsibleId" value="@Model.ResponsibleId" />
+                            <div class="input-group" id="Responsible">
+                                <span class="input-group-btn">
+                                    <button class="btn btn-secondary" type="button" onclick="OpenModalUserSearch('Responsible')"><i class="fa fa-search"></i></button>
+                                </span>
+                                <input type="text" class="form-control" id="ResponsibleName" name="ResponsibleName" value="@Model.ResponsibleName" disabled="disabled" />
+                                <span class="input-group-btn">
+                                    <script type="text/javascript">
+                                        function ClearResponsible() {
+                                            $('#ResponsibleName').val('');
+                                            $('#ResponsibleId').val('');
+                                        }
+                                    </script>
+                                    <button class="btn btn-secondary" type="button" onclick="ClearResponsible()"><i class="fa fa-times"></i></button>
+                                </span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+            <a id="companyLawActionManageLessInfo" href="javascript: CompanyLawActionManageMoreInfo();">@translationFunctions.GetTranslation("Mais Informações", User.FindFirstValue("CultureInfo"))...</a>
+            <div id="companyLawActionManageDivMoreInfo" style="display: none;">
+                <div class="form-row">
+                    <div class="form-group col-md-4">
+                        <label class="control-label" for="FinalProjectCost">@translationFunctions.GetTranslation("Custo Final do Projeto", User.FindFirstValue("CultureInfo"))</label>
+                        @if (companyLawIsCompleted)
+                        {
+                            <input type="text" class="form-control money" value="@Model.FinalProjectCost" disabled />
+                            <input type="hidden" id="FinalProjectCost" name="FinalProjectCost" value="@Model.FinalProjectCost" />
+                        }
+                        else
+                        {
+                            <input type="text" class="form-control money" name="FinalProjectCost" id="FinalProjectCost" value="@Model.FinalProjectCost" />
+                        }
+                    </div>
+                    <div class="form-group col-md-4">
+                        <label class="control-label" for="RenewDate">@translationFunctions.GetTranslation("Data de Renovação", User.FindFirstValue("CultureInfo"))</label>
+                        @if (companyLawIsCompleted)
+                        {
+                            <input type="text" class="form-control date" value="@Model.RenewDate" disabled />
+                            <input type="hidden" id="RenewDate" name="RenewDate" value="@Model.RenewDate" />
+                        }
+                        else
+                        {
+                            <input type="text" class="form-control date" name="RenewDate" id="RenewDateLawAction" value="@Model.RenewDate" />
+                        }
+                    </div>
+                    <div class="form-group col-md-4">
+                        <label class="control-label" for="WarningDate">@translationFunctions.GetTranslation("Data de Aviso", User.FindFirstValue("CultureInfo"))</label>
+                        @if (companyLawIsCompleted)
+                        {
+                            <input type="text" class="form-control date" value="@Model.WarningDate" disabled />
+                            <input type="hidden" id="WarningDateLawAction" name="RenewDate" value="@Model.RenewDate" />
+                        }
+                        else
+                        {
+                            <input type="text" class="form-control date" name="WarningDate" id="WarningDateLawAction" value="@Model.WarningDate" />
+                        }
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="control-label" for="Evidence">@translationFunctions.GetTranslation("Evidência Objetiva", User.FindFirstValue("CultureInfo"))</label>
+                    @if (companyLawIsCompleted)
+                    {
+                        <textarea class="form-control" placeholder="@translationFunctions.GetTranslation("Evidência Objetiva", User.FindFirstValue("CultureInfo"))" disabled>@Model.Evidence</textarea>
+                        <input type="hidden" id="LawActionEvidence" name="Evidence" value="@Model.Evidence" />
+                    }
+                    else
+                    {
+                        <textarea class="form-control" id="LawActionEvidence" name="Evidence" placeholder="@translationFunctions.GetTranslation("Evidência Objetiva", User.FindFirstValue("CultureInfo"))">@Model.Evidence</textarea>
+                    }
+                </div>
+                <a id="lessInfo" href="javascript: CompanyLawActionManageLessInfo();">Menos Informações...</a>
+            </div>
+        </div>
+        <div class="card-footer">
+            <div id="companyLawActionManageDivControls">
+                @if (Model.CompanyLawActionId != null)
+                {
+                    <div class="btn-group">
+                        <button type="button" id="popupAttachments" class="btn btn-secondary" data-toggle="modal" data-target="#companyLawActionManagementAttachmentModal"><i class="fa fa-file"></i>&nbsp;@translationFunctions.GetTranslation("Anexos", User.FindFirstValue("CultureInfo"))</button>
+                        <button type="button" id="companyLawActionCommentButton" class="btn btn-secondary" data-toggle="modal" data-target="#companyLawActionCommentModal"><i class="fa fa-comments"></i>&nbsp;@translationFunctions.GetTranslation("Comentários", User.FindFirstValue("CultureInfo"))</button>
+                    </div>
+                    <script type="text/javascript">
+                        $('#companyLawActionCommentButton').click(function () {
+                            $('#alertSuccessCompanyLawActionComment').hide();
+                        });
+                    </script>
+                }
+                @if (!companyLawIsCompleted)
+                {
+                    <button type="button" id="companyLawActionManageButtonSubmit" class="btn btn-success float-right"><i class="fa fa-plus"></i>&nbsp;@translationFunctions.GetTranslation("Criar", User.FindFirstValue("CultureInfo"))</button>
+                }
+                <script type="text/javascript">
+					$('#companyLawActionManageButtonSubmit').click(function () {
+
+						var hasError = false;
+						$('#companyLawActionManageForm .invalid-feedback').remove();
+						$('#alertFormErrorCompanyLawAction').hide();
+
+						//Name
+						if (IsNullOrWhiteSpace($('#Name').val())) {
+							$('#Name').after('<div class="invalid-feedback">Preencha o Nome.</div>');
+							hasError = true;
+						}
+
+						//Supervisor
+						if (IsNullOrWhiteSpace($('#SupervisorName').val())) {
+							$('#Supervisor').after('<div class="invalid-feedback">Escolha o supervisor.</div>');
+							hasError = true;
+						}
+
+						//Responsible
+						if (IsNullOrWhiteSpace($('#ResponsibleName').val())) {
+							$('#Responsible').after('<div class="invalid-feedback">Escolha o responsável.</div>');
+							hasError = true;
+						}
+
+						//TargetDate
+						if (IsNullOrWhiteSpace($('#TargetDate').val())) {
+							$('#TargetDate').after('<div class="invalid-feedback">Escolha uma data de conclusão.</div>');
+							hasError = true;
+						}
+
+						// Renew Date
+						if (moment($('#WarningDateLawAction').val(), 'DD/MM/YYYY').isAfter(moment($('#RenewDateLawAction').val(), 'DD/MM/YYYY'))) {
+							$('#WarningDateLawAction').after('<div class="invalid-feedback">Data de aviso deve ser anterior a data de renovação.</div>');
+							hasError = true;
+						}
+
+						if (!(IsNullOrWhiteSpace($('#WarningDateLawAction').val())) && IsNullOrWhiteSpace($('#RenewDateLawAction').val())) {
+							$('#RenewDateLawAction').after('<div class="invalid-feedback">Preencha a data de Renovação.</div>');
+							hasError = true;
+						}
+
+						if ($('#CompanyLawActionStatusId').val() == @conclusionId) {
+							if (IsNullOrWhiteSpace($('#LawActionEvidence').val())) {
+								$('#CompanyLawActionStatusId').after('<div class="invalid-feedback">Ação não pode ser concluída se não houver evidência objetiva.</div>');
+								CompanyLawActionManageMoreInfo();
+								hasError = true;
+							}
+						}
+
+						if (hasError) {
+							$('#alertFormErrorCompanyLawAction').show();
+							$('#companyLawActionManageForm .invalid-feedback').show();
+						}
+						else {
+							CompanyLawActionManageCreate();
+						}
+					});
+                </script>
+                @if (Model.CompanyLawActionId != null)
+                {
+                    <script type="text/javascript">
+                        //$('#companyLawActionManageButtonSubmit').removeClass('btn-success');
+                        //$('#companyLawActionManageButtonSubmit').addClass('btn-primary');
+                        $('#companyLawActionManageButtonSubmit').html('<i class="fa fa-cloud-upload-alt"></i>&nbsp;@Html.Raw(@translationFunctions.GetTranslation("Salvar Ação", User.FindFirstValue("CultureInfo")))');
+                        CompanyLawActionManageLessInfo();
+                    </script>
+                }
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- Comment -->
+<div class="modal fade" id="companyLawActionCommentModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Comentários do Requisito legal</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="alertSuccessCompanyLawActionComment" class="alert alert-success fade show text-center" role="alert" style="display: none;">
+                    <strong>O comentário foi adicionado com sucesso!</strong>
+                </div>
+                <div id="newComment" style="display: none;">
+                    <div class="form-group">
+                        <label for="Text">@translationFunctions.GetTranslation("Comentário", User.FindFirstValue("CultureInfo"))</label>
+                        <textarea class="form-control" id="newCommentText" name="newCommentText" rows="2"></textarea>
+                    </div>
+                    <button class="btn btn-success" id="newCommentButton"><i class="fa fa-plus"></i>&nbsp;Adicionar Comentário</button>
+                    <script type="text/javascript">
+                        $('#newCommentButton').click(function () {
+                            var d = { CompanyLawActionId: @if (Model.CompanyLawActionId.HasValue) { <text>@Model.CompanyLawActionId</text> } else { <text>null</text> }, Text: $('#newCommentText').val() };
+                            $.ajax({
+                                url: '@Url.Action("Manage", "CompanyLawActionCommentManagement")',
+                                type: 'POST',
+                                data: d,
+                                dataType: 'json',
+                                success: function (data) {
+                                    $('#newComment').hide();
+									$('#newCommentLink').show();
+									$('#alertSuccessCompanyLawActionComment').show();
+                                    _CompanyLawActionCommentsDoneTyping(@Model.CompanyLawActionId);
+                                }
+                            });
+                        });
+                    </script>
+                </div>
+                @if (!companyLawIsCompleted)
+                {
+                    <div style="width: 100%;" class="text-right"><a href="javascript:void(0)" id="newCommentLink">Novo Comentário</a></div>
+                    <script type="text/javascript">
+                        $('#newCommentLink').click(function () {
+                            $('#newComment').show();
+                            $('#newCommentText').val('');
+                            $('#newCommentLink').hide();
+                            $('#newCommentText').focus();
+                        });
+                    </script>
+                    <hr />
+                }
+                @{ Html.RenderPartial("~/Views/Shared/_CompanyLawActionComment.cshtml", new ViewDataDictionary(this.Vi‌​ewData) { { "companyLawId", Model.CompanyLawId }, { "canDelete", (isMaster || isBioteraConsultor || isClienteAdministrador || isClienteSupervisor) } }); }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $('#companyLawActionCommentModal').on('shown.bs.modal', function () {
+        $('#newComment').hide();
+        $('#newCommentLink').show();
+        _CompanyLawActionCommentsClearSearch();
+        _CompanyLawActionCommentsDoneTyping(@Model.CompanyLawActionId);
+    });
+</script>
+
+<!-- UserSearch -->
+<input type="hidden" id="SupervisorOrResponsible" value="Supervisor" />
+<div class="modal fade" id="modalUserSearch" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Selecionar Usuário</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @{ Html.RenderPartial("~/Views/Shared/_UserSearch.cshtml", new ViewDataDictionary(this.Vi‌​ewData) { { "companyId", companyId } }); }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    function OpenModalUserSearch(supervisorOrResponsible) {
+        $('#SupervisorOrResponsible').val(supervisorOrResponsible);
+        $('#modalUserSearch').modal('show');
+    }
+    function _UserSearchSelectCallBack(d) {
+        $('#' + $('#SupervisorOrResponsible').val() + 'Id').val(d.UserId);
+        $('#' + $('#SupervisorOrResponsible').val() + 'Name').val(d.FirstName + ' ' + d.LastName);
+        $('#modalUserSearch').modal('hide');
+    }
+</script>
+
+<!-- Modal Attachments -->
+<div class="modal fade" id="companyLawActionManagementAttachmentModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Anexos da Ação do Requisito legal</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="alertErrorLawActionAttachment" class="alert alert-danger fade show text-center" role="alert" style="display: none;">
+                    <strong>Atenção!</strong> O Formulário contém erros.
+                </div>
+                <div id="alertSuccessLawActionAttachment" class="alert alert-success fade show text-center" role="alert" style="display: none;">
+                    <strong>O Arquivo foi adicionado com sucesso!</strong>
+                </div>
+                <div id="companyLawActionManagementNewAttachment" style="display: none;">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="ActionAttachment">@translationFunctions.GetTranslation("Nome", User.FindFirstValue("CultureInfo"))</label>
+                                <input type="text" class="form-control" id="LawActionAttachmentName" placeholder="Nome" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>@translationFunctions.GetTranslation("Arquivo (máx 10MB)", User.FindFirstValue("CultureInfo"))</label>
+                                <input type="file" class="form-control" name="ActionAttachment" id="ActionAttachment" />
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-success" id="companyLawActionManagementNewAttachmentButton"><i class="fa fa-plus"></i>&nbsp;@translationFunctions.GetTranslation("Adicionar Anexo", User.FindFirstValue("CultureInfo"))</button>
+                    <script type="text/javascript">
+
+							var files = null;
+							var datafile = new FormData();
+
+							$('#ActionAttachment').on('change', function (e) {
+								files = e.target.files;
+								datafile.append("CompanyLawActionfile", files[0]);
+							});
+
+							$('#companyLawActionManagementNewAttachmentButton').click(function () {
+
+								if (IsNullOrWhiteSpace($('#LawActionAttachmentName').val())) {
+									$('#alertErrorLawActionAttachment').show();
+									$('#alertSuccessLawActionAttachment').hide();
+									$('#LawActionAttachmentName').after('<div class="text-danger">Digite o nome.</div>');
+								}
+
+								if (files != null && !IsNullOrWhiteSpace($('#LawActionAttachmentName').val())) {
+									datafile.append('Name', $('#LawActionAttachmentName').val());
+									datafile.append('CompanyLawActionId', @Model.CompanyLawActionId);
+									$('#alertErrorLawActionAttachment').hide();
+									$('#alertSuccessLawActionAttachment').hide();
+									$('.text-danger').remove();
+									$.ajax({
+										url: '@Url.Action("Manage", "CompanyLawActionAttachmentManagement")',
+										type: 'POST',
+										contentType: false,
+										processData: false,
+										data: datafile,
+										success: function (data) {
+											datafile = new FormData();
+											files = null;
+											$('#ActionAttachment').val("");
+											$('#LawActionAttachmentName').val("");
+											if (data == -1) {
+												$('#alertErrorLawActionAttachment').show();
+												$('#alertSuccessLawActionAttachment').hide();
+												$('#ActionAttachment').after('<div class="text-danger">Tamanho do arquivo excedido.</div>');
+											}
+											else if (data == -2) {
+												$('#alertErrorLawActionAttachment').show();
+												$('#alertSuccessLawActionAttachment').hide();
+												$('#ActionAttachment').after('<div class="text-danger">Nome do arquivo incorreto.</div>');
+											}
+											else {
+												$('#alertSuccessLawActionAttachment').show();
+												$('#alertErrorLawActionAttachment').hide();
+												$('.text-danger').remove();
+												_ListCompanyLawActionAttachments(@Model.CompanyLawActionId);
+											}
+										}
+									});
+								}
+							});
+                    </script>
+                </div>
+                @if (!companyLawIsCompleted)
+                {
+                    <div style="width: 100%;" class="text-right"><a href="javascript:void(0)" id="companyLawActionManagementNewAttachmentLink">Novo Anexo</a></div>
+                    <script type="text/javascript">
+                        $('#companyLawActionManagementNewAttachmentLink').click(function () {
+                            $('#companyLawActionManagementNewAttachment').show();
+                            $('#companyLawActionManagementNewAttachmentLink').hide();
+                        });
+                    </script>
+                    <hr />
+                }
+                @{ Html.RenderPartial("~/Views/Shared/_CompanyLawActionAttachment.cshtml", new ViewDataDictionary(this.Vi‌​ewData) { { "companyLawId", Model.CompanyLawId }, { "canDelete", (isMaster || isBioteraConsultor || isClienteAdministrador || isClienteSupervisor) } }); }
+            </div>
+            <div class="modal-footer">
+                <button type="button" aria-label="Close" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-times"></i>&nbsp;Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $('#companyLawActionManagementAttachmentModal').on('shown.bs.modal', function () {
+		files = null;
+		$('#ActionAttachment').val("");
+		$('#LawActionAttachmentName').val("");
+		$('#alertErrorLawActionAttachment').hide();
+		$('.text-danger').remove();
+		$('#alertSuccessLawActionAttachment').hide();
+		$('#companyLawActionManagementNewAttachment').hide();
+		$('#companyLawActionManagementNewAttachmentLink').show();
+        _CompanyLawActionAttachmentsClearSearch();
+        _ListCompanyLawActionAttachments(@Model.CompanyLawActionId);
+    });
+</script>

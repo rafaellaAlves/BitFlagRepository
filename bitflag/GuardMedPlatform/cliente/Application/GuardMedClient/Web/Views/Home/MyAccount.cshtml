@@ -1,0 +1,534 @@
+﻿@model Web.DTO.SeguradoProfissionalViewModel
+
+@inject Web.Services.Plano.PlanoSeguroProfissionalService planoSeguroProfissionalService
+@inject Web.Services.SeguradoProfissional.SeguradoProfissionalHistoricoService seguradoProfissionalHistoricoService
+@inject Web.Services.SeguradoProfissional.SeguradoProfissionalService seguradoProfissionalService
+@inject Web.Services.Pagamento.PagamentoTipoService pagamentoTipoService
+@inject Web.Services.IUGU.IUGUService IUGUService
+
+@{
+    ViewData["Title"] = "Meus Dados";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    Web.DTO.Plano.PlanoSeguroProfissionalViewModel plano = (await planoSeguroProfissionalService.GetViewModelAsNoTrackingAsync(x => x.PlanoSeguroProfissionalId == Model.PlanoSeguroProfissionalId)).FirstOrDefault();
+    Web.DTO.Plano.PlanoSeguroProfissionalViewModel proximoPlano = (await planoSeguroProfissionalService.GetViewModelAsNoTrackingAsync(x => x.ValorCobertura > plano.ValorCobertura)).FirstOrDefault();
+
+    var estados = Web.Services.Utils.UtilsService.GetEstados();
+}
+<style type="text/css">
+    .card-body a {
+        color: black !important;
+    }
+
+    .card-body li {
+        margin-bottom: 5px;
+    }
+
+    .card-body ul {
+        list-style: none;
+    }
+
+    #my-account-update-form .form-group {
+        margin-bottom: .4rem;
+    }
+
+        #my-account-update-form .form-group label {
+            margin-bottom: 0;
+        }
+
+        #my-account-update-form .form-group input {
+            height: 35px;
+        }
+
+    .btn-success {
+        background-color: #13884d !important;
+        border: 1px solid #13884d !important;
+    }
+</style>
+
+
+<div class="card card-dark-theme">
+    <form id="my-account-update-form" action="@Url.Action("MyAccountUpdate", "Home")" method="post">
+        <div class="card-header">
+            <i class="fas fa-user"></i> Dados Pessoais
+        </div>
+        <div class="card-body">
+            @if (Context.Request.Query.ContainsKey("dataUpdated"))
+            {
+                <div class="alert alert-success alert-dismissible fade show" id="my-account-update-success-alert" role="alert">
+                    <b>Sucesso!</b> Os dados foram atualizados com êxito.
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <script type="text/javascript">
+                    setTimeout(function () { $('#my-account-update-success-alert').fadeOut(1000); }, 8000);
+                </script>
+            }
+            <div class="row">
+                <div class="col-12">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="control-label required">Nome Completo</label>
+                                <input class="form-control" type="text" name="Nome" value="@Model.Nome" placeholder="Nome" />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label class="control-label">CPF</label>
+                                <input class="form-control cpf" type="text" value="@Model.CPF" disabled />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label class="control-label">Data de Nascimento</label>
+                                <input class="form-control" disabled type="text" value="@Model._DataNascimento" />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label class="control-label">Celular</label>
+                                <input class="form-control mobile" type="text" name="Celular" value="@Model.Celular" placeholder="Celular" />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label class="control-label">Telefone</label>
+                                <input class="form-control phone" type="text" name="Telefone" value="@Model.Telefone" placeholder="Telefone" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="control-label">E-mail</label>
+                                <input class="form-control" type="text" disabled value="@Model.Email" />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label class="control-label required">CEP</label>
+                                <input class="form-control cep" type="text" name="CEP" value="@Model.CEP" placeholder="CEP" onblur="getAddress('#my-account-update-form [name=\'CEP\']', '#my-account-update-form [name=\'Endereco\']', '#my-account-update-form [name=\'Bairro\']', '#my-account-update-form [name=\'Cidade\']', '#my-account-update-form [name=\'Estado\']')" />
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label class="control-label required">Endereço</label>
+                                <input class="form-control" type="text" name="Endereco" value="@Model.Endereco" placeholder="Endereço" />
+                            </div>
+                        </div>
+                        <div class="col-md-1">
+                            <div class="form-group">
+                                <label class="control-label required">Nr.</label>
+                                <input class="form-control" type="text" name="EnderecoNumero" value="@Model.EnderecoNumero" placeholder="Número" />
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label class="control-label">Complemento</label>
+                                <input class="form-control" type="text" name="Complemento" value="@Model.Complemento" placeholder="Complemento" />
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="control-label required">Bairro</label>
+                                <input class="form-control" type="text" name="Bairro" value="@Model.Bairro" placeholder="Bairro" />
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="control-label required">Cidade</label>
+                                <input class="form-control" type="text" name="Cidade" value="@Model.Cidade" placeholder="Cidade" />
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label class="control-label required">Estado</label>
+                                <select class="form-control" name="Estado">
+                                    @foreach (var item in estados)
+                                    {
+                                        if (Model.Estado == item.EstadoId)
+                                        {
+                                            <option value="@item.EstadoId" selected>@item.Description</option>
+                                            continue;
+                                        }
+
+                                        <option value="@item.EstadoId">@item.Description</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            <button class="btn btn-success float-right p-1" style="margin-top: -5px;"><i class="fas fa-cloud-upload-alt"></i>&nbsp;Atualizar Dados</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<br />
+<div class="card card-dark-theme">
+    <div class="card-header">
+        <i class="fas fa-user-md"></i> Dados Profissionais
+    </div>
+    <div class="card-body">
+        @if (Context.Request.Query.ContainsKey("professionalDataUpdated"))
+        {
+            <div class="alert alert-success alert-dismissible fade show" id="my-account-professional-update-success-alert" role="alert">
+                <b>Sucesso!</b> Os dados profissionais foram atualizados com êxito.
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <script type="text/javascript">
+                setTimeout(function () { $('#my-account-professional-update-success-alert').fadeOut(1000); }, 8000);
+            </script>
+        }
+        <div class="row">
+            <div class="col-12">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label">CRM</label>
+                                    <input class="form-control" type="text" disabled value="@Model.CRM" />
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label">Estado do CRM</label>
+                                    <input class="form-control" type="text" disabled value="@(estados.Single(x => x.EstadoId == Model.EstadoCRM).Description)" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label">Especialidade 1</label>
+                                    <input class="form-control" type="text" disabled value="@(Model.Especialidades.Count > 0 ? Model.Especialidades[0].Nome : "-")" />
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label">Especialidade 2</label>
+                                    <input class="form-control" type="text" disabled value="@(Model.Especialidades.Count > 1 ? Model.Especialidades[1].Nome : "-")" />
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label">Especialidade 3</label>
+                                    <input class="form-control" type="text" disabled value="@(Model.Especialidades.Count > 2 ? Model.Especialidades[2].Nome : "-")" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group" style="padding: 15px; border-radius: 4px; border: 1px solid #d0d0d0; margin-top: 20px; background-color: #e9ecef;">
+                            <div class="text-center w-100">
+                                <h4>Cobertura Atual</h4>
+                            </div>
+                            <div>
+                                <label style="margin-bottom: .5rem"><i style="font-size: 20px;" class="fas fa-gavel"></i> Blindagem Jurídica</label>
+                            </div>
+                            <div>
+                                <label style="margin-bottom: .5rem"><i style="font-size: 20px;" class="fas fa-users"></i> Preventive / Advisor</label>
+                            </div>
+                            <div>
+                                <label style="margin-bottom: .5rem"><i style="font-size: 20px;" class="fas fa-file-invoice-dollar"></i> Apólice de Seguros <b>R$ @plano._ValorCobertura</b></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @*@if (proximoPlano != null || Model.Especialidades.Count < 3)
+                    {
+                        <div class="row mt-2">
+                            <div class="col">
+                                <button type="button" class="btn btn-success float-right p-1" style="margin-top: -5px;" data-toggle="modal" data-target="#insured-edit-modal"><i class="fas fa-edit"></i>&nbsp;Alterar Dados</button>
+                            </div>
+                        </div>
+                    }*@
+            </div>
+        </div>
+    </div>
+</div>
+<br />
+<div class="card">
+    <div class="card-header text-white" style="background: #3f6280;">
+        <i class="fas fa-history"></i> Histórico do Seguro
+    </div>
+    <div class="card-body" style="background: linear-gradient(to bottom, #a5bbce, transparent);">
+        <div class="row">
+            <div class="col-md-6">
+                <b>Apólices Anteriores:</b>
+                <hr />
+                @{
+                    var insuranceLog = await seguradoProfissionalService.GetInsuranceLog(Model.SeguradoProfissionalId);
+
+                    if (insuranceLog.Any(x => x.Referencia == "Retroatividade"))
+                    {
+                        <div class="row">
+                            <div class="col-md-12">
+                                <label>Data:</label>
+                                <label>@Model._DataRetroatividade</label>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                @if (!string.IsNullOrWhiteSpace(insuranceLog.Single(x => x.Referencia == "Retroatividade").RetroatividadeArquivo) && System.IO.File.Exists(insuranceLog.Single(x => x.Referencia == "Retroatividade").RetroatividadeArquivo))
+                                {
+                                    <a href="@Url.Action("OldPolicy", "Home")" target="_blank"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;Apólice Anterior (@insuranceLog.Single(x => x.Referencia == "Retroatividade").InicioVigenciaFormatado)</a>
+                                }
+                                else
+                                {
+                                    <i>
+                                        O upload da apólice anterior está pendente em nosso sistema.
+                                        <br />
+                                        Para mais informações, por gentileza entre em contato conosco pelo telefone (11) 99566-3535.
+                                    </i>
+                                }
+                                @foreach (var item in insuranceLog.Where(x => x.Referencia != "Retroatividade"))
+                                {
+                                    <br />
+                                    <a href="@($"{WEB.Configuration.InsuranceConfiguration.VendasWebsite}/SeguroProfissional/Impressao?reference=" + item.Referencia)" target="_blank"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;Certificado (@item.InicioVigenciaFormatado - @item.FimVigenciaFormatado) @(DateTime.Today >= item.InicioVigencia && DateTime.Today <= item.FimVigencia ? " - Ativo" : "")</a>
+                                }
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        foreach (var item in insuranceLog.Where(x => x.Referencia != "Retroatividade"))
+                        {
+                            <a href="@($"{WEB.Configuration.InsuranceConfiguration.VendasWebsite}/SeguroProfissional/Impressao?reference=" + item.Referencia)" target="_blank"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;Certificado (@item.InicioVigenciaFormatado - @item.FimVigenciaFormatado) @(DateTime.Today >= item.InicioVigencia && DateTime.Today <= item.FimVigencia ? " - Ativo" : "")</a>
+                            <br />
+                        }
+                    }
+                }
+            </div>
+            @{
+                var history = (await seguradoProfissionalHistoricoService.GetChanges(Model.SeguradoProfissionalId, false)).OrderByDescending(x => x.DataCriacaoHistorico);
+            }
+            <div class="col-md-6">
+                <div class="row">
+                    <div class="col-md-6">
+                        <b>Apólice:</b>
+                    </div>
+                    @switch (plano.ExternalCode)
+                    {
+                        case "GM20-ARGO":
+                        case "GM30-ARGO":
+                        case "GM50-ARGO":
+                        case "GMFULL-ARGO":
+                            <div class="col-md-6">
+                                <b>Status da Apólice: <i>Aguardando Emissão</i></b>
+                            </div>
+                            break;
+                    }
+                </div>
+                <hr />
+                <ul>
+                    <li><a href="@Url.Action("Download", "Home", new { name = "Fator_condicoes_gerais.pdf" })"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;Condições Gerais</a></li>
+                    <li><a href="@Url.Action("Download", "Home", new { name = "Contrato de prestação de serviços GM.pdf" })" target="_blank"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;Contrato de Prestação de Serviço</a></li>
+                    <li><a href="@Url.Action("Download", "Home", new { name = "Coberturas da apólice.pdf" })"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;Coberturas da Apólice</a></li>
+                    <li><a href="@Url.Action("Download", "Home", new { name = "Riscos Excluídos.pdf" })" target="_blank"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;Riscos Excluídos</a></li>
+                    <li><a href="@Url.Action("Download", "Home", new { name = "CONDIÇÕES ESPECIAIS E PARTICULARES.pdf" })" target="_blank"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;Condições Especiais e Particulares</a></li>
+                    @if (Model.PagamentoTipoId.HasValue)
+                    {
+                        if (Web.Helpers.Constants.IsDEBUG())
+                        {
+                            <li><a href="@($"{WEB.Configuration.InsuranceConfiguration.VendasWebsite}/SeguroProfissional/Impressao?reference=" + Model.Referencia)" target="_blank"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;Certificado (Início: @(history.Count() == 0? Model._DataAtualizacao : history.Last()._DataCriacaoHistorico))</a></li>
+                        }
+                        else
+                        {
+                            <li><a href="@($"{WEB.Configuration.InsuranceConfiguration.VendasWebsite}/SeguroProfissional/Impressao?reference=" + Model.Referencia)" target="_blank"><img src="~/image/pdf_icon.png" style="width:20px; height:20px;" />&nbsp;Certificado (Início: @(history.Count() == 0? Model._DataAtualizacao : history.Last()._DataCriacaoHistorico))</a></li>
+                        }
+                    }
+                    @foreach (var item in history.Where(x => !x.Creation))
+                    {
+                        var title = $"{item._DataCriacaoHistorico} - Endosso de {(!item.Creation ? "Atualização de" : "")} Certificado";
+
+                        <li style="margin-left: 20px;"><a href="javascript:openHistoryModal('@item.SeguradoProfissionalHistoricoId', '@title')"><img src="~/image/history_icon.png" style="width:20px; height:20px;" />&nbsp;@title</a></li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+<br />
+@if ((Model.MedicGroupRevenuesFormId == null || (Model.MedicGroupRevenuesFormId.HasValue && Model.MedicGroupRevenuesFormId.Value != 2)) && Model.PagamentoTipoId.HasValue)
+{
+    List<Web.DTO.IUGU.InvoiceItem> invoices = new List<Web.DTO.IUGU.InvoiceItem>();
+    if (Model.VezesPagamento > 1)
+    {
+        invoices = (await IUGUService.GetInvoices(Model.SeguradoProfissionalId)).Items;
+    }
+    else
+    {
+        invoices.Add(await IUGUService.GetInvoice(Model.SeguradoProfissionalId));
+    }
+
+    var lastPaided = invoices.OrderByDescending(x => x.Due_Date).FirstOrDefault();
+
+    <div class="card">
+        <div class="card-header card-dark-green-theme">
+            <i class="fas fa-dollar-sign"></i> Histórico de Pagamento
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <b>Pagamento:</b>
+                    <hr />
+                    <ul>
+                        <li><b>Forma:</b> @(pagamentoTipoService.GetDataById(Model.PagamentoTipoId.Value).Nome)</li>
+                        <li><b>Vencimento:</b> @(lastPaided != null? $"Dia {lastPaided.Due_Date?.Day}" : "-")</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <b>Extrato Financeiro (últimos 12 meses):</b>
+                    <hr />
+                    <ul>
+                        @{
+                            foreach (var item in invoices.OrderBy(x => x.Due_Date))
+                            {
+                                if (item.Status?.ToUpper() == "PAID")
+                                {
+                                    <li>@item._Due_Date/@item.Total/<span style="color: rgb(63, 98, 128); font-weight: bold;">Pago</span></li>
+                                }
+                                else
+                                {
+                                    <li>@item._Due_Date/@item.Total/Pendente</li>
+                                }
+                            }
+                            if (invoices.Count() == 0)
+                            {
+                                <li><i>Nenhuma fatura encontrada.</i></li>
+                            }
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="modal fade" id="insured-edit-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" style="margin-top: 5em;" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><span id="insured-edit-modal">Edição Dos Dados Profissionais</span></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @(await Component.InvokeAsync<Web.ViewComponents.SeguradoProfissional.InsuredManageViewComponent>(Model.SeguradoProfissionalId))
+            </div>
+            <div class="modal-footer">
+                <div class="col">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fas fa-times"></i>&nbsp;Fechar</button>
+                </div>
+                <div class="col text-right">
+                    <button type="button" class="btn btn-success" id="my-account-professional-update-save-button"><i class="fas fa-cloud-upload-alt"></i>&nbsp;Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    $('#my-account-professional-update-save-button').click(function () {
+        var r = insuredProfissionalDataUpdateValidate();
+        if (!r) return;
+
+        $.post('@Url.Action("GetPriceForUpdateProfessionalData", "Home")', $('#my-account-professional-update-form').serializeArray(), function (d) {
+            if (d.hasError == true) {
+                bootbox.alert('Houve um erro ao tentar obter o plano de upgrade.<br />Recarregue a pagina e tente novamente.');
+                return;
+            }
+
+            if (d.priceHasChange == false) // Não houve alterando no preço, mesmo com os novos dados informados
+            {
+                $('#loading').show();
+                $('#my-account-professional-update-form').submit();
+            }
+
+            bootbox.confirm({
+                message: '<div class="text-center w-100"><h4 style="text-weight:bold;">ATENÇÃO!</h4></div>' +
+                    'Com os novos dados informados o preço total do plano será alterado de <b>@Model._PrecoTotal@($" (R$ {(Model.PrecoTotal / 12).ToString("#,###,##0.00", System.Globalization.CultureInfo.CreateSpecificCulture("pt-BR"))}/mês)")</b> para <b>R$ ' + d.totalPrice + ' (R$ ' + d.monthlyPrice + '/mês).</b><br/><br/>' +
+                    'Ao clicar em <b>Prosseguir</b> você concordará com a alteração no preço de seu seguro.',
+                buttons: {
+                    confirm: {
+                        label: '<i class="fas fa-check"></i> Prosseguir',
+                        className: 'btn-success'
+                    },
+                    cancel: {
+                        label: '<i class="fas fa-times"></i> Cancelar',
+                        className: 'btn-danger'
+                    }
+                },
+                callback: function (result) {
+                    if (!result) return;
+
+                    $('#loading').show();
+                    $('#my-account-professional-update-form').submit();
+                }
+            });
+        });
+    });
+</script>
+
+<div class="modal fade" id="audit-log-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><span id="audit-log-modal-title"></span></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="insured-historic-view-component"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fas fa-times"></i>&nbsp;Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#my-account-update-form').submit(function () {
+        var r = validateInputs('#my-account-update-form');
+
+        if (IsNullOrWhiteSpace($('#my-account-update-form [name="Celular"]').val()) && IsNullOrWhiteSpace($('#my-account-update-form [name="Telefone"]').val())) {
+            $('#my-account-update-form [name="Celular"]').after('<small class="text-danger">É necessário inserir ou o número de celular ou o número de telefone.</small>');
+            r = false;
+        }
+
+        //if (!IsNullOrWhiteSpace($('#my-account-update-form [name="Email"]').val()) && ($('#my-account-update-form [name="Email"]').val().indexOf("@@") < 1 || $('#my-account-update-form [name="Email"]').val().indexOf(".") < 1)) {
+        //    $('#my-account-update-form [name="Email"]').after('<small class="text-danger">O formato deste e-mail está incorreto.</small>');
+        //    r = false;
+        //}
+
+        //if (!IsNullOrWhiteSpace($('#my-account-update-form [name="CPF"]').val()) && !ValidateCPF($('#my-account-update-form [name="CPF"]').val().replace(/\D/g, ""))) {
+        //    $('#my-account-update-form [name="CPF"]').after('<small class="text-danger">O CPF informado é inválido.</small>');
+        //    r = false;
+        //}
+
+        if (r) {
+            $('#loading').show();
+        }
+        return r;
+    });
+
+    function openHistoryModal(seguradoProfissionalHistoricoId, title) {
+        $('#audit-log-modal-title').text(title);
+
+        $('#insured-historic-view-component').load('@Url.Action("LoadInsuredHistoric", "Home")', { seguradoProfissionalHistoricoId }, function () {
+            $('#audit-log-modal').modal('show');
+        });
+    }
+</script>

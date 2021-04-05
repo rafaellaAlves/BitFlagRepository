@@ -1,0 +1,131 @@
+﻿@model DTO.Shared.EntityViewMode<DTO.Client.ClientLicenseViewModel>
+
+<form id="client-license-manage-form" method="post">
+    <input type="hidden" name="ClientLicenseId" value="@Model.Model.ClientLicenseId" />
+    <div class="row">
+        <div class="col-md-12 form-group">
+            <label class="required">Nome do Documento</label>
+            <input class="form-control" placeholder="Nome do Documento" name="Name" maxlength="200" value="@Model.Model.Name" />
+        </div>
+        <div class="col-md-12 form-group">
+            <label class="required">Nome ou Atividade</label>
+            <input class="form-control" placeholder="Nome ou Atividade" name="Activity" maxlength="200" value="@Model.Model.Activity" />
+        </div>
+        <div class="col-md-6 form-group">
+            <label class="required">Órgão Emissor</label>
+            <input class="form-control" placeholder="Órgão Emissor" name="Issuer" value="@Model.Model.Issuer" />
+        </div>
+        <div class="col-md-6 form-group">
+            <label>Data de Emissão</label>
+            <input class="form-control date" placeholder="Data de Emissão" name="_IssueDate" value="@Model.Model._IssueDate" />
+        </div>
+        <div class="col-md-6 form-group">
+            <label class="required">Data de Vencimento</label>
+            <input class="form-control date" placeholder="Data de Vencimento" name="_DueDate" value="@Model.Model._DueDate" />
+        </div>
+        <div class="col-md-6 form-group">
+            <label class="required">Dias para o Vencimento</label>
+            <input class="form-control number" placeholder="Dias para o Vencimento" id="daysForDueDate" value="@Model.Model.DueDateDays" />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6 form-group">
+            <label class="required">Notificar o vencimento em quantos dias</label>
+            <input class="form-control" name="DaysToNotify" placeholder="Notificar o vencimento em quantos dias" value="@Model.Model.DaysToNotify" />
+        </div>
+        <div class="col-md-6 form-group">
+            <label class="required">E-mail para notificar (Separar os e-mails por <b>;</b>)</label>
+            <input class="form-control" name="Email" placeholder="E-mail" value="@Model.Model.Email" />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6 form-group">
+            <label class="required">Este é o documento de licença?</label>
+            <select class="form-control" name="IsRSSFile">
+                <option value="false" @(string.IsNullOrWhiteSpace(Model.Model.License) ? "selected" : "")>Não</option>
+                <option value="true" @(!string.IsNullOrWhiteSpace(Model.Model.License) ? "selected" : "")>Sim</option>
+            </select>
+        </div>
+        <div class="col-md-6 form-group" style="@(!string.IsNullOrWhiteSpace(Model.Model.License) ? "" : "display: none;")" id="transporter-environmental-documentation-license-area">
+            <label>Licença</label>
+            <input class="form-control" name="License" placeholder="Licença" value="@Model.Model.License" />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12 form-group">
+            <label class="control-label">Upload</label>
+            <input class="form-control" type="file" name="Archive">
+        </div>
+    </div>
+</form>
+
+<script asp-cut-key="client-license-manage" asp-cut-key-load-from-controller="@Model.LoadFromController">
+    InitializeFunctions();
+
+    $('#client-license-manage-form [name=\'_DueDate\'], #daysForDueDate').on('change', function () {
+
+        if ($(this).is($('#client-license-manage-form input[name=\'_DueDate\']'))) {
+            if (isNullOrWhiteSpace($('#client-license-manage-form input[name=\'_DueDate\']').val())) {
+                $('#daysForDueDate').val('');
+                return;
+            }
+            var r = getDaysFromToday(moment($('#client-license-manage-form [name=\'_DueDate\']').val(), 'DD/MM/YYYY')._d, true);
+            if (r == null) {
+                $(this).val('');
+                $('#daysForDueDate').val('');
+            }
+
+            $('#daysForDueDate').val(parseInt(r));
+        }
+        else {
+            var now = new Date();
+            now.setHours(0,0,0,0);
+
+            $('#client-license-manage-form [name=\'_DueDate\']').val(moment(now).add($(this).val(), 'days').format('DD/MM/YYYY'));
+        }
+    });
+
+    function saveClientLicense(callback)
+    {
+        if (!validateInputs('client-license-manage-form')) return;
+
+        if (isNullOrWhiteSpace($('#client-license-manage-form [name=\'ClientLicenseId\']').val()) && $('#client-license-manage-form [name=\'Archive\']')[0].files.length == 0) {
+            bootbox.alert('Insira um arquivo.');
+            return;
+        }
+
+        var _d = new FormData();
+        _d.append('Archive', $('#client-license-manage-form [name=\'Archive\']')[0].files[0]);
+        $('#client-license-manage-form').serializeArray().forEach(function (e) {
+            _d.append(e.name, e.value);
+        });
+
+        $.ajax({
+            url: '@Url.Action("ManageAjax", "ClientLicense")',
+			type: 'POST',
+			contentType: false,
+			processData: false,
+			data: _d,
+            success: function (d) {
+                bootbox.alert(d.message);
+                if (d.hasError) return;
+
+                if (typeof callback == 'function') callback(d.id);
+            }
+        });
+    }
+
+    $('#client-license-manage-form [name="IsRSSFile"]').change(function () {
+        if ($(this).val() == 'false') {
+            $('#transporter-environmental-documentation-license-area').hide();
+            $('#transporter-environmental-documentation-family-area').hide();
+
+            $('#client-license-manage-form [name=\'License\']').val('');
+            $('#client-license-manage-form [name=\'LicenseResidueFamilyIds\']').val([]).trigger("change");
+        } else {
+            $('#transporter-environmental-documentation-license-area').show();
+            $('#transporter-environmental-documentation-family-area').show();
+            $("#client-license-manage-form [name=\"LicenseResidueFamilyIds\"]").select2({ width: 'resolve' });
+        }
+    });
+</script>

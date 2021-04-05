@@ -1,0 +1,296 @@
+﻿@model DTO.Demand.DemandClientCertificateViewModel
+@inject Services.Residue.UnitOfMeasurementServices unitOfMeasurementServices
+@inject Services.DemandDestination.DemandDestinationServices demandDestinationServices
+
+@{
+    Layout = "~/Views/Shared/_LayoutClean.cshtml";
+    var quilogramaId = (await unitOfMeasurementServices.GetDataByExternalCode("KILOGRAMA")).UnitOfMeasurementId;
+    var unitId = (await unitOfMeasurementServices.GetDataByExternalCode("UNIDADE")).UnitOfMeasurementId;
+}
+
+<style type="text/css">
+    .table-b, .table-b td {
+        border: 1px solid #dee2e6;
+    }
+
+    .bb-0, .bb-0 tr:last-child td {
+        border-bottom: 0 !important;
+    }
+
+    .bt-0, .bt-0 tr:last-child td {
+        border-top: 0 !important;
+    }
+
+    main {
+        -webkit-print-color-adjust: exact;
+    }
+
+    td {
+        padding: 5px;
+    }
+
+    .green-bg {
+        background: #00b5a3;
+        color: white;
+    }
+
+    @@media print {
+        @@page {
+            size: landscape
+        }
+
+        .no-print {
+            display: none;
+        }
+    }
+
+    .big-font {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        font-size: 1.35rem;
+        font-weight: bold;
+    }
+
+    .big-font-2 {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        font-size: 2.7rem;
+        font-weight: bold;
+    }
+
+    .big-font-3 {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        font-size: 2.2rem;
+        font-weight: bold;
+    }
+
+    .med-font {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        font-size: 1rem;
+        font-weight: bold;
+    }
+
+    .med-font-2 {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        font-size: 0.85rem;
+        font-weight: bold;
+    }
+
+    .sm-font {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        font-size: 11px;
+        font-weight: bold;
+    }
+
+    .sm-font-2 {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        font-size: 11px;
+    }
+
+    .xs-font {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        font-size: 9px;
+    }
+
+    .tx-open-sans {
+        font-family: Open Sans;
+    }
+
+    .tx-ubuntu {
+        font-family: Ubuntu;
+    }
+
+    .bootbox.modal .modal-dialog {
+        margin-top: 3em;
+    }
+
+    .bootbox.modal .modal-content {
+        border: 1px solid rgb(146, 146, 146);
+    }
+
+    .bootbox .modal-dialog:not(.modal-lg) {
+        width: 450px;
+    }
+
+    .bootbox-body {
+        color: #343a40;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 14px;
+    }
+</style>
+
+@if (!Model.PDF)
+{
+    <div class="w-100 no-print" style="margin-bottom: 1em; margin-top:3em;">
+        @if (User.IsClient())
+        {
+            <a href="@Url.Action("ReportDownload", "Client")" class="btn btn-secondary"><i class="simple-icon-arrow-left"></i>&nbsp;Voltar</a>
+            <a href="javascript:window.print();" class="btn btn-primary float-right mr-2"><i class="simple-icon-printer"></i>&nbsp;Imprimir</a>
+            <a href="javascript:sendCertificateEmail(@Model.DemandClient.DemandClientId)" class="btn btn-primary mr-2 float-right"><i class="simple-icon-envelope"></i>&nbsp;Enviar por e-mail</a>
+            <a href="@Url.Action("DownloadCertificateFile", "Demand" , new { id = Model.DemandClient.DemandClientId })" class="btn btn-primary mr-2 float-right"><i class="iconsminds-download-1"></i>&nbsp;Baixar em PDF</a>
+        }
+        else
+        {
+            <a href="@Url.Action("Close", "Demand", new { id = Model.Demand.DemandId })" class="btn btn-secondary"><i class="simple-icon-arrow-left"></i>&nbsp;Voltar</a>
+            <a href="javascript:window.print();" class="btn btn-primary float-right"><i class="simple-icon-printer"></i>&nbsp;Imprimir</a>
+        }
+    </div>
+}
+<div style="width: 100%;">
+    <table class="table-b" style="width: 100%;">
+        <tbody>
+            <tr class="tx-open-sans">
+                <td style="width: 250px; text-align:center;" class="open-sans">
+                    @if (Model.PDF)
+                    {
+                        var bytes = System.IO.File.ReadAllBytes(System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "wwwroot", "Imagens", "logo2.png"));
+                        var base64 = Convert.ToBase64String(bytes);
+
+                        <img src="@($"data:image/png;base64, {base64}")" width="250" />
+                    }
+                    else
+                    {
+                        <img src="~/Imagens/logo2.png" width="250" />
+
+                    }
+                </td>
+                <td style="text-align: center;">
+                    <label class="big-font">DESTINE JÁ PRESTAÇÃO DE SERVIÇOS</label><br />
+                    <label class="big-font">AMBIENTAIS LTDA</label><br />
+                    <label class="med-font">Rua Marins Alvarino, 150, Bloco 1, ITARARÉ - VITÓRIA - ES</label><br />
+                    <label class="med-font">CNPJ: 27.191.617/0001-98</label>
+                </td>
+                <td style="width: 250px; text-align:center;">
+                    <label class="med-font">REGISTRO Nº</label><br />
+                    <label class="big-font-2" style="color: #faa74a;">@Model.DemandClient.DestineJaCertificateId</label><br />
+                    <label class="med-font">MTR @($"{Model.Demand.DestinaJaDemandId}/{Model.DemandClient.Order}")</label><br />
+                    <label class="med-font">Data de Coleta: @Model.DemandClient._VisitedDate</label>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table-b" style="width: 100%;">
+        <tbody>
+            <tr class="tx-ubuntu">
+                <td colspan="3" class="green-bg" style="text-align: center; border: 0;">
+                    <h1 class="big-font-3">CERTIFICADO DE COLETA DE RESÍDUOS</h1>
+                </td>
+            </tr>
+            <tr class="tx-open-sans">
+                <td colspan="3" style="border: 0; text-align: center;">
+                    <div style="text-align: center; display: flex; -ms-flex-wrap: wrap; flex-wrap: wrap; margin-bottom: 1em;">
+                        <div class="med-font" style="width:100%;">@Model.Client.CompanyName.IfNullChange(Model.Client.FullName)</div>
+                    </div>
+                </td>
+            </tr>
+            <tr class="tx-open-sans">
+                <td style="border: 0; text-align: center;">
+                    <div style="text-align: center; display: flex; -ms-flex-wrap: wrap; flex-wrap: wrap; margin-bottom: 1em;">
+                        <div class="med-font" style="width:100%;"><b>CNPJ: </b> <span style="font-weight:300">@Model.Client.CNPJ.IfNullChange(Model.Client.CPF)</span></div>
+                    </div>
+                </td>
+                <td style="border: 0; text-align: center;">
+                    <div style="text-align: center; display: flex; -ms-flex-wrap: wrap; flex-wrap: wrap; margin-bottom: 1em;">
+                        <div class="med-font" style="width:100%;"><b>INSCRIÇÃO ESTADUAL: </b> <span style="font-weight:300">@Model.Client.IE.IfNullChange("-")</span></div>
+                    </div>
+                </td>
+                <td style="border: 0; text-align: center;">
+                    <div style="text-align: center; display: flex; -ms-flex-wrap: wrap; flex-wrap: wrap; margin-bottom: 1em;">
+                        <div class="med-font" style="width:100%;"><b>TELEFONE: </b> <span style="font-weight:300">@Model.Client.Phone</span></div>
+                    </div>
+                </td>
+            </tr>
+            <tr class="tx-open-sans">
+                <td colspan="3" style="border: 0; text-align: center;">
+                    <div style="text-align: center; display: flex; -ms-flex-wrap: wrap; flex-wrap: wrap;">
+                        <div class="med-font" style="width:100%;">@Model.Client.Address, @Model.Client.Number, @Model.Client.Neighborhood - @Model.Client.City - @Model.Client.State </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table-b" style="width: 100%;">
+        <tr class="tx-ubuntu green-bg xs-font" style="text-align: center; font-weight: bold;">
+            <td>QUANTIDADE</td>
+            <td>UNIDADE</td>
+            <td>FAMÍLIA</td>
+            <td>IBAMA</td>
+            <td>RESÍDUO COLETADO</td>
+            <td>MTR DESTINAÇÃO</td>
+            <td>DESTINO FINAL</td>
+            <td>CNPJ DESTINADOR</td>
+        </tr>
+        @{
+            double weight = 0, weight_units = 0;
+        }
+        @foreach (var item in Model.DemandClientResidue)
+        {
+            var demandDestination = await demandDestinationServices.GetDestinationByDemandIdAndResidueFamilyId(item.DemandId, item.ResidueFamilyId ?? 0);
+
+            if (unitId == item.UnitOfMeasurementId)
+            {
+                weight_units += item.Weight ?? 0;
+            }
+            else
+            {
+                weight += (item.Weight ?? 0) * unitOfMeasurementServices.GetFactorForWeight(item.UnitOfMeasurementId, quilogramaId);
+            }
+            <tr class="tx-open-sans xs-font" style="text-align: center;">
+                <td>@item._Weight</td>
+                <td>@item.UnitOfMeasurementName</td>
+                <td>@item.ResidueFamilyName</td>
+                <td>@item.IBAMACode</td>
+                <td>@item.ResidueName</td>
+                <td>@(demandDestination == null? "-" : demandDestination.DestineJaDemandDestinationId)</td>
+                <td>@item.RecipientName.IfNullChange("-")</td>
+                <td>@(string.IsNullOrWhiteSpace(item.RecipientDocument)? "-" : item.RecipientDocument.CNPJOrCPFmask())</td>
+            </tr>
+        }
+        <tr style="text-align: center;" class="tx-open-sans">
+            <td class="green-bg med-font-2" style="font-weight: bold;">PESO TOTAL:</td>
+            <td class="med-font-2" colspan="3" style="border-right:0; text-align:left;">@weight.ToWeightPtBr() Kg</td>
+            <td class="green-bg med-font-2" style="font-weight: bold;">UNIDADES:</td>
+            <td class="med-font-2" colspan="3" style="border-right:0; text-align:left;">@weight_units.ToWeightPtBr()</td>
+        </tr>
+    </table>
+</div>
+
+@section Scripts{
+    <script type="text/javascript">
+        $(document).ready(function () {
+            window.print();
+        });
+
+        function sendCertificateEmail(id) {
+            bootbox.prompt({
+                title: "Insira o e-mail<br/><label style='font-size: 13px; margin-top: .7em;'>No caso de envio para múltiplos e-mails utilize <b>; (ponto e vírgula)</b> para separar um e-mail de outro.</label>",
+                inputType: 'text',
+                placeholder: 'E-mail',
+                buttons: {
+                    confirm: {
+                        label: 'Enviar',
+                        className: 'btn-success'
+                    },
+                    cancel: {
+                        label: 'Cancelar',
+                        className: 'btn-danger mr-auto float-left'
+                    }
+                },
+			    callback: function (result) {
+				    if (isNullOrWhiteSpace(result)) return;
+
+                    $.post('@Url.Action("SendCertficateEmail", "Demand")', { id , emails: result }, function (d) {
+					    bootbox.alert(d.message);
+				    });
+                }
+            });
+        }
+    </script>
+}

@@ -1,0 +1,92 @@
+﻿@model ApplicationDbContext.Models.ResidueFamilyList
+@{
+    ViewData["Title"] = "Resíduos";
+}
+
+<div class="card bg-light">
+    <div class="card-body">
+        <div>
+            <span style="font-size: 15px;"><b>Família:</b> @Model.Name - <b>Classe:</b> @Model.ResidueFamilyClassName - <b>Risco:</b> @Model.Risk - <b>Classe de Risco:</b> @Model.RiskClass - <b>Código ONU:</b> @Model.ONUCode</span>
+            <hr/>
+        </div>
+        &nbsp;
+        <div class="row">
+            <div class="col-md form-group">
+                <input type="text" class="form-control" placeholder="Pesquisar..." data-toggle="search-datatable" data-target="#residues-table" />
+            </div>
+            <div class="col-md-auto col form-group">
+                <button id="add-residues-button-modal" class="btn btn-primary w-100"><i class="simple-icon-plus"></i>&nbsp;Adicionar Resíduo na Família</button>
+            </div>
+        </div>
+        <hr />
+        <div class="row">
+            <div class="col-md-12">
+                <div id="success-area-residue-index"></div>
+            </div>
+            <div class="col-md-12">
+                <div id="ResiduesIndexViewComponent">
+                    @(await Component.InvokeAsync("ResiduesIndex", new { residueFamilyId = Model.ResidueFamilyId }))
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer">
+        <div class="row">
+            <div class="col-md-12 text-right">
+                <a href="@Url.Action("Index", "ResidueFamily", new { success = true })" class="btn btn-success"><i class="simple-icon-cloud-upload"></i>&nbsp;Salvar e Retornar</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Modals {
+    <div class="modal fade" id="add-residues-modal" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold" id="residuesModalLabel">Incluir Resíduos</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                </div>
+                <div class="modal-body">
+                    @(await Component.InvokeAsync("ResiduesManage", new { residueFamilyId = Model.ResidueFamilyId }))
+                </div>
+                <div class="modal-footer">
+                    <div class="col-md-6">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="simple-icon-close"></i>&nbsp;Fechar</button>
+                    </div>
+                    <div class="col-md-6">
+                        <button type="button" class="btn btn-success float-right" id="residue-modal-save-button"><i class="simple-icon-cloud-upload"></i>&nbsp;Salvar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts
+{
+    <script asp-paste-key="residue-index"></script>
+    <script asp-paste-key="residue-manage"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            InitializeFunctions();
+        });
+        $('#add-residues-button-modal').click(openResidueModal);
+
+        $('#residue-modal-save-button').click(function () {
+            saveResidue(function (d) {
+                if (!d.success) {
+                    $('#add-residues-modal').modal('hide');
+                    bootbox.alert(d.message);
+                    return;
+                }
+
+                residuesDatatables.ajax.reload();
+                $('#add-residues-modal').modal('hide');
+                $('#success-area-residue-index').empty().append(successMessage());
+            });
+        });
+
+    </script>
+}

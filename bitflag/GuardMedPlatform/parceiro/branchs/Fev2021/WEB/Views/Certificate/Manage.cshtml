@@ -1,0 +1,80 @@
+﻿@model int?
+@{
+    int? certificateType = null;
+    if (ViewData.ContainsKey("CertificateType") && ViewData["CertificateType"] != null)
+    {
+        certificateType = int.Parse(ViewData["CertificateType"].ToString());
+
+        if (certificateType == (int)WEB.Utils.CertificateTypes.Simulacao)
+        {
+            ViewData["Title"] = "Novo/Notificação";
+        }
+    }
+    else
+    {
+        ViewData["Title"] = "Gerenciar Certificado";
+    }
+}
+
+
+<div class="alert" role="alert" style="display:none; background-color: rgba(243, 154, 45, .6);" id="warningBox">
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">×</span>
+    </button>
+    <strong class="d-block d-sm-inline-block-force">Atenção!</strong> <span id="warningBoxText"></span>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div id="CertificateManageViewComponent"></div>
+    </div>
+</div>
+<script type="text/javascript">
+    $('#CertificateManageViewComponent').load('@Url.Action("CertificateManageComponent", "Certificate")', { "id": @if (Model.HasValue) { @Model } else { <text>null</text> }, "certificateType": @if (certificateType.HasValue) { @certificateType } else { <text>null</text> } });
+
+    $('#_CertificateManageButtonSubmit').click(function () {
+        if (_CertificateManageValidate()) {
+            _CertificateManageSave();
+        }
+    });
+</script>
+@if (Model.HasValue)
+{
+    <text>
+        <script type="text/javascript">
+            $('#_CertificateManageButtonSubmit').text("Salvar");
+            $('#_CertificateManageCardHeaderTitle').text('Atualização de certificado');
+        </script>
+    </text>
+}
+<script type="text/javascript">
+    function _CertificateManageCallBack(data, planId, freePlan) {
+        if (freePlan) {
+            $.ajax({
+                url: '@Url.Action("SetFreePlanSaveCertificateId", "Plan")',
+                type: 'POST',
+                dataType: 'JSON',
+                data: { planId: planId, certificateId: data }
+            });
+        }
+        var param = "";
+        @if(certificateType.HasValue){
+        <text>
+        param = "?certificateType=@certificateType";
+        </text>
+        }
+        window.location.href = '@Url.Action("Index", "Certificate")' + param;
+    }
+
+    function _CertificateManageIsLocked(message) {
+        $('#_CertificateManageButtonSubmit').remove();
+        $('#warningBox').show();
+        $('#warningBoxText').text(message);
+    }
+
+    function _CertificateManageShowWarningBox(message) {
+        $('#warningBox').show();
+        $('#warningBoxText').text(message);
+    }
+
+</script>

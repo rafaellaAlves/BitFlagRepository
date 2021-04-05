@@ -1,0 +1,40 @@
+﻿@model int?
+@{
+    ViewData["Title"] = "Gerenciar Assistências";
+}
+
+
+<div class="card shadow bg-light">
+    <div class="card-header"><span id="_AssistanceManageCardHeaderTitle">Criação de assistência</span></div>
+    <div class="card-body">
+        <div id="AssistanceManageViewComponent"></div>
+    </div>
+    <div class="card-footer">
+        <a href="@Url.Action("Index","Assistance")" class="btn btn-secondary float-left" style="color:white;"><i class="fa fa-arrow-left"></i>&nbsp;Voltar</a>
+        <button type="button" id="_AssistanceManageButtonSubmit" class="btn btn-success float-right"><i class="fa fa-cloud-upload-alt"></i>&nbsp;Criar Assistência</button>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#AssistanceManageViewComponent').load('@Url.Action("AssistanceManageComponent", "Assistance")', { "id": @if (Model.HasValue) { @Model } else { <text>null</text> } });
+
+    $('#_AssistanceManageButtonSubmit').click(function () {
+        if (_AssistanceManageValidate()) {
+            _AssistanceManageSave();
+        }
+    });
+</script>
+@if (Model.HasValue)
+{
+    <text>
+        <script type="text/javascript">
+            $('#_AssistanceManageButtonSubmit').text("Salvar");
+            $('#_AssistanceManageCardHeaderTitle').text('Atualização de assistência');
+        </script>
+    </text>
+}
+<script type="text/javascript">
+    function _AssistanceManageCallBack(data) {
+        window.location.href = '@Url.Action("Index", "Assistance")?id=' + data + '&saved=true';
+    }
+</script>

@@ -1,0 +1,148 @@
+{
+  "format": 1,
+  "restore": {
+    "C:\\repositorios\\bitflag\\AmaisImobPlatform\\Branches\\Fev2021\\BackgroundServices\\BackgroundServices.csproj": {}
+  },
+  "projects": {
+    "C:\\repositorios\\bitflag\\AmaisImobPlatform\\Branches\\Fev2021\\AMaisImob_DB\\AMaisImob_DB.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\repositorios\\bitflag\\AmaisImobPlatform\\Branches\\Fev2021\\AMaisImob_DB\\AMaisImob_DB.csproj",
+        "projectName": "AMaisImob_DB",
+        "projectPath": "C:\\repositorios\\bitflag\\AmaisImobPlatform\\Branches\\Fev2021\\AMaisImob_DB\\AMaisImob_DB.csproj",
+        "packagesPath": "C:\\Users\\Rafaella Alves Silva\\.nuget\\packages\\",
+        "outputPath": "C:\\repositorios\\bitflag\\AmaisImobPlatform\\Branches\\Fev2021\\AMaisImob_DB\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Microsoft\\Xamarin\\NuGet\\",
+          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\Rafaella Alves Silva\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Xamarin.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "netcoreapp2.2"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "netcoreapp2.2": {
+            "targetAlias": "netcoreapp2.2",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "netcoreapp2.2": {
+          "targetAlias": "netcoreapp2.2",
+          "dependencies": {
+            "Microsoft.AspNetCore.Identity.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[2.2.0, )"
+            },
+            "Microsoft.EntityFrameworkCore.SqlServer": {
+              "target": "Package",
+              "version": "[2.2.1, )"
+            },
+            "Microsoft.NETCore.App": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[2.2.0, )",
+              "autoReferenced": true
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.101\\RuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "C:\\repositorios\\bitflag\\AmaisImobPlatform\\Branches\\Fev2021\\BackgroundServices\\BackgroundServices.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\repositorios\\bitflag\\AmaisImobPlatform\\Branches\\Fev2021\\BackgroundServices\\BackgroundServices.csproj",
+        "projectName": "BackgroundServices",
+        "projectPath": "C:\\repositorios\\bitflag\\AmaisImobPlatform\\Branches\\Fev2021\\BackgroundServices\\BackgroundServices.csproj",
+        "packagesPath": "C:\\Users\\Rafaella Alves Silva\\.nuget\\packages\\",
+        "outputPath": "C:\\repositorios\\bitflag\\AmaisImobPlatform\\Branches\\Fev2021\\BackgroundServices\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Microsoft\\Xamarin\\NuGet\\",
+          "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\Rafaella Alves Silva\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Xamarin.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "netcoreapp2.2"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "netcoreapp2.2": {
+            "targetAlias": "netcoreapp2.2",
+            "projectReferences": {
+              "C:\\repositorios\\bitflag\\AmaisImobPlatform\\Branches\\Fev2021\\AMaisImob_DB\\AMaisImob_DB.csproj": {
+                "projectPath": "C:\\repositorios\\bitflag\\AmaisImobPlatform\\Branches\\Fev2021\\AMaisImob_DB\\AMaisImob_DB.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "netcoreapp2.2": {
+          "targetAlias": "netcoreapp2.2",
+          "dependencies": {
+            "EPPlus": {
+              "target": "Package",
+              "version": "[4.5.3.1, )"
+            },
+            "Microsoft.NETCore.App": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[2.2.0, )",
+              "autoReferenced": true
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.101\\RuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

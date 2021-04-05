@@ -1,0 +1,142 @@
+﻿@model int
+<div class="row">
+    <div class="col-md-10">
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text"><i class="fa fa-search"></i></span>
+            </div>
+            <input id="_ProductCoverageIndexSearch" type="text" class="form-control" placeholder="Procurar..." />
+        </div>
+    </div>
+    <div class="col-md-2">
+        <a href="@Url.Action("Manage", "ProductCoverage")?productId=@Model" class="btn btn-success pull-right w-100"><i class="fas fa-plus-circle"></i>&nbsp;Novo</a>
+    </div>
+</div>
+<hr />
+
+<div class="table-wrapper">
+    <table id="_ProductCoverageIndexTable" class="table display responsive nowrap" style="border-collapse: collapse !important;">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Taxa (%)</th>
+                <th>Mínimo (R$)</th>
+                <th>Maximo (R$)</th>
+                <th>Básica</th>
+                <th>Limite Básico (%)</th>
+                <th>Opcional</th>
+                <th>&nbsp;</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+<script type="text/javascript">
+
+    var _ProductCoverageIndexTypingTimer;
+    var _ProductCoverageIndexDoneTypingInterval = 500;
+    var datatables = $('#_ProductCoverageIndexTable').DataTable({
+        "order": [[4, "desc"]],
+        columnDefs: [{
+            targets: [4],
+            orderData: [4, 6]
+        }],
+		proccessing: true,
+		serverSide: false,
+		searching: true,
+		lengthChange: false,
+		dom: 'tip',
+		ajax: {
+            url: '@Url.Action("List", "ProductCoverage")',
+            data: function (d) {
+                d.productId = '@Model'
+            },
+			type: 'POST'
+		},
+		columns: [
+			{ data: 'Name',
+            render: function (data, type, row) {
+                return '<a href="@Url.Action("Manage", "ProductCoverage")?id=' + row.productCoverageId  + '">' + row.name + '</a>';
+                }
+            },
+            {
+                data: 'Taxes',
+            render: function (data, type, row) {
+                return '<span class="percent">' + row._Taxes + '</span>';
+                }
+            },
+            {
+                data: 'Minimum',
+                render: function (data, type, row) {
+                    return row.minimum != null ? '<span class="money">' + row._Minimum + '</span>' : '-';
+                }
+            },
+            {
+                data: 'Maximum',
+                render: function (data, type, row) {
+                    return row.maximum != null ? '<span class="money">' + row._Maximum + '</span>' : '-';
+                }
+            },
+            {
+                data: 'IsBasic',
+                render: function (data, type, row) {
+                    return row.isBasic ? '<span class="badge badge-pill badge-success text-center">Sim</span>' : '<span class="badge badge-pill badge-danger text-center">Não</span>';
+                }
+            },
+            {
+                data: 'BasicLimit',
+                render: function (data, type, row) {
+                    return row.basicLimit != null ? '<span class="percent">' + row._BasicLimit + '</span>' : '-';
+                }
+            },
+            {
+                data: 'IsOptional',
+                render: function (data, type, row) {
+                    return row.isOptional ? '<span class="badge badge-pill badge-success text-center">Sim</span>' : '<span class="badge badge-pill badge-danger text-center">Não</span>';
+                }
+            },
+			{
+				data: null,
+				render: function (data, type, row) {
+                    return "<div class='text-center'><a href='javascript:void(0)' onclick='RemoveProductCoverage(" + row.productCoverageId + ")' title='Excluir' ><i class='far fa-trash-alt'></i></a></div>";
+				}
+			}
+		]
+	});
+
+    function _ProductCoverageIndexDoneTyping() {
+        if ($.fn.DataTable.isDataTable('#_ProductCoverageIndexTable')) {
+            datatables.search($('#_ProductCoverageIndexSearch').val()).draw();
+        }
+    }
+    $('#_ProductCoverageIndexSearch').keyup(function () {
+        clearTimeout(_ProductCoverageIndexDoneTypingInterval);
+        _ProductCoverageIndexTypingTimer = setTimeout(_ProductCoverageIndexDoneTyping, _ProductCoverageIndexDoneTypingInterval);
+    });
+    $('#_ProductCoverageIndexSearch').keydown(function () {
+        clearTimeout(_ProductCoverageIndexDoneTyping);
+    });
+
+    function RemoveProductCoverage(productCoverageId) {
+        if (confirm("Deseja realmente remover esta cobertura?")) {
+            _RemoveProductCoverage(productCoverageId, function (data) {
+                if(!data.hasError)
+                    $('#_ProductCoverageIndexTable').DataTable().ajax.reload();
+                alert(data.message);
+			});
+		}
+	}
+
+	function _RemoveProductCoverage(_productCoverageId, callback) {
+		var d = { id: _productCoverageId };
+		$.ajax({
+			url: '@Url.Action("RemoveProductCoverage", "ProductCoverage")',
+			type: 'POST',
+			data: d,
+			dataType: 'Json',
+			success: function(data){
+                callback(data);
+            }
+		});
+	}
+</script>

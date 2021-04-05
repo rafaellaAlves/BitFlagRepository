@@ -1,0 +1,1260 @@
+﻿@model GuardMedWeb.Models.SeguradoClinicaVeterinariaViewModel
+@{
+    ViewData["Title"] = "Seguro para Clínica, PetShop e Hospital Veterinário AmaisVet";
+    int i = 1; /*cltIndex = 1*/
+    int qtdFuncionarios20 = Model.QtdFuncionarios20 ?? 0;
+    int qtdFuncionarios30 = Model.QtdFuncionarios30 ?? 0;
+    int qtdFuncionarios40 = Model.QtdFuncionarios40 ?? 0;
+    int qtdFuncionarios50 = Model.QtdFuncionarios50 ?? 0;
+
+    int tecnicoIdade = 0;
+    if (Model.DataNascimentoTecnico.HasValue)
+    {
+        tecnicoIdade = new DateTime(DateTime.Now.Subtract(Model.DataNascimentoTecnico.Value).Ticks).Year - 1;
+    }
+}
+
+<script type="text/javascript">
+    var qtd20 = 0;
+    var qtd30 = 0;
+    var qtd40 = 0;
+    var qtd50 = 0;
+    
+    function ValidacaoDeFormulario() {
+        qtd20 = 0; qtd30 = 0; qtd40 = 0; qtd50 = 0;
+        $('.text-danger').remove();
+        var FormularioErro = false;
+
+        if (IsNullOrWhiteSpace($('#Nome').val()) && $('#Tipo').val() == 1) {
+            $('#Nome').after('<div class="text-danger">Insira o nome!</div>');
+            FormularioErro = true;
+        }
+
+        if (IsNullOrWhiteSpace($('#RazaoSocial').val()) && $('#Tipo').val() == 2) {
+            $('#RazaoSocial').after('<div class="text-danger">Insira a razão social!</div>');
+            FormularioErro = true;
+        }
+
+        if (IsNullOrWhiteSpace($('#CPF').val()) && $('#Tipo').val() == 1) {
+            $('#CPF').after('<div class="text-danger">Insira o CPF!</div>');
+            FormularioErro = true;
+        }
+        if (!IsNullOrWhiteSpace($('#CPF').val()) && !TestaCPF($('#CPF').cleanVal())) {
+            $('#CPF').after('<div class="text-danger">CPF Inválido!</div>');
+            FormularioErro = true;
+        }
+
+        if (IsNullOrWhiteSpace($('#CNPJ').val()) && $('#Tipo').val() == 2) {
+            $('#CNPJ').after('<div class="text-danger">Insira o CNPJ!</div>');
+            FormularioErro = true;
+        }
+
+        if (IsNullOrWhiteSpace($('#CEP').val())) {
+            $('#CEP').after('<div class="text-danger">Insira o CEP!</div>');
+            FormularioErro = true;
+        }
+        if (IsNullOrWhiteSpace($('#Estado').val())) {
+            $('#Estado').after('<div class="text-danger">Insira o estado!</div>');
+            FormularioErro = true;
+        }
+        if (IsNullOrWhiteSpace($('#Cidade').val())) {
+            $('#Cidade').after('<div class="text-danger">Insira a cidade!</div>');
+            FormularioErro = true;
+        }
+        if (IsNullOrWhiteSpace($('#Bairro').val())) {
+            $('#Bairro').after('<div class="text-danger">Insira o bairro!</div>');
+            FormularioErro = true;
+        }
+        if (IsNullOrWhiteSpace($('#Endereco').val())) {
+            $('#Endereco').after('<div class="text-danger">Insira o endereço!</div>');
+            FormularioErro = true;
+        }
+        if (IsNullOrWhiteSpace($('#EnderecoNumero').val())) {
+            $('#EnderecoNumero').after('<div class="text-danger">Insira o número!</div>');
+            FormularioErro = true;
+        }
+        if (IsNullOrWhiteSpace($('#Telefone').val())) {
+            $('#Telefone').after('<div class="text-danger">Insira o telefone!</div>');
+            FormularioErro = true;
+        }
+
+        if (IsNullOrWhiteSpace($('#Email').val())) {
+            $('#Email').after('<div class="text-danger">Insira o e-mail!</div>');
+            FormularioErro = true;
+        } else if ($('#Email').val().indexOf("@@") < 1 ||
+            $('#Email').val().indexOf(".") < 1) {
+            FormularioErro = true;
+            $('#Email').after('<div class="text-danger">E-mail incorreto!</div>');
+        }
+        if (IsNullOrWhiteSpace($('#NomeResponsavelTecnico').val())) {
+            $('#NomeResponsavelTecnico').after('<div class="text-danger">Insira o nome do responsável técnico!</div>');
+            FormularioErro = true;
+        }
+        if (IsNullOrWhiteSpace($('#CPFTecnico').val())) {
+            $('#CPFTecnico').after('<div class="text-danger">Insira o CPF do técnico!</div>');
+            FormularioErro = true;
+        }
+        else if (!TestaCPF($('#CPFTecnico').cleanVal())) {
+            $('#CPFTecnico').after('<div class="text-danger">CPF Inválido!</div>');
+            FormularioErro = true;
+        }
+        if (IsNullOrWhiteSpace($('#CRMVTecnico').val())) {
+            $('#CRMVTecnico').after('<div class="text-danger">Insira o CRMV do técnico!</div>');
+            FormularioErro = true;
+        }
+        if (IsNullOrWhiteSpace($('#CRMVEstado').val())) {
+            $('#CRMVEstado').after('<div class="text-danger">Insira o estado do CRMV do técnico!</div>');
+            FormularioErro = true;
+        }
+
+        if (IsNullOrWhiteSpace($('#DataNascimentoTecnico').val())) {
+            $('#DataNascimentoTecnico').after('<div class="text-danger">Insira a data de nascimento do técnico!</div>');
+            FormularioErro = true;
+        }
+        @if(Model.PlanoResponsavelTecnicoId.HasValue) {
+            <text>
+            var _idadeTecnico = getAge(toDate($('#DataNascimentoTecnico').val()));
+            if (@tecnicoIdade >= 20 && @tecnicoIdade <= 29 && _idadeTecnico > 29) {
+                FormularioErro = true;
+                alert('A idade do técnico não esta entre 20 ~ 29, como escolhido na pagina de cotação.');
+            } else if (@tecnicoIdade >= 30 && @tecnicoIdade <= 39 && (_idadeTecnico < 30 || _idadeTecnico > 39)) {
+                FormularioErro = true;
+                alert('A idade do técnico não esta entre 30 ~ 39, como escolhido na pagina de cotação.');
+            } else if (@tecnicoIdade >= 40 && @tecnicoIdade <= 49 && (_idadeTecnico < 40 || _idadeTecnico > 49)) {
+                FormularioErro = true;
+                alert('A idade do técnico não esta entre 40 ~ 49, como escolhido na pagina de cotação.');
+            } else if (@tecnicoIdade >= 50 && @tecnicoIdade <= 59 && _idadeTecnico < 50) {
+                FormularioErro = true;
+                alert('A idade do técnico não esta entre 50 ~ 59, como escolhido na pagina de cotação.');
+            }
+            </text>
+        }
+        @if(tecnicoIdade >= 40 && Model.PlanoResponsavelTecnicoId.HasValue)
+        {
+            <text>
+            if (!$('#NaoPossuiDoencaTecnico')[0].checked && !$('#PossuiDoencaTecnico')[0].checked) {
+                $('#CamposDoencaTecnico').after('<div class="text-danger">Selecione uma opção!</div>');
+                FormularioErro = true;
+            }
+        if ($('#PossuiDoencaTecnico')[0].checked && IsNullOrWhiteSpace($('#doencasTecnico').val())) {
+            $('#CamposDoencaTecnico').after('<div class="text-danger">Insira as informações!</div>');
+                FormularioErro = true;
+            }
+        if (!$('#NaoPossuiuDoencaAtualmenteTecnico')[0].checked && !$('#PossuiuDoencaAtualmenteTecnico')[0].checked) {
+            $('#CamposDoencaAtualmenteTecnico').after('<div class="text-danger">Selecione uma opção!</div>');
+                FormularioErro = true;
+            }
+        if ($('#PossuiuDoencaAtualmenteTecnico')[0].checked && IsNullOrWhiteSpace($('#DoencasAtuaisTecnico').val())) {
+            $('#CamposDoencaAtualmenteTecnico').after('<div class="text-danger">Insira as informações!</div>');
+                FormularioErro = true;
+            }
+        if (!$('#NaoTomaMedicamentoTecnico')[0].checked && !$('#TomaMedicamentoTecnico')[0].checked) {
+            $('#CamposMedicamentoTecnico').after('<div class="text-danger">Selecione uma opção!</div>');
+                FormularioErro = true;
+            }
+        if ($('#TomaMedicamentoTecnico')[0].checked && IsNullOrWhiteSpace($('#MedicamentosTecnico').val())) {
+            $('#CamposMedicamentoTecnico').after('<div class="text-danger">Insira as informações!</div>');
+                FormularioErro = true;
+            }
+        if (IsNullOrWhiteSpace($('#FumanteTecnico').val())) {
+            $('#FumanteTecnico').after('<div class="text-danger">Escolha uma opção!</div>');
+                FormularioErro = true;
+            }
+
+        if (IsNullOrWhiteSpace($('#PesoTecnico').val())) {
+            $('#PesoTecnico').after('<div class="text-danger">Insira seu peso!</div>');
+                FormularioErro = true;
+            }
+
+        if (IsNullOrWhiteSpace($('#AlturaTecnico').val())) {
+            $('#AlturaTecnico').after('<div class="text-danger">Insira sua altura!</div>');
+                FormularioErro = true;
+            }
+            </text>
+        }
+
+        @if (Model.PlanoExtensaoCoberturaId.HasValue) {
+                <text>
+        for (var i = 1; i < @(Model.QtdFuncionarios+1); i++) {
+
+            var age = getAge(toDate($('#DataNascimento' + i).val()));
+            if (age >= 20 && age < 30) {
+                qtd20++;
+            }
+            else if (age >= 30 && age < 40) {
+                qtd30++;
+            }
+            else if (age >= 40 && age < 50) {
+                qtd40++;
+            }
+            else if (age >= 50 && age < 60) {
+                qtd50++;
+            }
+
+            if (IsNullOrWhiteSpace($('#Nome' + i).val())) {
+                $('#Nome' + i).after('<div class="text-danger">Insira o nome!</div>');
+                FormularioErro = true;
+            }
+
+            if (IsNullOrWhiteSpace($('#CRMV' + i).val())) {
+                $('#CRMV' + i).after('<div class="text-danger">Insira o CRMV!</div>');
+                FormularioErro = true;
+            }
+
+            if (IsNullOrWhiteSpace($('#EstadoCRMV' + i).val())) {
+                $('#EstadoCRMV' + i).after('<div class="text-danger">Insira o estado do CRMV!</div>');
+                FormularioErro = true;
+            }
+
+            if (IsNullOrWhiteSpace($('#CPF' + i).val())) {
+                $('#CPF' + i).after('<div class="text-danger">Insira o CPF!</div>');
+                FormularioErro = true;
+            }
+            else if (!TestaCPF($('#CPF' + i).cleanVal())) {
+                $('#CPF' + i).after('<div class="text-danger">CPF Inválido!</div>');
+                FormularioErro = true;
+            }
+
+            if (IsNullOrWhiteSpace($('#DataNascimento' + i).val())) {
+                $('#DataNascimento' + i).after('<div class="text-danger">Insira a data de nascimento!</div>');
+                FormularioErro = true;
+            }
+
+            if (IsNullOrWhiteSpace($('#Celular' + i).val())) {
+                $('#Celular' + i).after('<div class="text-danger">Insira o celular!</div>');
+                FormularioErro = true;
+            }
+
+            if (IsNullOrWhiteSpace($('#Email' + i).val())) {
+                $('#Email' + i).after('<div class="text-danger">Insira o e-mail!</div>');
+                FormularioErro = true;
+            } else if ($('#Email' + i).val().indexOf("@@") < 1 ||
+                $('#Email' + i).val().indexOf(".") < 1) {
+                FormularioErro = true;
+                $('#Email' + i).after('<div class="text-danger">E-mail incorreto!</div>');
+            }
+            if ($('#doencas' + i).length) // se este campo existir quer dizer que o funcionario tem mais de 40
+            {
+                if (!$('#NaoPossuiDoenca' + i)[0].checked && !$('#PossuiDoenca' + i)[0].checked) {
+                    $('#CamposDoenca' + i).after('<div class="text-danger">Selecione uma opção!</div>');
+                    FormularioErro = true;
+                }
+                if ($('#PossuiDoenca' + i)[0].checked && IsNullOrWhiteSpace($('#doencas' + i).val())) {
+                    $('#CamposDoenca' + i).after('<div class="text-danger">Insira as informações!</div>');
+                    FormularioErro = true;
+                }
+                if (!$('#NaoPossuiuDoencaAtualmente' + i)[0].checked && !$('#PossuiuDoencaAtualmente' + i)[0].checked) {
+                    $('#CamposDoencaAtualmente' + i).after('<div class="text-danger">Selecione uma opção!</div>');
+                    FormularioErro = true;
+                }
+                if ($('#PossuiuDoencaAtualmente' + i)[0].checked && IsNullOrWhiteSpace($('#DoencasAtuais' + i).val())) {
+                    $('#CamposDoencaAtualmente' + i).after('<div class="text-danger">Insira as informações!</div>');
+                    FormularioErro = true;
+                }
+                if (!$('#NaoTomaMedicamento' + i)[0].checked && !$('#TomaMedicamento' + i)[0].checked) {
+                    $('#CamposMedicamento' + i).after('<div class="text-danger">Selecione uma opção!</div>');
+                    FormularioErro = true;
+                }
+                if ($('#TomaMedicamento' + i)[0].checked && IsNullOrWhiteSpace($('#Medicamentos' + i).val())) {
+                    $('#CamposMedicamento' + i).after('<div class="text-danger">Insira as informações!</div>');
+                    FormularioErro = true;
+                }
+                if (IsNullOrWhiteSpace($('#Fumante' + i).val())) {
+                    $('#Fumante' + i).after('<div class="text-danger">Escolha uma opção!</div>');
+                    FormularioErro = true;
+                }
+
+                if (IsNullOrWhiteSpace($('#Peso' + i).val())) {
+                    $('#Peso' + i).after('<div class="text-danger">Insira seu peso!</div>');
+                    FormularioErro = true;
+                }
+
+                if (IsNullOrWhiteSpace($('#Altura' + i).val())) {
+                    $('#Altura' + i).after('<div class="text-danger">Insira sua altura!</div>');
+                    FormularioErro = true;
+                }
+            }
+        }
+        if (qtd20 != @if (Model.QtdFuncionarios20.HasValue) {<text>@Model.QtdFuncionarios20 </text>} else {<text>0</text>} ||
+            qtd30 != @if (Model.QtdFuncionarios30.HasValue) {<text>@Model.QtdFuncionarios30 </text>} else {<text>0</text>} ||
+            qtd40 != @if (Model.QtdFuncionarios40.HasValue) {<text>@Model.QtdFuncionarios40 </text>} else {<text>0</text>} ||
+            qtd50 != @if (Model.QtdFuncionarios50.HasValue) {<text>@Model.QtdFuncionarios50 </text>} else {<text>0</text>} ) {
+            alert('As idades dos funcionarios não correspondem as inseridas na tela de cotação!');
+            FormularioErro = true;
+        }
+                </text>
+            }
+
+        if (FormularioErro) {
+            alert('Possui algum erro no formulario, verifique e tente novamente.');
+        }
+            return (!FormularioErro);
+        }
+
+
+    function FormularioSalvar() {
+        var d = $('#FormularioForm').serializeArray();
+        $.post('@Url.Action("Formulario", "SeguroClinicaVeterinaria")', d, function (data) {
+            window.location.href = '@Url.Action("Confirmacao", "SeguroClinicaVeterinaria")?reference=@Model.Referencia';
+		});
+    }
+
+    @if (Model.QtdFuncionarios.HasValue && Model.QtdFuncionarios.Value > 0) {
+    <text>
+        function SalvarProfissionais() {
+            var model = [];
+            for (var i = 1; i <= @Model.QtdFuncionarios; i++) {
+                model.push({
+                    SeguradoProfissionalId: $('#SeguradoProfissionalId' + i).val(), PlanoSeguroProfissionalId: '@Model.PlanoExtensaoCoberturaId', SeguradoClinicaVeterinariaId: '@Model.SeguradoClinicaVeterinariaId', Nome: $('#Nome' + i).val(), CRMV: $('#CRMV' + i).val(), EstadoCRMV: $('#EstadoCRMV' + i).val(), CPF: $('#CPF' + i).val(), DataNascimento: AmericanDate($('#DataNascimento' + i).val()), Celular: $('#Celular' + i).val(), Telefone: $('#Telefone' + i).val(), Email: $('#Email' + i).val(), CEP: $('#CEP' + i).val(), Endereco: $('#Endereco' + i).val(), EnderecoNumero: $('#EnderecoNumero' + i).val(), Complemento: $('#Complemento' + i).val(), Bairro: $('#Bairro' + i).val(), Cidade: $('#Cidade' + i).val(), Estado: $('#Estado' + i).val(), Doencas: IsNullOrWhiteSpace($('#doencas' + i).val()) ? "" : $('#doencas' + i).val(), DoencasAtuais: IsNullOrWhiteSpace($('#DoencasAtuais' + i).val()) ? "" : $('#DoencasAtuais' + i).val(), Medicamentos: IsNullOrWhiteSpace($('#Medicamentos' + i).val()) ? "" : $('#Medicamentos' + i).val(), Fumante: IsNullOrWhiteSpace($('#Fumante' + i).val()) ? "" : $('#Fumante' + i).val(), Peso: IsNullOrWhiteSpace($('#Peso' + i).val()) ? "" : $('#Peso' + i).val(), Altura: IsNullOrWhiteSpace($('#Altura' + i).val()) ? "" : $('#Altura' + i).val()
+            });
+            }
+            $.ajax({
+                url: '@Url.Action("SalvarProfissionais", "SeguroClinicaVeterinaria")',
+                type: 'POST',
+                data: JSON.stringify(model),
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                success: function (data) {
+                    if (data == true) {
+                        @*@if (Model.QtdCLT.HasValue && Model.QtdCLT.Value > 0) {<text>SalvarCLT();</text>}
+                        else{ <text>FormularioSalvar();</text>}*@
+                        FormularioSalvar();
+                    }
+                    else {
+                        alert("Erro ao salvar profissionais!");
+                    }
+                }
+            });
+        }
+    </text>
+    }
+
+    @*@if(Model.QtdCLT.HasValue && Model.QtdCLT.Value > 0)
+    {
+    <text>
+        function SalvarCLT() {
+            var model = [];
+            for (var i = 1; i <= @Model.QtdCLT; i++) {
+                model.push({
+                    CLTId: $('#CLTId' + i).val(), SeguradoClinicaVeterinariaId: '@Model.SeguradoClinicaVeterinariaId', Nome: $('#CLTNome' + i).val(), CPF: $('#CLTCPF' + i).val(), DataNascimento: AmericanDate($('#CLTDataNascimento' + i).val())
+            });
+            }
+            $.ajax({
+                url: '@Url.Action("SalvarCLTs", "SeguroClinicaVeterinaria")',
+                type: 'POST',
+                data: JSON.stringify(model),
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                success: function (data) {
+                    if (data == true) {
+                        FormularioSalvar();
+                    }
+                    else {
+                        alert("Erro ao salvar CLTs!");
+                    }
+                }
+            });
+        }
+    </text>
+    }*@
+</script>
+
+<div class="row">
+    <div class="col-sm-12 mx-auto">
+        <div class="row">
+            <div class="rectangle" id="retangle1" style="height: 10px; width:17%; margin-left:16%; background:lightgrey;"></div>
+            <div class="rectangle" id="retangle2" style="height: 10px; width:17%; background:lightgrey;"></div>
+            <div class="rectangle" id="retangle3" style="height: 10px; width:17%; background-color:lightgrey;"></div>
+            <div class="rectangle" id="retangle4" style="height: 10px; width:17%; background-color:lightgrey;"></div>
+        </div>
+        <div class="row">
+            <div class="col-md-1 col-1"></div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="circle1" style="background-color: lightgrey; ">
+                    <div style="padding-top:25px;">
+                        <div class="mx-auto smallcircle" id="smallCircle1" style="background: white; display:none;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="circle2" style="background-color: lightgrey;">
+                    <div style="padding-top:25px;">
+                        <div class="mx-auto smallcircle" id="smallCircle2" style="background: white; display:none;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle shadow" id="circle3" style="background-color: lightgrey;">
+                    <div style="padding-top:25px;">
+                        <div class="mx-auto smallcircle" id="smallCircle3" style="background: white; display:none;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="circle4" style=" background-color: lightgrey;"></div>
+                <div class="mx-auto smallcircle" id="smallCircle4" style="background: white; display:none;"></div>
+            </div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="circle5" style=" background-color: lightgrey;"></div>
+                <div class="mx-auto smallcircle" id="smallCircle5" style=" background: white; display:none;"></div>
+            </div>
+        </div>
+        <div class="row" style="margin-top:1em;">
+            <div class="col-md-1"></div>
+            <div class="col-sm-2 text-center"><label>Simulação</label></div>
+            <div class="col-sm-2 text-center"><label>Monte seu Plano</label></div>
+            <div class="col-sm-2 text-center"><strong style="color:#40615f">Proposta</strong></div>
+            <div class="col-sm-2 text-center"> <label>Contratar</label></div>
+            <div class="col-sm-2 text-center"> <label>Impressão</label></div>
+        </div>
+    </div>
+</div>
+<br />
+<script type="text/javascript">
+    $('#circle1').css("background", "#0a754e");
+    $('#circle2').css("background", "#0a754e");
+    $('#circle3').css("background", "#0a754e");
+    $('#retangle1').css("background", "#13D68F");
+    $('#retangle2').css("background", "#13D68F");
+    $('#smallCircle3').show();
+</script>
+<br />
+
+@{ Html.RenderPartial("~/Views/Shared/_ProdutoSelecionadoClinica.cshtml"); }
+
+<form id="FormularioForm" method="post" enctype="multipart/form-data">
+    <input name="SeguradoClinicaVeterinariaId" value="@Model.SeguradoClinicaVeterinariaId" type="hidden" />
+    <div class="card bg-light">
+        <div class="card-header">
+            <h4 class="amaisvet-green">Dados da Empresa</h4>
+        </div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group col-md-3">
+                    <h6>Pessoa física/juridica:</h6>
+                    <select class="form-control" id="Tipo">
+                        <option value="1" selected>Pessoa física</option>
+                        <option value="2">Pessoa juridica</option>
+                    </select>
+                </div>
+                <div class="form-group col-md-6 PessoaFisica">
+                    <h6>Nome:</h6>
+                    <input class="form-control" name="NomeContato" value="@Model.NomeContato" id="Nome" type="text" placeholder="Nome" />
+                </div>
+                <div class="form-group col-md-3 PessoaFisica">
+                    <h6>CPF:</h6>
+                    <input class="form-control cpf" value="@Model.CPF" id="CPF" name="CPF" type="text" placeholder="CPF" />
+                </div>
+                <div class="form-group col-md-6 PessoaJuridica" style="display:none;">
+                    <h6>Razão social:</h6>
+                    <input class="form-control " value="@Model.RazaoSocial" id="RazaoSocial" name="RazaoSocial" type="text" placeholder="Razão social" />
+                </div>
+                <div class="form-group col-md-3 PessoaJuridica" style="display:none;">
+                    <h6>CNPJ:</h6>
+                    <input class="form-control cnpj" value="@Model.CNPJ" id="CNPJ" name="CNPJ" type="text" placeholder="CNPJ" />
+                </div>
+                <div class="col-md-2 form-group">
+                    <h6>CEP:</h6>
+                    <input class="form-control cep" id="CEP" name="CEP" value="@Model.CEP" type="text" placeholder="CEP" />
+                </div>
+                <div class="col-md-6 form-group">
+                    <h6>Endereço:</h6>
+                    <input class="form-control" id="Endereco" name="Endereco" value="@Model.Endereco" type="text" placeholder="Endereço" />
+                </div>
+                <div class="col-md-2 form-group">
+                    <h6>Número:</h6>
+                    <input class="form-control" id="EnderecoNumero" name="EnderecoNumero" value="@Model.EnderecoNumero" type="text" placeholder="Numero" />
+                </div>
+                <div class="col-md-2 form-group">
+                    <h6>Complemento:</h6>
+                    <input class="form-control" id="Complemento" name="Complemento" value="@Model.Complemento" type="text" placeholder="Complemento" />
+                </div>
+                <div class="col-md-4 form-group">
+                    <h6>Bairro:</h6>
+                    <input class="form-control" id="Bairro" name="Bairro" value="@Model.Bairro" type="text" placeholder="Bairro" />
+                </div>
+                <div class="col-md-4 form-group">
+                    <h6>Cidade:</h6>
+                    <input class="form-control" id="Cidade" name="Cidade" value="@Model.Cidade" type="text" placeholder="Cidade" />
+                </div>
+                <div class="col-md-4 form-group">
+                    <h6>Estado:</h6>
+                    <select class="form-control" id="Estado" name="Estado" value="@Model.Estado">
+                        <option value="">Selecione</option>
+                        @foreach (var item in GuardMedWeb.BLL.Utils.Utils.GetEstados())
+                        {
+                            <option value="@item.EstadoId">@item.Description</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br />
+    <div class="card bg-light">
+        <div class="card-header">
+            <h4 class="amaisvet-green">Dados do Responsável Financeiro</h4>
+        </div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="col-md-4 form-group">
+                    <h6>Nome do Responsável Financeiro:</h6>
+                    <input class="form-control" name="NomeResponsavelFinanceiro" id="NomeResponsavelFinanceiro" value="@Model.NomeResponsavelFinanceiro" type="text" placeholder="Responsável técnico" />
+                </div>
+                <div class="col-md-4 form-group">
+                    <h6>E-mail:</h6>
+                    <input class="form-control" id="EmailResponsavelFinanceiro" name="EmailResponsavelFinanceiro" value="@Model.EmailResponsavelFinanceiro" type="email" placeholder="E-mail" />
+                </div>
+                <div class="col-md-2 form-group">
+                    <h6>Telefone:</h6>
+                    <input class="form-control phone" id="TelefoneResponsavelFinanceiro" name="TelefoneResponsavelFinanceiro" value="@Model.TelefoneResponsavelFinanceiro" type="text" placeholder="Telefone" />
+                </div>
+                <div class="col-md-2 form-group">
+                    <h6>Celular:</h6>
+                    <input class="form-control mobile" id="CelularResponsavelFinanceiro" name="CelularResponsavelFinanceiro" value="@Model.CelularResponsavelFinanceiro" type="text" placeholder="Celular" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <br />
+    <div class="card bg-light">
+        <div class="card-header">
+            <h4 class="amaisvet-green">Dados do Responsável Técnico</h4>
+        </div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="col-md-5 form-group">
+                    <h6>Nome do responsável técnico:</h6>
+                    <input class="form-control" name="NomeResponsavelTecnico" id="NomeResponsavelTecnico" value="@Model.NomeResponsavelTecnico" type="text" placeholder="Responsável técnico" />
+                </div>
+                <div class="form-group col-md-2">
+                    <h6>CPF do técnico:</h6>
+                    <input class="form-control cpf" name="CPFTecnico" id="CPFTecnico" type="text" value="@Model.CPFTecnico" placeholder="CPF do técnico" />
+                </div>
+                <div class="form-group col-md-2">
+                    <h6>CRMV do técnico:</h6>
+                    <input class="form-control" name="CRMVTecnico" id="CRMVTecnico" type="text" value="@Model.CRMVTecnico" placeholder="CRMV do técnico" />
+                </div>
+                <div class="form-group col-md-3">
+                    <h6>Estado do CRMV:</h6>
+                    <select class="form-control" id="CRMVEstado" name="CRMVEstado" value="@Model.CRMVEstado">
+                        <option value="">Selecione</option>
+                        @foreach (var item in GuardMedWeb.BLL.Utils.Utils.GetEstados())
+                        {
+                            <option value="@item.EstadoId">@item.Description</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3 form-group">
+                    <h6>Data de nascimento do técnico:</h6>
+                    <input class="form-control date" name="DataNascimentoTecnico" id="DataNascimentoTecnico" type="text" value="@Model.DataNascimentoTecnico" placeholder="Data de nascimento do técnico" />
+                </div>
+                <div class="col-md-2 form-group">
+                    <h6>Telefone:</h6>
+                    <input class="form-control phone" id="Telefone" name="Telefone" value="@Model.Telefone" type="text" placeholder="Telefone" />
+                </div>
+                <div class="col-md-2 form-group">
+                    <h6>Celular:</h6>
+                    <input class="form-control mobile" id="Celular" name="Celular" value="@Model.Celular" type="text" placeholder="Celular" />
+                </div>
+                <div class="col-md-5 form-group">
+                    <h6>E-mail:</h6>
+                    <input class="form-control" id="Email" name="Email" value="@Model.Email" type="email" placeholder="E-mail" />
+                </div>
+            </div>
+            @if (tecnicoIdade >= 40 && Model.PlanoResponsavelTecnicoId.HasValue)
+            {
+                <div class="form-row">
+                    <div class="form-group col-md-12">
+                        <h6>Tem alguma deficiência de orgão, membros ou sentido(por exemplo visão e audisão), ou anomalias físicas em membros ou órgãos?</h6>
+                        <label class="radio-inline">
+                            <input type="radio" name="Tecnicodoenca" id="PossuiDoencaTecnico">&nbsp;Sim
+                        </label>
+                        <label class="radio-inline" style="margin-left:1em;">
+                            <input type="radio" name="Tecnicodoenca" id="NaoPossuiDoencaTecnico">&nbsp;Não
+                        </label>
+                        <div id="CamposDoencaTecnico" style="display:none; width:100%;">
+                            <label class="control-label">Esclareça:</label>
+                            <textarea class="form-control" id="doencasTecnico" name="TecnicoDoencas"></textarea>
+                        </div>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(Model.TecnicoDoencas))
+                    {
+                        <script type="text/javascript">
+                            $('#doencasTecnico').text('@Html.Raw(Model.TecnicoDoencas)');
+                            $('#PossuiDoencaTecnico').click();
+                            $('#CamposDoencaTecnico').show();
+                        </script>
+                    }
+                    else
+                    {
+                        <script type="text/javascript">
+                            $('#NaoPossuiDoencaTecnico').click();
+                        </script>
+                    }
+                    <div class="form-group col-md-12">
+                        <h6>Nos últimos 2 anos, teve alguma doença ou lesão que provocou o afastamento de suas atividades profissionais rotineiras?</h6>
+                        <label class="radio-inline"><input type="radio" name="TecnicodoencaAtualmente" id="PossuiuDoencaAtualmenteTecnico">&nbsp;Sim</label>
+                        <label class="radio-inline"><input type="radio" style="margin-left:1em;" name="TecnicodoencaAtualmente" id="NaoPossuiuDoencaAtualmenteTecnico">Não</label>
+                        <div id="CamposDoencaAtualmenteTecnico" style="display:none;  width:100%;">
+                            <label class="control-label">Esclareça:</label>
+                            <textarea class="form-control" name="TecnicoDoencasAtuais" id="DoencasAtuaisTecnico"></textarea>
+                        </div>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(Model.TecnicoDoencasAtuais))
+                    {
+                        <script type="text/javascript">
+                            $('#DoencasAtuaisTecnico').text('@Html.Raw(Model.TecnicoDoencasAtuais)');
+                            $('#PossuiuDoencaAtualmenteTecnico').click();
+                            $('#CamposDoencaAtualmenteTecnico').show();
+                        </script>
+                    }
+                    else
+                    {
+                        <script type="text/javascript">
+                            $('#NaoPossuiuDoencaAtualmenteTecnico').click();
+                        </script>
+                    }
+                    <div class="form-group col-md-12">
+                        <h6>Utiliza medicamentos de uso regular?</h6>
+                        <label class="radio-inline"><input type="radio" name="TecnicoMedicamento" id="TomaMedicamentoTecnico">&nbsp;Sim</label>
+                        <label class="radio-inline"><input type="radio" style="margin-left:1em;" name="TecnicoMedicamento" id="NaoTomaMedicamentoTecnico">&nbsp;Não</label>
+                        <div id="CamposMedicamentoTecnico" style="display:none; width:100%;">
+                            <label class="control-label">Informe o nome do medicamento, a dosagem e a frequência:</label>
+                            <textarea class="form-control" name="TecnicoMedicamentos" id="MedicamentosTecnico"></textarea>
+                        </div>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(Model.TecnicoMedicamentos))
+                    {
+                        <script type="text/javascript">
+                            $('#MedicamentosTecnico').text('@Html.Raw(Model.TecnicoMedicamentos)');
+                            $('#TomaMedicamentoTecnico').click();
+                            $('#CamposMedicamentoTecnico').show();
+                        </script>
+                    }
+                    else
+                    {
+                        <script type="text/javascript">
+                            $('#NaoTomaMedicamentoTecnico').click();
+                        </script>
+                    }
+                    <div class="form-group col-md-12">
+                        <div class="form-row">
+                            <div class="form-group col-md-3">
+                                <label>É fumante:</label>
+                                <select class="form-control" name="TecnicoFumante" id="FumanteTecnico">
+                                    <option value="">Selecione</option>
+                                    <option id="True" value="true">Sim</option>
+                                    <option id="False" value="false">Não</option>
+                                </select>
+                            </div>
+                            @if (Model.TecnicoFumante.HasValue)
+                            {
+                                <script type="text/javascript">
+                                    $('#FumanteTecnico').find('[id=' + "@Model.TecnicoFumante" + ']').attr('selected', true);
+                                </script>
+                            }
+                            <div class="form-group col-md-3">
+                                <label>Peso:</label>
+                                <input class="form-control weight-height" name="TecnicoPeso" id="PesoTecnico" value="@Model.TecnicoPeso" type="text" placeholder="Peso" />
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label>Altura:</label>
+                                <input class="form-control weight-height" name="TecnicoAltura" id="AlturaTecnico" value="@Model.TecnicoAltura" type="text" placeholder="Altura" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        @if (!Model.PlanoExtensaoCoberturaId.HasValue)
+        {
+            <div class="card-footer">
+                <a href="@Url.Action("Cotacao", "SeguroClinicaVeterinaria")?reference=@Model.Referencia" class="btn btn-secondary"><i class="fas fa-arrow-left"></i>&nbsp;Voltar</a>
+                <button type="button" id="FormularioSubmitButton" class="btn btn-primary float-right">Proximo&nbsp;<i class="fas fa-arrow-right"></i></button>
+            </div>
+        }
+    </div>
+    <br />
+    @if (Model.QtdFuncionarios > 0 && Model.PlanoExtensaoCoberturaId.HasValue)
+    {
+        <div class="card bg-light">
+            <div class="card-header">
+                <h4 class="amaisvet-green">
+                    Dados dos Colaboradores Médicos Veterinários&nbsp;<a href="javascript:void(0)" data-target="#IdadeFuncionariosModal" data-toggle="modal"><i class="fas fa-info-circle amaisvet-green" style="font-size:0.6em;"></i></a>
+                </h4>
+            </div>
+            <div class="card-body">
+                @foreach (var item in Model.Funcionarios)
+                {
+                    <input id="SeguradoProfissionalId@(i)" type="hidden" value="@item.SeguradoProfissionalId" />
+                    <h5 class="col-md-12">
+                        Colaborador @(i) @if (item.Idade >= 40)
+                        {<text>(+40 anos)</text>}
+                    </h5>
+                    <div class="form-row">
+                        <div class="form-group col-md-7">
+                            <label>Nome:</label>
+                            <input class="form-control" value="@item.Nome" id="Nome@(i)" type="text" placeholder="Nome" />
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label>CRMV:</label>
+                            <input class="form-control" id="CRMV@(i)" value="@item.CRM" type="text" placeholder="CRMV" />
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label>Estado do CRMV:</label>
+                            <select class="form-control" id="EstadoCRMV@(i)">
+                                <option value="">Selecione</option>
+                                @foreach (var _item in GuardMedWeb.BLL.Utils.Utils.GetEstados())
+                                {
+                                    if (_item.EstadoId == item.EstadoCRM)
+                                    {
+                                        <option value="@_item.EstadoId" selected>@_item.Description</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@_item.EstadoId">@_item.Description</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group col-md-2">
+                            <label>CPF:</label>
+                            <input class="form-control cpf" id="CPF@(i)" value="@item.CPF" type="text" placeholder="CPF" />
+                        </div>
+                        <div class="col-md-2 form-group">
+                            <label>Data de nascimento:</label>
+                            <input class="form-control date" id="DataNascimento@(i)" value="@item.DataNascimento" type="text" placeholder="Data de nascimento" />
+                        </div>
+                        <div class="col-md-2 form-group">
+                            <label>Celular:</label>
+                            <input class="form-control mobile" id="Celular@(i)" value="@item.Celular" type="text" placeholder="Celular" />
+                        </div>
+                        <div class="col-md-2 form-group">
+                            <label>Telefone:</label>
+                            <input class="form-control phone" id="Telefone@(i)" value="@item.Telefone" type="text" placeholder="Telefone" />
+                        </div>
+                        <div class="col-md-4 form-group">
+                            <label>E-mail:</label>
+                            <input class="form-control" id="Email@(i)" value="@item.Email" type="email" placeholder="E-mail" />
+                        </div>
+                    </div>
+                    @if (item.Idade >= 40)
+                    {
+                        <div class="form-row">
+                            <div class="form-group col-md-12">
+                                <h6>Tem alguma deficiência de orgão, membros ou sentido(por exemplo visão e audisão), ou anomalias físicas em membros ou órgãos?</h6>
+                                <label class="radio-inline">
+                                    <input type="radio" name="doenca@(i)" dataname="doenca" id="PossuiDoenca@(i)">&nbsp;Sim
+                                </label>
+                                <label class="radio-inline" style="margin-left:1em;">
+                                    <input type="radio" name="doenca@(i)" dataname="doenca" id="NaoPossuiDoenca@(i)">&nbsp;Não
+                                </label>
+                                <div id="CamposDoenca@(i)" style="display:none; width:100%;">
+                                    <label class="control-label">Esclareça:</label>
+                                    <textarea class="form-control" id="doencas@(i)" name="Doencas"></textarea>
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(item.Doencas))
+                                {
+                                    <script type="text/javascript">
+                                $('#doencas@(i)').text('@Html.Raw(item.Doencas)');
+                                $('#PossuiDoenca@(i)').click();
+                                $('#CamposDoenca@(i)').show();
+                                    </script>
+                                }
+                                else
+                                {
+                                    <script type="text/javascript">
+                                    $('#NaoPossuiDoenca@(i)').click();
+                                    </script>
+                                }
+                            </div>
+                            <div class="form-group col-md-12">
+                                <h6>Nos últimos 2 anos, teve alguma doença ou lesão que provocou o afastamento de suas atividades profissionais rotineiras?</h6>
+                                <label class="radio-inline"><input type="radio" name="doencaAtualmente@(i)" dataname="doencaAtualmente" id="PossuiuDoencaAtualmente@(i)">&nbsp;Sim</label>
+                                <label class="radio-inline"><input type="radio" style="margin-left:1em;" name="doencaAtualmente@(i)" dataname="doencaAtualmente" id="NaoPossuiuDoencaAtualmente@(i)">Não</label>
+                                <div id="CamposDoencaAtualmente@(i)" style="display:none;  width:100%;">
+                                    <label class="control-label">Esclareça:</label>
+                                    <textarea class="form-control" id="DoencasAtuais@(i)"></textarea>
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(item.DoencasAtuais))
+                                {
+                                    <script type="text/javascript">
+                                $('#DoencasAtuais@(i)').text('@Html.Raw(item.DoencasAtuais)');
+                                $('#PossuiuDoencaAtualmente@(i)').click();
+                                $('#CamposDoencaAtualmente@(i)').show();
+                                    </script>
+                                }
+                                else
+                                {
+                                    <script type="text/javascript">
+                                    $('#NaoPossuiuDoencaAtualmente@(i)').click();
+                                    </script>
+                                }
+                            </div>
+                            <div class="form-group col-md-12">
+                                <h6>Utiliza medicamentos de uso regular?</h6>
+                                <label class="radio-inline"><input type="radio" name="Medicamento@(i)" dataname="Medicamento" id="TomaMedicamento@(i)">&nbsp;Sim</label>
+                                <label class="radio-inline"><input type="radio" style="margin-left:1em;" name="Medicamento@(i)" dataname="Medicamento" id="NaoTomaMedicamento@(i)">&nbsp;Não</label>
+                                <div id="CamposMedicamento@(i)" style="display:none; width:100%;">
+                                    <label class="control-label">Informe o nome do medicamento, a dosagem e a frequência:</label>
+                                    <textarea class="form-control" id="Medicamentos@(i)"></textarea>
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(item.Medicamentos))
+                                {
+                                    <script type="text/javascript">
+                                $('#Medicamentos@(i)').text('@Html.Raw(item.Medicamentos)');
+                                $('#TomaMedicamento@(i)').click();
+                                $('#CamposMedicamento@(i)').show();
+                                    </script>
+                                }
+                                else
+                                {
+                                    <script type="text/javascript">
+                                    $('#NaoTomaMedicamento@(i)').click();
+                                    </script>
+                                }
+                            </div>
+                            <div class="form-group col-md-12">
+                                <div class="form-row">
+                                    <div class="form-group col-md-3">
+                                        <label>É fumante:</label>
+                                        <select class="form-control" id="Fumante@(i)">
+                                            <option value="">Selecione</option>
+                                            <option id="True" value="true">Sim</option>
+                                            <option id="False" value="false">Não</option>
+                                        </select>
+                                    </div>
+                                    @if (item.Fumante.HasValue)
+                                    {
+                                        <script type="text/javascript">
+                                        $('#Fumante@(i)').find('[id=' + "@item.Fumante" + ']').attr('selected', true);
+                                        </script>
+                                    }
+                                    <div class="form-group col-md-3">
+                                        <label>Peso:</label>
+                                        <input class="form-control weight-height" id="Peso@(i)" type="text" value="@item.Peso" placeholder="Peso" />
+                                    </div>
+                                    <div class="form-group col-md-3">
+                                        <label>Altura:</label>
+                                        <input class="form-control weight-height" id="Altura@(i)" type="text" value="@item.Altura" placeholder="Altura" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    @if (i != Model.QtdFuncionarios)
+                    {
+                        <hr />
+                    }
+                    i++;
+                }
+                @if (Model.QtdFuncionarios != i - 1)
+                {
+                    @for (int _i = i; _i <= (qtdFuncionarios20 + qtdFuncionarios30); _i++)
+                    {
+                        <input id="SeguradoProfissionalId@(_i)" type="hidden" />
+                        <h5 class="col-md-12">Colaborador @(_i)</h5>
+                        <div class="form-row">
+                            <div class="form-group col-md-7">
+                                <label>Nome:</label>
+                                <input class="form-control" value="" id="Nome@(_i)" type="text" placeholder="Nome" />
+                            </div>
+                            <div class="form-group col-md-2">
+                                <label>CRMV:</label>
+                                <input class="form-control" id="CRMV@(_i)" value="" type="text" placeholder="CRMV" />
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label>Estado do CRMV:</label>
+                                <select class="form-control" id="EstadoCRMV@(_i)" value="">
+                                    <option value="">Selecione</option>
+                                    @foreach (var item in GuardMedWeb.BLL.Utils.Utils.GetEstados())
+                                    {
+                                        <option value="@item.EstadoId">@item.Description</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label>CPF:</label>
+                                <input class="form-control cpf" id="CPF@(_i)" type="text" placeholder="CPF" />
+                            </div>
+                            <div class="col-md-2 form-group">
+                                <label>Data de nascimento:</label>
+                                <input class="form-control date" id="DataNascimento@(_i)" type="text" placeholder="Data de nascimento" />
+                            </div>
+                            <div class="col-md-2 form-group">
+                                <label>Celular:</label>
+                                <input class="form-control mobile" id="Celular@(_i)" type="text" placeholder="Celular" />
+                            </div>
+                            <div class="col-md-5 form-group">
+                                <label>E-mail:</label>
+                                <input class="form-control" id="Email@(_i)" type="email" placeholder="E-mail" />
+                            </div>
+                        </div>
+                        @if (_i != Model.QtdFuncionarios)
+                        {
+                            <hr />
+                        }
+                        i = _i + 1;
+                    }
+                    @for (int _i = i; _i <= qtdFuncionarios40 + qtdFuncionarios50 + i - 1; _i++)
+                    {
+                        <input id="SeguradoProfissionalId@(_i)" type="hidden" />
+                        <h5 class="col-md-12">Colaborador @(_i) (+40 anos)</h5>
+                        <div class="form-row">
+                            <div class="form-group col-md-7">
+                                <label>Nome:</label>
+                                <input class="form-control" value="" id="Nome@(_i)" type="text" placeholder="Nome" />
+                            </div>
+                            <div class="form-group col-md-2">
+                                <label>CRMV:</label>
+                                <input class="form-control" id="CRMV@(_i)" value="" type="text" placeholder="CRMV" />
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label>Estado do CRMV:</label>
+                                <select class="form-control" id="EstadoCRMV@(_i)" value="">
+                                    <option value="">Selecione</option>
+                                    @foreach (var item in GuardMedWeb.BLL.Utils.Utils.GetEstados())
+                                    {
+                                        <option value="@item.EstadoId">@item.Description</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label>CPF:</label>
+                                <input class="form-control cpf" id="CPF@(_i)" type="text" placeholder="CPF" />
+                            </div>
+                            <div class="col-md-2 form-group">
+                                <label>Data de nascimento:</label>
+                                <input class="form-control date" id="DataNascimento@(_i)" type="text" placeholder="Data de nascimento" />
+                            </div>
+                            <div class="col-md-2 form-group">
+                                <label>Celular:</label>
+                                <input class="form-control mobile" id="Celular@(_i)" type="text" placeholder="Celular" />
+                            </div>
+                            <div class="col-md-5 form-group">
+                                <label>E-mail:</label>
+                                <input class="form-control" id="Email@(_i)" type="email" placeholder="E-mail" />
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-12">
+                                <h6>Tem alguma deficiência de orgão, membros ou sentido(por exemplo visão e audisão), ou anomalias físicas em membros ou órgãos?</h6>
+                                <label class="radio-inline">
+                                    <input type="radio" name="doenca@(_i)" dataname="doenca" id="PossuiDoenca@(_i)">&nbsp;Sim
+                                </label>
+                                <label class="radio-inline" style="margin-left:1em;">
+                                    <input type="radio" name="doenca@(_i)" dataname="doenca" id="NaoPossuiDoenca@(_i)">&nbsp;Não
+                                </label>
+                                <div id="CamposDoenca@(_i)" style="display:none; width:100%;">
+                                    <label class="control-label">Esclareça:</label>
+                                    <textarea class="form-control" id="doencas@(_i)" name="Doencas"></textarea>
+                                </div>
+                            </div>
+                            <div class="form-group col-md-12">
+                                <h6>Nos últimos 2 anos, teve alguma doença ou lesão que provocou o afastamento de suas atividades profissionais rotineiras?</h6>
+                                <label class="radio-inline"><input type="radio" name="doencaAtualmente@(_i)" dataname="doencaAtualmente" id="PossuiuDoencaAtualmente@(_i)">&nbsp;Sim</label>
+                                <label class="radio-inline"><input type="radio" style="margin-left:1em;" name="doencaAtualmente@(_i)" dataname="doencaAtualmente" id="NaoPossuiuDoencaAtualmente@(_i)">Não</label>
+                                <div id="CamposDoencaAtualmente@(_i)" style="display:none;  width:100%;">
+                                    <label class="control-label">Esclareça:</label>
+                                    <textarea class="form-control" id="DoencasAtuais@(_i)"></textarea>
+                                </div>
+                            </div>
+                            <div class="form-group col-md-12">
+                                <h6>Utiliza medicamentos de uso regular?</h6>
+                                <label class="radio-inline"><input type="radio" name="Medicamento@(_i)" dataname="Medicamento" id="TomaMedicamento@(_i)">&nbsp;Sim</label>
+                                <label class="radio-inline"><input type="radio" style="margin-left:1em;" name="Medicamento@(_i)" dataname="Medicamento" id="NaoTomaMedicamento@(_i)">&nbsp;Não</label>
+                                <div id="CamposMedicamento@(_i)" style="display:none; width:100%;">
+                                    <label class="control-label">Informe o nome do medicamento, a dosagem e a frequência:</label>
+                                    <textarea class="form-control" id="Medicamentos@(_i)"></textarea>
+                                </div>
+                            </div>
+                            <div class="form-group col-md-12">
+                                <div class="form-row">
+                                    <div class="form-group col-md-3">
+                                        <label>É fumante:</label>
+                                        <select class="form-control" id="Fumante@(_i)">
+                                            <option value="">Selecione</option>
+                                            <option id="True" value="true">Sim</option>
+                                            <option id="False" value="false">Não</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group col-md-3">
+                                        <label>Peso:</label>
+                                        <input class="form-control weight-height" id="Peso@(_i)" type="text" placeholder="Peso" />
+                                    </div>
+                                    <div class="form-group col-md-3">
+                                        <label>Altura:</label>
+                                        <input class="form-control weight-height" id="Altura@(_i)" type="text" placeholder="Altura" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @if (_i != Model.QtdFuncionarios)
+                        {
+                            <hr />
+                        }
+                    }
+                }
+            </div>
+            @*@if (Model.QtdCLT == 0)
+            {*@
+                <div class="card-footer">
+                    <a href="@Url.Action("Cotacao", "SeguroClinicaVeterinaria")?reference=@Model.Referencia" class="btn btn-secondary"><i class="fas fa-arrow-left"></i>&nbsp;Voltar</a>
+                    <button type="button" id="FormularioSubmitButton" class="btn btn-primary float-right">Proximo&nbsp;<i class="fas fa-arrow-right"></i></button>
+                </div>
+            @*}*@
+        </div>
+        <br />
+    }
+    @*@if (Model.QtdCLT > 0)
+    {
+        <div class="card bg-light">
+            <div class="card-header">
+                <h4 class="amaisvet-green">Dados dos Colaboradores CLTs</h4>
+            </div>
+            <div class="card-body">
+                @foreach (var item in Model.CLTs)
+                {
+                    <input id="CLTId@(cltIndex)" type="hidden" value="@item.CLTId" />
+                    <h5 class="col-md-12">Colaborador CLT @(cltIndex)</h5>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label>Nome:</label>
+                            <input class="form-control" value="@item.Nome" id="CLTNome@(cltIndex)" type="text" placeholder="Nome" />
+                        </div>
+                        <div class="form-group col-md-3">
+                            <label>CPF:</label>
+                            <input class="form-control cpf" value="@item.CPF" id="CLTCPF@(cltIndex)" type="text" placeholder="CPF" />
+                        </div>
+                        <div class="col-md-3">
+                            <label>Data de nascimento:</label>
+                            <input class="form-control date" value="@item.DataNascimento" id="CLTDataNascimento@(cltIndex)" type="text" placeholder="Data de nascimento" />
+                        </div>
+                    </div>
+                    @if (cltIndex != Model.QtdCLT)
+                    {
+                        <hr />
+                    }
+                    cltIndex += +1;
+                }
+                @if (cltIndex - 1 != Model.QtdCLT)
+                {
+                    for (int _i = cltIndex; _i < Model.QtdCLT + 1; _i++)
+                    {
+                        <h5 class="col-md-12">Colaborador CLT @(_i)</h5>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label>Nome:</label>
+                                <input class="form-control" id="CLTNome@(_i)" type="text" placeholder="Nome" />
+                            </div>
+                            <div class="form-group col-md-3">
+                                <label>CPF:</label>
+                                <input class="form-control cpf" id="CLTCPF@(_i)" type="text" placeholder="CPF" />
+                            </div>
+                            <div class="col-md-3">
+                                <label>Data de nascimento:</label>
+                                <input class="form-control date" id="CLTDataNascimento@(_i)" type="text" placeholder="Data de nascimento" />
+                            </div>
+                        </div>
+                        @if (_i != Model.QtdCLT)
+                        {
+                            <hr />
+                        }
+                    }
+                }
+            </div>
+            <div class="card-footer">
+                <a href="@Url.Action("Cotacao", "SeguroClinicaVeterinaria")?reference=@Model.Referencia" class="btn btn-secondary"><i class="fas fa-arrow-left"></i>&nbsp;Voltar</a>
+                <button type="button" id="FormularioSubmitButton" class="btn btn-primary float-right">Proximo&nbsp;<i class="fas fa-arrow-right"></i></button>
+            </div>
+        </div>
+    }*@
+</form>
+<br />
+
+<script type="text/javascript">
+    $('#FormularioSubmitButton').click(function () {
+        if (ValidacaoDeFormulario()) {
+            @*@if (Model.PlanoExtensaoCoberturaId.HasValue) {<text>SalvarProfissionais();</text>}
+            else if (Model.QtdCLT.HasValue && Model.QtdCLT.Value > 0) {<text>SalvarCLT();</text>}
+            else{ <text>FormularioSalvar();</text>}*@
+            @if (Model.PlanoExtensaoCoberturaId.HasValue) {<text>SalvarProfissionais();</text>}
+            else{ <text>FormularioSalvar();</text>}
+        }
+    });
+
+    $('#Tipo').change(function () {
+        if ($('#Tipo').val() == 1) {
+            $('.PessoaJuridica').hide();
+            $('.PessoaFisica').show();
+        }
+        else {
+            $('.PessoaFisica').hide();
+            $('.PessoaJuridica').show();
+        }
+    });
+
+    $(document).ready(function () {
+        if (!IsNullOrWhiteSpace($('#CNPJ').val())) {
+            $('#Tipo').val(2);
+            $('#Tipo').change();
+        }
+    });
+
+    @if (!string.IsNullOrWhiteSpace(Model.Estado))
+    {
+        <text>
+    $('#Estado').find('[value=' + "@Model.Estado" + ']').attr('selected', true);
+        </text>
+    }
+/**/
+    @if (!string.IsNullOrWhiteSpace(Model.CRMVEstado))
+    {
+        <text>
+    $('#CRMVEstado').find('[value=' + "@Model.CRMVEstado" + ']').attr('selected', true);
+        </text>
+    }
+
+</script>
+
+<script type="text/javascript">
+    $('input[dataname="doenca"]').change(function () {
+        var selectorId = $(this).attr('id');
+        var index = selectorId.substr(selectorId.length - 1);
+
+        if (selectorId.slice(0, -1) == 'PossuiDoenca') {
+            if ($('#PossuiDoenca' + index)[0].checked) {
+                $('#CamposDoenca' + index).show();
+            }
+        }
+        else {
+            $('#doencas' + index).text('');
+            $('#CamposDoenca' + index).hide();
+        }
+    });
+
+    $('input[dataname="doencaAtualmente"]').change(function () {
+
+        var selectorId = $(this).attr('id');
+        var index = selectorId.substr(selectorId.length - 1);
+
+        if (selectorId.slice(0, -1) == 'PossuiuDoencaAtualmente') {
+            if ($('#PossuiuDoencaAtualmente' + index)[0].checked) {
+                $('#CamposDoencaAtualmente' + index).show();
+            }
+        }
+        else {
+            if ($('#NaoPossuiuDoencaAtualmente' + index)[0].checked) {
+                $('#DoencasAtuais' + index).text('');
+                $('#CamposDoencaAtualmente' + index).hide();
+            }
+        }
+    });
+
+    $('input[dataname="Medicamento"]').change(function () {
+        var selectorId = $(this).attr('id');
+        var index = selectorId.substr(selectorId.length - 1);
+
+        if (selectorId.slice(0, -1) == 'TomaMedicamento') {
+            if ($('#TomaMedicamento' + index)[0].checked) {
+                $('#CamposMedicamento' + index).show();
+            }
+        }
+        else {
+            if ($('#NaoTomaMedicamento' + index)[0].checked) {
+                $('#Medicamentos' + index).text('');
+                $('#CamposMedicamento' + index).hide();
+            }
+        }
+    });
+
+
+    $(document).ready(function () {
+        $("._cep").blur(function () {
+
+            var selectorId = $(this).attr('id');
+            var index = selectorId.substr(selectorId.length - 1);
+
+            var cep = $(this).val().replace(/\D/g, '');
+
+            $('.CEPError' + index).remove();
+            if (cep != "") {
+                var validacep = /^[0-9]{8}$/;
+
+                if (validacep.test(cep)) {
+
+                    $.getJSON("https://viacep.com.br/ws/" + cep + "/json/?callback=?", function (dados) {
+
+                        if (!("erro" in dados)) {
+
+                            $("#Endereco" + index).val(dados.logradouro);
+                            $("#Bairro" + index).val(dados.bairro);
+                            $("#Cidade" + index).val(dados.localidade);
+                            $("#Estado" + index).val(dados.uf);
+                        }
+                        else {
+                            $('#CEP' + index).after('<div class="text-danger CEPError' + index + '">CEP não encontrado.</div>');
+                        }
+                    });
+                }
+                else {
+                    $('#CEP' + index).after('<div class="text-danger CEPError' + index + '">Formato de CEP inválido.</div>');
+                }
+            }
+        });
+    });
+
+
+
+    $('#PossuiDoencaTecnico').change(function () {
+        if ($('#PossuiDoencaTecnico')[0].checked) {
+            $('#CamposDoencaTecnico').show();
+        }
+    });
+    $('#NaoPossuiDoencaTecnico').change(function () {
+        if ($('#NaoPossuiDoencaTecnico')[0].checked) {
+            $('#DoencasAtuaisTecnico').text('');
+            $('#CamposDoencaTecnico').hide();
+        }
+    });
+    $('#PossuiuDoencaAtualmenteTecnico').change(function () {
+        if ($('#PossuiuDoencaAtualmenteTecnico')[0].checked) {
+            $('#CamposDoencaAtualmenteTecnico').show();
+        }
+    });
+    $('#NaoPossuiuDoencaAtualmenteTecnico').change(function () {
+        if ($('#NaoPossuiuDoencaAtualmenteTecnico')[0].checked) {
+            $('#DoencasAtuaisTecnico').text('');
+            $('#CamposDoencaAtualmenteTecnico').hide();
+        }
+    });
+    $('#TomaMedicamentoTecnico').change(function () {
+        if ($('#TomaMedicamentoTecnico')[0].checked) {
+            $('#CamposMedicamentoTecnico').show();
+        }
+    });
+    $('#NaoTomaMedicamentoTecnico').change(function () {
+        if ($('#NaoTomaMedicamentoTecnico')[0].checked) {
+            $('#MedicamentosTecnico').text('');
+            $('#CamposMedicamentoTecnico').hide();
+        }
+    });
+</script>
+
+<div class="modal fade" id="IdadeFuncionariosModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div style="margin-bottom:1em;"><strong>Faixa das Idades dos Profissionais Escolhidos na Cotação:</strong></div>
+                <strong>@qtdFuncionarios20</strong> funcionario(s) entre 20 à 29 anos;<br />
+                <strong>@qtdFuncionarios30</strong> funcionario(s) entre 30 à 39 anos;<br />
+                <strong>@qtdFuncionarios40</strong> funcionario(s) entre 40 à 49 anos;<br />
+                <strong>@qtdFuncionarios50</strong> funcionario(s) entre 50 à 59 anos;<br />
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-dismiss="modal" aria-label="Close"><i class="fa fa-times"></i>&nbsp;Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>

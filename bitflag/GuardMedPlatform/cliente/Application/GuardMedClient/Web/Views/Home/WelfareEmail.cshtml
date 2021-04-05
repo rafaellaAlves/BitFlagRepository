@@ -1,0 +1,24 @@
+﻿@model Web.DTO.Welfare.WelfareEmailViewModel
+
+<div style="width: 45%; margin-left: 33%; border: 1px solid #cecece; -webkit-box-shadow: -1px -5px 20px 0px #b5b5b5; box-shadow: -1px -5px 20px 0px #b5b5b5; background: linear-gradient(to bottom, #e2e2e2, #e2e2e2 70px, #a8c6e28a 250px, #adc2d8);"> 
+    <div style="padding: 15px; font-weight: bold; font-size: 25px; text-align: center;">
+        <img src="cid:LogoImg" width="300">
+        <div style="margin-top: 1em;">
+            - Nova Solicitação -<br />
+            Atendimento Psicológico<br />
+            # @Model.SeguradoProfissional.Referencia
+        </div>
+    </div>
+    <div style="padding: 15px; font-size: 16px; line-height: 25px; padding-bottom: 40px;">
+        Foi realizada uma solicitação de agendamento para atendimento psicológico.<br /><br />
+        O cliente <b>@Model.SeguradoProfissional.Nome</b> realizou uma solicitação para o dia <b>@Model._Date</b> no período: <b>@Model._Period</b>.<br />
+        @if (!string.IsNullOrWhiteSpace(Model.SeguradoProfissional.Telefone) || !string.IsNullOrWhiteSpace(Model.SeguradoProfissional.Celular))
+        {
+            <label>É possível entrar em contato com o cliente pelo telefone/celular: <b>@(!string.IsNullOrWhiteSpace(Model.SeguradoProfissional.Celular)? Model.SeguradoProfissional.Celular : Model.SeguradoProfissional.Telefone)</b> ou pelo e-mail: <b>@Model.SeguradoProfissional.Email</b>.</label>
+        }
+        else
+        {
+            <label>É possível entrar em contato com o cliente pelo e-mail: <b>@Model.SeguradoProfissional.Email</b>.</label>
+        }
+    </div>
+</div>

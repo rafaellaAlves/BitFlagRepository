@@ -1,0 +1,12 @@
+C:\repositorios\bitflag\AmaisImobPlatform\Branches\Fev2021\AMaisImob_API\bin\Debug\netcoreapp2.2\AMaisImob_API.deps.json
+C:\repositorios\bitflag\AmaisImobPlatform\Branches\Fev2021\AMaisImob_API\bin\Debug\netcoreapp2.2\AMaisImob_API.dll
+C:\repositorios\bitflag\AmaisImobPlatform\Branches\Fev2021\AMaisImob_API\bin\Debug\netcoreapp2.2\AMaisImob_API.pdb
+C:\repositorios\bitflag\AmaisImobPlatform\Branches\Fev2021\AMaisImob_API\bin\Debug\netcoreapp2.2\AMaisImob_DB.dll
+C:\repositorios\bitflag\AmaisImobPlatform\Branches\Fev2021\AMaisImob_API\bin\Debug\netcoreapp2.2\AMaisImob_DB.pdb
+C:\repositorios\bitflag\AmaisImobPlatform\Branches\Fev2021\AMaisImob_API\obj\Debug\netcoreapp2.2\AMaisImob_API.csprojAssemblyReference.cache
+C:\repositorios\bitflag\AmaisImobPlatform\Branches\Fev2021\AMaisImob_API\obj\Debug\netcoreapp2.2\AMaisImob_API.AssemblyInfoInputs.cache
+C:\repositorios\bitflag\AmaisImobPlatform\Branches\Fev2021\AMaisImob_API\obj\Debug\netcoreapp2.2\AMaisImob_API.AssemblyInfo.cs
+C:\repositorios\bitflag\AmaisImobPlatform\Branches\Fev2021\AMaisImob_API\obj\Debug\netcoreapp2.2\AMaisImob_API.csproj.CoreCompileInputs.cache
+C:\repositorios\bitflag\AmaisImobPlatform\Branches\Fev2021\AMaisImob_API\obj\Debug\netcoreapp2.2\AMaisImob_API.csproj.CopyComplete
+C:\repositorios\bitflag\AmaisImobPlatform\Branches\Fev2021\AMaisImob_API\obj\Debug\netcoreapp2.2\AMaisImob_API.dll
+C:\repositorios\bitflag\AmaisImobPlatform\Branches\Fev2021\AMaisImob_API\obj\Debug\netcoreapp2.2\AMaisImob_API.pdb

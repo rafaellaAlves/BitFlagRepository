@@ -1,0 +1,24 @@
+﻿@model List<DTO.Client.ClientCalendarViewModel>
+
+@if (Model.Count > 0)
+{
+
+    @foreach (var item in Model)
+    {
+        <div class="d-flex flex-row mb-3 pb-3 border-bottom">
+            <a href="@Url.Action("ClientCalendar", "Client", new { clientId = item.ClientId, clientTaskId = item.ClientTaskId })">
+                <p class="font-weight-medium mb-0">@item.Title</p>
+                <p class="text-muted mb-0 text-small"><i>@item.Message</i></p>
+                <br />
+                <p class="text-muted mb-0 text-small"><b>@item.ClientName</b> | @item._TaskDate</p>
+            </a>
+        </div>
+    }
+}
+else
+{
+    <div style="line-height: 342px;" class="text-center">
+        <i>Nenhuma tarefa programada.</i>
+    </div>
+
+}

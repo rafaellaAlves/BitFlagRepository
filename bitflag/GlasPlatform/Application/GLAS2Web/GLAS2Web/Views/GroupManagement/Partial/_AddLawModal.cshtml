@@ -1,0 +1,117 @@
+﻿<!-- *********** -->
+<!-- ADD LAW -->
+<!-- *********** -->
+<div class="modal fade" tabindex="-1" role="dialog" id="addLawModal" aria-hidden="true">
+	<div class="modal-dialog modal-lg" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Adicionar Requisito Legal à Unidade de Negócio</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<div class="alert alert-warning" role="alert">
+					<b>Atenção</b>: Esse processo pode ser um pouco demorado pois muitas unidades de negócios podem estar associadas aos grupos e subgrupos.
+				</div>
+				@{ Html.RenderPartial("~/Views/Shared/_LawSearch.cshtml"); }
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-ban" aria-hidden="true"></i>&nbsp;Fechar</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="chooseApplicableModal" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-lg" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Dados do requisito legal</h5>
+				<button type="button" class="close" id="backButton">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<div class=form-group>
+					<label class="control-label">Escolha a aplicabilidade deste requisito legal:</label>
+					<select class="form-control" id="lawApplicable">
+						<option value="" class="selected" >Selecione</option>
+						@foreach (var lawApplicable in (IEnumerable<DAL.LawApplicationType>)ViewData["LawApplicableType"])
+						{
+							<option value="@lawApplicable.LawApplicationTypeId">@lawApplicable.Name</option>
+						}
+					</select>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-primary float-right" id="confimApplicableButton"><i class="fas fa-check"></i>&nbsp;Ok</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+
+	var formData;
+
+    $('#addLawModal').on('shown.bs.modal', function () {
+        _LawSearchClearSearch();
+        _LawSearchDoneTyping();
+    });
+	function _LawSearchSelectCallBack(data) {
+		formData = new FormData();
+		var parentNode = $('#tree').tree('getSelectedNode');
+		if (parentNode == false || parentNode.IsLaw) {
+			alert('Por favor, selecione um grupo.');
+			return;
+		}
+		formData.append("lawId", data.LawId);
+		formData.append("groupId", parentNode.GroupId);
+
+		$('#addLawModal').modal('hide');
+		$('#chooseApplicableModal').modal('show');
+		$('#lawApplicable').val('');
+		$('.text-danger').remove();
+	}
+
+	$('#confimApplicableButton').click(function() {
+		var lawApplicableId = $('#lawApplicable').val();
+		if (IsNullOrWhiteSpace(lawApplicableId)) {
+			$('#lawApplicable').after('<div class="text-danger">Selecione uma opção!</div>');
+		}
+		else {
+			formData.append("lawApplicableId", lawApplicableId);
+
+			$.ajax({
+				url: '@Url.Action("AddLawToGroup", "GroupManagement")',
+				type: 'POST',
+				data: formData,
+				contentType: false,
+				processData: false,
+				success: function (data) {
+					if (data < 0) {
+						alert('Houve um erro ao associar o Requisito legal às unidades de negócio.');
+					} else if (data == 0) {
+						alert('Nenhum unidade de negócio afetada.');
+					} else if (data == 1) {
+						alert('Uma unidade de negócio afetada.');
+					} else {
+						alert(data + ' unidades de negócio afetadas.');
+					}
+					$('#chooseApplicableModal').modal('hide');
+					$('.text-danger').remove();
+					$('#lawApplicable').val('');
+				}
+			});
+		}
+	});
+
+	$('#backButton').click(function () {
+		$('#addLawModal').modal('show');
+		$('#chooseApplicableModal').modal('hide');
+		$('.text-danger').remove();
+		$('#lawApplicable').val('');
+	});
+</script>
+<!-- *********** -->

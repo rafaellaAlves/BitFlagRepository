@@ -1,0 +1,171 @@
+﻿@model WEB.Models.MedicGroupViewModel
+@{
+	ViewData["Title"] = "Gerenciar Grupo Médico";
+}
+
+<div class="row">
+	<div class="col-md-12">
+		<div class="alert alert-danger" id="AlertaErro" style="display:none;" role="alert">
+			<b>Há erro(s) no formulário!</b> Revise-o.
+		</div>
+		<div class="alert alert-success" id="AlertaSucesso" style="display:none;" role="alert">
+			<b>Dados salvos com sucesso!</b>
+		</div>
+		<div class="card bg-light">
+			<div class="card-header">
+				<h4 class="guardmed-blue">
+					@if (!Model.MedicGroupId.HasValue)
+					{<text>Criação</text>}
+				else
+				{<text>Edição</text>} de Grupo Médico
+				</h4>
+			</div>
+			<div class="card-body">
+				<form id="GrupoMedicoForm">
+					<input type="hidden" id="MedicGroupId" name="MedicGroupId" value="@Model.MedicGroupId" />
+					<div class="row">
+						<div class="col-md-6 form-group">
+							<label class="control-label">Nome do Grupo:</label>
+							<input class="form-control" type="text" id="MedicGroupName" name="MedicGroupName" value="@Model.MedicGroupName" placeholder="Nome do Grupo" />
+						</div>
+						<div class="col-md-6 form-group">
+							<label class="control-label">Código:</label>
+							<input class="form-control" type="text" id="ExternalCode" name="ExternalCode" value="@Model.ExternalCode" placeholder="Código" />
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-md-6 form-group">
+							<label class="control-label"><small class="fas fa-info-circle guardmed-blue" data-toggle="tooltip" data-placement="top" title="O desconto é dado em porcentagem."></small>&nbsp;Desconto:</label>
+							<input class="form-control percent" type="text" id="Discount" value="@Model.Discount" placeholder="Desconto" />
+						</div>
+						<div class="col-md-6 form-group">
+							<label class="control-label">Ativo?</label>
+							<select class="form-control" id="IsActive" name="IsActive">
+								<option value="true" selected>Sim</option>
+								<option value="false">Não</option>
+							</select>
+							@if (Model.IsActive.HasValue)
+							{
+								if (Model.IsActive.Value)
+								{
+									<script type="text/javascript">
+                                        $('#IsActive').val('true');
+									</script>
+								}
+								else
+								{
+									<script type="text/javascript">
+                                        $('#IsActive').val('false');
+									</script>
+								}
+							}
+						</div>
+					</div>
+				</form>
+			</div>
+			<div class="card-footer">
+				<div class="row">
+					<div class="col-md-6 text-left">
+						<button class="btn btn-secondary" id="VoltarGrupoMedicoBotao" style="cursor:pointer;"><i class="fas fa-arrow-left"></i>&nbsp;Voltar</button>
+					</div>
+					<div class="col-md-6 text-right">
+						<button class="btn btn-success" id="SalvarGrupoMedicoBotao" style="cursor:pointer;"><i class="fas fa-upload"></i>&nbsp;Salvar</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+    function ValidarGrupoMedico() {
+        var temErro = false;
+        $('#GrupoMedicoForm .text-danger').remove();
+        $('#AlertaErro').hide();
+
+        if (IsNullOrWhiteSpace($('#MedicGroupName').val())) {
+            $('#MedicGroupName').after('<div class="text-danger">Insira um nome para o grupo médico.</div>');
+            temErro = true;
+        }
+        if (IsNullOrWhiteSpace($('#ExternalCode').val())) {
+            $('#ExternalCode').after('<div class="text-danger">Insira o código.</div>');
+            temErro = true;
+        }
+        if (IsNullOrWhiteSpace($('#Discount').val())) {
+            $('#Discount').after('<div class="text-danger">Insira o desconto.</div>');
+            temErro = true;
+        } else {
+            var valor = $('#Discount').val().replace('%', '');
+            if (valor.indexOf(',') != -1)  valor = valor.replace(',', '.');
+
+            if (parseFloat(valor) > 100) {
+                $('#Discount').after('<div class="text-danger">O desconto deve ser inferior ou igual a 100%.</div>');
+                temErro = true;
+            }
+            else if (parseFloat(valor) <= 0) {
+                $('#Discount').after('<div class="text-danger">O desconto deve ser superior a 0%.</div>');
+                temErro = true;
+            }
+        }
+
+        if (temErro) {
+            $('#AlertaErro').show();
+        }
+
+        return !temErro;
+    }
+
+    function SalvarGrupoMedico() {
+        var d = $('#GrupoMedicoForm').serializeArray();
+        d.push({ name: "Discount", value: $('#Discount').val().replace('%', '') });
+
+        $.ajax({
+            url: '@Url.Action("Gerenciar", "GrupoMedico")',
+            type: 'POST',
+            datatype: 'JSON',
+            data: d,
+            success: function (data) {
+                if (!data.temErro) {
+                    window.location.href = '@Url.Action("Gerenciar","GrupoMedico")?id=' + data.mensagem + '&saved=true';
+                }
+                else {
+                    alert(data.mensagem);
+                }
+            }
+        });
+    }
+
+    $('#SalvarGrupoMedicoBotao').click(function () {
+        if (ValidarGrupoMedico()) {
+            SalvarGrupoMedico();
+        }
+    });
+
+    $('#VoltarGrupoMedicoBotao').click(function () {
+        window.location.href = '@Url.Action("Index","GrupoMedico")';
+    });
+
+    $('#GrupoMedicoCRMBotao').click(function () {
+        $('#CRMCadastradosModal').modal('show');
+    });
+
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip()
+    });
+
+    @if (Context.Request.Query.ContainsKey("saved"))
+    {
+        <text>
+    $('#AlertaSucesso').show();
+
+    var contador;
+
+    clearTimeout(contador);
+    contador = setTimeout(EsconderAlerta, 7000);
+
+    function EsconderAlerta() {
+        $('#AlertaSucesso').hide();
+    }
+        </text>
+    }
+</script>

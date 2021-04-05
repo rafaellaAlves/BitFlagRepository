@@ -1,0 +1,14 @@
+﻿@model int?
+@{
+    ViewData["Title"] = "Empresas";
+}
+
+<div class="card shadow bg-light">
+    <div class="card-body">
+        <div id="_UserCompanyIndexViewComponent"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#_UserCompanyIndexViewComponent').load('@Url.Action("UserCompanyIndexComponent", "UserCompany")', { companyId: @if (Model.HasValue) {<text>"@Model"</text>}else{<text>null</text>} });
+</script>

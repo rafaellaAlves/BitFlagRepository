@@ -1,0 +1,78 @@
+﻿@inject Services.Client.ClientServices clientServices
+
+@{
+    DTO.Client.ClientViewModel userClient = null;
+
+    @if (User.IsClient())
+    {
+        userClient = await clientServices.GetViewModelByIdAsync(await clientServices.GetClientIdByLoggedUser(Context));
+    }
+
+    var startDate = new DateTime(DateTime.Now.AddMonths(-12).Year, DateTime.Now.AddMonths(-12).Month, 1);
+    var endDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+}
+
+<div class="card">
+    <div class="card-header">
+        <div class="row">
+            @if (User.IsClient())
+            {
+                <div class="col-12">
+                    <label class="text-destineja-md float-left">@userClient.Name - @userClient.AlternativeName - @userClient.DocumentFormated</label>
+                </div>
+            }
+            <div class="col-12 text-center" style="font-size: 20px !important; color: black;">
+                Relatório - Movimentação de Coleta
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <form id="report-collection-movement-filter-form">
+            @{
+                var filters = new List<ReportFilterModel>() { ReportFilterModel.StartAndEndDateFilter(new { startDate, endDate }, 4) };
+
+                if (User.IsInRole("Administrator"))
+                {
+                    filters.Add(ReportFilterModel.ClientFilter(null, 4));
+                }
+
+                @(await Component.InvokeAsync<Web.ViewComponents.Report.Filter.FilterViewComponent>(filters))
+            }
+
+        </form>
+        <hr />
+        <div class="w-100" id="report-collection-movement-view-component">
+            @(await Component.InvokeAsync<Web.ViewComponents.Report.CollectionMovement.IndexViewComponent>(new { startDate, endDate }))
+        </div>
+    </div>
+</div>
+
+
+@section Scripts
+{
+    <script src="@Url.Content("~/assets/js/report.js")"></script>
+    <script asp-paste-key="report-filter-client"></script>
+
+    <script type="text/javascript">
+        function reloadByFilter() {
+            if (!validateInputs('report-collection-movement-filter-form') || !validateStartAndEndDate()) return;
+
+            $('#report-collection-movement-view-component').load('@Url.Action("LoadCollectionMovementViewComponent")', $('#report-collection-movement-filter-form').serializeArray());
+        }
+
+        function printReport(url) {
+             var form = $('<form>', { target: "_blank", method: "post", action: url });
+
+            form.append($('<input>', { type: 'hidden', value: (isNullOrWhiteSpace($('[name="StartDate"]').val()) ? "" : $('[name="StartDate"]').val()), name: 'startDate' }));
+            form.append($('<input>', { type: 'hidden', value: (isNullOrWhiteSpace($('[name="EndDate"]').val()) ? "" : $('[name="EndDate"]').val()), name: 'endDate' }));
+            form.append($('<input>', { type: 'hidden', value: (isNullOrWhiteSpace($('[name="ClientId"]').val()) ? "" : $('[name="ClientId"]').val()), name: 'clientId' }));
+
+            setListPrintValuesIntoForm(form);
+
+            $('body').append(form);
+
+            form.submit();
+            form.remove();
+        }
+    </script>
+}

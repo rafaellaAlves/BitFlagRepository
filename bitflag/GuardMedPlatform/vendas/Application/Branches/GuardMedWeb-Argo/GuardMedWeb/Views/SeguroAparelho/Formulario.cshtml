@@ -1,0 +1,545 @@
+﻿@model GuardMedWeb.Models.SeguradoEquipamentoViewModel
+@{
+    ViewData["Title"] = "Seguro Aparelho Veterinario AmaisVet";
+    var i = 1;
+}
+
+<style type="text/css">
+    .tooltip-inner {
+        margin-bottom: -10px;
+    }
+</style>
+
+<script type="text/javascript">
+
+    function ValidacaoDeCotacao() {
+        $('.text-danger').remove();
+        var FormularioErro = false;
+        var precoEquipamentos = 0;
+
+        if (IsNullOrWhiteSpace($('#Nome').val())) {
+            $('#Nome').after('<div class="text-danger">Insira o nome!</div>');
+            FormularioErro = true;
+        }
+
+        if (IsNullOrWhiteSpace($('#DataNascimento').val())) {
+            $('#DataNascimento').after('<div class="text-danger">Insira a data de nascimento/constituição!</div>');
+            FormularioErro = true;
+        }
+
+        if (IsNullOrWhiteSpace($('#CPF').val())) {
+            $('#CPF').after('<div class="text-danger">Insira o CPF ou CNPJ!</div>');
+            FormularioErro = true;
+        }
+        else if ($('#CPF').hasClass('_cpf') && !TestaCPF($('#CPF').cleanVal())) {
+            $('#CPF').after('<div class="text-danger">CPF Inválido!</div>');
+            FormularioErro = true;
+        }
+        else if ($('#CPF').hasClass('cnpj') && !validarCNPJ($('#CPF').cleanVal())) {
+            $('#CPF').after('<div class="text-danger">CNPJ Inválido!</div>');
+            FormularioErro = true;
+        }
+
+        if (IsNullOrWhiteSpace($('#CRMV').val())) {
+            $('#CRMV').after('<div class="text-danger">Insira o CRMV!</div>');
+            FormularioErro = true;
+        }
+
+        if (IsNullOrWhiteSpace($('#CEP').val())) {
+            $('#CEP').after('<div class="text-danger  CEPError">Insira o CEP!</div>');
+            FormularioErro = true;
+        }
+
+        if (IsNullOrWhiteSpace($('#Estado').val())) {
+            $('#Estado').after('<div class="text-danger">Insira o estado!</div>');
+            FormularioErro = true;
+        }
+        if (IsNullOrWhiteSpace($('#Cidade').val())) {
+            $('#Cidade').after('<div class="text-danger">Insira a cidade!</div>');
+            FormularioErro = true;
+        }
+        if (IsNullOrWhiteSpace($('#Celular').val())) {
+            $('#Celular').after('<div class="text-danger">Insira o celular!</div>');
+            FormularioErro = true;
+        }
+        if (IsNullOrWhiteSpace($('#Email').val())) {
+            $('#Email').after('<div class="text-danger">Insira o e-mail!</div>');
+            FormularioErro = true;
+        } else if ($('#Email').val().indexOf("@@") < 1 ||
+            $('#Email').val().indexOf(".") < 1) {
+            FormularioErro = true;
+            $('#Email').after('<div class="text-danger">E-mail incorreto!</div>');
+        }
+        if (IsNullOrWhiteSpace($('#Bairro').val())) {
+            $('#Bairro').after('<div class="text-danger">Insira o bairro!</div>');
+            FormularioErro = true;
+        }
+        if (IsNullOrWhiteSpace($('#Endereco').val())) {
+            $('#Endereco').after('<div class="text-danger">Insira o endereço!</div>');
+            FormularioErro = true;
+        }
+        if (IsNullOrWhiteSpace($('#EnderecoNumero').val())) {
+            $('#EnderecoNumero').after('<div class="text-danger">Insira o número!</div>');
+            FormularioErro = true;
+        }
+
+        for (var i = 1; i <= @Model.QtdEquipamento; i++) {
+            if (IsNullOrWhiteSpace($('#Marca'+i).val())) {
+                $('#Marca' + i).after('<div class="text-danger">Insira a marca do equipamento!</div>');
+                FormularioErro = true;
+            }
+
+            if (IsNullOrWhiteSpace($('#Modelo' + i).val())) {
+                $('#Modelo' + i).after('<div class="text-danger">Insira o modelo do equipamento!</div>');
+                FormularioErro = true;
+            }
+
+            if (IsNullOrWhiteSpace($('#PrecoEquip' + i).val())) {
+                $('#PrecoEquip' + i).after('<div class="text-danger">Insira o preço do equipamento!</div>');
+                FormularioErro = true;
+            }
+            else {
+                precoEquipamentos += parseFloat($('#PrecoEquip' + i).val().replace('.', '').replace(',','.'));
+            }
+
+            if (IsNullOrWhiteSpace($('#Serie' + i).val())) {
+                $('#Serie' + i).after('<div class="text-danger">Insira a série do equipamento!</div>');
+                FormularioErro = true;
+            }
+
+            if (IsNullOrWhiteSpace($('#NF' + i).val())) {
+                $('#NF' + i).after('<div class="text-danger">Escolha uma opção!</div>');
+                FormularioErro = true;
+            }
+
+            if (IsNullOrWhiteSpace($('#Tipo' + i).val())) {
+                $('#Tipo' + i).after('<div class="text-danger">Escolha uma opção!</div>');
+                FormularioErro = true;
+            } else {
+                if (IsNullOrWhiteSpace($('#EspecificarTipo' + i).val()) && $('#Tipo' + i).val() == 8) {
+                    $('#EspecificarTipo' + i).after('<div class="text-danger">Insira a informação!</div>');
+                    FormularioErro = true;
+                }
+            }
+
+            if (IsNullOrWhiteSpace($('#Ano' + i).val())) {
+                $('#Ano' + i).after('<div class="text-danger">Insira o Ano!</div>');
+                FormularioErro = true;
+            }
+        }
+        if (precoEquipamentos != @Model.PrecoEquipamento.Replace(",", ".")) {
+            alert('A soma dos valores é diferente do total informado!');
+            FormularioErro = true;
+        }
+        return (!FormularioErro);
+    }
+
+    function SalvarFormulario() {
+        $('#FormularioForm').submit();
+        @*var d = $('#FormularioForm').serializeArray();
+        $.post('@Url.Action("SalvarFormulario", "SeguroAparelho")', d, function (data) {
+            window.location.href = '@Url.Action("Confirmacao", "SeguroAparelho")?seguradoEquipamentoId=' + data.seguradoEquipamentoId;
+		});*@
+    }
+
+    function SalvarEquipamentos(){
+        var model = [];
+        for (var i = 1; i <= @Model.QtdEquipamento; i++) {
+            model.push({ EquipamentoId: $('#EquipamentoId' + i).val(), SeguradoEquipamentoId: @Model.SeguradoEquipamentoId, Marca: $('#Marca' + i).val(), Modelo: $('#Modelo' + i).val(), Serie: $('#Serie' + i).val(), Preco: $('#PrecoEquip' + i).val(), NF: $('#NF' + i).val(), TipoEquipamentoId: $('#Tipo' + i).val(), Ano: $('#Ano' + i).val(), EspecificacaoTipo: $('#EspecificarTipo' + i).val() });
+        }
+
+        $.ajax({
+            url: '@Url.Action("SalvarEquipamento", "SeguroAparelho")',
+            type: 'POST',
+            data: JSON.stringify(model),
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            success: function (data) {
+                if (data == true) {
+                    SalvarFormulario();
+                }
+                else {
+                    alert("Erro ao salvar equipamento!");
+                }
+            }
+        });
+    }
+</script>
+<div class="row">
+    <div class="col-sm-12 mx-auto">
+        <div class="row">
+            <div class="rectangle" id="retangle1" style="height: 10px; width:17%; margin-left:16%; background:lightgrey;"></div>
+            <div class="rectangle" id="retangle2" style="height: 10px; width:17%; background:lightgrey;"></div>
+            <div class="rectangle" id="retangle3" style="height: 10px; width:17%; background-color:lightgrey;"></div>
+            <div class="rectangle" id="retangle4" style="height: 10px; width:17%; background-color:lightgrey;"></div>
+        </div>
+        <div class="row">
+            <div class="col-md-1 col-1"></div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="circle1" style="background-color: lightgrey; "></div>
+                <div class="mx-auto smallcircle" id="smallCircle1" style="background: white; display:none;"></div>
+            </div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="circle2" style="background-color: lightgrey;"></div>
+                <div class="mx-auto smallcircle" id="smallCircle2" style="background: white; display:none;"></div>
+            </div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="circle3" style="background-color: lightgrey;">
+                    <div style="padding-top:25px;">
+                        <div class="mx-auto smallcircle" id="smallCircle3" style="background: white; display:none;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="circle4" style=" background-color: lightgrey;"></div>
+                <div class="mx-auto smallcircle" id="smallCircle4" style="background: white; display:none;"></div>
+            </div>
+            <div class="col-md-2 col-2">
+                <div class="mx-auto bigcircle" id="circle5" style=" background-color: lightgrey;"></div>
+                <div class="mx-auto smallcircle" id="smallCircle5" style=" background: white; display:none;"></div>
+            </div>
+        </div>
+        <div class="row" style="margin-top:1em;">
+            <div class="col-md-1"></div>
+            <div class="col-sm-2 text-center"><label>Simulação</label></div>
+            <div class="col-sm-2 text-center"><label>Custo do Seguro</label></div>
+            <div class="col-sm-2 text-center"><strong style="color:#40615f">Proposta</strong></div>
+            <div class="col-sm-2 text-center"> <label>Contratar</label></div>
+            <div class="col-sm-2 text-center"> <label>Impressão</label></div>
+        </div>
+    </div>
+</div>
+<br />
+<script type="text/javascript">
+    $('#circle1').css("background", "#0a754e");
+    $('#circle2').css("background", "#0a754e");
+    $('#circle3').css("background", "#0a754e").addClass("shadow");
+    $('#retangle1').css("background", "#13D68F");
+    $('#retangle2').css("background", "#13D68F");
+    $('#smallCircle3').show();
+</script>
+@{ Html.RenderPartial("~/Views/Shared/_ProdutoSelecionadoEquipamento.cshtml"); }
+<br />
+<form id="FormularioForm" action="@Url.Action("Formulario", "SeguroAparelho")" method="post">
+    <input value="@Model.Referencia" name="reference" type="hidden" />
+    <input id="seguradoEquipamentoId" name="seguradoEquipamentoId" type="hidden" value="@Model.SeguradoEquipamentoId" />
+    <div class="card bg-light">
+        <div class="card-header">
+            <h4 class="amaisvet-green">Dados Cadastrais</h4>
+        </div>
+        <div class="card-body">
+            <div class="form-row">
+                <div class="form-group col-md-7">
+                    <label>Nome:</label>
+                    <input class="form-control" id="Nome" name="Nome" type="text" value="@Model.Nome" placeholder="Nome" />
+                </div>
+                <div class="form-group col-md-3">
+                    <label>CPF/CNPJ:</label>
+                    <input class="form-control _cpf" id="CPF" name="CPF" type="text" value="@Model.CPF" placeholder="CPF" />
+                </div>
+                <div class="form-group col-md-2">
+                    <label>CRMV:</label>
+                    <input class="form-control" id="CRMV" name="CRMV" type="text" value="@Model.CRMV" placeholder="CRMV" />
+                </div>
+                <div class="form-group col-md-3">
+                    <label>Data de Nascimento/Constituição:</label>
+                    <input class="form-control date" id="DataNascimento" name="DataNascimento" type="text" value="@Model.DataNascimento" placeholder="Data de Nascimento" />
+                </div>
+                <div class="col-md-2 form-group">
+                    <label>Celular:</label>
+                    <input class="form-control mobile" id="Celular" name="Celular" type="text" value="@Model.Celular" placeholder="Celular" />
+                </div>
+                <div class="col-md-2 form-group">
+                    <label>Telefone:</label>
+                    <input class="form-control phone" id="Telefone" name="Telefone" type="text" value="@Model.Telefone" placeholder="Telefone" />
+                </div>
+                <div class="col-md-5 form-group">
+                    <label>Email:</label>
+                    <input class="form-control" id="Email" name="Email" type="text" value="@Model.Email" placeholder="Email" />
+                </div>
+                <div class="col-md-2 form-group">
+                    <label>CEP:</label>
+                    <input class="form-control cep" id="CEP" name="CEP" type="text" value="@Model.CEP" placeholder="CEP" />
+                </div>
+                <div class="col-md-6 form-group">
+                    <label>Endereço:</label>
+                    <input class="form-control" id="Endereco" name="Endereco" type="text" value="@Model.Endereco" placeholder="Endereço" />
+                </div>
+                <div class="col-md-1 form-group">
+                    <label>Número:</label>
+                    <input class="form-control" id="EnderecoNumero" name="EnderecoNumero" type="text" value="@Model.EnderecoNumero" placeholder="Numero" />
+                </div>
+                <div class="col-md-3 form-group">
+                    <label>Complemento:</label>
+                    <input class="form-control" id="Complemento" name="Complemento" type="text" value="@Model.Complemento" placeholder="Complemento" />
+                </div>
+                <div class="col-md-4 form-group">
+                    <label>Bairro:</label>
+                    <input class="form-control" id="Bairro" name="Bairro" type="text" value="@Model.Bairro" placeholder="Bairro" />
+                </div>
+                <div class="col-md-5 form-group">
+                    <label>Cidade:</label>
+                    <input class="form-control" id="Cidade" name="Cidade" type="text" value="@Model.Cidade" placeholder="Cidade" />
+                </div>
+                <div class="col-md-3 form-group">
+                    <label>Estado:</label>
+                    <select class="form-control" id="Estado" name="Estado" value="@Model.Estado">
+                        <option value="">Selecione</option>
+                        @foreach (var item in GuardMedWeb.BLL.Utils.Utils.GetEstados())
+                        {
+                            <option value="@item.EstadoId">@item.Description</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br />
+    <div class="card bg-light" id="CamposEquip">
+        <div class="card-header">
+            <h4 class="amaisvet-green">Dados do(s) Aparelho(s)</h4>
+        </div>
+        <div class="card-body">
+            @foreach (var item in Model.Equipamentos)
+            {
+                <div class="form-row">
+                    <input type="hidden" id="EquipamentoId@(i)" value="@item.EquipamentoId" />
+                    <h5 class="col-md-12">Aparelho @(i)</h5>
+                    <div class="col-md-4 form-group" id="TipoCampo@(i)">
+                        <label>Tipo:</label>
+                        <select id="Tipo@(i)" class="form-control">
+                            @foreach (var tipo in (List<DAL.TipoEquipamento>)ViewData["TipoEquipamento"])
+                            {
+                                <option value="@tipo.TipoEquipamentoId">@(tipo.Nome)</option>
+                            }
+                        </select>
+                        <script type="text/javascript">
+                            $('#Tipo' + @(i)).find('[value=' + "@item.TipoEquipamentoId" + ']').attr('selected', true);
+                        </script>
+                    </div>
+                    <script type="text/javascript">
+                                $('#Tipo'+@(i)).change(function () {
+                                    if ($("#Tipo" +@(i)).val() == 8) {
+                                        $("#EspecificarTipoCampo" +@(i)).show();
+                                        $("#TipoCampo" +@(i)).removeClass("col-md-4").addClass("col-md-3");
+                                        $("#MarcaCampo" +@(i)).removeClass("col-md-4").addClass("col-md-3");
+                                        $("#ModeloCampo" +@(i)).removeClass("col-md-4").addClass("col-md-3");
+                                    }
+                                    else {
+                                        $("#EspecificarTipoCampo" +@(i)).hide();
+                                        $("#EspecificarTipo" +@(i)).val('');
+                                        $("#TipoCampo" +@(i)).removeClass("col-md-3").addClass("col-md-4");
+                                        $("#MarcaCampo" +@(i)).removeClass("col-md-3").addClass("col-md-4");
+                                        $("#ModeloCampo" +@(i)).removeClass("col-md-3").addClass("col-md-4");
+                                    }
+                                });
+                    </script>
+                    <div class="col-md-3" style="display:none;" id="EspecificarTipoCampo@(i)">
+                        <label>Especificar(Tipo):</label>
+                        <input class="form-control" id="EspecificarTipo@(i)" type="text" value="@item.EspecificacaoTipo" placeholder="Tipo" />
+                    </div>
+                    <div class="col-md-4 form-group" id="MarcaCampo@(i)">
+                        <label>Marca:</label>
+                        <input class="form-control" id="Marca@(i)" type="text" value="@item.Marca" placeholder="Marca" />
+                    </div>
+                    <div class="col-md-4 form-group" id="ModeloCampo@(i)">
+                        <label>Modelo:</label>
+                        <input class="form-control" id="Modelo@(i)" type="text" value="@item.Modelo" placeholder="Modelo" />
+                    </div>
+                    <div class="col-md-3 form-group">
+                        <a href="javascript:void(0);" class="amaisvet-green" data-toggle="tooltip" data-placement="right" title="O número de série consta na Nota Fiscal e fica gravado numa placa de alumínio ou diretamente na estrutura do aparelho."><i class="fas fa-info-circle"></i></a>&nbsp;<label>Série:</label>
+                        <input class="form-control" id="Serie@(i)" type="text" value="@item.Serie" placeholder="Série" />
+                    </div>
+                    <div class="col-md-3 form-group">
+                        <label>Preço:</label>
+                        <input class="form-control money" id="PrecoEquip@(i)" type="text" value="@item.Preco" placeholder="Preço" />
+                    </div>
+                    <div class="col-md-3 form-group">
+                        <label>Ano:</label>
+                        <input class="form-control" id="Ano@(i)" maxlength="4" type="text" value="@item.Ano" placeholder="Ano" />
+                    </div>
+                    <div class="col-md-3 form-group">
+                        <label>Possui NF:</label>
+                        <select id="NF@(i)" class="form-control">
+                            <option id="True" value="true">Sim</option>
+                            <option id="False" value="false">Não</option>
+                        </select>
+                    </div>
+                    <script type="text/javascript">
+                                $('#NF' + @(i)).find('[id=' + "@item.NF" + ']').attr('selected', true);
+                    </script>
+                </div>
+                @if (i != Model.Equipamentos.Count)
+                {
+                    <hr />
+                }
+                @if (!string.IsNullOrWhiteSpace(item.EspecificacaoTipo))
+                {
+                    <script type="text/javascript">
+                                $('#EspecificarTipoCampo' + @(i)).show();
+                                $("#TipoCampo" +@(i)).removeClass("col-md-4").addClass("col-md-3");
+                                $("#MarcaCampo" +@(i)).removeClass("col-md-4").addClass("col-md-3");
+                                $("#ModeloCampo" +@(i)).removeClass("col-md-4").addClass("col-md-3");
+                    </script>
+                }
+                i++;
+            }
+            @if (Model.Equipamentos.Count == 0)
+            {
+                for (i = 1; i <= Model.QtdEquipamento; i++)
+                {
+                    <div class="form-row">
+                        <input type="hidden" id="EquipamentoId" value="" />
+                        <h5 class="col-md-12">Aparelho @(i)</h5>
+                        <div class="col-md-4 form-group" id="TipoCampo@(i)">
+                            <label>Tipo:</label>
+                            <select id="Tipo@(i)" class="form-control">
+                                @foreach (var tipo in (List<DAL.TipoEquipamento>)ViewData["TipoEquipamento"])
+                                {
+                                    <option value="@tipo.TipoEquipamentoId">@(tipo.Nome)</option>
+                                }
+                            </select>
+                        </div>
+                        <script type="text/javascript">
+                                $('#Tipo'+@(i)).change(function () {
+                                    if ($("#Tipo" +@(i)).val() == 8) {
+                                        $("#EspecificarTipoCampo" +@(i)).show();
+                                        $("#TipoCampo" +@(i)).removeClass("col-md-4").addClass("col-md-3");
+                                        $("#MarcaCampo" +@(i)).removeClass("col-md-4").addClass("col-md-3");
+                                        $("#ModeloCampo" +@(i)).removeClass("col-md-4").addClass("col-md-3");
+                                    }
+                                    else {
+                                        $("#EspecificarTipoCampo" +@(i)).hide();
+                                        $("#TipoCampo" +@(i)).removeClass("col-md-3").addClass("col-md-4");
+                                        $("#MarcaCampo" +@(i)).removeClass("col-md-3").addClass("col-md-4");
+                                        $("#ModeloCampo" +@(i)).removeClass("col-md-3").addClass("col-md-4");
+                                    }
+                                });
+                        </script>
+                        <div class="col-md-3" style="display:none;" id="EspecificarTipoCampo@(i)">
+                            <label>Especificar(Tipo):</label>
+                            <input class="form-control" id="EspecificarTipo@(i)" type="text" placeholder="Tipo" />
+                        </div>
+                        <div class="col-md-4 form-group" id="MarcaCampo@(i)">
+                            <label>Marca:</label>
+                            <input class="form-control" id="Marca@(i)" type="text" placeholder="Marca" />
+                        </div>
+                        <div class="col-md-4 form-group" id="ModeloCampo@(i)">
+                            <label>Modelo:</label>
+                            <input class="form-control" id="Modelo@(i)" type="text" placeholder="Modelo" />
+                        </div>
+                        <div class="col-md-3 form-group">
+                            <label>Série:</label>
+                            <input class="form-control" id="Serie@(i)" type="text" placeholder="Série" />
+                        </div>
+                        <div class="col-md-3 form-group">
+                            <label>Preço:</label>
+                            <input class="form-control money" id="PrecoEquip@(i)" type="text" placeholder="Preço" />
+                        </div>
+                        <div class="col-md-3 form-group">
+                            <label>Ano:</label>
+                            <input class="form-control year" id="Ano@(i)" maxlength="4" type="text" value="" placeholder="Ano" />
+                        </div>
+                        <div class="col-md-3 form-group">
+                            <label>Possui NF:</label>
+                            <select id="NF@(i)" class="form-control">
+                                <option id="True" value="true">Sim</option>
+                                <option id="False" value="false">Não</option>
+                            </select>
+                        </div>
+                    </div>
+                    @if (i != Model.QtdEquipamento)
+                    {
+                        <hr />
+                    }
+                }
+            }
+        </div>
+        <div class="card-footer">
+            <a href="@Url.Action("Cotacao","SeguroAparelho")?reference=@Model.Referencia" class="btn btn-secondary float-left"><i class="fas fa-arrow-left"></i>&nbsp;Voltar</a>
+            <button type="button" id="FormularioSubmitButton" class="btn btn-primary float-right">Avançar&nbsp;<i class="fas fa-arrow-right"></i></button>
+        </div>
+    </div>
+</form>
+<script type="text/javascript">
+
+    $('#FormularioSubmitButton').click(function () {
+        if (ValidacaoDeCotacao()) {
+            SalvarEquipamentos();
+        }
+    });
+
+    @if (!string.IsNullOrWhiteSpace(Model.Estado))
+    {
+        <text>
+    $('#Estado').find('[value=' + "@Model.Estado" + ']').attr('selected', true);
+        </text>
+    }
+</script>
+
+
+
+<script type="text/javascript">
+    $("#CEP").blur(function () {
+
+        var cep = $(this).val().replace(/\D/g, '');
+
+        $('.CEPError').remove();
+        if (cep != "") {
+            var validacep = /^[0-9]{8}$/;
+
+            if (validacep.test(cep)) {
+
+                LimparCamposEndereco();
+
+                $.getJSON("https://viacep.com.br/ws/" + cep + "/json/?callback=?", function (dados) {
+                    if (!("erro" in dados)) {
+                        $("#Endereco").val(dados.logradouro);
+                        $("#Bairro").val(dados.bairro);
+                        $("#Cidade").val(dados.localidade);
+                        $("#Estado").val(dados.uf);
+                    } else {
+                        LimparCamposEndereco();
+                        $('#CEP').after('<div class="text-danger CEPError">CEP não encontrado.</div>');
+                    }
+                });
+            }
+            else {
+                LimparCamposEndereco();
+                $('#CEP').after('<div class="text-danger CEPError">Formato de CEP inválido.</div>');
+            }
+        }
+        else {
+            limpa_formulário_cep();
+        }
+    });
+
+    function LimparCamposEndereco() {
+        $("#Endereco").val("");
+        $("#Bairro").val("");
+        $("#Cidade").val("");
+        $("#Estado").val("");
+    }
+
+    $('#CPF').keyup(function () {
+        TrocarMascaras();
+    });
+    function TrocarMascaras() {
+        if ($('#CPF').val().length > 14 && $('#CPF').hasClass("_cpf")) {
+            $('#CPF').removeClass("_cpf").addClass("cnpj");
+        } else if ($('#CPF').val().length <= 14 && $('#CPF').hasClass("cnpj")) {
+            $('#CPF').removeClass("cnpj").addClass("_cpf");
+        }
+        _MaskData();
+    }
+    TrocarMascaras();
+</script>
+
+
+<script type="text/javascript">
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip({
+            container: 'body'
+        });
+    })
+</script>

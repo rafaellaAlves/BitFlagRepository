@@ -1,0 +1,87 @@
+﻿@inject Services.Client.ClientReportServices clientReportServices
+@inject Web.Helpers.DropDownListHelper dropDownListHelper
+@inject Services.Client.ClientServices clientServices
+
+@{
+    DTO.Client.ClientViewModel userClient = null;
+
+    @if (User.IsClient())
+    {
+        userClient = await clientServices.GetViewModelByIdAsync(await clientServices.GetClientIdByLoggedUser(Context));
+    }
+}
+
+<div class="card">
+    <div class="card-header">
+        <div class="row">
+            @if (User.IsClient())
+            {
+                <div class="col-12">
+                    <label class="text-destineja-md float-left">@userClient.Name - @userClient.AlternativeName - @userClient.DocumentFormated</label>
+                </div>
+            }
+            <div class="col-12 text-center" style="font-size: 20px !important; color: black;">
+                Relatório - Mapa de Coleta por Ano
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <form id="report-collection-map-year-filter-form">
+            @{
+                var filters = new List<ReportFilterModel>() { ReportFilterModel.StartAndEndYearFilter(null, 3) };
+
+                if (User.IsInRole("Administrator"))
+                {
+                    filters.Add(ReportFilterModel.ClientFilter(null, 3));
+                }
+
+                filters.Add(ReportFilterModel.ClientResidueFilter(userClient?.ClientId, 4));
+
+                @(await Component.InvokeAsync<Web.ViewComponents.Report.Filter.FilterViewComponent>(filters))
+            }
+
+        </form>
+        <hr />
+        <div class="w-100" id="report-collection-map-year-view-component">
+            @(await Component.InvokeAsync<Web.ViewComponents.Report.CollectionYearMap.IndexViewComponent>())
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+
+    <script src="@Url.Content("~/assets/js/report.js")"></script>
+    <script asp-paste-key="report-client-residue"></script>
+    <script asp-paste-key="client-collection-year"></script>
+    <script asp-paste-key="report-filter-client"></script>
+
+    <script type="text/javascript">
+        function reloadByFilter() {
+            if (!validateInputs('report-collection-map-year-filter-form') || !validateStartAndEndYear()) return;
+
+            $('#report-collection-map-year-view-component').load('@Url.Action("LoadCollectionYearMapViewComponent")', $('#report-collection-map-year-filter-form').serializeArray());
+        }
+
+        $('#report-collection-map-year-filter-form [name="ClientId"]').change(function () {
+            var residueFamilyInput = $('#report-collection-map-year-filter-form [name="ResidueFamilyId"]');
+            var residueInput = $('#report-collection-map-year-filter-form [name="ResidueIds"]');
+
+            $(residueFamilyInput).empty();
+            $(residueInput).empty();
+
+            clearResidues();
+
+            $(residueFamilyInput).append(new Option('Familía do Resíduo', '', false, false));
+
+            //if (isNullOrWhiteSpace($(this).val())) return;
+
+            $.post('@Url.Action("GetClientReportAvailableResidueFamilies")', { clientId: $(this).val() }, function (d) {
+                $.each(d, function (i, e) {
+                    $(residueFamilyInput).append($('<option>', { value: e.residueFamilyId, 'data-name': e.name }).append(e.name));
+                });
+
+                clearResidues();
+            });
+        }).change();
+    </script>
+}

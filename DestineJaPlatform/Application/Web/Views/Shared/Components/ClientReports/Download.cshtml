@@ -1,0 +1,95 @@
+﻿@model DTO.Shared.EntityViewMode<List<DTO.Client.Report.ClientReportDownloadViewModel>>
+
+<style type="text/css">
+	#download-report-table td, #download-report-table th {
+		text-align: center;
+	}
+</style>
+
+<div class="row">
+	<div class="col table-responsive">
+		<table class="table table-condensed table-striped tablesizeline" id="download-report-table">
+			<thead>
+				<tr>
+					<td>Data de Coleta</td>
+					<td>MTR de Coleta&nbsp;<a href="javascript:void(0)" class="simple-icon-info" data-toggle="popover" data-popover-color="default" data-placement="top" title="INFORMAÇÃO" data-html="true" data-content="Manifesto de Transporte de Resíduos para a Coleta."></a></td>
+					<td>Certificado de Coleta&nbsp;<a href="javascript:void(0)" class="simple-icon-info" data-toggle="popover" data-popover-color="default" data-placement="top" title="INFORMAÇÃO" data-html="true" data-content="Certificado emitido após a pesagem dos resíduos coletados."></a></td>
+					<td>Dados da Destinação&nbsp;<a href="javascript:void(0)" class="simple-icon-info" data-toggle="popover" data-popover-color="default" data-placement="top" title="INFORMAÇÃO" data-html="true" data-content="Dados do destino final do resíduo."></a></td>
+					<td>Transportador&nbsp;<a href="javascript:void(0)" class="simple-icon-info" data-toggle="popover" data-popover-color="default" data-placement="top" title="INFORMAÇÃO" data-html="true" data-content="Visualize as licenças do transportador que realizou a sua coleta."></a></td>
+				</tr>
+			</thead>
+			<tbody>
+				@{
+					int i = 0;
+					foreach (var item in Model.Model)
+					{
+						<tr class="@(i % 2 == 0 ? "tr-pair" : "tr-odd")">
+							<td>@item._VisitedDate</td>
+							<td>@item.DestineJaDemandId @(!string.IsNullOrWhiteSpace(item.MTRFileGuidName) ? Html.Raw($"<a href=\"{Url.Action("GetMTRFile", "Demand", new { id = item.DemandClientId })}\" target=\"_blank\" class=\"badge badge-pill badge-primary ml-2\">Visualizar/Baixar</a>") : (object)"")</td>
+                            <td>
+                                @item.DestineJaCertificateId.IfNullChange("-")
+                                @if (!string.IsNullOrWhiteSpace(item.DestineJaCertificateId))
+                                {
+                                    <a href="@Url.Action("Certificate", "Demand" , new { id = item.DemandClientId })" target="_blank" class="badge badge-pill badge-primary ml-2">Visualizar/Baixar</a>
+                                }
+                            </td>
+							<td>@(!string.IsNullOrWhiteSpace(item.DestineJaCertificateId) ? Html.Raw($"<a href=\"javascript:openDestinationModal({item.DemandId})\" class=\"badge badge-pill badge-destineja-orange\">Visualizar / Baixar dados da Destinação</a>") : (object)"")</td>
+							<td><a href="javascript:openTransporterModal(@item.DemandId)" class="badge badge-pill badge-destineja-orange">Visualizar / Baixar Licenças</a></td>
+						</tr>
+						i++;
+					}
+				}
+			</tbody>
+		</table>
+	</div>
+</div>
+
+<div class="modal fade" id="destination-modal" tabindex="-1" role="dialog" aria-labelledby="destination-modal-title" aria-hidden="true">
+	<div class="modal-dialog modal-lg" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="destination-modal-title">Dados da destinação referente à coleta</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<div id="download-destination-view-component"></div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="icon simple-icon-close"></i> Fechar</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="transporter-modal" tabindex="-1" role="dialog" aria-labelledby="transporter-modal-title" aria-hidden="true">
+	<div class="modal-dialog modal-lg" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="transporter-modal-title">Informações das documentações ambientais do transportador</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				<div id="download-transporter-view-component"></div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="icon simple-icon-close"></i> Fechar</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript" asp-cut-key="download">
+	function openDestinationModal(demandId) {
+		$('#download-destination-view-component').load('@Url.Action("LoadClientResidueDownloadDestinationViewComponent", "Client")', { demandId });
+		$('#destination-modal').modal('show');
+	}
+
+	function openTransporterModal(demandId) {
+		$('#download-transporter-view-component').load('@Url.Action("LoadClientResidueDownloadTransporterViewComponent", "Client")', { demandId });
+		$('#transporter-modal').modal('show');
+	}
+</script>

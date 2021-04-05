@@ -1,0 +1,140 @@
+﻿@model int
+
+@inject Web.Helpers.DropDownListHelper dropDownListHelper
+@inject Services.Residue.ResidueFamilyServices residueFamilyServices
+@inject Services.Residue.ResidueServices residueServices
+
+<div class="row">
+    <div class="col-md form-group">
+        <div class="input-group">
+            <div class="input-group-addon">
+                <i class="simple-icon-magnifier"></i>
+            </div>
+            <input type="text" class="form-control" id="residue-price-index-search" placeholder="Pesquisar..." data-toggle="search-datatable" data-target="#residue-price-index-table">
+        </div>
+    </div>
+    <div class="col-md-auto col form-group">
+        <a href="javascript:openResiduePriceEditModal()" class="btn btn-primary float-right text-nowrap w-100"><i class="simple-icon-plus"></i>&nbsp;Adicionar</a>
+    </div>
+</div>
+<hr />
+<div id="success-area-residue-price"></div>
+<div class="row">
+    <div class="col-md-12 table-responsive">
+        <table id="residue-price-index-table" class="display table table-striped table-bordered table-condensed w-100" style="border-collapse: collapse !important;">
+            <thead>
+                <tr>
+                    <th>Código ONU</th>
+                    <th>Nome da Famíla</th>
+                    <th>Unidade de Medida</th>
+                    <th>Preço</th>
+                    <th>&nbsp;</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="residue-price-index-modal" tabindex="-1" role="dialog" aria-labelledby="residue-price-index-modal-title" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title tx-14 mg-b-0 tx-uppercase tx-inverse tx-bold" id="residue-price-index-modal-title"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @(await Component.InvokeAsync("ResiduePriceManage", new { recipientId = Model }))
+            </div>
+            <div class="modal-footer">
+                <div class="col-md-6">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="simple-icon-close"></i>&nbsp;Fechar</button>
+                </div>
+                <div class="col-md-6">
+                    <button type="button" class="btn btn-success float-right" id="residue-price-index-modal-save-button"><i class="simple-icon-cloud-upload"></i>&nbsp;Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script asp-cut-key="residue-price-index">
+    var residuePriceDatatables;
+    $(document).ready(function () {
+        residuePriceDatatables = $('#residue-price-index-table').DataTable({
+            serverSide: false,
+            proccessing: true,
+            searching: true,
+            lengthChange: false,
+            dom: 'tip',
+            ajax: {
+                url: '@Url.Action("List", "ResiduePrice")',
+                data: function (d) {
+                    d.recipientId = '@Model'
+                },
+                type: 'POST'
+            },
+            columns: [
+                { render: function (data, type, row) { return isNull(row.onuCode, '-'); } },
+                { render: function (data, type, row) { return isNull(row.residueFamilyName, '-'); } },
+                { render: function (data, type, row) { return isNull(row.unitOfMeansurementName, '-'); } },
+                { render: function (data, type, row) { return isNull(row._Price, '-'); } },
+               {
+                    render: function (data, type, row)
+                    {
+                        return '<div class="text-center text-nowrap">' +
+                            '&nbsp;<a href=\'javascript:openResiduePriceEditModal(' + JSON.stringify(row) + ')\' title="Editar"><span class="badge badge-pill badge-success"><i class="simple-icon-note"></i></span></a>' +
+                            '&nbsp;<a href=\'javascript:removeResiduePrice(' + JSON.stringify(row) + ')\' title="Excluir"><span class="badge badge-pill badge-danger"><i class="simple-icon-trash"></i></span></a>' +
+                            '</div>';
+                    }
+                }
+            ]
+        });
+    });
+
+    function removeResiduePrice(residuePrice) {
+        bootboxConfirm("Deseja realmente excluir este preço do resíduo \"" + residuePrice.residueName + "\"?", function(result){
+            if (!result) return;
+
+            $.post('@Url.Action("DeleteDefinitively", "ResiduePrice")', { id: residuePrice.residuePriceId }, function () {
+
+                bootbox.alert("Preço do resíduo \"" + residuePrice.residueName + "\" excluído com sucesso!");
+                residuePriceDatatables.ajax.reload();
+            });
+        });
+    }
+
+    function openResiduePriceEditModal(data) {
+        $('#residue-price-manage-form [name=\'ResiduePriceId\']').val(data == null ? '' : data.residuePriceId);
+        $('#residue-price-manage-form [name=\'ResidueFamilyId\']').val(data == null ? $('#residue-price-manage-form [name=\'ResidueFamilyId\'] option:first').val() : data.residueFamilyId);
+        $('#residue-price-manage-form [name=\'ResidueId\']').val(data == null ? '' : data.residueId);
+        $('#residue-price-manage-form [name=\'ResidueId\']').data('value', data == null ? '' : data.residueId);
+        $('#residue-price-manage-form [name=\'UnitOfMeasurementId\']').val(data == null ? $('#residue-price-manage-form [name=\'UnitOfMeasurementId\'] option:first').val() : data.unitOfMeasurementId);
+        $('#residue-price-manage-form [name=\'_Price\']').val(data == null ? '' : data._Price);
+
+        $('#residue-price-index-modal-title').text(data == null ? 'Novo Preço' : 'Editar Preço');
+
+        $('#residue-price-index-modal').modal('show');
+        InitializeFunctions();
+        loadResidues();
+    }
+
+    $('#residue-price-index-modal-save-button').click(function () {
+   
+        saveResiduePrice(function (d) {
+            if (!d.success) {
+                $('#residue-price-index-modal').modal('hide');
+                bootbox.alert(d.message);
+                return;
+            }
+
+            residuePriceDatatables.ajax.reload();
+            residuePriceDatatables.search($('#residue-price-index-search').val()).draw();
+
+            $('#success-area-residue-price').empty().append(successMessage());
+            $('#residue-price-index-modal').modal('hide');
+        });
+    });
+</script>

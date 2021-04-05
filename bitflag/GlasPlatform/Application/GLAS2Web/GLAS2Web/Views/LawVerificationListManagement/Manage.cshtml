@@ -1,0 +1,181 @@
+﻿@model DTO.Law.LawVerificationListViewModel
+@{
+    ViewData["Title"] = "Obrigações do Requisito Legal";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{ Html.RenderPartial("~/Views/Shared/_TopMessages.cshtml"); }
+
+<form action="@Url.Action("Manage", "LawVerificationListManagement")" method="post">
+    <div class="card shadow">
+        <div class="card-header">
+            Obrigações do Requisito Legal - <b>@Model.Description</b>
+        </div>
+        <div class="card-body">
+            <input type="hidden" id="LawVerificationListId" name="LawVerificationListId" value="@Model.LawVerificationListId" />
+            <input type="hidden" id="LawId" name="LawId" value="@Model.LawId" />
+            <table id="tableVerificationListItems" class="datatable table table-sm table-bordered table-striped" style="border-collapse: collapse !important; width: 100%;">
+                <thead>
+                    <tr>
+                        <th style="white-space: nowrap">Referência</th>
+                        <th style="width: 100%;">Descrição</th>
+                        <th style="white-space: nowrap">&nbsp;</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="card-footer">
+			<div class="row">
+				<div class="col-md-4">
+					<a href="@Url.Action("Index", "LawManagement", new { useFilter = true, page = Context.Request.Query["page"],  row = Context.Request.Query["row"] })" class="btn btn-secondary"><i class="fa fa-arrow-left"></i>&nbsp;Voltar</a>
+				</div>
+				<div class="col-md-4 text-center">
+					<button id="Print" type="button" class="btn btn-primary"><i class="fas fa-print"></i>&nbsp;Imprimir</button>
+					<script type="text/javascript">
+						$('#Print').click(function () {
+							window.open('@Url.Action("Print", "LawVerificationListManagement", new { id = Model.LawVerificationListId })', '_blank');
+						});
+					</script>
+				</div>
+				<div class="col-md-4 text-right">
+					<button id="addVerificationListItemModalButton" type="button" class="btn btn-success"><i class="fa fa-plus"></i>&nbsp;Nova Obrigação</button>
+					<script type="text/javascript">
+						$('#addVerificationListItemModalButton').click(function () {
+							$('#LawVerificationListItemId').val('');
+							$('#ItemReference').val('');
+							$('#ItemDescription').val('');
+							$('#addVerificationListItemModal').modal('show');
+						});
+					</script>
+				</div>
+			</div>
+        </div>
+    </div>
+</form>
+<script type="text/javascript">
+    var datatables = $('#tableVerificationListItems').DataTable({
+        proccessing: true
+        , serverSide: true
+        , searching: true
+        , lengthChange: false
+        , dom: 'tip'
+        , ajax: {
+            url: '@Url.Action("Items", "LawVerificationListManagement")'
+            , type: 'POST'
+            , data: {
+                id: '@Model.LawVerificationListId'
+            }
+        }
+        , columnDefs: [{
+            targets: [0],
+            orderData: [3, 0]
+        }]
+        , columns: [
+            { data: 'Reference' }
+            , { data: 'Description' }
+            , {
+                data: null
+                , sortable: false
+                , searchable: false
+                , render: function (data, type, row) {
+                    return '<div class="text-center" style="white-space: nowrap;"><a href="javascript: EditLawVerificationListItem(' + data.LawVerificationListItemId + ')">Editar</a> | <a href="javascript: DeleteLawVerificationListItem(' + data.LawVerificationListItemId + ')">Excluir</a></div>';
+                }
+            }
+            , { visible: false, data: 'ReferneceOrdering' }
+        ]
+    });
+    function EditLawVerificationListItem(_id) {
+        $.ajax({
+            url: '@Url.Action("Get", "LawVerificationListItemManagement")',
+            type: 'POST',
+            data: { id: _id },
+            dataType: 'json',
+            success: function (data) {
+                $('#LawVerificationListItemId').val(data.LawVerificationListItemId);
+                $('#ItemReference').val(data.Reference);
+                $('#ItemDescription').val(data.Description);
+                $('#addVerificationListItemModal').modal('show');
+            }
+        });
+    }
+        function DeleteLawVerificationListItem(_id) {
+        $.ajax({
+            url: '@Url.Action("Delete", "LawVerificationListItemManagement")',
+            type: 'POST',
+            data: { id: _id },
+            dataType: 'json',
+            success: function (data) {
+                $('#tableVerificationListItems').DataTable().ajax.reload();
+            }
+        });
+    }
+</script>
+
+<div class="modal fade" id="addVerificationListItemModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title">Novo Obrigação do Requisito Legal</span>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="alertFormModal" class="alert alert-warning fade show" role="alert" style="display: none;">
+                    <strong>Atenção!</strong> Por favor, preencha todos os campos.
+                </div>
+                <input type="hidden" id="LawVerificationListItemId" name="LawVerificationListItemId" />
+                <div class="row">
+                    <div class="form-group col-md-12">
+                        <label class="control-label" for="ItemReference">Referência</label>
+                        <input type="text" class="form-control" id="ItemReference" name="ItemReference" value="" placeholder="Referência" maxlength="120">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group col-md-12">
+                        <label class="control-label" for="ItemDescription">Descrição</label>
+                        <textarea class="form-control" id="ItemDescription" name="ItemDescription" placeholder="Descrição"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="col-md-6">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-times"></i>&nbsp;Fechar</button>
+                </div>
+                <div class="col-md-6 text-right">
+                    <button id="addLawVerificationListItem" type="button" class="btn btn-success" data-dismiss="modal"><i class="fa fa-plus"></i>&nbsp;Adicionar</button>
+                    <script type="text/javascript">
+                            $('#addLawVerificationListItem').click(function () {
+
+                                if (!$('#ItemReference').val() || !$('#ItemDescription').val())
+                                {
+                                    $('#alertFormModal').show();
+                                    return false;
+                                }
+
+                                var d = { LawVerificationListId: $('#LawVerificationListId').val(), LawVerificationListItemId: $('#LawVerificationListItemId').val(), Reference: $('#ItemReference').val(), Description: $('#ItemDescription').val() };
+
+                                $.ajax({
+                                    url: '@Url.Action("Manage", "LawVerificationListItemManagement")',
+                                    type: 'POST',
+                                    data: d,
+                                    dataType: 'json',
+                                    success: function (data) {
+                                        $('#tableVerificationListItems').DataTable().ajax.reload();
+                                    }
+                                });
+                            });
+                    </script>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+     $('#addVerificationListItemModal').on('hidden.bs.modal', function () {
+        $('#LawVerificationListItemId').val('');
+        $('#ItemReference').val('');
+        $('#ItemDescription').val('');
+        $('#alertFormModal').hide();
+    });
+</script>

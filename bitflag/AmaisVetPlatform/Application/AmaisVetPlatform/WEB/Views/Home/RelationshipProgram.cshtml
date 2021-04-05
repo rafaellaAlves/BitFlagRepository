@@ -1,0 +1,64 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Programa de Descontos";
+}
+@section Styles {
+    <style type="text/css">
+        #menu {
+            background-image: url('@Url.Content("~/assets/image/home-background-cover.jpeg")');
+            background-repeat: no-repeat;
+            background-size: cover;
+            min-height: 100%;
+        }
+
+    </style>
+}
+<div class="row">
+    <div class="col-md-6">
+        <div id="menu" class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12 text-center">
+                        @*@{
+            if (Model.Type == 1)
+            {
+                @await Html.PartialAsync("../Shared/_LayoutMenuAdmin.cshtml");
+            }
+            else if (Model.Type == 2)
+            {
+                @await Html.PartialAsync("../Shared/_LayoutMenuSaller.cshtml");
+            }
+            else
+            {
+                @await Html.PartialAsync("../Shared/_LayoutMenuHome.cshtml");
+            }
+        }*@
+                        @await Html.PartialAsync("../Shared/_LayoutMenuHome.cshtml");
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6"  style="min-height: 100%;">
+        <div class="row">
+            <div class="col-12">
+                <div class="mb-2">
+                    <h2>
+                        Olá Dr(a), esse programa de relacionamento possibilita descontos na sua assinatura AmaisVet.
+                    </h2>
+                </div>
+                <hr />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12 text-center">
+                <br />
+                <h6>Leia as Regras antes de começar.     <a href="@Url.Action("Rules", "RelationshipProgram")"><span><i class="fas fa-file-contract fa-2x"></i></span></a></h6>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+}

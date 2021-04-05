@@ -1,0 +1,121 @@
+﻿@{
+    ViewData["Title"] = "Questionário";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@if (Context.Request.Query.ContainsKey("deleted"))
+{
+    <div class="alert alert-primary alert-dismissible fade show" role="alert">
+        A pergunta foi removida com sucesso!
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+}
+@if (Context.Request.Query.ContainsKey("saved") && Context.Request.Query["saved"].ToString().ToLower() == "true")
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        A pergunta foi salva com sucesso!
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+}
+
+
+@if (Context.Request.Query.ContainsKey("alreadyUsed"))
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        Não é possível alterar a pergunta por que ele já foi utilizada em um questionário.
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+}
+
+@if (Context.Request.Query.ContainsKey("deleted") || Context.Request.Query.ContainsKey("saved") || Context.Request.Query.ContainsKey("alreadyUsed"))
+{
+    <script type="text/javascript">
+        setTimeout(function () {
+            $('.alert.fade').alert('close');
+        }, 3000);
+    </script>
+}
+
+<div class="card shadow">
+    <div class="card-header">
+        Questionário
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="input-group">
+                    <span class="input-group-addon"><i class="fa fa-search"></i></span>
+                    <input id="search" type="text" class="form-control" placeholder="Procurar..." data-toggle="search-datatable" data-target="#question-table" />
+                    <span class="input-group-btn">
+                        <button type="button" id="question-index-new-button" class="btn btn-success pull-right"><i class="fa fa-plus"></i>&nbsp;Nova Pergunta</button>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <hr />
+        @(await Component.InvokeAsync<GLAS2Web.ViewComponents.Question.QuestionIndexViewComponent>())
+    </div>
+    <div class="card-footer">
+        <button id="question-index-save-button" class="btn btn-success float-right"><i class="fa fa-upload"></i> Salvar</button>
+    </div>
+</div>
+
+<div class="modal fade" id="question-index-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="question-index-modal-title"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="question-manage-view-component"></div>
+            </div>
+            <div class="modal-footer">
+                <div class="row">
+                    <div class="col-md-6 float-left">
+                        <button type="button" aria-label="Close" class="btn btn-secondary" data-dismiss="modal"><i class="fa fa-times"></i>&nbsp;Fechar</button>
+                    </div>
+                    <div class="col-md-6">
+                        <button type="button" class="btn btn-success" id="question-index-modal-save-button"><i class="fa fa-upload"></i>&nbsp;Salvar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $('#question-index-new-button').click(openQuestionModal);
+
+    function openQuestionModal(questionId) {
+        saveQuestionOrder(function () {
+            $('#question-index-modal-title').text(questionId != null ? 'Editar Pergunta' : 'Criar Pergunta');
+
+            try {
+                $('#question-manage-view-component').load('@Url.Action("LoadQuestionManageViewComponent", "Question")', { questionId }, function () {
+                    $('#question-index-modal').modal('show');
+                });
+            } catch{}
+        });
+    }
+
+    $('#question-index-modal-save-button').click(function () {
+        typeof questionSave == 'function' && questionSave();
+    });
+
+    $('#question-index-save-button').click(function () {
+          saveQuestionOrder(function () {
+              alert('Perguntas salvas com sucesso!');
+        });
+    });
+
+    $(document).ready(initSearchDataTable);
+</script>

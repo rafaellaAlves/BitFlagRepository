@@ -1,0 +1,66 @@
+﻿@model int
+@{
+    Layout = "~/Views/Shared/_LayoutClean.cshtml";
+}
+
+<style type="text/css">
+    @@media print {
+        .no-print {
+            display: none;
+        }
+
+        .break-page {
+            page-break-after: always;
+        }
+    }
+
+    .table-b, .table-b td {
+        border: 1px solid #dee2e6;
+    }
+
+    .bb-0 {
+        border-bottom: 0 !important;
+    }
+
+    .bt-0 {
+        border-top: 0 !important;
+    }
+
+    main {
+        -webkit-print-color-adjust: exact;
+    }
+
+    .dark-bg {
+        background: #696969;
+        color: white;
+    }
+
+    .green-bg {
+        background: #00aa9e;
+        color: white;
+        font-weight: bold;
+    }
+
+    td {
+        padding-left: 10px;
+    }
+</style>
+
+<div class="w-100 no-print mb-3" style=" margin-top: 3em;">
+    <a href="@Url.Action("Manage", "DemandDestination", new { id = Model })" class="btn btn-secondary"><i class="simple-icon-arrow-left"></i>&nbsp;Voltar</a>
+    <a href="javascript:window.print();" class="btn btn-primary float-right"><i class="simple-icon-printer"></i>&nbsp;Imprimir</a>
+</div>
+@for (var i = 1; i <= 3; i++)
+{
+    @(await Component.InvokeAsync<Web.ViewComponents.DemandDestination.DemandDestinationMTRFileViewComponent>(new { demandDestinationId = Model, via = i }))
+    <div class="break-page"></div>
+    <div class="w-100 no-print mb-3"></div>
+}
+
+@section Scripts{
+    <script type="text/javascript">
+        $(document).ready(function () {
+            window.print();
+        });
+    </script>
+}

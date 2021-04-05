@@ -1,0 +1,45 @@
+﻿@model DTO.FreezedFamily.FreezedFamilyViewModel
+
+@{
+    int applicantFamilyStructureId = (int)ViewBag.ApplicantFamilyStructureId;
+}
+
+<form method="post" id="FamilyFreezeForm">
+    <div class="row">
+        <div class="col-md-12">
+
+            <table class="display table table-striped table-bordered table-condensed" style="border-collapse: collapse !important; width:100%;">
+                <thead>
+                    <tr>
+                        <th>Parentesco</th>
+                        <th>Nome</th>
+                        <th>Local</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.FreezedFamilyItemViewModel.OrderByDescending(x => x.FamilyStructureId))
+                    {
+                        <tr>
+                            <td>@item.FamilyStructureDescription</td>
+                            <td>@item.FullName</td>
+                            @if (item.FamilyStructureId == applicantFamilyStructureId) //Caso seja requerente mostra apenas o e-mail
+                            {
+                                <td>
+                                    <div class="row"><div class="col-sm-4 text-right"><b>E-mail: </b></div><div class="col-sm-8">@item.Email</div></div>
+                                </td>
+                            }
+                            else
+                            {
+                                <td>
+                                    <div class="row"><div class="col-sm-4 text-right"><b>Nascimento: </b></div><div class="col-sm-8">@item.BirthPlace @(item.BirthDate.HasValue ? "em " + item._BirthDate : "")</div></div>
+                                    <div class="row"><div class="col-sm-4 text-right"><b>Casamento: </b></div><div class="col-sm-8">@item.MarriagePlace @(item.MarriageDate.HasValue ? "em " + item._MarriageDate : "")</div></div>
+                                    <div class="row"><div class="col-sm-4 text-right"><b>Óbito: </b></div><div class="col-sm-8">@item.DeathPlace @(item.DeathDate.HasValue ? "em " + item._DeathDate : "")</div></div>
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</form>

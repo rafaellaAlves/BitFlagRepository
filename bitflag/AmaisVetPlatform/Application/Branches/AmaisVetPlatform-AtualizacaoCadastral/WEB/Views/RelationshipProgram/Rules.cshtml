@@ -1,0 +1,86 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["title"] = "Page Rules";
+}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card p-3">
+            <div class="card-body">
+                <div class="row">
+                    <div class="mb-2">
+                        <h2>
+                            Regras Gerais do Programa de Relacionamento
+                            <br />
+                        </h2>
+                        <p>
+
+                            1- O veterinário que aderiu ao programa deve avisar o veterinário indicado que receberá o contato da AmaisVet para apresentar os Planos e sanar eventuais dúvidas.<br />
+                            2- Desconto máximo de 30% no valor da assinatura mensal.<br />
+                            3- Desconto não acumulativo, ou seja, não será aplicado um novo desconto enquanto houver um desconto vigente.<br />
+                            4- Após a confirmação da adesão do veterinário indicado de um dos nossos Planos, o desconto será aplicado automaticamente no mês subsequente ao mês da adesão.<br />
+                            5- Prazo máximo de desconto é de 3 meses.<br />
+                        </p>
+
+
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="mb-2">
+                        <h2>
+                            Regras do desconto:
+                            <br />
+                        </h2>
+                        <p>
+                            1- A aplicação do desconto seguirá os seguintes critérios abaixo:.<br /><br />
+                            * Será 15% de desconto para a primeira indicação desde que a contratação se dentro do mês de indicação;<br /><br />
+                            * Será aplicado +15% de desconto para a segunda indicação desde que a contratação se de sumultaneamente a primeira, ou dentro do mês da indicação.<br /><br />
+                        </p>
+                        <strong>
+                            Exemplo: <br />
+                        </strong>
+                        <p>
+                            1ª indicação foi no dia 19/01/2021, e a contratação se deu em 20/01/2021 - desconto será de 15% a partir de 01/02/2021.<br /><br />
+                            2ª indicação foi no dia 19/01/2021, e a contratação se deu em 29/07/2021 - como a contratação ocorreu dentro do mês de contratação da primeira indicação, será concedido +15% totalizando 30% de desconto que será aplicado a partir de 01/02/2021.<br />
+                        </p>
+
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="mb-2">
+                        <h2>
+                            Regras para aderir ao Programa de Relacionamento e perda de Direito ao desconto
+                            <br />
+                        </h2>
+                        <p>
+                            1- Somente poderão aderir ao programa os veterinários que estiverem em adimplentes com a assinatura.<br /><br />
+                            2- Perda de Direito ao desconto: <br />
+                            a- Assinatura mensal em atraso do veterinário indicador<br />
+                            b- Assinatura mensal em atrado do veterinário indicado<br />
+                            c- Cancelamento da assinatura do veterinário indicado
+                        </p>
+                    </div>
+                </div>
+                <hr />
+                <div class="row">
+                    <div class="col-12 text-left">
+                        <div class="form-check">
+                            <input type="radio" class="form-check-input" id="AcceptRule" name="AcceptRule">
+                            <label class="form-check-label" for="AcceptRule">Li e aceito.</label>
+                        </div>
+                    </div> 
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("#AcceptRule").click(function () {
+                window.location.href = "https://localhost:44399/RelationshipProgram/IndicationVet"
+            });
+
+        });
+    </script>
+}

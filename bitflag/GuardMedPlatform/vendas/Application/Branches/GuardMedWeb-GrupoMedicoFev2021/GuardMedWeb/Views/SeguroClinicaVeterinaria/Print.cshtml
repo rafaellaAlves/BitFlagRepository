@@ -1,0 +1,112 @@
+﻿@model GuardMedWeb.Models.SeguradoClinicaVeterinariaViewModel
+<div class="form-row">
+    <div class="col-md-6 form-group">
+        <h6 class="pessoaJuridica">Razão Social:</h6>
+        <p class="form-control pessoaJuridica" id="RazaoSocial"></p>
+        <h6 class="pessoaFisica">Nome:</h6>
+        <p class="form-control pessoaFisica" id="_Nome"></p>
+    </div>
+    <div class="col-md-2 form-group">
+        <h6 class="pessoaJuridica">CNPJ:</h6>
+        <p class="form-control pessoaJuridica" id="_CNPJ"></p>
+        <h6 class="pessoaFisica">CPF:</h6>
+        <p class="form-control pessoaFisica" id="_CPF"></p>
+    </div>
+    <div class="col-md-4 form-group">
+        <h6>E-mail:</h6>
+        <p class="form-control" id="_Email"></p>
+    </div>
+    <div class="col-md-2 form-group">
+        <h6>Telefone:</h6>
+        <p class="form-control" id="_Telefone"></p>
+    </div>
+    <div class="col-md-2 form-group">
+        <h6>CEP:</h6>
+        <p class="form-control" id="_CEP"></p>
+    </div>
+    <div class="col-md-6 form-group">
+        <h6>Endereço:</h6>
+        <p class="form-control" id="_Endereco"></p>
+    </div>
+    <div class="col-md-2 form-group">
+        <h6>Número:</h6>
+        <p class="form-control" id="_EnderecoNumero"></p>
+    </div>
+    <div class="col-md-2 form-group">
+        <h6>Complemento:</h6>
+        <p class="form-control" id="_Complemento"></p>
+    </div>
+    <div class="col-md-4 form-group">
+        <h6>Bairro</h6>
+        <p class="form-control" id="_Bairro"></p>
+    </div>
+    <div class="col-md-3 form-group">
+        <h6>Cidade</h6>
+        <p class="form-control" id="_Cidade"></p>
+    </div>
+    <div class="col-md-3 form-group">
+        <h6>Estado</h6>
+        <p class="form-control" id="_Estado"></p>
+    </div>
+</div>
+<hr />
+<div class="form-row">
+    <div class="col-md-6 form-group">
+        <label>Nome do Gerente Financeiro:</label>
+        <p class="form-control" id="_NomeGerenteFinanceiro"></p>
+    </div>
+    <div class="col-md-6 form-group">
+        <label>Nome do Responsável Técnico:</label>
+        <p class="form-control" id="_NomeResponsavelTecnico"></p>
+    </div>
+    <div class="form-group col-md-3">
+        <label>CPF do Técnico:</label>
+        <p class="form-control" id="_CPFTecnico"></p>
+    </div>
+    <div class="form-group col-md-3">
+        <label>CRMV do Técnico:</label>
+        <p class="form-control" id="_CRMVTecnico"></p>
+    </div>
+    <div class="form-group col-md-3">
+        <label>Estado do CRMV:</label>
+        <p class="form-control" id="_CRMVEstado"></p>
+    </div>
+    <div class="col-md-3 form-group">
+        <label>Data de Nascimento do Técnico:</label>
+        <p class="form-control date" id="_DataNascimentoTecnico"></p>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    $('#_Nome').text('@Model.NomeContato');
+    $('#_CPF').text('@Model.CPF');
+    $('#_RazaoSocial').text('@Model.RazaoSocial');
+    $('#_CNPJ').text('@Model.CNPJ');
+    $('#_CEP').text('@Model.CEP');
+    $('#_Estado').text('@Model.Estado');
+    $('#_Cidade').text('@Model.Cidade');
+    $('#_Bairro').text('@Model.Bairro');
+    $('#_Endereco').text('@Model.Endereco');
+    $('#_EnderecoNumero').text('@Model.EnderecoNumero');
+    $('#_Complemento').text('@Model.Complemento');
+    $('#_Email').text('@Model.Email');
+    $('#_Telefone').text('@Model.Telefone');
+    $('#_NomeGerenteFinanceiro').text('@Model.NomeGerenteFinanceiro');
+    $('#_NomeResponsavelTecnico').text('@Model.NomeResponsavelTecnico');
+    $('#_CPFTecnico').text('@Model.CPFTecnico');
+    $('#_CRMVTecnico').text('@Model.CRMVTecnico');
+    $('#_CRMVEstado').text('@Model.CRMVEstado');
+    $('#_DataNascimentoTecnico').text('@Model.DataNascimentoTecnico');
+
+    @if (!string.IsNullOrWhiteSpace(Model.CPF)) {
+        <text>
+            $('.pessoaJuridica').hide();
+        </text>
+    } else if (!string.IsNullOrWhiteSpace(Model.CNPJ)) {
+        <text>
+            $('.pessoaFisica').hide();
+        </text>
+    }
+
+</script>
